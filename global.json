@@ -1,0 +1,3 @@
+{
+  "projects": [ "NTumbleBit", "NTumbleBit.Common", "NTumbleBit.TumblerServer", "Breeze.BreezeD", "Breeze.BreezeD.Tests" ]
+}
