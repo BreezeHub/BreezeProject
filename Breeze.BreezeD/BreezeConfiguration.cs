@@ -38,8 +38,8 @@ namespace Breeze.BreezeD
 
         public BreezeConfiguration(string configPath)
         {
-            //try
-            //{
+            try
+            {
                 if (!File.Exists(configPath))
                 {
                     StringBuilder builder = new StringBuilder();
@@ -60,6 +60,9 @@ namespace Breeze.BreezeD
                     builder.AppendLine("#tumbler.ecdsakeyaddress=");
 
                     File.WriteAllText(configPath, builder.ToString());
+
+                    Console.WriteLine("*** Default blank configuration file created, please set configuration values and restart ***");
+                    Environment.Exit(0);
                 }
 
                 var configFile = TextFileConfiguration.Parse(File.ReadAllText(configPath));
@@ -81,11 +84,12 @@ namespace Breeze.BreezeD
 
                 TxOutputValueSetting = new Money(configFile.GetOrDefault<int>("breeze.regtxoutputvalue", 1000), MoneyUnit.Satoshi);
                 TxFeeValueSetting = new Money(configFile.GetOrDefault<int>("breeze.regtxfeevalue", 1000), MoneyUnit.Satoshi);
-            //}
-            //catch (Exception e)
-            //{
-            //    throw new Exception("ERROR: Unable to read configuration");
-            //}
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.ToString());
+                throw new Exception("ERROR: Unable to read configuration");
+            }
         }
 
 		public static string GetDefaultDataDir(string appName)
