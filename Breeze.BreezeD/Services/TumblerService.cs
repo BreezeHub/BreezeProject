@@ -5,6 +5,10 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Text;
+using System.Reflection;
+using CommandLine;
+
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -22,14 +26,14 @@ using Newtonsoft.Json;
 using NBitcoin;
 using NBitcoin.RPC;
 
-using NTumbleBit.Common;
-using NTumbleBit.Common.Logging;
+using NTumbleBit;
+using NTumbleBit.Logging;
 using NTumbleBit.ClassicTumbler;
-using NTumbleBit.TumblerServer;
-using NTumbleBit.TumblerServer.Services;
-using System.Text;
-using System.Reflection;
-using CommandLine;
+using NTumbleBit.ClassicTumbler.Server.CLI;
+using NTumbleBit.ClassicTumbler.Server;
+using NTumbleBit.Services;
+using NTumbleBit.Configuration;
+using NTumbleBit.ClassicTumbler.CLI;
 
 namespace Breeze.BreezeD
 {
@@ -62,8 +66,7 @@ namespace Breeze.BreezeD
 
         public void StartTumbler(bool testnet)
         {
-			Logs.Configure(new NTumbleBit.Common.Logging.FuncLoggerFactory(i => new ConsoleLogger(i, (a, b) => true, false)));
-			var config = new NTumbleBit.TumblerServer.TumblerConfiguration();
+			Logs.Configure(new NTumbleBit.Logging.FuncLoggerFactory(i => new ConsoleLogger(i, (a, b) => true, false)));
 			
             string[] args;
 			
@@ -72,307 +75,60 @@ namespace Breeze.BreezeD
 			else
 				args = new string[] {"-testnet"};
 
-			BroadcasterToken = new CancellationTokenSource();
-			MixingToken = new CancellationTokenSource();
-			config.LoadArgs(args);
-			try
+			Logs.Configure(new FuncLoggerFactory(i => new CustomerConsoleLogger(i, (a, b) => true, false)));
+
+			using(var interactive = new Interactive())
 			{
-				var runtime = TumblerRuntime.FromConfiguration(config);
-				Services = runtime.Services;
-				Tracker = runtime.Tracker;
-				IWebHost host = null;
-				if(!config.OnlyMonitor)
+				var config = new TumblerConfiguration();
+				config.LoadArgs(args);
+				try
 				{
-					host = new WebHostBuilder()
-					.UseKestrel()
-					.UseAppConfiguration(runtime)
-					.UseContentRoot(Directory.GetCurrentDirectory())
-					.UseIISIntegration()
-					.UseStartup<Startup>()
-					.UseUrls(config.GetUrls())
-					.Build();
-				}
-
-				var job = new BroadcasterJob(Services, Logs.Main);
-				job.Start(BroadcasterToken.Token);
-				Logs.Main.LogInformation("BroadcasterJob started");
-
-				TumblerParameters = config.ClassicTumblerParameters;
-				Network = config.Network;
-
-				if(!config.OnlyMonitor)
-					new Thread(() =>
+					var runtime = TumblerRuntime.FromConfiguration(config);
+					interactive.Runtime = new ServerInteractiveRuntime(runtime);
+					IWebHost host = null;
+					if(!config.OnlyMonitor)
 					{
-						try
-						{
-							host.Run(MixingToken.Token);
-						}
-						catch(Exception ex)
-						{
-							if(!MixingToken.IsCancellationRequested)
-								Logs.Server.LogCritical(1, ex, "Error while starting the host");
-						}
-						if(MixingToken.IsCancellationRequested)
-							Logs.Server.LogInformation("Server stopped");
-					}).Start();
-				StartInteractive();
-			}
-			catch(ConfigException ex)
-			{
-				if(!string.IsNullOrEmpty(ex.Message))
-					Logs.Main.LogError(ex.Message);
-			}
-			catch(Exception exception)
-			{
-				Logs.Main.LogError("Exception thrown while running the server");
-				Logs.Main.LogError(exception.ToString());
-			}
-			finally
-			{
-				if(!MixingToken.IsCancellationRequested)
-					MixingToken.Cancel();
-				if(!BroadcasterToken.IsCancellationRequested)
-					BroadcasterToken.Cancel();
-			}
-		}
-
-		void StartInteractive()
-		{
-			Console.Write(Assembly.GetEntryAssembly().GetName().Name
-						+ " " + Assembly.GetEntryAssembly().GetName().Version);
-			Console.WriteLine(" -- TumbleBit Implementation in .NET Core");
-			Console.WriteLine("Type \"help\" or \"help <command>\" for more information.");
-
-			bool quit = false;
-			while(!quit)
-			{
-				Console.Write(">>> ");
-				var split = Console.ReadLine().Split(null);
-				try
-				{
-
-					Parser.Default.ParseArguments<StatusOptions, StopOptions, QuitOptions>(split)
-						.WithParsed<StatusOptions>(_ => GetStatus(_))
-						.WithParsed<StopOptions>(_ => Stop(_))
-						.WithParsed<QuitOptions>(_ => quit = true);
-				}
-				catch(FormatException)
-				{
-					Console.WriteLine("Invalid format");
-				}
-			}
-			MixingToken.Cancel();
-			BroadcasterToken.Cancel();
-		}
-		private void Stop(StopOptions opt)
-		{
-			opt.Target = opt.Target ?? "";
-			var stopMixer = opt.Target.Equals("mixer", StringComparison.OrdinalIgnoreCase);
-			var stopBroadcasted = opt.Target.Equals("broadcaster", StringComparison.OrdinalIgnoreCase);
-			var both = opt.Target.Equals("both", StringComparison.OrdinalIgnoreCase);
-			if(both)
-				stopMixer = stopBroadcasted = true;
-			if(stopMixer)
-			{
-				MixingToken.Cancel();
-			}
-			if(stopBroadcasted)
-			{
-				BroadcasterToken.Cancel();
-			}
-			if(!stopMixer && !stopBroadcasted)
-				throw new FormatException();
-		}
-
-		void GetStatus(StatusOptions options)
-		{
-			options.Query = options.Query.Trim();
-			if(!string.IsNullOrWhiteSpace(options.Query))
-			{
-				bool parsed = false;
-				try
-				{
-					options.CycleId = int.Parse(options.Query);
-					parsed = true;
-				}
-				catch { }
-				try
-				{
-					options.TxId = new uint256(options.Query).ToString();
-					parsed = true;
-				}
-				catch { }
-				try
-				{
-					options.Address = BitcoinAddress.Create(options.Query, Network).ToString();
-					parsed = true;
-				}
-				catch { }
-				if(!parsed)
-					throw new FormatException();
-			}
-
-			if(options.CycleId != null)
-			{
-				CycleParameters cycle = null;
-
-				try
-				{
-					cycle = TumblerParameters?.CycleGenerator?.GetCycle(options.CycleId.Value);
-				}
-				catch
-				{
-					Console.WriteLine("Invalid cycle");
-					return;
-				}
-				var records = Tracker.GetRecords(options.CycleId.Value);
-				var currentHeight = Services.BlockExplorerService.GetCurrentHeight();
-
-				StringBuilder builder = new StringBuilder();
-				var phases = new[]
-				{
-					CyclePhase.Registration,
-					CyclePhase.ClientChannelEstablishment,
-					CyclePhase.TumblerChannelEstablishment,
-					CyclePhase.PaymentPhase,
-					CyclePhase.TumblerCashoutPhase,
-					CyclePhase.ClientCashoutPhase
-				};
-
-				if(cycle != null)
-				{
-					Console.WriteLine("Phases:");
-					var periods = cycle.GetPeriods();
-					foreach(var phase in phases)
-					{
-						var period = periods.GetPeriod(phase);
-						if(period.IsInPeriod(currentHeight))
-							builder.Append("(");
-						builder.Append(phase.ToString());
-						if(period.IsInPeriod(currentHeight))
-							builder.Append($" {(period.End - currentHeight)} blocks left)");
-
-						if(phase != CyclePhase.ClientCashoutPhase)
-							builder.Append("-");
+						host = new WebHostBuilder()
+						.UseKestrel()
+						.UseAppConfiguration(runtime)
+						.UseContentRoot(Directory.GetCurrentDirectory())
+						.UseStartup<Startup>()
+						.UseUrls(config.GetUrls())
+						.Build();
 					}
-					Console.WriteLine(builder.ToString());
-					Console.WriteLine();
-				}
 
-				Console.WriteLine("Records:");
-				foreach(var correlationGroup in records.GroupBy(r => r.Correlation).OrderBy(o => (int)o.Key))
-				{
-					Console.WriteLine("========");
-					foreach(var group in correlationGroup.GroupBy(r => r.TransactionType).OrderBy(o => (int)o.Key))
-					{
-						builder = new StringBuilder();
-						builder.AppendLine(group.Key.ToString());
-						foreach(var data in group.OrderBy(g => g.RecordType))
+					var job = new BroadcasterJob(interactive.Runtime.Services);
+					job.Start(interactive.BroadcasterCancellationToken);
+
+					if(!config.OnlyMonitor)
+						new Thread(() =>
 						{
-							builder.Append("\t" + data.RecordType.ToString());
-							if(data.ScriptPubKey != null)
-								builder.AppendLine(" " + data.ScriptPubKey.GetDestinationAddress(Network));
-							if(data.TransactionId != null)
-								builder.AppendLine(" " + data.TransactionId);
-						}
-						Console.WriteLine(builder.ToString());
-					}
-					Console.WriteLine("========");
+							try
+							{
+								host.Run(interactive.MixingCancellationToken);
+							}
+							catch(Exception ex)
+							{
+								if(!interactive.MixingCancellationToken.IsCancellationRequested)
+									Logs.Tumbler.LogCritical(1, ex, "Error while starting the host");
+							}
+							if(interactive.MixingCancellationToken.IsCancellationRequested)
+								Logs.Tumbler.LogInformation("Server stopped");
+						}).Start();
+					interactive.StartInteractive();
 				}
-			}
-
-			if(options.TxId != null)
-			{
-				var txId = new uint256(options.TxId);
-				var result = Tracker.Search(txId);
-				foreach(var record in result)
+				catch(ConfigException ex)
 				{
-					Console.WriteLine("Cycle " + record.Cycle);
-					Console.WriteLine("Type " + record.TransactionType);
+					if(!string.IsNullOrEmpty(ex.Message))
+						Logs.Configuration.LogError(ex.Message);
 				}
-
-				var knownTransaction = Services.TrustedBroadcastService.GetKnownTransaction(txId);
-				Transaction tx = knownTransaction?.Transaction;
-				if(knownTransaction != null)
+				catch(Exception exception)
 				{
-					if(knownTransaction.BroadcastAt != 0)
-						Console.WriteLine("Planned for " + knownTransaction.BroadcastAt.ToString());
-				}
-				if(tx == null)
-				{
-					tx = Services.BroadcastService.GetKnownTransaction(txId);
-				}
-				var txInfo = Services.BlockExplorerService.GetTransaction(txId);
-				if(tx == null)
-					tx = txInfo?.Transaction;
-				if(txInfo != null)
-				{
-					if(txInfo.Confirmations != 0)
-						Console.WriteLine(txInfo.Confirmations + " Confirmations");
-					else
-						Console.WriteLine("Unconfirmed");
-				}
-
-				if(tx != null)
-				{
-					Console.WriteLine("Timelock " + tx.LockTime.ToString());
-					Console.WriteLine("Hex " + tx.ToHex());
-				}
-				//TODO ask to other objects for more info
-			}
-
-			if(options.Address != null)
-			{
-				var address = BitcoinAddress.Create(options.Address, TumblerParameters.Network);
-				var result = Tracker.Search(address.ScriptPubKey);
-				foreach(var record in result)
-				{
-					Console.WriteLine("Cycle " + record.Cycle);
-					Console.WriteLine("Type " + record.TransactionType);
+					Logs.Tumbler.LogError("Exception thrown while running the server");
+					Logs.Tumbler.LogError(exception.ToString());
 				}
 			}
 		}
-    }
-
-	[Verb("status", HelpText = "Shows the current status.")]
-	internal class StatusOptions
-	{
-		[Value(0, HelpText = "Search information about the specifed, cycle/transaction/address.")]
-		public string Query
-		{
-			get; set;
-		}
-		
-		public int? CycleId
-		{
-			get; set;
-		}
-
-		public string TxId
-		{
-			get; set;
-		}
-		
-		public string Address
-		{
-			get; set;
-		}
-	}
-
-	[Verb("stop", HelpText = "Stop a service.")]
-	internal class StopOptions
-	{
-		[Value(0, HelpText = "\"stop mixer\" to stop the mixer, \"stop broadcaster\" to stop the broadcaster, \"stop both\" to stop both.")]
-		public string Target
-		{
-			get; set;
-		}
-	}
-
-	[Verb("exit", HelpText = "Quit.")]
-	internal class QuitOptions
-	{
-		//normal options here
 	}
 
 	public class Startup

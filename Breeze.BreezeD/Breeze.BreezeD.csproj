@@ -13,9 +13,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\NTumbleBit\NTumbleBit.csproj" />
-    <ProjectReference Include="..\NTumbleBit.Common\NTumbleBit.Common.csproj" />
-    <ProjectReference Include="..\NTumbleBit.TumblerServer\NTumbleBit.TumblerServer.csproj" />
+    <ProjectReference Include="..\NTumbleBit\NTumbleBit\NTumbleBit.csproj" />
+    <ProjectReference Include="..\NTumbleBit\NTumbleBit.Common\NTumbleBit.Common.csproj" />
+    <ProjectReference Include="..\NTumbleBit\NTumbleBit.ClassicTumbler.Server.CLI\NTumbleBit.ClassicTumbler.Server.CLI.csproj" />
   </ItemGroup>
 
   <ItemGroup>

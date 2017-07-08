@@ -1,0 +1,3 @@
+[submodule "NTumbleBit"]
+	path = NTumbleBit
+	url = https://github.com/NTumbleBit/NTumbleBit
