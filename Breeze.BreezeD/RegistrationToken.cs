@@ -61,9 +61,9 @@ namespace Breeze.BreezeD
         byte[] RsaSignature;
         byte[] EcdsaSignature;
 
-        public RegistrationToken(TumblerParameters tumblerParameters, IPAddress ipv4Addr, IPAddress ipv6Addr, string onionAddress, int port, string rsaKeyPath)
+        public RegistrationToken(IPAddress ipv4Addr, IPAddress ipv6Addr, string onionAddress, int port, string rsaKeyPath)
         {
-            TumblerParams = tumblerParameters;
+            //TumblerParams = tumblerParameters;
             
             Ipv4Addr = ipv4Addr;
             Ipv6Addr = ipv6Addr;

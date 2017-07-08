@@ -91,10 +91,10 @@ namespace Breeze.BreezeD
             var privateKeyEcdsa = rpc.DumpPrivKey(BitcoinAddress.Create(config.TumblerEcdsaKeyAddress));
 
             // Retrieve tumbler's parameters so that the registration details can be constructed
-            var tumblerApi = new TumblerApiAccess(config.TumblerApiBaseUrl);
-            string json = tumblerApi.GetParameters().Result;
-            var tumblerParameters = JsonConvert.DeserializeObject<TumblerParameters>(json);
-            var registrationToken = new RegistrationToken(tumblerParameters, config.Ipv4Address, config.Ipv6Address, config.OnionAddress, config.Port, config.TumblerRsaKeyPath);
+            //var tumblerApi = new TumblerApiAccess(config.TumblerApiBaseUrl);
+            //string json = tumblerApi.GetParameters().Result;
+            //var tumblerParameters = JsonConvert.DeserializeObject<TumblerParameters>(json);
+            var registrationToken = new RegistrationToken(config.Ipv4Address, config.Ipv6Address, config.OnionAddress, config.Port, config.TumblerRsaKeyPath);
             var msgBytes = registrationToken.GetRegistrationTokenBytes(privateKeyEcdsa);
 
             // Create the registration transaction using the bytes generated above
