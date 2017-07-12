@@ -9,18 +9,18 @@ using NBitcoin;
 namespace Breeze.BreezeD
 {
     /*
-        Bitstream format for Breeze registration token
+        Bitstream format for Stratis TumbleBit registration token
 
         A registration token, once submitted to the network, remains valid indefinitely until invalidated.
 
-        The registration token for a Breeze server can be invalidated by the sending of a subsequent token transaction
+        The registration token for a Stratis TumbleBit server can be invalidated by the sending of a subsequent token transaction
         at a greater block height than the original. It is the responsibility of the Breeze client software to scan
         the blockchain for the most current server registrations prior to initiating contact with any server.
 
         The registration token consists of a single transaction broadcast to a pre-determined address on the network
         of choice (e.g. Bitcoin's mainnet/testnet, or the Stratis mainnet/testnet). This transaction has any number of
-        funding inputs, as normal. It has precisely one nulldata output marking the entire transaction as a Breeze
-        registration. There can be an optional change return output at the end of the output list.
+        funding inputs, as normal. It has precisely one nulldata output marking the entire transaction as a Stratis
+        TumbleBit registration. There can be an optional change return output at the end of the output list.
         
         The remainder of the transaction outputs are of near-dust value. Each output encodes 20 bytes of token data
         into an address with a valid checksum. The contents and format of the encoded data is described below.
@@ -31,26 +31,30 @@ namespace Breeze.BreezeD
         -> 26 bytes - Literal string: BREEZE_REGISTRATION_MARKER
 
         - Encoded address transaction outputs
+        -> 1 byte - Protocol version byte
         -> 2 bytes - Length of registration header
         -> 4 bytes - IPV4 address of tumbler server; 00000000 indicates non-IPV4
         -> 16 bytes - IPV6 address of tumbler server; 00000000000000000000000000000000 indicates non-IPV6
         -> 16 bytes - Onion (Tor) address of tumbler server; 00000000000000000000000000000000 indicates non-Tor
         -> 2 bytes - IPV4/IPV6/Onion TCP port of server
         -> 2 bytes - RSA signature length
-        -> n bytes - RSA signature proving ownership of the Breeze server's private key (to prevent spoofing)
+        -> n bytes - RSA signature proving ownership of the Stratis TumbleBit server's private key (to prevent spoofing)
         -> 2 bytes - ECDSA signature length
-        -> n bytes - ECDSA signature proving ownership of the Breeze server's private key
+        -> n bytes - ECDSA signature proving ownership of the Stratis TumbleBit server's private key
         <...>
         -> Protocol does not preclude additional data being appended in future without breaking compatibility
 
-        On connection with the Breeze server by a client, the public key of the server will be verified by the
+        On connection with the Stratis TumbleBit server by a client, the public key of the server will be verified by the
         client to ensure that the server is authentic and in possession of the registered keys. The TumbleBit
         protocol is then followed as normal.
     */
 
     public class RegistrationToken
     {
-        TumblerParameters TumblerParams;
+        //TumblerParameters TumblerParams;
+
+        // ProtocolVersion 255 = test registrations to be ignored by the clients
+        public int ProtocolVersion { get; set; }
         public IPAddress Ipv4Addr { get; set; }
         public IPAddress Ipv6Addr { get; set; }
         public string OnionAddress { get; set; }
@@ -61,15 +65,14 @@ namespace Breeze.BreezeD
         byte[] RsaSignature;
         byte[] EcdsaSignature;
 
-        public RegistrationToken(IPAddress ipv4Addr, IPAddress ipv6Addr, string onionAddress, int port, string rsaKeyPath)
+        public RegistrationToken(int protocolVersion, IPAddress ipv4Addr, IPAddress ipv6Addr, string onionAddress, int port, string rsaKeyPath)
         {
             //TumblerParams = tumblerParameters;
-            
+            ProtocolVersion = protocolVersion;
             Ipv4Addr = ipv4Addr;
             Ipv6Addr = ipv6Addr;
             OnionAddress = onionAddress;
             Port = port;
-
             RsaKeyPath = rsaKeyPath;
         }
 
@@ -112,11 +115,13 @@ namespace Breeze.BreezeD
             token.Add(ecdsaLength[1]);
             token.AddRange(EcdsaSignature);
 
-            // Finally add computed length to beginning of header
+            // Finally add protocol byte and computed length to beginning of header
+            var protocolVersionByte = BitConverter.GetBytes(ProtocolVersion);
             var headerLength = BitConverter.GetBytes(token.Count);
 
-            token.Insert(0, headerLength[0]);
-            token.Insert(1, headerLength[1]);
+            token.Insert(0, protocolVersionByte[0]);
+            token.Insert(1, headerLength[0]);
+            token.Insert(2, headerLength[1]);
 
             return token.ToArray();
         }
@@ -140,7 +145,9 @@ namespace Breeze.BreezeD
 
             var secondOutputData = breezeReg.AddressToBytes(tx.Outputs[1].ScriptPubKey.GetDestinationAddress(network));
 
-            var headerLength = ((int)secondOutputData[1] << 8) + ((int)secondOutputData[0]);
+            var protocolVersion = (int)secondOutputData[0];
+
+            var headerLength = ((int)secondOutputData[2] << 8) + ((int)secondOutputData[1]);
 
             int numAddresses = headerLength / 20;
             
@@ -158,11 +165,12 @@ namespace Breeze.BreezeD
 
             var bitstream = breezeReg.AddressesToBytes(addressList);
             
-            // WIP - need to consume X bytes at a time off the bitstream and convert them to various
+            // Need to consume X bytes at a time off the bitstream and convert them to various
             // data types, then set member variables to the retrieved values.
             
-            // Skip over header length bytes
-            var position = 2;
+            // Skip over protocol version and header length bytes
+            var position = 3;
+            ProtocolVersion = protocolVersion;
             Ipv4Addr = new IPAddress(GetSubArray(bitstream, position, 4));
             position += 4;
             Ipv6Addr = new IPAddress(GetSubArray(bitstream, position, 16));

@@ -21,10 +21,10 @@ namespace Breeze.BreezeD
     {
         public bool CheckBreezeRegistration(BreezeConfiguration config, DBUtils db)
         {
-            // TODO: Is regtest support needed?
-			var network = Network.Main;
+			var network = Network.StratisMain;
 			if (config.IsTestNet)
 			{
+                // TODO: Change to StratisTest when it is added to NStratis
 				network = Network.TestNet;
 			}
 
@@ -56,7 +56,7 @@ namespace Breeze.BreezeD
             // Decode transaction and check if the decoded bitstream matches the
             // current configuration
 
-            // TODO: Check if transaction is actually confirmed?
+            // TODO: Check if transaction is actually confirmed on the blockchain?
 			var registrationToken = new RegistrationToken();
             registrationToken.ParseTransaction(mostRecentTxn, network);
 
@@ -72,16 +72,16 @@ namespace Breeze.BreezeD
             return true;
         }
 
-        public void PerformBreezeRegistration(BreezeConfiguration config, DBUtils db)
+        public Transaction PerformBreezeRegistration(BreezeConfiguration config, DBUtils db)
         {
-			// TODO: Is regtest support needed?
-			var network = Network.Main;
+			var network = Network.StratisMain;
 			if (config.IsTestNet)
 			{
+                // TODO: Change to StratisTest when support is added to NStratis
 				network = Network.TestNet;
 			}
 
-			var stratisHelper = new RPCHelper(Network.StratisMain);
+			var stratisHelper = new RPCHelper(network);
             var stratisRpc = stratisHelper.GetClient(config.RpcUser, config.RpcPassword, config.RpcUrl);
 
             var privateKeyEcdsa = stratisRpc.DumpPrivKey(BitcoinAddress.Create(config.TumblerEcdsaKeyAddress));
@@ -90,7 +90,7 @@ namespace Breeze.BreezeD
             //var tumblerApi = new TumblerApiAccess(config.TumblerApiBaseUrl);
             //string json = tumblerApi.GetParameters().Result;
             //var tumblerParameters = JsonConvert.DeserializeObject<TumblerParameters>(json);
-            var registrationToken = new RegistrationToken(config.Ipv4Address, config.Ipv6Address, config.OnionAddress, config.Port, config.TumblerRsaKeyPath);
+            var registrationToken = new RegistrationToken(255, config.Ipv4Address, config.Ipv6Address, config.OnionAddress, config.Port, config.TumblerRsaKeyPath);
             var msgBytes = registrationToken.GetRegistrationTokenBytes(privateKeyEcdsa);
 
             // Create the registration transaction using the bytes generated above
@@ -107,12 +107,16 @@ namespace Breeze.BreezeD
 
                 db.UpdateOrInsert<string>("RegistrationTransactions", DateTime.Now.ToString("yyyyMMddHHmmss"), txToSend.ToHex(), (o, n) => n);
                 stratisRpc.SendRawTransaction(txToSend);
+
+                return txToSend;
             }
             catch (Exception e)
             {
                 Console.WriteLine("ERROR: Unable to broadcast registration transaction");
                 Console.WriteLine(e.ToString());
             }
+
+            return null;
         }
 
         public Transaction CreateBreezeRegistrationTx(Network network, byte[] data, Money outputValue)

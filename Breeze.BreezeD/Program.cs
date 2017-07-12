@@ -10,6 +10,9 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
+using NBitcoin;
+using NBitcoin.RPC;
+
 namespace Breeze.BreezeD
 {
 	public class Program
@@ -51,7 +54,13 @@ namespace Breeze.BreezeD
 
 			if (!registration.CheckBreezeRegistration(config, db)) {
 				logger.LogInformation("{Time} Creating or updating node registration", DateTime.Now);
-				registration.PerformBreezeRegistration(config, db);
+				var regTx = registration.PerformBreezeRegistration(config, db);
+				if (regTx != null) {
+					logger.LogInformation("{Time} Submitted transaction {TxId} via RPC for broadcast", DateTime.Now, regTx.GetHash().ToString());
+				}
+				else {
+					logger.LogInformation("{Time} Unable to broadcast transaction via RPC", DateTime.Now);
+				}
 			}
 			else {
 				logger.LogInformation("{Time} Node registration has already been performed", DateTime.Now);
@@ -62,7 +71,9 @@ namespace Breeze.BreezeD
             db.UpdateOrInsert<string>("TumblerStartupLog", DateTime.Now.ToString("yyyyMMddHHmmss"), "Tumbler starting", (o, n) => n);
 
 			var tumbler = serviceProvider.GetService<ITumblerService>();
-			tumbler.StartTumbler(config.IsTestNet);
+			
+			// Disabled until RPC cookie issue is fixed
+			//tumbler.StartTumbler(config.IsTestNet);
 		}
 	}
 }

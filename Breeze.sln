@@ -13,8 +13,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Breeze.BreezeD", "Breeze.Br
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NTumbleBit", "NTumbleBit\NTumbleBit\NTumbleBit.csproj", "{A2355F14-C404-46A4-B070-E6EC18800AA0}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NTumbleBit.Common", "NTumbleBit\NTumbleBit.Common\NTumbleBit.Common.csproj", "{B8177469-4B2D-4BF0-BD9A-B7CCFE4A3C5F}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NTumbleBit.ClassicTumbler.Server.CLI", "NTumbleBit\NTumbleBit.ClassicTumbler.Server.CLI\NTumbleBit.ClassicTumbler.Server.CLI.csproj", "{C22A679F-BE97-4789-A2BE-17F6AF4A17AD}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Breeze.BreezeD.Tests", "Breeze.BreezeD.Tests\Breeze.BreezeD.Tests.csproj", "{BDD4DC4D-89AD-45C1-8598-6F16BB87543C}"

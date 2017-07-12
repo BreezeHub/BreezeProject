@@ -43,10 +43,10 @@ namespace Breeze.BreezeD
                 if (!File.Exists(configPath))
                 {
                     StringBuilder builder = new StringBuilder();
-                    builder.AppendLine("# Breeze daemon settings");
+                    builder.AppendLine("# Stratis TumbleBit daemon settings");
                     builder.AppendLine("#rpc.user=");
                     builder.AppendLine("#rpc.password=");
-                    builder.AppendLine("#rpc.url=http://127.0.0.1:8332");
+                    builder.AppendLine("#rpc.url=http://127.0.0.1:16174");
                     builder.AppendLine("#breeze.ipv4=");
                     builder.AppendLine("#breeze.ipv6=");
                     builder.AppendLine("#breeze.onion=");
