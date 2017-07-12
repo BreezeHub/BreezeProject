@@ -1,3 +1,6 @@
 [submodule "NTumbleBit"]
 	path = NTumbleBit
-	url = https://github.com/NTumbleBit/NTumbleBit
+	url = https://github.com/zeptin/NTumbleBit
+[submodule "NStratis"]
+	path = NStratis
+	url = https://github.com/stratisproject/NStratis.git

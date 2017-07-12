@@ -21,8 +21,6 @@ namespace Breeze.BreezeD
     {
         public bool CheckBreezeRegistration(BreezeConfiguration config, DBUtils db)
         {
-            return false;
-
             // TODO: Is regtest support needed?
 			var network = Network.Main;
 			if (config.IsTestNet)
@@ -41,9 +39,7 @@ namespace Breeze.BreezeD
 
             string highestKey = null;
             foreach (var txn in transactions)
-            {   
-                Console.WriteLine(txn.Key);
-
+            {
                 // Find most recent transaction. Assume that the rowKeys are ordered
                 // lexicographically.
                 if (highestKey == null)
@@ -85,10 +81,10 @@ namespace Breeze.BreezeD
 				network = Network.TestNet;
 			}
 
-            NetworkCredential credentials = new NetworkCredential(config.RpcUser, config.RpcPassword);
-            RPCClient rpc = new RPCClient(credentials, new Uri(config.RpcUrl), network);
+			var stratisHelper = new RPCHelper(Network.StratisMain);
+            var stratisRpc = stratisHelper.GetClient(config.RpcUser, config.RpcPassword, config.RpcUrl);
 
-            var privateKeyEcdsa = rpc.DumpPrivKey(BitcoinAddress.Create(config.TumblerEcdsaKeyAddress));
+            var privateKeyEcdsa = stratisRpc.DumpPrivKey(BitcoinAddress.Create(config.TumblerEcdsaKeyAddress));
 
             // Retrieve tumbler's parameters so that the registration details can be constructed
             //var tumblerApi = new TumblerApiAccess(config.TumblerApiBaseUrl);
@@ -105,12 +101,12 @@ namespace Breeze.BreezeD
             try {
                 // Replace fundrawtransaction with C# implementation. The legacy wallet
                 // software does not support the RPC call.     
-                var fundedTx = txUtils.FundRawTx(rpc, rawTx, config.TxFeeValueSetting, BitcoinAddress.Create(config.TumblerEcdsaKeyAddress));
-                var signedTx = rpc.SendCommand("signrawtransaction", fundedTx.ToHex());
+                var fundedTx = txUtils.FundRawTx(stratisRpc, rawTx, config.TxFeeValueSetting, BitcoinAddress.Create(config.TumblerEcdsaKeyAddress));
+                var signedTx = stratisRpc.SendCommand("signrawtransaction", fundedTx.ToHex());
                 var txToSend = new Transaction(((JObject)signedTx.Result)["hex"].Value<string>());
 
                 db.UpdateOrInsert<string>("RegistrationTransactions", DateTime.Now.ToString("yyyyMMddHHmmss"), txToSend.ToHex(), (o, n) => n);
-                rpc.SendRawTransaction(txToSend);
+                stratisRpc.SendRawTransaction(txToSend);
             }
             catch (Exception e)
             {

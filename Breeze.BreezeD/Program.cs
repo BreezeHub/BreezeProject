@@ -10,11 +10,6 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
-using Newtonsoft.Json.Linq;
-
-using NBitcoin;
-using NBitcoin.RPC;
-
 namespace Breeze.BreezeD
 {
 	public class Program
@@ -44,9 +39,6 @@ namespace Breeze.BreezeD
 
 			var config = new BreezeConfiguration(configPath);
 
-            NetworkCredential credentials = new NetworkCredential(config.RpcUser, config.RpcPassword);
-            RPCClient rpc = new RPCClient(credentials, new Uri(config.RpcUrl), Network.TestNet);
-
 			var dbPath = Path.Combine(configDir, "db");
 
 			logger.LogInformation("{Time} Database path {Path}", DateTime.Now, dbPath);
@@ -60,6 +52,9 @@ namespace Breeze.BreezeD
 			if (!registration.CheckBreezeRegistration(config, db)) {
 				logger.LogInformation("{Time} Creating or updating node registration", DateTime.Now);
 				registration.PerformBreezeRegistration(config, db);
+			}
+			else {
+				logger.LogInformation("{Time} Node registration has already been performed", DateTime.Now);
 			}
 
 			logger.LogInformation("{Time} Starting Tumblebit server", DateTime.Now);
