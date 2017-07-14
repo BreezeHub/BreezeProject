@@ -1,21 +1,12 @@
 using System;
-using System.IO;
-using System.Security;
-using System.Security.Cryptography;
-using System.Text;
 
 using NBitcoin;
 using NBitcoin.RPC;
-using NTumbleBit;
 
 namespace Breeze.BreezeD
 {
     public class TransactionUtils
     {
-        public TransactionUtils()
-        {
-        }
-
         public Transaction FundRawTx(RPCClient rpc, Transaction rawTx, Money feeAmount, BitcoinAddress changeAddress)
         {
             // The transaction funding logic will ensure that a transaction fee of
@@ -65,8 +56,6 @@ namespace Breeze.BreezeD
                 Value = change,
                 ScriptPubKey = changeAddress.ScriptPubKey
             });
-
-            // Need to check for sufficient funding; the wallet might have had insufficient funds
 
             return rawTx;
         }

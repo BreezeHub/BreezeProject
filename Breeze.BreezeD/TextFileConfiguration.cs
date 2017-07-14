@@ -2,9 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Net;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Breeze.BreezeD
 {
@@ -141,25 +138,5 @@ namespace Breeze.BreezeD
 				throw new NotSupportedException("Configuration value does not support time " + typeof(T).Name);
 			}
 		}
-
-		//public static String CreateDefaultConfiguration(Network network)
-		//{
-		//	StringBuilder builder = new StringBuilder();
-		//	builder.AppendLine("#rpc.url=http://localhost:" + network.RPCPort + "/");
-		//	builder.AppendLine("#rpc.user=bitcoinuser");
-		//	builder.AppendLine("#rpc.password=bitcoinpassword");
-		//	builder.AppendLine("#rpc.cookiefile=yourbitcoinfolder/.cookie");
-		//	return builder.ToString();
-		//}
-
-		//public static String CreateClientDefaultConfiguration(Network network)
-		//{
-		//	StringBuilder builder = new StringBuilder();
-		//	builder.AppendLine("#rpc.url=http://localhost:" + network.RPCPort + "/");
-		//	builder.AppendLine("#rpc.user=bitcoinuser");
-		//	builder.AppendLine("#rpc.password=bitcoinpassword");
-		//	builder.AppendLine("#rpc.cookiefile=yourbitcoinfolder/.cookie");
-		//	return builder.ToString();
-		//}
 	}
 }

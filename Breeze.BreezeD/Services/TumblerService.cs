@@ -1,12 +1,6 @@
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
-using System.Text;
-using System.Reflection;
 using CommandLine;
 
 using Microsoft.AspNetCore.Builder;
@@ -21,10 +15,7 @@ using Microsoft.Extensions.Logging.Console;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-using Newtonsoft.Json;
-
 using NBitcoin;
-using NBitcoin.RPC;
 
 using NTumbleBit;
 using NTumbleBit.Logging;

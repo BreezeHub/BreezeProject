@@ -1,17 +1,12 @@
 // Based on StratisBitcoinFullNode configuration code
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
+
 using System.Net;
 using System.Text;
 using System.IO;
 
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-
 using NBitcoin;
-using NBitcoin.RPC;
 
 namespace Breeze.BreezeD
 {
@@ -83,7 +78,7 @@ namespace Breeze.BreezeD
                 TumblerEcdsaKeyAddress = configFile.GetOrDefault<string>("tumbler.ecdsakeyaddress", null);
 
                 TxOutputValueSetting = new Money(configFile.GetOrDefault<int>("breeze.regtxoutputvalue", 1000), MoneyUnit.Satoshi);
-                TxFeeValueSetting = new Money(configFile.GetOrDefault<int>("breeze.regtxfeevalue", 1000), MoneyUnit.Satoshi);
+                TxFeeValueSetting = new Money(configFile.GetOrDefault<int>("breeze.regtxfeevalue", 10000), MoneyUnit.Satoshi);
             }
             catch (Exception e)
             {

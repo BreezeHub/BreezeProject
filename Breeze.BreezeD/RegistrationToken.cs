@@ -31,7 +31,7 @@ namespace Breeze.BreezeD
         -> 26 bytes - Literal string: BREEZE_REGISTRATION_MARKER
 
         - Encoded address transaction outputs
-        -> 1 byte - Protocol version byte
+        -> 1 byte - Protocol version byte (255 = test registration to be ignored by mainnet wallets)
         -> 2 bytes - Length of registration header
         -> 4 bytes - IPV4 address of tumbler server; 00000000 indicates non-IPV4
         -> 16 bytes - IPV6 address of tumbler server; 00000000000000000000000000000000 indicates non-IPV6
@@ -53,7 +53,6 @@ namespace Breeze.BreezeD
     {
         //TumblerParameters TumblerParams;
 
-        // ProtocolVersion 255 = test registrations to be ignored by the clients
         public int ProtocolVersion { get; set; }
         public IPAddress Ipv4Addr { get; set; }
         public IPAddress Ipv6Addr { get; set; }
@@ -195,6 +194,8 @@ namespace Breeze.BreezeD
 
             EcdsaSignature = GetSubArray(bitstream, position, ecdsaLength);
             position += ecdsaLength;
+
+            // TODO: Validate signatures
         }
 
         private byte[] GetSubArray(byte[] data, int index, int length)

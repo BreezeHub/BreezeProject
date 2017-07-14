@@ -1,6 +1,5 @@
 using System;
 using System.Net;
-using System.Security;
 
 using NBitcoin;
 using NBitcoin.RPC;

@@ -2,17 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net;
 using System.Text;
 
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 using NBitcoin;
-using NBitcoin.BitcoinCore;
 using NBitcoin.DataEncoders;
-using NBitcoin.Protocol;
-using NBitcoin.Protocol.Payloads;
 using NBitcoin.RPC;
 
 namespace Breeze.BreezeD
@@ -69,6 +64,9 @@ namespace Breeze.BreezeD
             if (config.OnionAddress != registrationToken.OnionAddress)
                 return false;
 
+            if (config.Port != registrationToken.Port)
+                return false;
+
             return true;
         }
 
@@ -81,10 +79,20 @@ namespace Breeze.BreezeD
 				network = Network.TestNet;
 			}
 
-			var stratisHelper = new RPCHelper(network);
-            var stratisRpc = stratisHelper.GetClient(config.RpcUser, config.RpcPassword, config.RpcUrl);
-
-            var privateKeyEcdsa = stratisRpc.DumpPrivKey(BitcoinAddress.Create(config.TumblerEcdsaKeyAddress));
+            RPCHelper stratisHelper = null;
+            RPCClient stratisRpc = null;
+            BitcoinSecret privateKeyEcdsa = null;
+            try {
+                stratisHelper = new RPCHelper(network);
+                stratisRpc = stratisHelper.GetClient(config.RpcUser, config.RpcPassword, config.RpcUrl);
+                privateKeyEcdsa = stratisRpc.DumpPrivKey(BitcoinAddress.Create(config.TumblerEcdsaKeyAddress));
+            }
+            catch (Exception e) {
+                Console.WriteLine("ERROR: Unable to retrieve private key to fund registration transaction");
+				Console.WriteLine("Is the wallet unlocked?");
+                Console.WriteLine(e);
+                Environment.Exit(0);
+            }
 
             // Retrieve tumbler's parameters so that the registration details can be constructed
             //var tumblerApi = new TumblerApiAccess(config.TumblerApiBaseUrl);
@@ -113,7 +121,7 @@ namespace Breeze.BreezeD
             catch (Exception e)
             {
                 Console.WriteLine("ERROR: Unable to broadcast registration transaction");
-                Console.WriteLine(e.ToString());
+                Console.WriteLine(e);
             }
 
             return null;
