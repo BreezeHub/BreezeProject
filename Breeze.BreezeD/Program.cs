@@ -51,6 +51,7 @@ namespace Breeze.BreezeD
 				}
 				else {
 					logger.LogInformation("{Time} Unable to broadcast transaction via RPC", DateTime.Now);
+                    Environment.Exit(0);
 				}
 			}
 			else {
