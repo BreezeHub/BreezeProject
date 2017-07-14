@@ -72,8 +72,7 @@ namespace Breeze.BreezeD
 
 			var tumbler = serviceProvider.GetService<ITumblerService>();
 			
-			// Disabled until RPC cookie issue is fixed
-			//tumbler.StartTumbler(config.IsTestNet);
+			tumbler.StartTumbler(config.IsTestNet);
 		}
 	}
 }

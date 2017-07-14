@@ -71,7 +71,8 @@ namespace Breeze.BreezeD
             string[] args;
 			
 			if (!testnet)
-				args = new string[] {};
+				// TODO: Tumbler is locked to testnet for testing
+				args = new string[] {"-testnet"};
 			else
 				args = new string[] {"-testnet"};
 
