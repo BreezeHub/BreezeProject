@@ -84,9 +84,38 @@ namespace Breeze.BreezeD
         {
             var token = new List<byte>();
 
-            token.AddRange(Ipv4Addr.GetAddressBytes());
-            token.AddRange(Ipv6Addr.GetAddressBytes());
-            token.AddRange(Encoding.ASCII.GetBytes(OnionAddress));
+            if (Ipv4Addr != null)
+            {
+                token.AddRange(Ipv4Addr.GetAddressBytes());
+            }
+            else
+            {
+                token.Add(0x00); token.Add(0x00); token.Add(0x00); token.Add(0x00);
+            }
+
+            if (Ipv6Addr != null)
+            {
+                token.AddRange(Ipv6Addr.GetAddressBytes());
+            }
+            else
+            {
+				token.Add(0x00); token.Add(0x00); token.Add(0x00); token.Add(0x00);
+				token.Add(0x00); token.Add(0x00); token.Add(0x00); token.Add(0x00);
+				token.Add(0x00); token.Add(0x00); token.Add(0x00); token.Add(0x00);
+				token.Add(0x00); token.Add(0x00); token.Add(0x00); token.Add(0x00);
+			}
+
+            if (OnionAddress != null)
+            {
+                token.AddRange(Encoding.ASCII.GetBytes(OnionAddress));
+            }
+            else
+            {
+				token.Add(0x00); token.Add(0x00); token.Add(0x00); token.Add(0x00);
+				token.Add(0x00); token.Add(0x00); token.Add(0x00); token.Add(0x00);
+				token.Add(0x00); token.Add(0x00); token.Add(0x00); token.Add(0x00);
+				token.Add(0x00); token.Add(0x00); token.Add(0x00); token.Add(0x00);                
+            }
 
             // TODO: Review the use of BitConverter for endian-ness issues
             var portNumber = BitConverter.GetBytes(Port);
@@ -139,8 +168,7 @@ namespace Breeze.BreezeD
             // TODO: Validate that the marker bytes are present before proceeding
 
             // Peek at first non-nulldata address to get the length information,
-            // this indicates if there will be a change address output
-            // or not
+            // this indicates if there will be a change address output or not
 
             var secondOutputData = breezeReg.AddressToBytes(tx.Outputs[1].ScriptPubKey.GetDestinationAddress(network));
 
@@ -170,13 +198,70 @@ namespace Breeze.BreezeD
             // Skip over protocol version and header length bytes
             var position = 3;
             ProtocolVersion = protocolVersion;
-            Ipv4Addr = new IPAddress(GetSubArray(bitstream, position, 4));
+
+            // Either a valid IPv4 address, or all zero bytes
+            bool allZeroes = true;
+            byte[] ipv4temp = GetSubArray(bitstream, position, 4);
+
+            for (var i = 0; i < ipv4temp.Length; i++)
+            {
+                if (ipv4temp[i] != 0)
+                    allZeroes = false;
+            }
+
+            if (!allZeroes)
+            {
+                Ipv4Addr = new IPAddress(ipv4temp);
+            }
+            else
+            {
+                Ipv4Addr = null;
+            }
+
             position += 4;
-            Ipv6Addr = new IPAddress(GetSubArray(bitstream, position, 16));
+
+			// Either a valid IPv6 address, or all zero bytes
+			allZeroes = true;
+			byte[] ipv6temp = GetSubArray(bitstream, position, 16);
+
+			for (var i = 0; i < ipv6temp.Length; i++)
+			{
+				if (ipv6temp[i] != 0)
+					allZeroes = false;
+			}
+
+            if (!allZeroes)
+            {
+				Ipv6Addr = new IPAddress(ipv6temp);
+			}
+            else
+            {
+                Ipv6Addr = null;
+            }
+
             position += 16;
-            OnionAddress = Encoding.ASCII.GetString(GetSubArray(bitstream, position, 16));
+
+			// Either a valid onion address, or all zero bytes
+			allZeroes = true;
+			byte[] onionTemp = GetSubArray(bitstream, position, 16);
+
+			for (var i = 0; i < onionTemp.Length; i++)
+			{
+				if (onionTemp[i] != 0)
+					allZeroes = false;
+			}
+
+			if (!allZeroes)
+			{
+				OnionAddress = Encoding.ASCII.GetString(onionTemp);
+			}
+			else
+			{
+                OnionAddress = null;
+			}
+
             position += 16;
-            
+
             var temp = GetSubArray(bitstream, position, 2);
             Port = ((int)temp[1] << 8) + ((int)temp[0]);
             position += 2;

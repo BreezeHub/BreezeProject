@@ -68,9 +68,51 @@ namespace Breeze.BreezeD
                 RpcPassword = configFile.GetOrDefault<string>("rpc.password", null);
                 RpcUrl = configFile.GetOrDefault<string>("rpc.url", null);
 
-                Ipv4Address = IPAddress.Parse(configFile.GetOrDefault<string>("breeze.ipv4", null));
-                Ipv6Address = IPAddress.Parse(configFile.GetOrDefault<string>("breeze.ipv6", null));
-                OnionAddress = configFile.GetOrDefault<string>("breeze.onion", null);
+                if (RpcUser == null || RpcPassword == null || RpcUrl == null)
+                {
+                    throw new Exception("ERROR: RPC information in config file is invalid");
+                }
+
+                try
+                {
+                    // Assume that if it parses it's valid
+                    Ipv4Address = IPAddress.Parse(configFile.GetOrDefault<string>("breeze.ipv4", null));
+                }
+                catch (Exception)
+                {
+                    Ipv4Address = null;
+                }
+
+                try
+                {
+                    // Assume that if it parses it's valid
+                    Ipv6Address = IPAddress.Parse(configFile.GetOrDefault<string>("breeze.ipv6", null));
+                }
+                catch (Exception)
+                {
+                    Ipv6Address = null;
+                }
+
+                try
+                {
+                    OnionAddress = configFile.GetOrDefault<string>("breeze.onion", null);
+
+                    if (OnionAddress.Length > 16)
+                    {
+                        // Regard as invalid, do not try to truncate etc.
+                        OnionAddress = null;
+                    }
+                }
+                catch (Exception)
+                {
+                    OnionAddress = null;
+                }
+
+                if (Ipv4Address == null && Ipv6Address == null && OnionAddress == null)
+                {
+                    throw new Exception("ERROR: No valid IP/onion addresses in configuration");
+                }
+
                 Port = configFile.GetOrDefault<int>("breeze.port", 37123);
 
                 TumblerApiBaseUrl = configFile.GetOrDefault<string>("tumbler.url", null);
@@ -82,7 +124,7 @@ namespace Breeze.BreezeD
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.ToString());
+                Console.WriteLine(e);
                 throw new Exception("ERROR: Unable to read configuration");
             }
         }
