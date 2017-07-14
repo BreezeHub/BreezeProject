@@ -8,17 +8,17 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "global", "global", "{5B331F
 		global.json = global.json
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Breeze.BreezeD", "Breeze.BreezeD\Breeze.BreezeD.csproj", "{34C17104-704E-4790-B398-D1F73CBEE31E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Breeze.BreezeD", "Breeze.BreezeD\Breeze.BreezeD.csproj", "{34C17104-704E-4790-B398-D1F73CBEE31E}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NTumbleBit", "NTumbleBit\NTumbleBit\NTumbleBit.csproj", "{A2355F14-C404-46A4-B070-E6EC18800AA0}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NTumbleBit", "NTumbleBit\NTumbleBit\NTumbleBit.csproj", "{A2355F14-C404-46A4-B070-E6EC18800AA0}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NTumbleBit.ClassicTumbler.Server.CLI", "NTumbleBit\NTumbleBit.ClassicTumbler.Server.CLI\NTumbleBit.ClassicTumbler.Server.CLI.csproj", "{C22A679F-BE97-4789-A2BE-17F6AF4A17AD}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NTumbleBit.ClassicTumbler.Server.CLI", "NTumbleBit\NTumbleBit.ClassicTumbler.Server.CLI\NTumbleBit.ClassicTumbler.Server.CLI.csproj", "{C22A679F-BE97-4789-A2BE-17F6AF4A17AD}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Breeze.BreezeD.Tests", "Breeze.BreezeD.Tests\Breeze.BreezeD.Tests.csproj", "{BDD4DC4D-89AD-45C1-8598-6F16BB87543C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Breeze.BreezeD.Tests", "Breeze.BreezeD.Tests\Breeze.BreezeD.Tests.csproj", "{BDD4DC4D-89AD-45C1-8598-6F16BB87543C}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HashLib", "NStratis\Hashing\HashLib\HashLib.csproj", "{E2DA07DC-4A29-407A-84EF-66E821B50924}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HashLib", "NStratis\Hashing\HashLib\HashLib.csproj", "{E2DA07DC-4A29-407A-84EF-66E821B50924}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NBitcoin", "NStratis\NBitcoin\NBitcoin.csproj", "{887C7841-06B7-4319-A138-9B4C969D2B8E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NBitcoin", "NStratis\NBitcoin\NBitcoin.csproj", "{887C7841-06B7-4319-A138-9B4C969D2B8E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
