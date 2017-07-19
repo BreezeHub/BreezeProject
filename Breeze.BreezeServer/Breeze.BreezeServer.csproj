@@ -18,8 +18,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\BreezeProtocol\NStratis\NBitcoin\NBitcoin.csproj" />
-    <ProjectReference Include="..\BreezeProtocol\NTumbleBit\NTumbleBit\NTumbleBit.csproj" />
-    <ProjectReference Include="..\BreezeProtocol\NTumbleBit\NTumbleBit.ClassicTumbler.Server.CLI\NTumbleBit.ClassicTumbler.Server.CLI.csproj" />
+    <ProjectReference Include="..\BreezeProtocol\NTumbleBit\NTumbleBit.csproj" />
+    <ProjectReference Include="..\BreezeProtocol\NTumbleBit.ClassicTumbler.Server.CLI\NTumbleBit.ClassicTumbler.Server.CLI.csproj" />
   </ItemGroup>
 
   <ItemGroup>
