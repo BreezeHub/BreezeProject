@@ -3,9 +3,14 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.26430.15
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BreezeCommon", "BreezeCommon\BreezeCommon.csproj", "{6EFC9DC0-6555-48A0-9724-D4B7CE4BC366}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BreezeCommon", "BreezeCommon\BreezeCommon.csproj", "{6EFC9DC0-6555-48A0-9724-D4B7CE4BC366}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BreezeCommon.Tests", "BreezeCommon.Tests\BreezeCommon.Tests.csproj", "{2C83BBC3-64CF-4B28-852E-911A733C9672}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BreezeCommon.Tests", "BreezeCommon.Tests\BreezeCommon.Tests.csproj", "{2C83BBC3-64CF-4B28-852E-911A733C9672}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{805B10D3-7B3D-4B85-B14D-F2AE89071D71}"
+	ProjectSection(SolutionItems) = preProject
+		appveyor.yml = appveyor.yml
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
