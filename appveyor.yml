@@ -27,7 +27,7 @@ test_script:
   # tests in here
   - cmd: dotnet restore ./BreezeCommon.Tests/BreezeCommon.Tests.csproj
   - cmd: cd BreezeCommon.Tests
-  - cmd: dotnet xunit
+  - cmd: dotnet test BreezeCommon.Tests.csproj
   #- cmd: cd ..
 on_finish :
   # any cleanup in here
