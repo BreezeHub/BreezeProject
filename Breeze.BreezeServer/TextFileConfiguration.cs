@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 
-namespace Breeze.BreezeD
+namespace Breeze.BreezeServer
 {
 	public class ConfigurationException : Exception
 	{

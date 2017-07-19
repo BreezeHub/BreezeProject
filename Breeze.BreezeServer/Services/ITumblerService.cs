@@ -1,4 +1,4 @@
-namespace Breeze.BreezeD
+namespace Breeze.BreezeServer
 {
     public interface ITumblerService
     {

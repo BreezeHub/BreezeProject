@@ -10,7 +10,7 @@ using NBitcoin;
 using NBitcoin.DataEncoders;
 using NBitcoin.RPC;
 
-namespace Breeze.BreezeD
+namespace Breeze.BreezeServer
 {
     public class BreezeRegistration
     {

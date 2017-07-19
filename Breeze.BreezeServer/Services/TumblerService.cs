@@ -26,7 +26,7 @@ using NTumbleBit.Services;
 using NTumbleBit.Configuration;
 using NTumbleBit.ClassicTumbler.CLI;
 
-namespace Breeze.BreezeD
+namespace Breeze.BreezeServer
 {
     public class TumblerService : ITumblerService
     {

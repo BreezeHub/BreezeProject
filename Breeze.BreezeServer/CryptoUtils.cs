@@ -7,7 +7,7 @@ using System.Text;
 using NBitcoin;
 using NTumbleBit;
 
-namespace Breeze.BreezeD
+namespace Breeze.BreezeServer
 {
     public class CryptoUtils
     {
