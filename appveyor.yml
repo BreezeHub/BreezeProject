@@ -3,6 +3,11 @@ image: Visual Studio 2017
 branches:
   only:
   - master
+
+# see http://status.appveyor.com/ re:connectivity issues for nuget
+  hosts:
+    api.nuget.org: 93.184.221.200
+
 init:
   # Good practise, because Windows
   - cmd: git config --global core.autocrlf true
