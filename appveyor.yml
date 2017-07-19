@@ -14,7 +14,16 @@ before_build:
   # 
   - cmd: dotnet restore ./BreezeCommon/BreezeCommon.csproj
 build_script:
+  #
   - cmd: dotnet publish ./BreezeCommon/BreezeCommon.csproj
-  #project: .\src\src.csproj
 after_build:
   # For once the build has completed
+test_script:
+  # tests in here
+  - cmd: dotnet restore ./BreezeCommon.Tests/BreezeCommon.Tests.csproj
+  - cmd: cd BreezeCommon.Tests
+  - cmd: dotnet xunit
+  #- cmd: cd ..
+on_finish :
+  # any cleanup in here
+deploy: off
