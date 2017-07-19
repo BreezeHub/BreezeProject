@@ -11,3 +11,10 @@ install:
 before_build:
   # Display .NET Core version
   - cmd: dotnet --version
+  # 
+  - cmd: dotnet restore ./BreezeCommon/BreezeCommon.csproj
+build_script:
+  - cmd: dotnet publish ./BreezeCommon/BreezeCommon.csproj
+  #project: .\src\src.csproj
+after_build:
+  # For once the build has completed
