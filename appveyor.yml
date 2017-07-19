@@ -1,1 +1,13 @@
 version: '1.0.{build}'
+image: Visual Studio 2017
+branches:
+  only:
+  - master
+init:
+  # Good practise, because Windows
+  - cmd: git config --global core.autocrlf true
+install:
+  # No repo specific stuff - put here when we have
+before_build:
+  # Display .NET Core version
+  - cmd: dotnet --version
