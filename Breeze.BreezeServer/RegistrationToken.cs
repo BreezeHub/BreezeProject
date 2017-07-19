@@ -6,7 +6,7 @@ using System.Text;
 
 using NBitcoin;
 
-namespace Breeze.BreezeD
+namespace Breeze.BreezeServer
 {
     /*
         Bitstream format for Stratis TumbleBit registration token

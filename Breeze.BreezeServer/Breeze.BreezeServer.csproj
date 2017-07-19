@@ -2,9 +2,9 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp1.1</TargetFramework>
-    <AssemblyName>Breeze.BreezeD</AssemblyName>
+    <AssemblyName>Breeze.BreezeServer</AssemblyName>
     <OutputType>Exe</OutputType>
-    <PackageId>Breeze.BreezeD</PackageId>
+    <PackageId>Breeze.BreezeServer</PackageId>
     <RuntimeFrameworkVersion>1.1.1</RuntimeFrameworkVersion>
     <PackageTargetFallback>$(PackageTargetFallback);dnxcore50</PackageTargetFallback>
     <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
@@ -17,9 +17,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\NStratis\NBitcoin\NBitcoin.csproj" />
-    <ProjectReference Include="..\NTumbleBit\NTumbleBit\NTumbleBit.csproj" />
-    <ProjectReference Include="..\NTumbleBit\NTumbleBit.ClassicTumbler.Server.CLI\NTumbleBit.ClassicTumbler.Server.CLI.csproj" />
+    <ProjectReference Include="..\BreezeProtocol\NStratis\NBitcoin\NBitcoin.csproj" />
+    <ProjectReference Include="..\BreezeProtocol\NTumbleBit\NTumbleBit\NTumbleBit.csproj" />
+    <ProjectReference Include="..\BreezeProtocol\NTumbleBit\NTumbleBit.ClassicTumbler.Server.CLI\NTumbleBit.ClassicTumbler.Server.CLI.csproj" />
   </ItemGroup>
 
   <ItemGroup>

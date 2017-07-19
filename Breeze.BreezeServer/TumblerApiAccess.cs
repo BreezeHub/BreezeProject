@@ -1,7 +1,7 @@
 using System.Net.Http;
 using System.Threading.Tasks;
 
-namespace Breeze.BreezeD
+namespace Breeze.BreezeServer
 {
     public class TumblerApiAccess
     {

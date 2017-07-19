@@ -9,7 +9,7 @@ using System.Text;
 using DBreeze;
 using NTumbleBit;
 
-namespace Breeze.BreezeD
+namespace Breeze.BreezeServer
 {
 	public class DBUtils : IDisposable
 	{

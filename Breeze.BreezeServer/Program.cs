@@ -4,7 +4,7 @@ using System.IO;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
-namespace Breeze.BreezeD
+namespace Breeze.BreezeServer
 {
 	public class Program
 	{
@@ -19,14 +19,14 @@ namespace Breeze.BreezeD
 				.GetService<ILoggerFactory>()
 				.AddConsole(LogLevel.Debug);
 
-			// TODO: It is messy having both a BreezeD logger and an NTumbleBit logger
+			// TODO: It is messy having both a BreezeServer logger and an NTumbleBit logger
 			var logger = serviceProvider.GetService<ILoggerFactory>()
 				.CreateLogger<Program>();
 
 			logger.LogInformation("{Time} Reading Breeze server configuration", DateTime.Now);
 
 			// Check OS-specific default config path for the config file. Create default file if it does not exist
-			var configDir = BreezeConfiguration.GetDefaultDataDir("BreezeD");
+			var configDir = BreezeConfiguration.GetDefaultDataDir("BreezeServer");
 			var configPath = Path.Combine(configDir, "breeze.conf");
 
 			logger.LogInformation("{Time} Configuration file path {Path}", DateTime.Now, configPath);

@@ -7,9 +7,9 @@ using Xunit;
 using NBitcoin;
 using NBitcoin.DataEncoders;
 
-using Breeze.BreezeD;
+using Breeze.BreezeServer;
 
-namespace Breeze.BreezeD.Tests
+namespace Breeze.BreezeServer.Tests
 {
     public class AddressEncodingTests
     {

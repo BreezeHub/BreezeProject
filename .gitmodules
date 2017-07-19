@@ -1,6 +1,3 @@
-[submodule "NTumbleBit"]
-	path = NTumbleBit
-	url = https://github.com/zeptin/NTumbleBit
-[submodule "NStratis"]
-	path = NStratis
-	url = https://github.com/stratisproject/NStratis.git
+[submodule "BreezeProtocol"]
+	path = BreezeProtocol
+	url = https://github.com/BreezeHub/BreezeProtocol

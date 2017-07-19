@@ -8,7 +8,7 @@ using System.IO;
 
 using NBitcoin;
 
-namespace Breeze.BreezeD
+namespace Breeze.BreezeServer
 {
     public class BreezeConfiguration
     {

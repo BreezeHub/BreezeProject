@@ -4,7 +4,7 @@ using System.Net;
 using NBitcoin;
 using NBitcoin.RPC;
 
-namespace Breeze.BreezeD
+namespace Breeze.BreezeServer
 {
     public class RPCHelper
     {
