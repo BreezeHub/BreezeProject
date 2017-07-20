@@ -83,3 +83,68 @@ Finally, boot up bitcoind or bitcoin-qt, let it sync with the network, and send 
 NTumbleBit is built upon .NET Core.
 
 You will need to install it on your system following [these instructions](https://www.microsoft.com/net/core).
+
+#### Getting the Code
+
+Navigate to where you would like to save the code in your shell and then:
+```
+git clone git@github.com:BreezeHub/BreezeServer.git
+```
+
+#### `dotnet restore`
+
+According to the documentation, > The `dotnet restore` command uses NuGet to restore dependencies as well as project-specific tools that are specified in the project file. By default, the restoration of dependencies and tools are performed in parallel.+
+
+run `dotnet restore` inside the newly created BreezeServer directory
+
+#### Running Tests
+
+```
+cd Breeze.BreezeServer.Tests/
+dotnet test
+```
+Your results should be something like this:
+```
+=== TEST EXECUTION SUMMARY ===
+   Breeze.BreezeServer.Tests  Total: 12, Errors: 0, Failed: 0, Skipped: 0, Time: 15.637s
+SUMMARY: Total: 1 targets, Passed: 1, Failed: 0.
+```
+
+#### Configure & Run
+
+###### Notes before you start
+- Your wallet is only as secure as your configuration files, so apply appropriate permissions.
+- We are working on the testnet from here on.
+
+###### Server
+After installing .NET Core, launching bitcoind on testnet, and restoring dependencies via `dotnet restore`
+
+First run the server and the configuration will be generated for you.
+
+```
+cd Breeze.BreezeServer
+dotnet run -testnet
+```
+The server's configuration file can be found in the user's home directory at `.ntumblebitserver/Testnet/server.config` or `%appdata%\Breeze.BreezeServer\TestNet\server.config` on Windows.
+
+```
+# server.conf
+# Sample Configuration file:
+
+rpc.url=http://localhost:18332/  # assumes Bitcoin Core is on localhost  
+rpc.user=bitcoinuser         # use the credentials from your bitcoin.conf
+rpc.password=bitcoinuser     # use the credentials from your bitcoin.conf
+```
+
+Run the server again with `dotnet run -testnet`, and keep it running.
+
+###### Client
+At this stage the client is hosted  in [NTumbleBit](https://github.com/ntumblebit/ntumblebit)
+
+Breeze.BreezeClient is not implemented yet. Please view the [documentation](https://github.com/ntumblebit/ntumblebit/wiki/How-to-Run#the-client) for NTumbleBit Client
+
+###### The registration transaction
+
+###### FAQ
+Please read the [FAQ]() if you are struggling.
+
