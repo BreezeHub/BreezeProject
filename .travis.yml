@@ -25,4 +25,4 @@ before_install:
 install:
   - dotnet restore BreezeCommon.sln
 script:
-  - dotnet test -c Release -f netcoreapp1.1 BreezeCommon/BreezeCommon.Tests.csproj
+  - dotnet test -c Release -f netcoreapp1.1 ./BreezeCommon.Tests/BreezeCommon.Tests.csproj
