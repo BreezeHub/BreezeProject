@@ -15,3 +15,7 @@ matrix:
 branches:
   only:
     - master
+
+script:
+  - chmod +x build.sh
+  - ./build.sh
