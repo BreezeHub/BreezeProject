@@ -146,5 +146,5 @@ Breeze.BreezeClient is not implemented yet. Please view the [documentation](http
 ###### The registration transaction
 
 ###### FAQ
-Please read the [FAQ]() if you are struggling.
+Please read the [FAQ](https://github.com/BreezeHub/BreezeServer/wiki/FAQ) if you are struggling.
 
