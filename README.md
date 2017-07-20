@@ -8,11 +8,10 @@ This release includes the following:
 ###### Node Advertisment Protocol
 
   A high level overview of the protocol *operations* performed by each Breeze TumbleBit Server is as follows:
-
   1. The node operator starts up the BreezeServer software
   2. The node checks to see if it has registered itself on the Stratis blockchain before
-  3. If it has, the tumbler service is initialized as normal
-  4. If the node has not yet registered, or if its configuration has changed The registration transaction updates and is broadcast again.
+  3. If it has registered, the tumbler service is initialized as normal
+  4. If the node has not yet registered, or if its configuration has changed, the registration transaction updates and is broadcast again.
 
 ###### Registration Transaction
 
@@ -21,7 +20,6 @@ This release includes the following:
 ###### Security Features
 
   The registration transaction carries the following information:
-
   1. The IP address of the Breeze TumbleBit Server
   2. (Currently optional) TOR address of the server
   3. The port that wallets should use to connect.
@@ -34,7 +32,6 @@ As this is alpha software, the tumbler is currently configured to only operate o
 #### Prerequisites:
 
 As a user, you will need:
-
   - [.NET Core SDK 1.0.4](https://github.com/dotnet/core/blob/master/release-notes/download-archives/1.0.4-sdk-download.md) (see below)
   - [Bitcoin Core 0.13.1](https://bitcoin.org/bin/bitcoin-core-0.13.1/) fully synched, rpc enabled
 
