@@ -73,7 +73,7 @@ testnet=1
 # server=1 tells Bitcoin-Qt and bitcoind to accept JSON-RPC commands
 server=1
 
-# RPC user and password may be used if you aren't using the newer 'cookie' authentication
+# RPC user and password. We don't yet support cookie authentication
 rpcuser=bitcoinuser
 rpcpassword=bitcoinuser
 
