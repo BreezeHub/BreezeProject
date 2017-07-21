@@ -98,8 +98,9 @@ You will need to install it on your system following [these instructions](https:
 
 Navigate to where you would like to save the code in your shell and then:
 ```
-git clone git@github.com:BreezeHub/BreezeServer.git
+git clone git@github.com:BreezeHub/BreezeServer.git --recursive
 ```
+The `--recursive` command is vital because BreezeServer relies on git submodules
 
 #### `dotnet restore`
 
