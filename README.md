@@ -10,3 +10,4 @@
 [6]: https://travis-ci.org/BreezeHub/BreezeServer
 
 # BreezeServer
+Server host for the Breeze Privacy Protocol (based on NTumbleBit)
