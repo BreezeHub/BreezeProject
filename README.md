@@ -118,9 +118,15 @@ dotnet test
 ```
 Your results should be something like this:
 ```
-=== TEST EXECUTION SUMMARY ===
-   Breeze.BreezeServer.Tests  Total: 12, Errors: 0, Failed: 0, Skipped: 0, Time: 15.637s
-SUMMARY: Total: 1 targets, Passed: 1, Failed: 0.
+Starting test execution, please wait...
+[xUnit.net 00:00:01.1439914]   Discovering: Breeze.BreezeServer.Tests
+[xUnit.net 00:00:01.4319561]   Discovered:  Breeze.BreezeServer.Tests
+[xUnit.net 00:00:01.5379946]   Starting:    Breeze.BreezeServer.Tests
+[xUnit.net 00:00:02.3485939]   Finished:    Breeze.BreezeServer.Tests
+
+Total tests: 2. Passed: 2. Failed: 0. Skipped: 0.
+Test Run Successful.
+Test execution time: 4.5518 Seconds
 ```
 
 #### Configure & Run
