@@ -144,7 +144,7 @@ First run the server and the configuration will be generated for you.
 cd Breeze.BreezeServer
 dotnet run -testnet
 ```
-The server's configuration file can be found in the user's home directory at `.ntumblebitserver/Testnet/server.config` or `%appdata%\Breeze.BreezeServer\TestNet\server.config` on Windows.
+The server's configuration file can be found in the user's home directory at `.breezeserver/breeze.conf` or `%appdata%\Breeze.BreezeServer\breeze.conf` on Windows.
 
 ```
 # server.conf
