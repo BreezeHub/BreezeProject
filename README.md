@@ -81,12 +81,14 @@ rpcpassword=bitcoinuser
 prune=2000
 ```
 Place the file in the relevant directory based on your system:
+| OS | bitcoin.conf parent directory |
+| --- | ---|
 | Linux                   | /home/<username>/.bitcoin/                                     |
 | Mac OS                  | /Users/<username>/Library/Application Support/Bitcoin/         |
 | Windows Vista, 7, 8, 10 | C:\Users\<username>\AppData\Roaming\Bitcoin\                   |
 | Windows XP              | C:\Documents and Settings\<username>\Application Data\Bitcoin\ |
 
-Finally, boot up bitcoind or bitcoin-qt, let it sync with the network, and send some coins to it.
+Finally, boot up bitcoind or bitcoin-qt, let it sync with the network, and send it some coins.
 
 #### Installing .NET Core
 
