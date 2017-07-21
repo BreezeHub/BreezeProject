@@ -158,6 +158,9 @@ rpc.password=bitcoinuser     # use the credentials from your bitcoin.conf
 Run the server again with `dotnet run -testnet`, and keep it running.
 
 ###### Client
+
+After starting the server, the address of the tumbler will be printed to console. The client config key `tumbler.server` should be set to this address.
+
 At this stage the client is hosted  in [NTumbleBit](https://github.com/ntumblebit/ntumblebit)
 
 Breeze.BreezeClient is not implemented yet. Please view the [documentation](https://github.com/ntumblebit/ntumblebit/wiki/How-to-Run#the-client) for NTumbleBit Client
