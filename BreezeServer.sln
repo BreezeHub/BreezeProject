@@ -8,17 +8,23 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "global", "global", "{5B331F
 		global.json = global.json
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Breeze.BreezeServer", "Breeze.BreezeServer\Breeze.BreezeServer.csproj", "{34C17104-704E-4790-B398-D1F73CBEE31E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Breeze.BreezeServer", "Breeze.BreezeServer\Breeze.BreezeServer.csproj", "{34C17104-704E-4790-B398-D1F73CBEE31E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Breeze.BreezeServer.Tests", "Breeze.BreezeServer.Tests\Breeze.BreezeServer.Tests.csproj", "{BDD4DC4D-89AD-45C1-8598-6F16BB87543C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Breeze.BreezeServer.Tests", "Breeze.BreezeServer.Tests\Breeze.BreezeServer.Tests.csproj", "{BDD4DC4D-89AD-45C1-8598-6F16BB87543C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NBitcoin", "BreezeProtocol\NStratis\NBitcoin\NBitcoin.csproj", "{35CD3510-4CA5-4EA1-A0E0-2FB9C5791714}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NBitcoin", "BreezeProtocol\NStratis\NBitcoin\NBitcoin.csproj", "{35CD3510-4CA5-4EA1-A0E0-2FB9C5791714}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HashLib", "BreezeProtocol\NStratis\Hashing\HashLib\HashLib.csproj", "{9384F90D-78CE-43E2-81DB-0945C9B44FEB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HashLib", "BreezeProtocol\NStratis\Hashing\HashLib\HashLib.csproj", "{9384F90D-78CE-43E2-81DB-0945C9B44FEB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NTumbleBit", "BreezeProtocol\NTumbleBit\NTumbleBit.csproj", "{767B60E2-0124-4381-A56F-EDE84F36CE3B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NTumbleBit", "BreezeProtocol\NTumbleBit\NTumbleBit.csproj", "{767B60E2-0124-4381-A56F-EDE84F36CE3B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NTumbleBit.ClassicTumbler.Server.CLI", "BreezeProtocol\NTumbleBit.ClassicTumbler.Server.CLI\NTumbleBit.ClassicTumbler.Server.CLI.csproj", "{CCE25D1D-D089-4FB4-8B4A-70C53AD28E24}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NTumbleBit.ClassicTumbler.Server.CLI", "BreezeProtocol\NTumbleBit.ClassicTumbler.Server.CLI\NTumbleBit.ClassicTumbler.Server.CLI.csproj", "{CCE25D1D-D089-4FB4-8B4A-70C53AD28E24}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{3E20D89D-C5F4-47E9-9AAB-4A2035215A72}"
+	ProjectSection(SolutionItems) = preProject
+		.travis.yml = .travis.yml
+		appveyor.yml = appveyor.yml
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
