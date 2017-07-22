@@ -38,7 +38,7 @@ namespace Breeze.BreezeServer
                 if (!File.Exists(configPath))
                 {
                     StringBuilder builder = new StringBuilder();
-                    builder.AppendLine("# Stratis TumbleBit daemon settings");
+                    builder.AppendLine("# Breeze TumbleBit daemon settings");
                     builder.AppendLine("#rpc.user=");
                     builder.AppendLine("#rpc.password=");
                     builder.AppendLine("#rpc.url=http://127.0.0.1:16174");

@@ -11,8 +11,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\BreezeProtocol\NStratis\NBitcoin\NBitcoin.csproj" />
+    <ProjectReference Include="..\BreezeCommon\BreezeProtocol\NStratis\NBitcoin\NBitcoin.csproj" />
     <ProjectReference Include="..\Breeze.BreezeServer\Breeze.BreezeServer.csproj" />
+    <ProjectReference Include="..\BreezeCommon\BreezeProtocol\NStratis\Hashing\HashLib\HashLib.csproj" />
+    <ProjectReference Include="..\BreezeCommon\BreezeCommon\BreezeCommon.csproj" />
+    <ProjectReference Include="..\BreezeCommon\BreezeProtocol\NTumbleBit\NTumbleBit.csproj" />
+    <ProjectReference Include="..\BreezeCommon\BreezeProtocol\NTumbleBit.ClassicTumbler.Server.CLI\NTumbleBit.ClassicTumbler.Server.CLI.csproj" />
   </ItemGroup>
 
   <ItemGroup>
