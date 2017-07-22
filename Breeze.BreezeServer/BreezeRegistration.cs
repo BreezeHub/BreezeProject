@@ -10,6 +10,8 @@ using NBitcoin;
 using NBitcoin.DataEncoders;
 using NBitcoin.RPC;
 
+using BreezeCommon;
+
 namespace Breeze.BreezeServer
 {
     public class BreezeRegistration
@@ -19,8 +21,7 @@ namespace Breeze.BreezeServer
 			var network = Network.StratisMain;
 			if (config.IsTestNet)
 			{
-                // TODO: Change to StratisTest when it is added to NStratis
-				network = Network.TestNet;
+                network = Network.StratisTest;
 			}
 
             // In order to determine if the registration sequence has been performed
@@ -98,8 +99,8 @@ namespace Breeze.BreezeServer
             //var tumblerApi = new TumblerApiAccess(config.TumblerApiBaseUrl);
             //string json = tumblerApi.GetParameters().Result;
             //var tumblerParameters = JsonConvert.DeserializeObject<TumblerParameters>(json);
-            var registrationToken = new RegistrationToken(255, config.Ipv4Address, config.Ipv6Address, config.OnionAddress, config.Port, config.TumblerRsaKeyPath);
-            var msgBytes = registrationToken.GetRegistrationTokenBytes(privateKeyEcdsa);
+            var registrationToken = new RegistrationToken(255, config.Ipv4Address, config.Ipv6Address, config.OnionAddress, config.Port);
+            var msgBytes = registrationToken.GetRegistrationTokenBytes(config.TumblerRsaKeyPath, privateKeyEcdsa);
 
             // Create the registration transaction using the bytes generated above
             var rawTx = CreateBreezeRegistrationTx(network, msgBytes, config.TxOutputValueSetting);
@@ -152,7 +153,7 @@ namespace Breeze.BreezeServer
             });
 
             // Add each data-encoding address as a TxOut
-            foreach (BitcoinAddress address in BytesToAddresses(network, data))
+            foreach (BitcoinAddress address in BlockChainDataConversions.BytesToAddresses(network, data))
             {
                 TxOut destTxOut = new TxOut()
                 {
@@ -164,114 +165,6 @@ namespace Breeze.BreezeServer
             }
 
             return sendTx;
-        }
-
-        public List<BitcoinAddress> BytesToAddresses(Network network, byte[] dataToEncode)
-        {
-            /* Converts a byte array into a list of Stratis or Bitcoin addresses.
-            Each address can store 20 bytes of arbitrary data. The first byte of
-            a (typically) 25 byte address is the network byte and is therefore
-            unusable. The last 4 bytes are the checksum and are similarly
-            unusable. */
-
-            List<BitcoinAddress> addressList = new List<BitcoinAddress>();
-
-            if (dataToEncode.Length == 0)
-            {
-                return addressList;
-            }
-
-            int startPos = 0;
-            string base58address;
-
-            while (true)
-            {
-                IEnumerable<byte> subSet = dataToEncode.Skip(startPos).Take(20);
-
-                if (subSet.Count() == 20)
-                {
-                    IEnumerable<byte> augmentedSubSet = subSet;
-
-                    KeyId key = new KeyId(augmentedSubSet.ToArray());
-                    BitcoinPubKeyAddress address = new BitcoinPubKeyAddress(key, network);
-                    base58address = address.ToString();
-                    addressList.Add(BitcoinAddress.Create(base58address));
-                }
-                else
-                {
-                    // Fill up remainder of 20 bytes with zeroes
-                    var arr = new byte[20 - subSet.Count()];
-                    for (int i = 0; i < arr.Length; i++)
-                    {
-                        arr[i] = 0x00;
-                    }
-
-                    IEnumerable<byte> tempSuffix = arr;
-                    IEnumerable<byte> augmentedSubSet = subSet.Concat(tempSuffix);
-
-                    KeyId key = new KeyId(augmentedSubSet.ToArray());
-                    BitcoinPubKeyAddress address = new BitcoinPubKeyAddress(key, network);
-                    base58address = address.ToString();
-                    addressList.Add(BitcoinAddress.Create(base58address));
-
-                    break;
-                }
-
-                startPos += 20;
-            }
-
-            return addressList;
-        }
-
-        public byte[] AddressesToBytes(List<BitcoinAddress> addresses)
-        {
-            /* Convert a list of Bitcoin or Stratis addresses back into
-             a byte array. Note that no assumptions are made about
-             padding schemes, and the data storage protocol therefore
-             needs to be robust enough to handle trailing empty or
-             garbage bytes.
-             */
-            
-            var decoded = new MemoryStream();
-            byte[] temp;
-
-            foreach (var addr in addresses)
-            {
-                temp = Encoders.Base58.DecodeData(addr.ToString());
-                
-                // Use an offset to trim off the 1 network byte and 4 checksum bytes
-                if (temp.Length < 21)
-                {
-                    throw new Exception("Decoded address too short, data corrupted?");
-                }
-                decoded.Write(temp, 1, 20);
-            }
-
-            return decoded.ToArray();
-        }
-
-        public byte[] AddressToBytes(BitcoinAddress address)
-        {
-            /* Convert a Bitcoin or Stratis address back into
-             a byte array. Note that no assumptions are made about
-             padding schemes, and the data storage protocol therefore
-             needs to be robust enough to handle trailing empty or
-             garbage bytes.
-             */
-            
-            var decoded = new MemoryStream();
-            byte[] temp;
-
-            temp = Encoders.Base58.DecodeData(address.ToString());
-            
-            // Use an offset to trim off the 1 network byte and 4 checksum bytes
-            if (temp.Length < 21)
-            {
-                throw new Exception("Decoded address too short, data corrupted?");
-            }
-            decoded.Write(temp, 1, 20);
-
-            return decoded.ToArray();
         }
     }
 }

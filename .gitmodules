@@ -1,6 +1,3 @@
-[submodule "BreezeProtocol"]
-	path = BreezeProtocol
-	url = https://github.com/BreezeHub/BreezeProtocol
 [submodule "BreezeCommon"]
 	path = BreezeCommon
 	url = https://github.com/BreezeHub/BreezeCommon

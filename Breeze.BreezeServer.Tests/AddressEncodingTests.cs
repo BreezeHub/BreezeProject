@@ -7,17 +7,15 @@ using Xunit;
 using NBitcoin;
 using NBitcoin.DataEncoders;
 
+using BreezeCommon;
 using Breeze.BreezeServer;
 
 namespace Breeze.BreezeServer.Tests
 {
     public class AddressEncodingTests
     {
-        private BreezeRegistration breezeReg;
-
         public AddressEncodingTests()
         {
-            breezeReg = new BreezeRegistration();
         }
 
         [Fact]
@@ -28,7 +26,7 @@ namespace Breeze.BreezeServer.Tests
 
             var inputMessage = "a"; 
             var inputMessageBytes = Encoding.ASCII.GetBytes(inputMessage);
-            var output = breezeReg.BytesToAddresses(Network.TestNet, inputMessageBytes);
+            var output = BlockChainDataConversions.BytesToAddresses(Network.TestNet, inputMessageBytes);
             List<BitcoinAddress> expectedOutput = new List<BitcoinAddress>();
             expectedOutput.Add(BitcoinAddress.Create("mpMqqfKnF9M2rwk9Ai4RymBqADx6TssFuM"));
 
@@ -70,7 +68,7 @@ namespace Breeze.BreezeServer.Tests
             List<BitcoinAddress> inputAddresses = new List<BitcoinAddress>();
             inputAddresses.Add(BitcoinAddress.Create("mpMqqfKnF9M2rwk9Ai4RymBqADx6TssFuM"));
 
-            var output = breezeReg.AddressesToBytes(inputAddresses);
+            var output = BlockChainDataConversions.AddressesToBytes(inputAddresses);
 
             Assert.Equal(expectedBytes, output);
         }
