@@ -5,6 +5,7 @@ using System.Security.Cryptography;
 using System.Text;
 
 using NBitcoin;
+using Newtonsoft.Json;
 
 namespace BreezeCommon
 {
@@ -34,6 +35,7 @@ namespace BreezeCommon
         - Encoded address transaction outputs
         -> 1 byte - Protocol version byte (255 = test registration to be ignored by mainnet wallets)
         -> 2 bytes - Length of registration header
+        -> 34 bytes - Server ID of the tumbler (base58 representation of the collateral address, right padded with spaces)
         -> 4 bytes - IPV4 address of tumbler server; 00000000 indicates non-IPV4
         -> 16 bytes - IPV6 address of tumbler server; 00000000000000000000000000000000 indicates non-IPV6
         -> 16 bytes - Onion (Tor) address of tumbler server; 00000000000000000000000000000000 indicates non-Tor
@@ -53,17 +55,25 @@ namespace BreezeCommon
 	public class RegistrationToken
 	{
 		public int ProtocolVersion { get; set; }
+
+        public string ServerId { get; set; }
+
+        [JsonConverter(typeof(IPAddressConverter))]
 		public IPAddress Ipv4Addr { get; set; }
+
+        [JsonConverter(typeof(IPAddressConverter))]
 		public IPAddress Ipv6Addr { get; set; }
+
 		public string OnionAddress { get; set; }
 		public int Port { get; set; }
 
-		byte[] RsaSignature;
-		byte[] EcdsaSignature;
+		public byte[] RsaSignature { get; set; }
+		public byte[] EcdsaSignature { get; set; }
 
-		public RegistrationToken(int protocolVersion, IPAddress ipv4Addr, IPAddress ipv6Addr, string onionAddress, int port)
+		public RegistrationToken(int protocolVersion, string serverId, IPAddress ipv4Addr, IPAddress ipv6Addr, string onionAddress, int port)
 		{
 			ProtocolVersion = protocolVersion;
+            ServerId = serverId;
 			Ipv4Addr = ipv4Addr;
 			Ipv6Addr = ipv6Addr;
 			OnionAddress = onionAddress;
@@ -78,6 +88,8 @@ namespace BreezeCommon
 		public byte[] GetRegistrationTokenBytes(string rsaKeyPath, BitcoinSecret privateKeyEcdsa)
 		{
 			var token = new List<byte>();
+
+            token.AddRange(Encoding.ASCII.GetBytes(ServerId.PadRight(34)));
 
 			if (Ipv4Addr != null)
 			{
@@ -189,14 +201,20 @@ namespace BreezeCommon
 			// data types, then set member variables to the retrieved values.
 
 			// Skip over protocol version and header length bytes
-			var position = 3;
+			int position = 3;
 			ProtocolVersion = protocolVersion;
+
+            byte[] serverIdTemp = GetSubArray(bitstream, position, 34);
+
+            ServerId = Encoding.ASCII.GetString(serverIdTemp);
+
+            position += 34;
 
 			// Either a valid IPv4 address, or all zero bytes
 			bool allZeroes = true;
 			byte[] ipv4temp = GetSubArray(bitstream, position, 4);
 
-			for (var i = 0; i < ipv4temp.Length; i++)
+			for (int i = 0; i < ipv4temp.Length; i++)
 			{
 				if (ipv4temp[i] != 0)
 					allZeroes = false;
@@ -217,7 +235,7 @@ namespace BreezeCommon
 			allZeroes = true;
 			byte[] ipv6temp = GetSubArray(bitstream, position, 16);
 
-			for (var i = 0; i < ipv6temp.Length; i++)
+			for (int i = 0; i < ipv6temp.Length; i++)
 			{
 				if (ipv6temp[i] != 0)
 					allZeroes = false;
@@ -238,7 +256,7 @@ namespace BreezeCommon
 			allZeroes = true;
 			byte[] onionTemp = GetSubArray(bitstream, position, 16);
 
-			for (var i = 0; i < onionTemp.Length; i++)
+			for (int i = 0; i < onionTemp.Length; i++)
 			{
 				if (onionTemp[i] != 0)
 					allZeroes = false;
