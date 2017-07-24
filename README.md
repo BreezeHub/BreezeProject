@@ -157,7 +157,14 @@ The server's configuration file can be found in the user's home directory at `.b
 rpc.url=http://localhost:18332/  # assumes Bitcoin Core is on localhost  
 rpc.user=bitcoinuser         # use the credentials from your bitcoin.conf
 rpc.password=bitcoinuser     # use the credentials from your bitcoin.conf
+
+#####Tor config (default enabled, using cookie auth/no auth on port 9051)
+tor.enabled=true
+tor.server=127.0.0.1:9051
+tor.cookiefile=/home/<username>/.tor/control_auth_cookie
 ```
+
+Both server & client rely on the Tor network. Read documentation on setting up tor from the [NTumbleBit Wiki](https://github.com/ntumblebit/ntumblebit/wiki/How-to-Run#configuring-a-tor-proxy). Ensure tor is running on control port 9051
 
 Run the server again with `dotnet run -testnet`, and keep it running.
 
