@@ -4,15 +4,11 @@ branches:
   only:
   - master
 
-# see http://status.appveyor.com/ re:connectivity issues for nuget
-hosts:
- api.nuget.org: 93.184.221.200
-
 init:
   # Good practise, because Windows
   - cmd: git config --global core.autocrlf true
 install:
-  # need to do the recursice clone here for submodules
+  # need to do the recursive clone here for submodules
   git submodule update --init --recursive
 before_build:
   # Display .NET Core version
