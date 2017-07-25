@@ -11,7 +11,7 @@
 
 # BreezeServer
 
-(*** **Update 23rd July 2017:** *We are continuing to work on this documentation please check back for regular updates.* ***)
+(*** **Update 25th July 2017:** *We are continuing to work on this documentation please check back for regular updates.* ***)
 
 BreezeServer is a service host for our implementation of [TumbleBit](http://tumblebit.cash) in .NET Core. It is an untrusted<sup>*</sup> bitcoin-compatible anonymous payments protocol.
 
@@ -78,7 +78,7 @@ server=1
 
 # RPC user and password. We don't yet support cookie authentication
 rpcuser=bitcoinuser
-rpcpassword=bitcoinuser
+rpcpassword=bitcoinpassword
 
 # Optional: pruning can reduce the disk usage from currently around 120GB (or 8GB testnet) to around 2 GB.
 prune=2000
@@ -87,10 +87,10 @@ Place the file in the relevant directory based on your system:
 
 | OS | bitcoin.conf parent directory |
 | --- | --- |
-| Linux                   | /home/<username>/.bitcoin/                                     |
-| Mac OS                  | /Users/<username>/Library/Application Support/Bitcoin/         |
-| Windows Vista, 7, 8, 10 | C:\Users\<username>\AppData\Roaming\Bitcoin\                   |
-| Windows XP              | C:\Documents and Settings\<username>\Application Data\Bitcoin\ |
+| Linux                   | /home/\<username\>/.bitcoin/                                     |
+| Mac OS                  | /Users/\<username\>/Library/Application Support/Bitcoin/         |
+| Windows Vista, 7, 8, 10 | C:\Users\\<username\>\AppData\Roaming\Bitcoin\                   |
+| Windows XP              | C:\Documents and Settings\\<username\>\Application Data\Bitcoin\ |
 
 Finally, boot up bitcoind or bitcoin-qt, let it sync with the network, and send it some coins.
 
