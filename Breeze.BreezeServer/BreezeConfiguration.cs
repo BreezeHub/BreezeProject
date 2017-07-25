@@ -7,6 +7,7 @@ using System.Text;
 using System.IO;
 
 using NBitcoin;
+using NTumbleBit;
 
 namespace Breeze.BreezeServer
 {
@@ -26,6 +27,7 @@ namespace Breeze.BreezeServer
 
         public string TumblerApiBaseUrl { get; set; }
         public string TumblerRsaKeyPath { get; set; }
+        public RsaKey TumblerKey { get; set; }
         public string TumblerEcdsaKeyAddress { get; set; }
 
         public Money TxOutputValueSetting { get; set; }
@@ -116,7 +118,21 @@ namespace Breeze.BreezeServer
                 Port = configFile.GetOrDefault<int>("breeze.port", 37123);
 
                 TumblerApiBaseUrl = configFile.GetOrDefault<string>("tumbler.url", null);
-                TumblerRsaKeyPath = configFile.GetOrDefault<string>("tumbler.rsakeypath", null);
+
+                TumblerRsaKeyPath = configFile.GetOrDefault<string>("tumbler.rsakeypath", Path.Combine(GetDefaultDataDir("NTumbleBitServer"), "Tumbler.pem"));
+                if(!File.Exists(TumblerRsaKeyPath))
+                {
+                 Console.WriteLine("RSA private key not found, please backup it. Creating...");
+                    TumblerKey = new RsaKey();
+                    File.WriteAllBytes(TumblerRsaKeyPath, TumblerKey.ToBytes());
+                    Console.WriteLine("RSA key saved (" + TumblerRsaKeyPath + ")");
+                }
+                else
+                {
+                    Console.WriteLine("RSA private key found (" + TumblerRsaKeyPath + ")");
+                    TumblerKey = new RsaKey(File.ReadAllBytes(TumblerRsaKeyPath));
+                }
+
                 TumblerEcdsaKeyAddress = configFile.GetOrDefault<string>("tumbler.ecdsakeyaddress", null);
 
                 TxOutputValueSetting = new Money(configFile.GetOrDefault<int>("breeze.regtxoutputvalue", 1000), MoneyUnit.Satoshi);
