@@ -76,8 +76,7 @@ namespace Breeze.BreezeServer
 			var network = Network.StratisMain;
 			if (config.IsTestNet)
 			{
-                // TODO: Change to StratisTest when support is added to NStratis
-				network = Network.TestNet;
+				network = Network.StratisTest;
 			}
 
             RPCHelper stratisHelper = null;
