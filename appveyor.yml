@@ -12,6 +12,7 @@ install:
 before_build:
   # Display .NET Core version
   - cmd: dotnet --version
+  - cmd: git submodule update --init --recursive
   # 
   - cmd: dotnet restore ./BreezeCommon/BreezeCommon.csproj
 build_script:
