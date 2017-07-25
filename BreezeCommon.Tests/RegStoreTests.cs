@@ -32,7 +32,7 @@ namespace BreezeCommon.Tests
             token.RsaSignature = Encoding.ASCII.GetBytes("xyz");
 			token.EcdsaSignature = Encoding.ASCII.GetBytes("abc");
 
-            RegistrationRecord record = new RegistrationRecord(DateTime.Now, token);
+            RegistrationRecord record = new RegistrationRecord(DateTime.Now, Guid.NewGuid(), token);
             RegistrationStore store = new RegistrationStore(Path.GetTempFileName());
 
             Assert.IsTrue(store.Add(record));
@@ -51,7 +51,7 @@ namespace BreezeCommon.Tests
 			token.RsaSignature = Encoding.ASCII.GetBytes("xyz");
 			token.EcdsaSignature = Encoding.ASCII.GetBytes("abc");
 
-			RegistrationRecord record = new RegistrationRecord(DateTime.Now, token);
+            RegistrationRecord record = new RegistrationRecord(DateTime.Now, Guid.NewGuid(), token);
 			RegistrationStore store = new RegistrationStore(Path.GetTempFileName());
 
 			store.Add(record);
@@ -83,7 +83,7 @@ namespace BreezeCommon.Tests
 			token.RsaSignature = Encoding.ASCII.GetBytes("def");
 			token.EcdsaSignature = Encoding.ASCII.GetBytes("ghi");
 
-			RegistrationRecord record = new RegistrationRecord(DateTime.Now, token);
+            RegistrationRecord record = new RegistrationRecord(DateTime.Now, Guid.NewGuid(), token);
 			RegistrationStore store = new RegistrationStore(Path.GetTempFileName());
 
 			store.Add(record);
@@ -98,7 +98,7 @@ namespace BreezeCommon.Tests
 			token2.RsaSignature = Encoding.ASCII.GetBytes("xyz");
 			token2.EcdsaSignature = Encoding.ASCII.GetBytes("abc");
 
-			RegistrationRecord record2 = new RegistrationRecord(DateTime.Now, token2);
+            RegistrationRecord record2 = new RegistrationRecord(DateTime.Now, Guid.NewGuid(), token2);
 
 			store.Add(record2);
 

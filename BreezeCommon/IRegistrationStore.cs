@@ -7,8 +7,11 @@ namespace BreezeCommon
     {
 	    string Name { get; }
 
-        bool Add(RegistrationRecord tx);
+        bool Add(RegistrationRecord record);
         List<RegistrationRecord> GetByServerId(string serverId);
-        List<RegistrationRecord> GetAll();
+		List<RegistrationRecord> GetAll();
+		RegistrationRecord GetByGuid(Guid guid);
+        bool Delete(Guid guid);
+        bool Delete(RegistrationRecord record);
     }
 }
