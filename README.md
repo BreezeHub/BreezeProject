@@ -146,7 +146,7 @@ stratisd getinfo
 
 #### Installing .NET Core
 
-NTumbleBit is built upon .NET Core.
+BreezeServer is built upon .NET Core.
 
 You will need to install it on your system following [these instructions](https://www.microsoft.com/net/core).
 
