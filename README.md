@@ -85,7 +85,7 @@ exit
 ```
 
 ##### Step 2: Download StratisX
-We currently recommend StratisX to run stratisd.
+We currently recommend StratisX to run stratisd v2.0.0.3.
 
 Here are some pointers for ubuntu:
 ```
