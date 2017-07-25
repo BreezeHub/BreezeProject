@@ -49,7 +49,8 @@ As this is alpha software, the tumbler is currently configured to only operate o
 
 As a user, you will need:
   - [.NET Core SDK 1.0.4](https://github.com/dotnet/core/blob/master/release-notes/download-archives/1.0.4-sdk-download.md) (see below)
-  - [StratisX](https://github.com/stratisplatform/StratisX) fully synched, rpc enabled
+  - [StratisX](https://github.com/stratisplatform/StratisX) fully synced, rpc enabled
+  - [Bitcoin Core 0.13.1](https://bitcoin.org/bin/bitcoin-core-0.13.1/) fully synched, rpc enabled
 
 You can easily install the SDK on ubuntu systems after installing the runtime by running:
 ```
@@ -60,6 +61,34 @@ More information about installing .NET Core on your system can be found [here](h
 If you are a developer or want to browse the code, you additionally require:
   - [Visual Studio Code](https://code.visualstudio.com/) with [C# Extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode.csharp) (cross platform)
   - [Visual Studio 2017](https://www.visualstudio.com/downloads/) (Windows only)
+
+#### Configuring Bitcoin Core for testnet
+[Download](https://bitcoin.org/bin/bitcoin-core-0.13.1/) Bitcoin Core 0.13.1
+Create/edit your bitcoin.conf:
+```
+# ~/.bitcoin/bitcoin.conf
+# run on testnet
+testnet=1
+
+# server=1 tells Bitcoin-Qt and bitcoind to accept JSON-RPC commands
+server=1
+
+# Enable pruning to reduce storage requirements by deleting old blocks. 
+prune=2000
+
+rpcuser=bitcoinuser
+rpcpassword=bitcoinpassword
+```
+
+Place the file in the relevant directory based on your system:
+| OS | bitcoin.conf parent directory |
+| --- | --- |
+| Linux                   | /home/\<username\>/.bitcoin/                                     |
+| Mac OS                  | /Users/\<username\>/Library/Application Support/Bitcoin/         |
+| Windows Vista, 7, 8, 10 | C:\Users\\<username\>\AppData\Roaming\Bitcoin\                   |
+| Windows XP              | C:\Documents and Settings\\<username\>\Application Data\Bitcoin\ |
+
+Finally, boot up bitcoind or bitcoin-qt, let it sync with the network, and send it some coin.
 
 #### Configuring StratisX node to use the stratis testnet blockchain
 
@@ -184,6 +213,39 @@ Test Run Successful.
 Test execution time: 4.5518 Seconds
 ```
 
+#### Configuring NTumbleBit to RPC bitcoind
+
+###### Key files from NTumbleBit
+Our codebase does not yet generate the identifying `Tumbler.pem` rsa key. To get this key, one must clone the NTumbleBit repository
+
+```
+git clone git@github.com:NTumbleBit/NTumbleBit.git
+```
+and run the NTumbleBit server to generate `Tumbler.pem`, we'll need this later:
+```
+cd NTumbleBit/NTumbleBit.ClassicTumbler.Server.CLI
+dotnet restore
+dotnet run -testnet
+```
+
+###### Configuration file
+After running NTumbleBit, a configuration directory will be created. This is where `Tumbler.pem` will be.
+
+| OS | NTumbleBit/TestNet/ config parent directory |
+| --- | --- |
+| Linux                   | /home/\<username\>/.ntumblebitserver/          |
+| Mac OS                  | /Users/\<username\>/.ntumblebitserver/         |
+| Windows Vista, 7, 8, 10 | C:\Users\\<username\>\.ntumblebitserver\       |
+| Windows XP              | C:\Documents and Settings\\<username\>\Application Data\.ntumblebitserver\ |
+
+edit the `server.conf` file within the `TestNet` directory to configure RPC with bitcoind
+```
+# ~/.ntumblebitserver/TestNet/server.conf
+rpc.url=http://127.0.0.1:18332/
+rpc.user=bitcoinuser
+rpc.password=bitcoinpassword
+```
+
 #### Configure & Run
 
 #####Notes before you start
@@ -200,21 +262,9 @@ cd Breeze.BreezeServer
 dotnet run -testnet
 ```
 
-
 ###### Key files from NTumbleBit
-Our codebase does not yet generate the identifying `Tumbler.pem` rsa key. To get this key, one must clone the NTumbleBit repository
-
-```
-git clone git@github.com:NTumbleBit/NTumbleBit.git
-```
-and run the NTumbleBit server to generate `Tumbler.pem`:
-```
-cd NTumbleBit/NTumbleBit.ClassicTumbler.Server.CLI
-dotnet restore
-dotnet run --testnet
-```
-
-After this, the RSA key file `Tumbler.pem` should be located in the NTumbleBitServer data directory. It will be in `~/.ntumblebitserver/Tumbler.pem` on ubuntu. Copy this file into the same directory as `breeze.conf`
+Our codebase does not yet generate the identifying `Tumbler.pem` rsa key. Copy this key from the NTumbleBit config folder referenced earlier.
+The RSA key file `Tumbler.pem` should be located in the NTumbleBitServer data directory. It will be in `~/.ntumblebitserver/TestNet/Tumbler.pem` on ubuntu. Look at the table in the NTumbleBit section above if you can't find it on your system. Copy this file into the same directory as `breeze.conf`
 
 BreezeServer's configuration file can be found in the user's home directory at `.breezeserver/breeze.conf` or `%appdata%\Breeze.BreezeServer\breeze.conf` on Windows.
 
