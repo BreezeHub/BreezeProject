@@ -27,7 +27,6 @@ namespace Breeze.BreezeServer
 
         public string TumblerApiBaseUrl { get; set; }
         public string TumblerRsaKeyPath { get; set; }
-        public RsaKey TumblerKey { get; set; }
         public string TumblerEcdsaKeyAddress { get; set; }
 
         public Money TxOutputValueSetting { get; set; }
@@ -119,18 +118,18 @@ namespace Breeze.BreezeServer
 
                 TumblerApiBaseUrl = configFile.GetOrDefault<string>("tumbler.url", null);
 
+                // Look for Tumbler.pem in the .ntumblebitserver appdata folder
                 TumblerRsaKeyPath = configFile.GetOrDefault<string>("tumbler.rsakeypath", Path.Combine(GetDefaultDataDir("NTumbleBitServer"), "Tumbler.pem"));
                 if(!File.Exists(TumblerRsaKeyPath))
                 {
                  Console.WriteLine("RSA private key not found, please backup it. Creating...");
-                    TumblerKey = new RsaKey();
-                    File.WriteAllBytes(TumblerRsaKeyPath, TumblerKey.ToBytes());
+                    // Generate a new RSA Key
+                    File.WriteAllBytes(TumblerRsaKeyPath, new RsaKey().ToBytes());
                     Console.WriteLine("RSA key saved (" + TumblerRsaKeyPath + ")");
                 }
                 else
                 {
                     Console.WriteLine("RSA private key found (" + TumblerRsaKeyPath + ")");
-                    TumblerKey = new RsaKey(File.ReadAllBytes(TumblerRsaKeyPath));
                 }
 
                 TumblerEcdsaKeyAddress = configFile.GetOrDefault<string>("tumbler.ecdsakeyaddress", null);
