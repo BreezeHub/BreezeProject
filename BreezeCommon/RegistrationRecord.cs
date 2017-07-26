@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Text;
 
-using NBitcoin;
 using Newtonsoft.Json;
 
 namespace BreezeCommon
