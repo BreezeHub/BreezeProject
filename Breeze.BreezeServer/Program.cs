@@ -4,6 +4,8 @@ using System.IO;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
+using BreezeCommon;
+
 namespace Breeze.BreezeServer
 {
 	public class Program
@@ -26,26 +28,23 @@ namespace Breeze.BreezeServer
 			logger.LogInformation("{Time} Reading Breeze server configuration", DateTime.Now);
 
 			// Check OS-specific default config path for the config file. Create default file if it does not exist
-			var configDir = BreezeConfiguration.GetDefaultDataDir("BreezeServer");
-			var configPath = Path.Combine(configDir, "breeze.conf");
+			string configDir = BreezeConfiguration.GetDefaultDataDir("BreezeServer");
+			string configPath = Path.Combine(configDir, "breeze.conf");
 
 			logger.LogInformation("{Time} Configuration file path {Path}", DateTime.Now, configPath);
 
-			var config = new BreezeConfiguration(configPath);
+            BreezeConfiguration config = new BreezeConfiguration(configPath);
 
-			var dbPath = Path.Combine(configDir, "db");
+			string regStorePath = Path.Combine(configDir, "registrationHistory.json");
 
-			logger.LogInformation("{Time} Database path {Path}", DateTime.Now, dbPath);
+            logger.LogInformation("{Time} Registration history path {Path}", DateTime.Now, regStorePath);
+			logger.LogInformation("{Time} Checking node registration", DateTime.Now);
 
-			var db = new DBUtils(dbPath);
+            BreezeRegistration registration = new BreezeRegistration();
 
-			logger.LogInformation("{Time} Checking node registration on the blockchain", DateTime.Now);
-
-			var registration = new BreezeRegistration();
-
-			if (!registration.CheckBreezeRegistration(config, db)) {
+            if (!registration.CheckBreezeRegistration(config, regStorePath)) {
 				logger.LogInformation("{Time} Creating or updating node registration", DateTime.Now);
-				var regTx = registration.PerformBreezeRegistration(config, db);
+                var regTx = registration.PerformBreezeRegistration(config, regStorePath);
 				if (regTx != null) {
 					logger.LogInformation("{Time} Submitted transaction {TxId} via RPC for broadcast", DateTime.Now, regTx.GetHash().ToString());
 				}
@@ -59,8 +58,6 @@ namespace Breeze.BreezeServer
 			}
 
 			logger.LogInformation("{Time} Starting Tumblebit server", DateTime.Now);
-
-            db.UpdateOrInsert<string>("TumblerStartupLog", DateTime.Now.ToString("yyyyMMddHHmmss"), "Tumbler starting", (o, n) => n);
 
 			var tumbler = serviceProvider.GetService<ITumblerService>();
 			
