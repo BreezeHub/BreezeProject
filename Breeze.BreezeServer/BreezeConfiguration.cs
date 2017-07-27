@@ -11,6 +11,9 @@ using NTumbleBit;
 
 namespace Breeze.BreezeServer
 {
+    /// <summary>
+    /// BreezeConfiguration is an instantiation of the user defined config
+    /// </summary>
     public class BreezeConfiguration
     {
         public bool IsTestNet { get; set; }
@@ -26,7 +29,7 @@ namespace Breeze.BreezeServer
         public int Port { get; set; }
 
         public string TumblerApiBaseUrl { get; set; }
-        public string TumblerRsaKeyPath { get; set; }
+        public string TumblerRsaKeyFullPath { get; set; }
         public string TumblerEcdsaKeyAddress { get; set; }
 
         public Money TxOutputValueSetting { get; set; }
@@ -52,7 +55,7 @@ namespace Breeze.BreezeServer
                     builder.AppendLine("# Value of registration transaction fee (in satoshi)");
                     builder.AppendLine("#breeze.regtxfeevalue=");
                     builder.AppendLine("#tumbler.url=");
-                    builder.AppendLine("#tumbler.rsakeypath=");
+                    builder.AppendLine("#tumbler.rsakeyfullpath=");
                     builder.AppendLine("#tumbler.ecdsakeyaddress=");
 
                     File.WriteAllText(configPath, builder.ToString());
@@ -119,17 +122,16 @@ namespace Breeze.BreezeServer
                 TumblerApiBaseUrl = configFile.GetOrDefault<string>("tumbler.url", null);
 
                 // Look for Tumbler.pem in the .ntumblebitserver appdata folder
-                TumblerRsaKeyPath = configFile.GetOrDefault<string>("tumbler.rsakeypath", Path.Combine(GetDefaultDataDir("NTumbleBitServer"), "Tumbler.pem"));
-                if(!File.Exists(TumblerRsaKeyPath))
+                TumblerRsaKeyFullPath = configFile.GetOrDefault<string>("tumbler.rsakeyfullpath", Path.Combine(GetDefaultDataDir("NTumbleBitServer"), "Tumbler.pem"));
+                if(!TumblerRsaKey.Exists(TumblerRsaKeyFullPath))
                 {
-                 Console.WriteLine("RSA private key not found, please backup it. Creating...");
-                    // Generate a new RSA Key
-                    File.WriteAllBytes(TumblerRsaKeyPath, new RsaKey().ToBytes());
-                    Console.WriteLine("RSA key saved (" + TumblerRsaKeyPath + ")");
+                    Console.WriteLine("RSA private key not found, please backup it. Creating...");
+                    TumblerRsaKey.Create(TumblerRsaKeyFullPath);
+                    Console.WriteLine("RSA key saved (" + TumblerRsaKeyFullPath + ")");
                 }
                 else
                 {
-                    Console.WriteLine("RSA private key found (" + TumblerRsaKeyPath + ")");
+                    Console.WriteLine("RSA private key found (" + TumblerRsaKeyFullPath + ")");
                 }
 
                 TumblerEcdsaKeyAddress = configFile.GetOrDefault<string>("tumbler.ecdsakeyaddress", null);
