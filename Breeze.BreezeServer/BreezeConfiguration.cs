@@ -55,7 +55,7 @@ namespace Breeze.BreezeServer
                     builder.AppendLine("# Value of registration transaction fee (in satoshi)");
                     builder.AppendLine("#breeze.regtxfeevalue=");
                     builder.AppendLine("#tumbler.url=");
-                    builder.AppendLine("#tumbler.rsakeyfullpath=");
+                    builder.AppendLine("#tumbler.rsakeypath=");
                     builder.AppendLine("#tumbler.ecdsakeyaddress=");
 
                     File.WriteAllText(configPath, builder.ToString());
@@ -122,7 +122,7 @@ namespace Breeze.BreezeServer
                 TumblerApiBaseUrl = configFile.GetOrDefault<string>("tumbler.url", null);
 
                 // Look for Tumbler.pem in the .ntumblebitserver appdata folder
-                TumblerRsaKeyFullPath = configFile.GetOrDefault<string>("tumbler.rsakeyfullpath", Path.Combine(GetDefaultDataDir("NTumbleBitServer"), "Tumbler.pem"));
+                TumblerRsaKeyFullPath = configFile.GetOrDefault<string>("tumbler.rsakeypath", Path.Combine(GetDefaultDataDir("NTumbleBitServer"), "Tumbler.pem"));
                 if(!TumblerRsaKey.Exists(TumblerRsaKeyFullPath))
                 {
                     Console.WriteLine("RSA private key not found, please backup it. Creating...");

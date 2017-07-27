@@ -6,16 +6,16 @@ namespace Breeze.BreezeServer
     /// <summary>
     /// Validates or generates Tumbler.pem key file for signing registration transactions
     /// </summary>
-    static class TumblerRsaKey
+    internal static class TumblerRsaKey
     {
-        public static bool Exists(string tumblerRsaKeyPath)
+        public static bool Exists(string tumblerRsaKeyFullPath)
         {
-            return File.Exists(tumblerRsaKeyPath);
+            return File.Exists(tumblerRsaKeyFullPath);
         }
 
-        public static void Create(string tumblerRsaKeyPath)
+        public static void Create(string tumblerRsaKeyFullPath)
         {
-            File.WriteAllBytes(tumblerRsaKeyPath, new RsaKey().ToBytes());
+            File.WriteAllBytes(tumblerRsaKeyFullPath, new RsaKey().ToBytes());
         }
     }
 }
