@@ -99,7 +99,7 @@ namespace Breeze.BreezeServer
             //string json = tumblerApi.GetParameters().Result;
             //var tumblerParameters = JsonConvert.DeserializeObject<TumblerParameters>(json);
             var registrationToken = new RegistrationToken(255, config.Ipv4Address, config.Ipv6Address, config.OnionAddress, config.Port);
-            var msgBytes = registrationToken.GetRegistrationTokenBytes(config.TumblerRsaKeyFullPath, privateKeyEcdsa);
+            var msgBytes = registrationToken.GetRegistrationTokenBytes(config.TumblerRsaKeyFile, privateKeyEcdsa);
 
             // Create the registration transaction using the bytes generated above
             var rawTx = CreateBreezeRegistrationTx(network, msgBytes, config.TxOutputValueSetting);

@@ -29,7 +29,7 @@ namespace Breeze.BreezeServer
         public int Port { get; set; }
 
         public string TumblerApiBaseUrl { get; set; }
-        public string TumblerRsaKeyFullPath { get; set; }
+        public string TumblerRsaKeyFile { get; set; }
         public string TumblerEcdsaKeyAddress { get; set; }
 
         public Money TxOutputValueSetting { get; set; }
@@ -55,7 +55,7 @@ namespace Breeze.BreezeServer
                     builder.AppendLine("# Value of registration transaction fee (in satoshi)");
                     builder.AppendLine("#breeze.regtxfeevalue=");
                     builder.AppendLine("#tumbler.url=");
-                    builder.AppendLine("#tumbler.rsakeypath=");
+                    builder.AppendLine("#tumbler.rsakeyfile=");
                     builder.AppendLine("#tumbler.ecdsakeyaddress=");
 
                     File.WriteAllText(configPath, builder.ToString());
@@ -121,18 +121,20 @@ namespace Breeze.BreezeServer
 
                 TumblerApiBaseUrl = configFile.GetOrDefault<string>("tumbler.url", null);
 
-                // Look for Tumbler.pem in the .ntumblebitserver appdata folder
-                TumblerRsaKeyFullPath = configFile.GetOrDefault<string>("tumbler.rsakeypath", Path.Combine(GetDefaultDataDir("NTumbleBitServer"), "Tumbler.pem"));
-                if(!TumblerRsaKey.Exists(TumblerRsaKeyFullPath))
+                // Use user keyfile; default new key if invalid
+                TumblerRsaKeyFile = configFile.GetOrDefault<string>("tumbler.rsakeyfile", Path.Combine(GetDefaultDataDir("NTumbleBitServer"), "Tumbler.pem"));
+                
+                var bitcoinNetwork = "MainNet";
+                if (IsTestNet)
                 {
-                    Console.WriteLine("RSA private key not found, please backup it. Creating...");
-                    TumblerRsaKey.Create(TumblerRsaKeyFullPath);
-                    Console.WriteLine("RSA key saved (" + TumblerRsaKeyFullPath + ")");
+                    bitcoinNetwork = "TestNet";
                 }
-                else
-                {
-                    Console.WriteLine("RSA private key found (" + TumblerRsaKeyFullPath + ")");
-                }
+                var nTumbleBitPath = GetDefaultDataDir("NTumbleBitServer");
+                var defaultTumblerRsaKeyFile = Path.Combine(nTumbleBitPath, bitcoinNetwork, "Tumbler.pem");
+                TumblerRsaKeyFile = BreezeConfigurationValidator.ValidateTumblerRsaKeyFile(
+                    TumblerRsaKeyFile,
+                    defaultTumblerRsaKeyFile
+                );
 
                 TumblerEcdsaKeyAddress = configFile.GetOrDefault<string>("tumbler.ecdsakeyaddress", null);
 

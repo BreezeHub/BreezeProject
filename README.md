@@ -314,7 +314,7 @@ breeze.regtxoutputvalue=1000
 tumbler.url=http://127.0.0.1:37123/api/v1/
 
 # reference the key file we just generated
-tumbler.rsakeypath=/home/dan/.breezeserver/Tumbler.pem
+tumbler.rsakeyfile=/home/dan/.breezeserver/Tumbler.pem
 
 # reference the pubkey of the stratisd testnet wallet containing the registration tx fee
 # Get a list of your stratisd addresses with `stratisd listaddressgroupings`
