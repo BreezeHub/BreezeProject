@@ -16,9 +16,9 @@ namespace Breeze.BreezeServer
 {
     public class BreezeRegistration
     {
-        public bool CheckBreezeRegistration(BreezeConfiguration config, DBUtils db)
+        public bool CheckBreezeRegistration(BreezeConfiguration config, string regStorePath)
         {
-			var network = Network.StratisMain;
+			Network network = Network.StratisMain;
 			if (config.IsTestNet)
 			{
                 network = Network.StratisTest;
@@ -28,33 +28,30 @@ namespace Breeze.BreezeServer
             // before, and to see if a previous performance is still valid, interrogate
             // the database to see if any transactions have been recorded.
 
-            var transactions = db.GetDictionary<string, string>("RegistrationTransactions");
+            RegistrationStore regStore = new RegistrationStore(regStorePath);
+
+            List<RegistrationRecord> transactions = regStore.GetByServerId(config.TumblerEcdsaKeyAddress);
 
             // If no transactions exist, the registration definitely needs to be done
             if (transactions == null || transactions.Count == 0) { return false; }
 
-            string highestKey = null;
-            foreach (var txn in transactions)
+            RegistrationRecord mostRecent = null;
+
+            foreach (RegistrationRecord record in transactions)
             {
-                // Find most recent transaction. Assume that the rowKeys are ordered
-                // lexicographically.
-                if (highestKey == null)
+                // Find most recent transaction
+                if (mostRecent == null)
                 {
-                    highestKey = txn.Key;
+                    mostRecent = record;
                 }
 
-                if (String.Compare(txn.Key, highestKey) == 1)
-                    highestKey = txn.Key;
+                if (record.RecordTimestamp > mostRecent.RecordTimestamp)
+                    mostRecent = record;
             }
 
-            var mostRecentTxn = new Transaction(transactions[highestKey]);
+            // Check if the stored record matches the current configuration
 
-            // Decode transaction and check if the decoded bitstream matches the
-            // current configuration
-
-            // TODO: Check if transaction is actually confirmed on the blockchain?
-			var registrationToken = new RegistrationToken();
-            registrationToken.ParseTransaction(mostRecentTxn, network);
+            RegistrationToken registrationToken = mostRecent.Record;
 
             if (!config.Ipv4Address.Equals(registrationToken.Ipv4Addr))
                 return false;
@@ -67,13 +64,15 @@ namespace Breeze.BreezeServer
 
             if (config.Port != registrationToken.Port)
                 return false;
+            
+            // TODO: Check if transaction is actually confirmed on the blockchain?
 
             return true;
         }
 
-        public Transaction PerformBreezeRegistration(BreezeConfiguration config, DBUtils db)
+        public Transaction PerformBreezeRegistration(BreezeConfiguration config, string regStorePath)
         {
-			var network = Network.StratisMain;
+			Network network = Network.StratisMain;
 			if (config.IsTestNet)
 			{
 				network = Network.StratisTest;
@@ -82,6 +81,7 @@ namespace Breeze.BreezeServer
             RPCHelper stratisHelper = null;
             RPCClient stratisRpc = null;
             BitcoinSecret privateKeyEcdsa = null;
+
             try {
                 stratisHelper = new RPCHelper(network);
                 stratisRpc = stratisHelper.GetClient(config.RpcUser, config.RpcPassword, config.RpcUrl);
@@ -94,26 +94,30 @@ namespace Breeze.BreezeServer
                 Environment.Exit(0);
             }
 
-            // Retrieve tumbler's parameters so that the registration details can be constructed
-            //var tumblerApi = new TumblerApiAccess(config.TumblerApiBaseUrl);
-            //string json = tumblerApi.GetParameters().Result;
-            //var tumblerParameters = JsonConvert.DeserializeObject<TumblerParameters>(json);
-            var registrationToken = new RegistrationToken(255, config.Ipv4Address, config.Ipv6Address, config.OnionAddress, config.Port);
-            var msgBytes = registrationToken.GetRegistrationTokenBytes(config.TumblerRsaKeyFile, privateKeyEcdsa);
+            var registrationToken = new RegistrationToken(255, config.TumblerEcdsaKeyAddress, config.Ipv4Address, config.Ipv6Address, config.OnionAddress, config.Port);
+            byte[] msgBytes = registrationToken.GetRegistrationTokenBytes(config.TumblerRsaKeyPath, privateKeyEcdsa);
 
             // Create the registration transaction using the bytes generated above
-            var rawTx = CreateBreezeRegistrationTx(network, msgBytes, config.TxOutputValueSetting);
+            Transaction rawTx = CreateBreezeRegistrationTx(network, msgBytes, config.TxOutputValueSetting);
 
-            var txUtils = new TransactionUtils();
+            TransactionUtils txUtils = new TransactionUtils();
+			RegistrationStore regStore = new RegistrationStore(regStorePath);
 
             try {
                 // Replace fundrawtransaction with C# implementation. The legacy wallet
                 // software does not support the RPC call.     
-                var fundedTx = txUtils.FundRawTx(stratisRpc, rawTx, config.TxFeeValueSetting, BitcoinAddress.Create(config.TumblerEcdsaKeyAddress));
-                var signedTx = stratisRpc.SendCommand("signrawtransaction", fundedTx.ToHex());
-                var txToSend = new Transaction(((JObject)signedTx.Result)["hex"].Value<string>());
+                Transaction fundedTx = txUtils.FundRawTx(stratisRpc, rawTx, config.TxFeeValueSetting, BitcoinAddress.Create(config.TumblerEcdsaKeyAddress));
+                RPCResponse signedTx = stratisRpc.SendCommand("signrawtransaction", fundedTx.ToHex());
+                Transaction txToSend = new Transaction(((JObject)signedTx.Result)["hex"].Value<string>());
 
-                db.UpdateOrInsert<string>("RegistrationTransactions", DateTime.Now.ToString("yyyyMMddHHmmss"), txToSend.ToHex(), (o, n) => n);
+                RegistrationRecord regRecord = new RegistrationRecord(DateTime.Now,
+                                                                      Guid.NewGuid(),
+                                                                      txToSend.GetHash().ToString(),
+                                                                      txToSend.ToHex(),
+                                                                      registrationToken);
+
+                regStore.Add(regRecord);
+
                 stratisRpc.SendRawTransaction(txToSend);
 
                 return txToSend;
@@ -141,7 +145,7 @@ namespace Breeze.BreezeServer
             // passed to specify the position of the change output (it is randomly
             // positioned otherwise)
 
-            var sendTx = new Transaction();
+            Transaction sendTx = new Transaction();
 
             // Recognisable string used to tag the transaction within the blockchain
             byte[] bytes = Encoding.UTF8.GetBytes("BREEZE_REGISTRATION_MARKER");
@@ -162,6 +166,9 @@ namespace Breeze.BreezeServer
 
                 sendTx.Outputs.Add(destTxOut);
             }
+
+            if (sendTx.Outputs.Count == 0)
+                throw new Exception("ERROR: No outputs in registration transaction, cannot proceed");
 
             return sendTx;
         }
