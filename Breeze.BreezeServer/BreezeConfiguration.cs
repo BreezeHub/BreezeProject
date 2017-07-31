@@ -7,9 +7,13 @@ using System.Text;
 using System.IO;
 
 using NBitcoin;
+using NTumbleBit;
 
 namespace Breeze.BreezeServer
 {
+    /// <summary>
+    /// BreezeConfiguration is an instantiation of the user defined config
+    /// </summary>
     public class BreezeConfiguration
     {
         public bool IsTestNet { get; set; }
@@ -25,7 +29,7 @@ namespace Breeze.BreezeServer
         public int Port { get; set; }
 
         public string TumblerApiBaseUrl { get; set; }
-        public string TumblerRsaKeyPath { get; set; }
+        public string TumblerRsaKeyFile { get; set; }
         public string TumblerEcdsaKeyAddress { get; set; }
 
         public Money TxOutputValueSetting { get; set; }
@@ -51,7 +55,7 @@ namespace Breeze.BreezeServer
                     builder.AppendLine("# Value of registration transaction fee (in satoshi)");
                     builder.AppendLine("#breeze.regtxfeevalue=");
                     builder.AppendLine("#tumbler.url=");
-                    builder.AppendLine("#tumbler.rsakeypath=");
+                    builder.AppendLine("#tumbler.rsakeyfile=");
                     builder.AppendLine("#tumbler.ecdsakeyaddress=");
 
                     File.WriteAllText(configPath, builder.ToString());
@@ -116,7 +120,22 @@ namespace Breeze.BreezeServer
                 Port = configFile.GetOrDefault<int>("breeze.port", 37123);
 
                 TumblerApiBaseUrl = configFile.GetOrDefault<string>("tumbler.url", null);
-                TumblerRsaKeyPath = configFile.GetOrDefault<string>("tumbler.rsakeypath", null);
+
+                // Use user keyfile; default new key if invalid
+                TumblerRsaKeyFile = configFile.GetOrDefault<string>("tumbler.rsakeyfile", Path.Combine(GetDefaultDataDir("NTumbleBitServer"), "Tumbler.pem"));
+                
+                var bitcoinNetwork = "MainNet";
+                if (IsTestNet)
+                {
+                    bitcoinNetwork = "TestNet";
+                }
+                var nTumbleBitPath = GetDefaultDataDir("NTumbleBitServer");
+                var defaultTumblerRsaKeyFile = Path.Combine(nTumbleBitPath, bitcoinNetwork, "Tumbler.pem");
+                TumblerRsaKeyFile = BreezeConfigurationValidator.ValidateTumblerRsaKeyFile(
+                    TumblerRsaKeyFile,
+                    defaultTumblerRsaKeyFile
+                );
+
                 TumblerEcdsaKeyAddress = configFile.GetOrDefault<string>("tumbler.ecdsakeyaddress", null);
 
                 TxOutputValueSetting = new Money(configFile.GetOrDefault<int>("breeze.regtxoutputvalue", 1000), MoneyUnit.Satoshi);

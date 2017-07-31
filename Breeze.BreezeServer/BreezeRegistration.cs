@@ -95,7 +95,7 @@ namespace Breeze.BreezeServer
             }
 
             var registrationToken = new RegistrationToken(255, config.TumblerEcdsaKeyAddress, config.Ipv4Address, config.Ipv6Address, config.OnionAddress, config.Port);
-            byte[] msgBytes = registrationToken.GetRegistrationTokenBytes(config.TumblerRsaKeyPath, privateKeyEcdsa);
+            byte[] msgBytes = registrationToken.GetRegistrationTokenBytes(config.TumblerRsaKeyFile, privateKeyEcdsa);
 
             // Create the registration transaction using the bytes generated above
             Transaction rawTx = CreateBreezeRegistrationTx(network, msgBytes, config.TxOutputValueSetting);
