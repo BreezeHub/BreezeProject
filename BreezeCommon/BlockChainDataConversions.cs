@@ -79,7 +79,7 @@ namespace BreezeCommon
 			var decoded = new MemoryStream();
 			byte[] temp;
 
-			foreach (var addr in addresses)
+			foreach (BitcoinAddress addr in addresses)
 			{
 				temp = Encoders.Base58.DecodeData(addr.ToString());
 
@@ -149,7 +149,7 @@ namespace BreezeCommon
 				}
 				else
 				{
-					// Fill up remainder of 20 bytes with zeroes
+					// Fill up remainder of 64 bytes with zeroes
 					var arr = new byte[64 - subSet.Count()];
 					for (int i = 0; i < arr.Length; i++)
 					{
@@ -184,7 +184,7 @@ namespace BreezeCommon
 			var decoded = new MemoryStream();
 			byte[] temp;
 
-			foreach (var pubkey in pubkeys)
+			foreach (PubKey pubkey in pubkeys)
 			{
 				temp = pubkey.ToBytes();
 
