@@ -1,8 +1,9 @@
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.IO;
 using System.Net;
 using System.Text;
+
+using Xunit;
 
 using BreezeCommon;
 
@@ -10,16 +11,15 @@ using BreezeCommon;
 
 namespace BreezeCommon.Tests
 {
-    [TestClass]
     public class RegStoreTests
     {
-        [TestMethod]
+        [Fact]
         public void RegistrationNameTest()
         {
-            Assert.IsTrue(new RegistrationStore(".").Name == "RegistrationStore");
+            Assert.True(new RegistrationStore(".").Name == "RegistrationStore");
         }
 
-		[TestMethod]
+		[Fact]
 		public void RegistrationStoreAddTest()
 		{
             var token = new RegistrationToken(255,
@@ -39,10 +39,10 @@ namespace BreezeCommon.Tests
                                                                token);
             RegistrationStore store = new RegistrationStore(Path.GetTempFileName());
 
-            Assert.IsTrue(store.Add(record));
+            Assert.True(store.Add(record));
         }
 
-		[TestMethod]
+		[Fact]
 		public void RegistrationStoreGetOneTest()
 		{
 			var token = new RegistrationToken(255,
@@ -66,19 +66,19 @@ namespace BreezeCommon.Tests
 
             var retrievedRecords = store.GetAll();
 
-            Assert.AreEqual(retrievedRecords.Count, 1);
+            Assert.Equal(retrievedRecords.Count, 1);
 
             var retrievedRecord = retrievedRecords[0].Record;
 
-            Assert.AreEqual(retrievedRecord.ProtocolVersion, 255);
-            Assert.AreEqual(retrievedRecord.ServerId, "1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2");
-            Assert.AreEqual(retrievedRecord.Ipv4Addr, IPAddress.Parse("127.0.0.1"));
-			Assert.AreEqual(retrievedRecord.Ipv6Addr, IPAddress.Parse("2001:0db8:85a3:0000:0000:8a2e:0370:7334"));
-            Assert.AreEqual(retrievedRecord.OnionAddress, "0123456789ABCDEF");
-			Assert.AreEqual(retrievedRecord.Port, 37123);
+            Assert.Equal(retrievedRecord.ProtocolVersion, 255);
+            Assert.Equal(retrievedRecord.ServerId, "1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2");
+            Assert.Equal(retrievedRecord.Ipv4Addr, IPAddress.Parse("127.0.0.1"));
+			Assert.Equal(retrievedRecord.Ipv6Addr, IPAddress.Parse("2001:0db8:85a3:0000:0000:8a2e:0370:7334"));
+            Assert.Equal(retrievedRecord.OnionAddress, "0123456789ABCDEF");
+			Assert.Equal(retrievedRecord.Port, 37123);
         }
 
-		[TestMethod]
+		[Fact]
 		public void RegistrationStoreGetServerIdTest()
 		{
 			var token = new RegistrationToken(1,
@@ -120,16 +120,16 @@ namespace BreezeCommon.Tests
 
             var retrievedRecords = store.GetByServerId("1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2");
 
-			Assert.AreEqual(retrievedRecords.Count, 1);
+			Assert.Equal(retrievedRecords.Count, 1);
 
 			var retrievedRecord = retrievedRecords[0].Record;
 
-			Assert.AreEqual(retrievedRecord.ProtocolVersion, 255);
-			Assert.AreEqual(retrievedRecord.ServerId, "1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2");
-			Assert.AreEqual(retrievedRecord.Ipv4Addr, IPAddress.Parse("127.0.0.1"));
-			Assert.AreEqual(retrievedRecord.Ipv6Addr, IPAddress.Parse("2001:0db8:85a3:0000:0000:8a2e:0370:7334"));
-			Assert.AreEqual(retrievedRecord.OnionAddress, "0123456789ABCDEF");
-			Assert.AreEqual(retrievedRecord.Port, 37123);
+			Assert.Equal(retrievedRecord.ProtocolVersion, 255);
+			Assert.Equal(retrievedRecord.ServerId, "1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2");
+			Assert.Equal(retrievedRecord.Ipv4Addr, IPAddress.Parse("127.0.0.1"));
+			Assert.Equal(retrievedRecord.Ipv6Addr, IPAddress.Parse("2001:0db8:85a3:0000:0000:8a2e:0370:7334"));
+			Assert.Equal(retrievedRecord.OnionAddress, "0123456789ABCDEF");
+			Assert.Equal(retrievedRecord.Port, 37123);
 		}
 	}
 }
