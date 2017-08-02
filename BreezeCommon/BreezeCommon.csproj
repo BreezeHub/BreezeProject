@@ -5,8 +5,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\BreezeProtocol\NStratis\Hashing\HashLib\HashLib.csproj" />
-    <ProjectReference Include="..\BreezeProtocol\NStratis\NBitcoin\NBitcoin.csproj" />
+    <PackageReference Include="NStratis" Version="4.0.0.15" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\BreezeProtocol\NTumbleBit\NTumbleBit.csproj" />
     <ProjectReference Include="..\BreezeProtocol\NTumbleBit.ClassicTumbler.Client.CLI\NTumbleBit.ClassicTumbler.Client.CLI.csproj" />
     <ProjectReference Include="..\BreezeProtocol\NTumbleBit.ClassicTumbler.Server.CLI\NTumbleBit.ClassicTumbler.Server.CLI.csproj" />
