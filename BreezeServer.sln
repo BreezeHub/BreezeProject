@@ -14,10 +14,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BreezeCommon", "BreezeCommon\BreezeCommon\BreezeCommon.csproj", "{1C026144-B0BB-4AB1-8DF2-826BD3B57CE4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NBitcoin", "BreezeCommon\BreezeProtocol\NStratis\NBitcoin\NBitcoin.csproj", "{26BA645A-F832-4712-A8F2-F67365A7A053}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HashLib", "BreezeCommon\BreezeProtocol\NStratis\Hashing\HashLib\HashLib.csproj", "{72F94DD4-F198-4F2D-8910-047EF43C59DF}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NTumbleBit", "BreezeCommon\BreezeProtocol\NTumbleBit\NTumbleBit.csproj", "{F5E4A2F1-0458-4162-B1D0-68B13374FD42}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NTumbleBit.ClassicTumbler.Server.CLI", "BreezeCommon\BreezeProtocol\NTumbleBit.ClassicTumbler.Server.CLI\NTumbleBit.ClassicTumbler.Server.CLI.csproj", "{8BFC1ACA-3A3D-4BD3-A8C1-B645A28D36A3}"
@@ -68,30 +64,6 @@ Global
 		{1C026144-B0BB-4AB1-8DF2-826BD3B57CE4}.Release|x64.Build.0 = Release|Any CPU
 		{1C026144-B0BB-4AB1-8DF2-826BD3B57CE4}.Release|x86.ActiveCfg = Release|Any CPU
 		{1C026144-B0BB-4AB1-8DF2-826BD3B57CE4}.Release|x86.Build.0 = Release|Any CPU
-		{26BA645A-F832-4712-A8F2-F67365A7A053}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{26BA645A-F832-4712-A8F2-F67365A7A053}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{26BA645A-F832-4712-A8F2-F67365A7A053}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{26BA645A-F832-4712-A8F2-F67365A7A053}.Debug|x64.Build.0 = Debug|Any CPU
-		{26BA645A-F832-4712-A8F2-F67365A7A053}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{26BA645A-F832-4712-A8F2-F67365A7A053}.Debug|x86.Build.0 = Debug|Any CPU
-		{26BA645A-F832-4712-A8F2-F67365A7A053}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{26BA645A-F832-4712-A8F2-F67365A7A053}.Release|Any CPU.Build.0 = Release|Any CPU
-		{26BA645A-F832-4712-A8F2-F67365A7A053}.Release|x64.ActiveCfg = Release|Any CPU
-		{26BA645A-F832-4712-A8F2-F67365A7A053}.Release|x64.Build.0 = Release|Any CPU
-		{26BA645A-F832-4712-A8F2-F67365A7A053}.Release|x86.ActiveCfg = Release|Any CPU
-		{26BA645A-F832-4712-A8F2-F67365A7A053}.Release|x86.Build.0 = Release|Any CPU
-		{72F94DD4-F198-4F2D-8910-047EF43C59DF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{72F94DD4-F198-4F2D-8910-047EF43C59DF}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{72F94DD4-F198-4F2D-8910-047EF43C59DF}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{72F94DD4-F198-4F2D-8910-047EF43C59DF}.Debug|x64.Build.0 = Debug|Any CPU
-		{72F94DD4-F198-4F2D-8910-047EF43C59DF}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{72F94DD4-F198-4F2D-8910-047EF43C59DF}.Debug|x86.Build.0 = Debug|Any CPU
-		{72F94DD4-F198-4F2D-8910-047EF43C59DF}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{72F94DD4-F198-4F2D-8910-047EF43C59DF}.Release|Any CPU.Build.0 = Release|Any CPU
-		{72F94DD4-F198-4F2D-8910-047EF43C59DF}.Release|x64.ActiveCfg = Release|Any CPU
-		{72F94DD4-F198-4F2D-8910-047EF43C59DF}.Release|x64.Build.0 = Release|Any CPU
-		{72F94DD4-F198-4F2D-8910-047EF43C59DF}.Release|x86.ActiveCfg = Release|Any CPU
-		{72F94DD4-F198-4F2D-8910-047EF43C59DF}.Release|x86.Build.0 = Release|Any CPU
 		{F5E4A2F1-0458-4162-B1D0-68B13374FD42}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{F5E4A2F1-0458-4162-B1D0-68B13374FD42}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F5E4A2F1-0458-4162-B1D0-68B13374FD42}.Debug|x64.ActiveCfg = Debug|Any CPU
