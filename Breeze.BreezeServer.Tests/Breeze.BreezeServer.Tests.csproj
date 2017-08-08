@@ -6,14 +6,13 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.0.0" />
+    <PackageReference Include="NStratis" Version="4.0.0.15" />
     <PackageReference Include="xunit" Version="2.2.0" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.2.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\BreezeCommon\BreezeProtocol\NStratis\NBitcoin\NBitcoin.csproj" />
     <ProjectReference Include="..\Breeze.BreezeServer\Breeze.BreezeServer.csproj" />
-    <ProjectReference Include="..\BreezeCommon\BreezeProtocol\NStratis\Hashing\HashLib\HashLib.csproj" />
     <ProjectReference Include="..\BreezeCommon\BreezeCommon\BreezeCommon.csproj" />
     <ProjectReference Include="..\BreezeCommon\BreezeProtocol\NTumbleBit\NTumbleBit.csproj" />
     <ProjectReference Include="..\BreezeCommon\BreezeProtocol\NTumbleBit.ClassicTumbler.Server.CLI\NTumbleBit.ClassicTumbler.Server.CLI.csproj" />
