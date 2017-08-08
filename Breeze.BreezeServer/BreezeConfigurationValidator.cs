@@ -6,12 +6,12 @@ namespace Breeze.BreezeServer
     {
         public static string ValidateTumblerRsaKeyFile(string tumblerRsaKeyFile, string defaultFile)
         {
-            if (tumblerRsaKeyFile != null && !TumblerRsaKey.Exists(tumblerRsaKeyFile))
+            if (tumblerRsaKeyFile != "" && !TumblerRsaKey.Exists(tumblerRsaKeyFile))
             {
                 Console.WriteLine("RSA private key not found at the configured filepath");
                 return tumblerRsaKeyFile;
             }
-            else if (tumblerRsaKeyFile == null)
+            else if (tumblerRsaKeyFile == "")
             {
                 if (!TumblerRsaKey.Exists(defaultFile))
                 {
