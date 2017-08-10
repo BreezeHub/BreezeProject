@@ -155,13 +155,13 @@ namespace Breeze.BreezeServer
                 ScriptPubKey = TxNullDataTemplate.Instance.GenerateScriptPubKey(bytes)
             });
 
-            // Add each data-encoding address as a TxOut
-            foreach (BitcoinAddress address in BlockChainDataConversions.BytesToAddresses(network, data))
+            // Add each data-encoding PubKey as a TxOut
+            foreach (PubKey pubKey in BlockChainDataConversions.BytesToPubKeys(data))
             {
                 TxOut destTxOut = new TxOut()
                 {
                     Value = outputValue,
-                    ScriptPubKey = address.ScriptPubKey
+                    ScriptPubKey = pubKey.ScriptPubKey
                 };
 
                 sendTx.Outputs.Add(destTxOut);
