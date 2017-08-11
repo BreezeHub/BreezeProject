@@ -41,7 +41,7 @@ $btn-secondary-border:           $gray-light !default;
           border-bottom: 2px solid $brand-primary !important;
           color: $brand-primary !important;
         }
-      }    
+      }
     }
   }
 }
@@ -78,6 +78,28 @@ $btn-secondary-border:           $gray-light !default;
         &:hover {
           border-color: #FCDCB5 !important;
           background-color: #FEFDFA !important;
+        }
+      }
+    }
+
+    // Tumblebit
+    #Tumblebit {
+      img {
+        &.OFF {fill: #DCE8F1 !important;}
+        &.ON { fill: $brand-primary !important;}
+      }
+      .help {
+        color: $gray;
+        font-size: .9em;
+        font-style: italic;
+        line-height: 1.3em;
+        font-weight: 200;
+      }
+      button {.icon-circle-down {color: rgba($gray,.5);}}
+      .dropdown-toggle {
+        // Generate the caret automatically
+        &::after {
+          content: none !important;
         }
       }
     }

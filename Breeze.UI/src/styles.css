@@ -840,6 +840,10 @@ input.cmn-toggle-round-flat:checked + label:after {
   color: #1B354B;
 }
 
+#Tumblebit {
+  padding-top: 4em;
+}
+
 @media screen and (max-width: 768px) {
   .jumbotron .col-xs-12 {
     text-align: center !important;
@@ -9343,6 +9347,30 @@ a.text-gray-dark:focus, a.text-gray-dark:hover {
 #content.bitcoin #transaction .card:hover {
   border-color: #FCDCB5 !important;
   background-color: #FEFDFA !important;
+}
+
+#content.bitcoin #Tumblebit img.OFF {
+  fill: #DCE8F1 !important;
+}
+
+#content.bitcoin #Tumblebit img.ON {
+  fill: #F69D32 !important;
+}
+
+#content.bitcoin #Tumblebit .help {
+  color: #98A3B3;
+  font-size: .9em;
+  font-style: italic;
+  line-height: 1.3em;
+  font-weight: 200;
+}
+
+#content.bitcoin #Tumblebit button .icon-circle-down {
+  color: rgba(152, 163, 179, 0.5);
+}
+
+#content.bitcoin #Tumblebit .dropdown-toggle::after {
+  content: none !important;
 }
 
 .modal-header .bubble i {

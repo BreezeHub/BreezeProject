@@ -1,62 +1,75 @@
  <section id="breeze">
   <!-- CONTENT -->
-  <section id="content" class="bitcoin">
-    <!-- JUMBOTRON-->
-    <div class="jumbotron jumbotron-fluid">
-      <div class="container">
-        <div class="row d-flex align-items-center">
-          <div class="col-xs-12 col-md-4 text-left">
-            <h5 class="text-uppercase">Active balance</h5>
-            <p class="lead">
-              <i class="icon-bitcoin"></i>
-              <strong>{{confirmedBalance | coinNotation }}</strong>
-            </p>
-          </div>
-          <!-- /col-->
-          <div class="col-xs-12 col-md-4 text-left">
-            <form [formGroup]="connectForm" (ngSubmit)="connect()">
-              <div class="form-group clearfix">
-                <label class="float-left">Tumbler Address</label>
-                <input type="text" class="form-control form-control-danger" formControlName="tumblerAddress" id="tumblerAddress">
-                <div *ngIf="connectFormErrors.tumbler" class="form-control-feedback">{{ connectFormErrors.tumblerAddress }}</div>
-              </div>
-            </form>
-            <button type="button" class="btn btn-lg" (click)="connect()">Connect</button>
+  <div id="content" class="bitcoin">
 
-            <form [formGroup]="tumbleForm" (ngSubmit)="tumble()">
-              <div class="form-group clearfix">
-                <label class="float-left">Source Address</label>
-                <input type="text" class="form-control form-control-danger" formControlName="source" id="source">
-                <div *ngIf="tumbleFormErrors.source" class="form-control-feedback">{{ tumbleFormErrors.source }}</div>
-              </div>
-              <div class="form-group clearfix">
-                <label class="float-left">Destination Address</label>
-                <input type="text" class="form-control form-control-danger" formControlName="destination" id="destination">
-                <div *ngIf="tumbleFormErrors.destination" class="form-control-feedback">{{ tumbleFormErrors.destination }}</div>
-              </div>
-            </form>
-            <div class="btn-group" role="group">
-              <button type="submit" class="btn btn-lg btn-primary" [disabled]="!tumbleForm.valid" (click)="tumble()">Tumble</button>
-              <button type="button" class="btn btn-lg btn-danger" (click)="stopTumble()">Stop</button>
+    <div class="container" id="Tumblebit">
+      <div class="row d-flex align-items-center">
+        <!-- right column -->
+        <div class="col-xs-12 col-sm-6 text-center">
+          <img class="my-4 OFF" src="../../../assets/images/illu_tumblebit.svg" alt="TumbleBit">
+          <p class="help mt-4">The Tumbler takes one bitcoin at a time, anonymizes them, and returns them to the destination wallet. It can take some time to tumble several coins.</p>
+          <form class="col-10 my-4 offset-1">
+            <div class="row">
+              <label class="col-12 text-left" for="">Destination</label>
             </div>
-          </div>
+            <div class="input-group mb-4">
+              <input type="text" class="form-control" placeholder="Select a wallet or paste it">
+              <div class="input-group-btn">
+                <button type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                  <span class="icon-circle-down"></span>
+                </button>
+                <div class="dropdown-menu dropdown-menu-right">
+                  <a class="dropdown-item" href="#">Action</a>
+                  <a class="dropdown-item" href="#">Another action</a>
+                  <a class="dropdown-item" href="#">Something else here</a>
+                  <div role="separator" class="dropdown-divider"></div>
+                  <a class="dropdown-item" href="#">Separated link</a>
+                </div>
+              </div>
+            </div>
+            <button type="button" class="btn btn-primary mt-4">Start tumbling</button>
+          </form>
+        </div><!-- /left column-->
+
+        <!-- right column -->
+        <div class="col-xs-12 col-sm-6">
+          <!-- table -->
+          <table class="table table-sm">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>First Name</th>
+                <th>Last Name</th>
+                <th>Username</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row">1</th>
+                <td>Mark</td>
+                <td>Otto</td>
+                <td>@mdo</td>
+              </tr>
+              <tr>
+                <th scope="row">2</th>
+                <td>Jacob</td>
+                <td>Thornton</td>
+                <td>@fat</td>
+              </tr>
+              <tr>
+                <th scope="row">3</th>
+                <td colspan="2">Larry the Bird</td>
+                <td>@twitter</td>
+              </tr>
+            </tbody>
+          </table>
+          <!-- /table-->
         </div>
-        <!-- /row-->
-      </div>
-      <!-- /container-->
-    </div>
-    <!-- /JUMBOTRON-->
+        <!-- /right column -->
 
-    <!-- container-->
-    
-
-      <!-- tumbler address -->
-      <!-- destination -->
-      <!-- denomination -->
-      <!-- fee -->
-
-  
-  </section>
+      </div><!--/row -->
+    </div><!-- /container -->
+  </div><!-- /#content -->
   <!-- /CONTENT-->
 </section>
 <!-- /breeze-->
