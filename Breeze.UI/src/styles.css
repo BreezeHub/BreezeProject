@@ -9383,11 +9383,11 @@ a.text-gray-dark:focus, a.text-gray-dark:hover {
   box-shadow: 0 2px 10px 0 rgba(80, 96, 120, 0.1);
 }
 
-#content.bitcoin #Tumblebit img.OFF {
+#content.bitcoin #Tumblebit svg.OFF {
   fill: #DCE8F1 !important;
 }
 
-#content.bitcoin #Tumblebit img.ON {
+#content.bitcoin #Tumblebit svg.ON {
   fill: #F69D32 !important;
 }
 
