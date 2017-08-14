@@ -526,6 +526,10 @@ $curve: cubic-bezier(0.650, 0.000, 0.450, 1.000);
     color: #878685;
     letter-spacing: .43px;
   }
+  .btn-danger {
+    color: $btn-danger-bg !important;
+    background: rgba($btn-danger-bg, .4);
+  }
   .table {
     letter-spacing: .43px;
     font-size: 0.75rem;

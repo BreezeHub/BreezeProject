@@ -855,6 +855,11 @@ input.cmn-toggle-round-flat:checked + label:after {
   letter-spacing: .43px;
 }
 
+#Tumblebit .btn-danger {
+  color: #FF5B8A !important;
+  background: rgba(255, 91, 138, 0.4);
+}
+
 #Tumblebit .table {
   letter-spacing: .43px;
   font-size: 0.75rem;
