@@ -6,8 +6,10 @@
       <div class="row d-flex align-items-center">
         <!-- right column -->
         <div class="col-xs-12 col-sm-6 text-center">
-          <img class="my-4 OFF" src="../../../assets/images/illu_tumblebit.svg" alt="TumbleBit">
-          <p class="help mt-4">The Tumbler takes one bitcoin at a time, anonymizes them, and returns them to the destination wallet. It can take some time to tumble several coins.</p>
+          <div class="col-10 my-4 offset-1">
+            <img class="my-4 OFF" src="../../../assets/images/illu_tumblebit.svg" alt="TumbleBit">
+            <p class="help mt-4">The Tumbler takes one bitcoin at a time, anonymizes them, and returns them to the destination wallet. It can take some time to tumble several coins.</p>
+          </div>
           <form class="col-10 my-4 offset-1">
             <div class="row">
               <label class="col-12 text-left" for="">Destination</label>
@@ -27,43 +29,69 @@
                 </div>
               </div>
             </div>
-            <button type="button" class="btn btn-primary mt-4">Start tumbling</button>
+            <button type="button" class="btn btn-lg btn-primary mt-4">Start tumbling</button>
           </form>
         </div><!-- /left column-->
 
         <!-- right column -->
         <div class="col-xs-12 col-sm-6">
-          <!-- table -->
-          <table class="table table-sm">
+          <!-- table 1 -->
+          <table class="table">
             <thead>
               <tr>
-                <th>#</th>
-                <th>First Name</th>
-                <th>Last Name</th>
-                <th>Username</th>
+                <th>Connection <span class="badge badge-danger float-right">Offline</span></th>
               </tr>
             </thead>
             <tbody>
               <tr>
-                <th scope="row">1</th>
-                <td>Mark</td>
-                <td>Otto</td>
-                <td>@mdo</td>
-              </tr>
-              <tr>
-                <th scope="row">2</th>
-                <td>Jacob</td>
-                <td>Thornton</td>
-                <td>@fat</td>
-              </tr>
-              <tr>
-                <th scope="row">3</th>
-                <td colspan="2">Larry the Bird</td>
-                <td>@twitter</td>
+                <td><span class="badge badge-default">ctb://2gyawufklq43jmxe.onion?h=74c1acc3e95c4bb26a0</span></td>
               </tr>
             </tbody>
           </table>
-          <!-- /table-->
+          <!-- /table 1-->
+          <!-- table 2 -->
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Balance</th>
+                <th>Wallet</th>
+                <th>Watch only</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Pending</td>
+                <td>9.06201893</td>
+                <td>3.00000000</td>
+              </tr>
+              <tr>
+                <td>Available</td>
+                <td>9.06201893</td>
+                <td>1.00000000</td>
+              </tr>
+              <tr class="total">
+                <td>Total</td>
+                <td>10.06201893</td>
+                <td>4.00000000</td>
+              </tr>
+            </tbody>
+          </table>
+          <!-- /table 2-->
+          <!-- table 3 -->
+          <table class="table">
+            <tbody>
+              <tr>
+                <td><strong>Estimate</strong> 2.8 hours to coin returned from tumble</td>
+              </tr>
+              <tr>
+                <td><strong>Fees</strong> 1%</td>
+              </tr>
+              <tr>
+                <td><strong>Denomination</strong> 1 BTC</td>
+              </tr>
+            </tbody>
+          </table>
+          <!-- /table 3-->
         </div>
         <!-- /right column -->
 

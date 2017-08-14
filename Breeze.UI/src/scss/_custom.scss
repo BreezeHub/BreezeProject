@@ -3,7 +3,7 @@
 // Copy variables from `_variables.scss` to this file to override default values
 // without modifying source files.
 
-body {overflow-x: hidden;}
+body {overflow-x: hidden; letter-spacing: .43px;}
 a, button {&:hover {cursor: pointer !important;}}
 code {color: $spacegray !important;}
 .form-control::-webkit-input-placeholder { color: $input-color-placeholder; }  /* WebKit, Blink, Edge */
@@ -26,6 +26,10 @@ code {color: $spacegray !important;}
     background-color: #2D1DE7 !important;
     color: $white !important;
   }
+}
+// badge default
+.badge {
+  &.badge-default {color: $gray;}
 }
 
 // loading
@@ -517,6 +521,29 @@ $curve: cubic-bezier(0.650, 0.000, 0.450, 1.000);
 // Tumblebit
 #Tumblebit {
   padding-top: 4em;
+  label {
+    font-weight: 400;
+    color: #878685;
+    letter-spacing: .43px;
+  }
+  .table {
+    letter-spacing: .43px;
+    font-size: 0.75rem;
+    background: white;
+    border: 1px solid $teal;
+    box-shadow: 0 2px 10px 0 rgba(80,96,120,0.10);
+    margin-bottom: 2.75em;
+
+    .total {
+      td {font-weight: bold;}
+    }
+    td {color: $gray;}
+    strong, th {
+      margin-right: 1.2em;
+      font-weight: 400;
+      color: #878685;
+    }
+  }
 }
 
  // QUERIES

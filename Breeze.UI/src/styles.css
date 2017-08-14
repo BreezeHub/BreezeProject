@@ -6,6 +6,7 @@
  */
 body {
   overflow-x: hidden;
+  letter-spacing: .43px;
 }
 
 a:hover, button:hover {
@@ -49,6 +50,10 @@ code {
 .facebook:hover {
   background-color: #2D1DE7 !important;
   color: #fff !important;
+}
+
+.badge.badge-default {
+  color: #98A3B3;
 }
 
 #loading {
@@ -842,6 +847,35 @@ input.cmn-toggle-round-flat:checked + label:after {
 
 #Tumblebit {
   padding-top: 4em;
+}
+
+#Tumblebit label {
+  font-weight: 400;
+  color: #878685;
+  letter-spacing: .43px;
+}
+
+#Tumblebit .table {
+  letter-spacing: .43px;
+  font-size: 0.75rem;
+  background: white;
+  border: 1px solid #DBDBDB;
+  box-shadow: 0 2px 10px 0 rgba(80, 96, 120, 0.1);
+  margin-bottom: 2.75em;
+}
+
+#Tumblebit .table .total td {
+  font-weight: bold;
+}
+
+#Tumblebit .table td {
+  color: #98A3B3;
+}
+
+#Tumblebit .table strong, #Tumblebit .table th {
+  margin-right: 1.2em;
+  font-weight: 400;
+  color: #878685;
 }
 
 @media screen and (max-width: 768px) {
@@ -2699,12 +2733,10 @@ pre code {
 .table td {
   padding: 0.75rem;
   vertical-align: top;
-  border-top: 1px solid #F3F3F3;
 }
 
 .table thead th {
   vertical-align: bottom;
-  border-bottom: 2px solid #F3F3F3;
 }
 
 .table tbody + tbody {
@@ -5176,7 +5208,7 @@ tbody.collapse.show {
 
 .badge {
   display: inline-block;
-  padding: 0.6em 0.6em;
+  padding: 0.6em 1.2em;
   font-size: 0.85em;
   font-weight: normal;
   line-height: 1;
@@ -5209,11 +5241,11 @@ a.badge:focus, a.badge:hover {
 }
 
 .badge-default {
-  background-color: #DDDCDC;
+  background-color: rgba(152, 163, 179, 0.15);
 }
 
 .badge-default[href]:focus, .badge-default[href]:hover {
-  background-color: #c4c2c2;
+  background-color: rgba(123, 137, 157, 0.15);
 }
 
 .badge-primary {

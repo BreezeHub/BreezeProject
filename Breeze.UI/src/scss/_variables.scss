@@ -773,7 +773,7 @@ $popover-arrow-outer-color:           fade-in($popover-border-color, .05) !defau
 
 // Badges
 
-$badge-default-bg:            $gray-light !default;
+$badge-default-bg:            rgba(152,163,179,.15) !default;
 $badge-primary-bg:            $brand-primary !default;
 $badge-success-bg:            rgba(46,204,169,.2) !default;
 $badge-info-bg:               $brand-info !default;
@@ -784,7 +784,7 @@ $badge-color:                 $white !default;
 $badge-link-hover-color:      $white !default;
 $badge-font-size:             .85em !default;
 $badge-font-weight:           $font-weight-base !default;
-$badge-padding-x:             .6em !default;
+$badge-padding-x:             1.2em !default;
 $badge-padding-y:             .6em !default;
 
 $badge-pill-padding-x:        .6em !default;
