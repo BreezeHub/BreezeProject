@@ -79,6 +79,7 @@ $btn-secondary-border:           $gray-light !default;
         &:hover {
           border-color: #FCDCB5 !important;
           background-color: #FEFDFA !important;
+          box-shadow: 0 2px 10px 0 rgba(80,96,120,0.10);
         }
       }
     }

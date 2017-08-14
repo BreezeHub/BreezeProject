@@ -9380,6 +9380,7 @@ a.text-gray-dark:focus, a.text-gray-dark:hover {
 #content.bitcoin #transaction .card:hover {
   border-color: #FCDCB5 !important;
   background-color: #FEFDFA !important;
+  box-shadow: 0 2px 10px 0 rgba(80, 96, 120, 0.1);
 }
 
 #content.bitcoin #Tumblebit img.OFF {
