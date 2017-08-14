@@ -96,7 +96,7 @@ em.display-4 {
 #content {
   width: 100%;
   position: relative;
-  padding: 0 0 70px 70px;
+  padding: 0 0 65px 70px;
 }
 
 #sidebar {
@@ -9339,6 +9339,7 @@ a.text-gray-dark:focus, a.text-gray-dark:hover {
 
 #navbarBreeze .navbar-nav .nav-item .nav-link {
   color: #878685;
+  font-size: .86rem;
 }
 
 #navbarBreeze .navbar-nav .nav-item .nav-link:hover {

@@ -36,6 +36,7 @@ $btn-secondary-border:           $gray-light !default;
     .nav-item {
       .nav-link {
         color: $gray-dark;
+        font-size: .86rem;
         &:hover {color: lighten($brand-primary,20%);}
         &.is-active {
           border-bottom: 2px solid $brand-primary !important;
