@@ -17,7 +17,7 @@ matrix:
 # branches to build 
 branches:
   only:
-  - master
+  - tumblebit-alpha
 
 env:
   global:
