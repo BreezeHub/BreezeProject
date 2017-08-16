@@ -49,5 +49,5 @@ deploy:
   overwrite: true
   prerelease: true
   on:
-    branch: master
+    branch: tumblebit-alpha
     tags: true
