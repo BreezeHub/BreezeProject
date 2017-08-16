@@ -42,7 +42,7 @@ script:
 deploy:
   provider: releases
   api_key:
-    secure: $secure_github_key # this key is set on the Travis build page 
+    secure: Q+VXomhYo4eVnkerf7O7QJCDCRY9b+GqLzQtO8xlPkMt4bUmFVz/Bgf0uTJl00yZIrcL+HOMJPLpYDY9C32Ja31t3d9BO+lO4mzqGh3IsZ+IbcrMnAbqga3rGPuDX5+WPrmu5OMOOiAbYc+zjUZAyNIga2wF1fU4YoZloz0KV/kCzJkYC0a56Y/4etgT4Ikly2FPawsstfEAct7G2/pWlNJL9CCWb5S7zC6u78W6TACdRtgXUiXR3vboPJ+7zN8LtqEVy+x1WYFSglD2LW2oUCz5JV0tZPFmb7Y+S0fusTET8xcKSMGcYwJZ6tDiXeDzXxFc4r1EdTafkEwLW73dlydislXMMbKn23BCD/pjUFzi2GkvqLSnfAoePZPq8Hbteo3u4B7TvvszgVG8OXMNRYX41G/OflbNYLFi1oGBro30dT62LRvQoTGy7u0A8WVBEDuYrse6GNBr39q8x/+2CiLxDtEa2zEAK5BiHxrMGlj1wxLkIDSOo1eoV0+t2FWXDBv5nwcg/MQtqk5R71sv/MGIs9R5Dyeqq09xEFBiWA9BF8ShfZyZvESW8jtZW4QVTX2q9hiii8ep72Cwx8l/2fjmU//ZprcXnoCronaQgsv96fd52z29/RLANZCUOiEZ7P3L8gkGjZGpNdnNEcwwGnMMHpKqup+Sjn0KVDfJ6QA= 
   file_glob: true
   file: "$TRAVIS_BUILD_DIR/deploy/*.zip"
   skip_cleanup: true
