@@ -6,6 +6,7 @@
  */
 body {
   overflow-x: hidden;
+  letter-spacing: .43px;
 }
 
 a:hover, button:hover {
@@ -51,6 +52,10 @@ code {
   color: #fff !important;
 }
 
+.badge.badge-default {
+  color: #98A3B3;
+}
+
 #loading {
   width: 150px;
   height: 150px;
@@ -91,7 +96,7 @@ em.display-4 {
 #content {
   width: 100%;
   position: relative;
-  padding: 0 0 70px 70px;
+  padding: 0 0 65px 70px;
 }
 
 #sidebar {
@@ -838,6 +843,44 @@ input.cmn-toggle-round-flat:checked + label:after {
 .login .container .badge.badge-default {
   background-color: #B6CDDE;
   color: #1B354B;
+}
+
+#Tumblebit {
+  padding-top: 4em;
+}
+
+#Tumblebit label {
+  font-weight: 400;
+  color: #878685;
+  letter-spacing: .43px;
+}
+
+#Tumblebit .btn-danger {
+  color: #FF5B8A !important;
+  background: rgba(255, 91, 138, 0.4);
+}
+
+#Tumblebit .table {
+  letter-spacing: .43px;
+  font-size: 0.75rem;
+  background: white;
+  border: 1px solid #DBDBDB;
+  box-shadow: 0 2px 10px 0 rgba(80, 96, 120, 0.1);
+  margin-bottom: 2.75em;
+}
+
+#Tumblebit .table .total td {
+  font-weight: bold;
+}
+
+#Tumblebit .table td {
+  color: #98A3B3;
+}
+
+#Tumblebit .table strong, #Tumblebit .table th {
+  margin-right: 1.2em;
+  font-weight: 400;
+  color: #878685;
 }
 
 @media screen and (max-width: 768px) {
@@ -2695,12 +2738,10 @@ pre code {
 .table td {
   padding: 0.75rem;
   vertical-align: top;
-  border-top: 1px solid #F3F3F3;
 }
 
 .table thead th {
   vertical-align: bottom;
-  border-bottom: 2px solid #F3F3F3;
 }
 
 .table tbody + tbody {
@@ -5172,7 +5213,7 @@ tbody.collapse.show {
 
 .badge {
   display: inline-block;
-  padding: 0.6em 0.6em;
+  padding: 0.6em 1.2em;
   font-size: 0.85em;
   font-weight: normal;
   line-height: 1;
@@ -5205,11 +5246,11 @@ a.badge:focus, a.badge:hover {
 }
 
 .badge-default {
-  background-color: #DDDCDC;
+  background-color: rgba(152, 163, 179, 0.15);
 }
 
 .badge-default[href]:focus, .badge-default[href]:hover {
-  background-color: #c4c2c2;
+  background-color: rgba(123, 137, 157, 0.15);
 }
 
 .badge-primary {
@@ -9303,6 +9344,7 @@ a.text-gray-dark:focus, a.text-gray-dark:hover {
 
 #navbarBreeze .navbar-nav .nav-item .nav-link {
   color: #878685;
+  font-size: .86rem;
 }
 
 #navbarBreeze .navbar-nav .nav-item .nav-link:hover {
@@ -9343,6 +9385,31 @@ a.text-gray-dark:focus, a.text-gray-dark:hover {
 #content.bitcoin #transaction .card:hover {
   border-color: #FCDCB5 !important;
   background-color: #FEFDFA !important;
+  box-shadow: 0 2px 10px 0 rgba(80, 96, 120, 0.1);
+}
+
+#content.bitcoin #Tumblebit svg.OFF {
+  fill: #DCE8F1 !important;
+}
+
+#content.bitcoin #Tumblebit svg.ON {
+  fill: #F69D32 !important;
+}
+
+#content.bitcoin #Tumblebit .help {
+  color: #98A3B3;
+  font-size: .9em;
+  font-style: italic;
+  line-height: 1.3em;
+  font-weight: 200;
+}
+
+#content.bitcoin #Tumblebit button .icon-circle-down {
+  color: rgba(152, 163, 179, 0.5);
+}
+
+#content.bitcoin #Tumblebit .dropdown-toggle::after {
+  content: none !important;
 }
 
 .modal-header .bubble i {
