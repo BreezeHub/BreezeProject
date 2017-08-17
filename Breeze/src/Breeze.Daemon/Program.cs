@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using Breeze.TumbleBit;
 using Stratis.Bitcoin.Builder;
 using Stratis.Bitcoin.Configuration;
 using NBitcoin;
@@ -84,8 +85,18 @@ namespace Breeze.Daemon
                         .UseWallet()
                         .UseApi();
                 }
+
+                //we no longer pass the cbt uri in on the command line
+                //we always get it from the config. 
+                
+                //if we want to enforce light wallet only for tumblebit then
+                //this code can be safely moved into the body of the if above.
+
+                //currently tumblebit is bitcoin only
+                if (args.Contains("-tumblebit"))
+                    fullNodeBuilder.UseTumbleBit(null);
             }
-            
+
             var node = fullNodeBuilder.Build();
 
             //start Full Node - this will also start the API
