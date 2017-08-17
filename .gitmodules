@@ -1,3 +1,7 @@
 [submodule "StratisBitcoinFullNode"]
 	path = StratisBitcoinFullNode
 	url = https://github.com/stratisproject/StratisBitcoinFullNode/
+[submodule "BreezeCommon"]
+	path = BreezeCommon
+	url = https://github.com/BreezeHub/BreezeCommon.git
+	branch = master
