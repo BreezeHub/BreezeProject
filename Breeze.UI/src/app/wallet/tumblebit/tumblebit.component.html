@@ -25,7 +25,7 @@
               </g>
           </svg>
 
-            <p class="help mt-4">The Tumbler takes one bitcoin at a time, anonymizes them, and returns them to the destination wallet. It can take some time to tumble several coins.</p>
+          <p class="help mt-4">The Tumbler takes one bitcoin at a time, anonymizes them, and returns them to the destination wallet. It can take some time to tumble several coins.</p>
           </div>
           <form class="col-10 my-4 offset-1">
             <div class="row">
@@ -33,16 +33,14 @@
             </div>
             <div class="input-group mb-4">
               <input type="text" class="form-control" placeholder="Select a wallet or paste it">
-              <div class="input-group-btn">
-                <button type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              <div ngbDropdown class="input-group-btn">
+                <button type="button" class="btn btn-secondary dropdown-toggle" id="walletDropdown" ngbDropdownToggle>
                   <span class="icon-circle-down"></span>
                 </button>
-                <div class="dropdown-menu dropdown-menu-right">
+                <div ngbDropdownMenu aria-labelledby="walletDropdown" class="dropdown-menu dropdown-menu-right">
                   <a class="dropdown-item" href="#">Action</a>
                   <a class="dropdown-item" href="#">Another action</a>
                   <a class="dropdown-item" href="#">Something else here</a>
-                  <div role="separator" class="dropdown-divider"></div>
-                  <a class="dropdown-item" href="#">Separated link</a>
                 </div>
               </div>
             </div>

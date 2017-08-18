@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { NgbModal, NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
+import { NgbModal, NgbActiveModal, NgbDropdown } from '@ng-bootstrap/ng-bootstrap';
 import { FormGroup, FormControl, Validators, FormBuilder } from '@angular/forms';
 
 import { ApiService } from '../../shared/services/api.service';
@@ -39,7 +39,7 @@ export class TumblebitComponent implements OnInit {
 
     this.tumbleForm.valueChanges
       .subscribe(data => this.onValueChanged(this.tumbleForm, this.tumbleFormErrors, data));
-    
+
     this.onValueChanged(this.tumbleForm, this.tumbleFormErrors);
   }
 
@@ -121,7 +121,7 @@ export class TumblebitComponent implements OnInit {
           }
         },
       )
-    
+
     console.log(this.tumblerParameters);
   }
 
@@ -153,7 +153,7 @@ export class TumblebitComponent implements OnInit {
           }
         },
       )
-    
+
       console.log(this.tumbleStatus);
   }
 
