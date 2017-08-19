@@ -47,9 +47,6 @@ namespace Breeze.TumbleBit
                             Converters = new List<JsonConverter> { new NetworkConverter() }
                         };
 
-                        services.AddSingleton<BlockStoreLoop>();
-                        services.AddSingleton<IBlockRepository, BlockRepository>();
-                        services.AddSingleton<BlockStoreManager>();
                         services.AddSingleton<ITumbleBitManager, TumbleBitManager> ();
                         services.AddSingleton<TumbleBitController>();
                     });
