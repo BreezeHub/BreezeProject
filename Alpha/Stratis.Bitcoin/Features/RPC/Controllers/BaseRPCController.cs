@@ -45,6 +45,5 @@ namespace Stratis.Bitcoin.Features.RPC.Controllers
             this.MempoolManager = mempoolManager;
             this.ConnectionManager = connectionManager;
         }
-
     }
 }

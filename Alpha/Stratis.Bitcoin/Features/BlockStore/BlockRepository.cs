@@ -12,32 +12,31 @@ namespace Stratis.Bitcoin.Features.BlockStore
     public interface IBlockRepository : IDisposable
     {
         Task Initialize();
-
         Task PutAsync(uint256 nextBlockHash, List<Block> blocks);
-
         Task<Block> GetAsync(uint256 hash);
-
         Task<Transaction> GetTrxAsync(uint256 trxid);
-
         Task DeleteAsync(uint256 newlockHash, List<uint256> hashes);
-
         Task<bool> ExistAsync(uint256 hash);
-
         Task<uint256> GetTrxBlockIdAsync(uint256 trxid);
-
         Task SetBlockHash(uint256 nextBlockHash);
-
         Task SetTxIndex(bool txIndex);
+        uint256 BlockHash { get; }
+        BlockStoreRepositoryPerformanceCounter PerformanceCounter { get; }
+        bool TxIndex { get; }
     }
 
     public class BlockRepository : IBlockRepository
     {
         protected readonly DBreezeSingleThreadSession session;
         protected readonly Network network;
-        protected HashSet<string> tableNames = new HashSet<string>() { "Block", "Transaction", "Common" };
+
         protected static readonly byte[] BlockHashKey = new byte[0];
+        protected HashSet<string> tableNames = new HashSet<string>() { "Block", "Transaction", "Common" };
         protected static readonly byte[] TxIndexKey = new byte[1];
+
+        public uint256 BlockHash { get; private set; }
         public BlockStoreRepositoryPerformanceCounter PerformanceCounter { get; }
+        public bool TxIndex { get; private set; }
 
         public BlockRepository(Network network, DataFolder dataFolder)
             : this(network, dataFolder.BlockPath)
@@ -45,16 +44,26 @@ namespace Stratis.Bitcoin.Features.BlockStore
         }
 
         public BlockRepository(Network network, string folder)
+            : this(network, (new DBreezeSingleThreadSession($"DBreeze BlockRepository", folder)))
         {
-            Guard.NotNull(network, nameof(network));
-            Guard.NotEmpty(folder, nameof(folder));
-
-            this.session = new DBreezeSingleThreadSession($"DBreeze {this.GetType().Name}", folder);
-            this.network = network;
-            this.PerformanceCounter = new BlockStoreRepositoryPerformanceCounter();
         }
 
-        public Task Initialize()
+        public BlockRepository(Network network, DBreezeSingleThreadSession session)
+        {
+            Guard.NotNull(network, nameof(network));
+            Guard.NotNull(session, nameof(session));
+
+            this.session = session;
+            this.network = network;
+            this.PerformanceCounter = PerformanceCounterFactory();
+        }
+
+        public virtual BlockStoreRepositoryPerformanceCounter PerformanceCounterFactory()
+        {
+            return new BlockStoreRepositoryPerformanceCounter();
+        }
+
+        public virtual Task Initialize()
         {
             var genesis = this.network.GetGenesis();
 
@@ -143,9 +152,6 @@ namespace Stratis.Bitcoin.Features.BlockStore
                 }
             });
         }
-
-        public uint256 BlockHash { get; private set; }
-        public bool TxIndex { get; private set; }
 
         virtual protected void OnInsertBlocks(List<Block> blocks)
         {
@@ -243,6 +249,7 @@ namespace Stratis.Bitcoin.Features.BlockStore
                 return item.Value;
             }
         }
+
         private void SaveTxIndex(bool txIndex)
         {
             this.TxIndex = txIndex;

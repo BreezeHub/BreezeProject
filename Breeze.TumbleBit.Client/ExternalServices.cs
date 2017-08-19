@@ -1,47 +1,72 @@
-﻿using NBitcoin;
+﻿﻿using System;
+
+using Breeze.TumbleBit.Client.Services;
+using NBitcoin;
 using NTumbleBit;
 using NTumbleBit.Services;
+using Stratis.Bitcoin;
 using Stratis.Bitcoin.Features.MemoryPool;
 
 namespace Breeze.TumbleBit.Client
 {
-    public class ExternalServices
+    public class ExternalServices : IExternalServices
     {
-        public Transaction FundTransaction(TxOut txOut, FeeRate feeRate)
+        public static ExternalServices CreateUsingFullNode(IRepository repository, Tracker tracker, TumblingState tumblingState)
         {
-            return null;
+            FeeRate minimumRate = new FeeRate(MempoolValidator.MinRelayTxFee.FeePerK);
+
+            ExternalServices service = new ExternalServices();
+                      
+            service.FeeService = new FullNodeFeeService()
+            {
+                MinimumFeeRate = minimumRate
+            };
+
+            // on regtest the estimatefee always fails
+            if (tumblingState.TumblerNetwork == Network.RegTest)
+            {
+                service.FeeService = new FullNodeFeeService()
+                {
+                    MinimumFeeRate = minimumRate,
+                    FallBackFeeRate = new FeeRate(Money.Satoshis(50), 1)
+                };
+            }
+
+            // TODO: These ultimately need to be brought in from the tumblebit client UI
+            string dummyWalletName = "";
+            string dummyAccountName = "";
+
+            FullNodeWalletCache cache = new FullNodeWalletCache(repository, tumblingState);
+            service.WalletService = new FullNodeWalletService(tumblingState, dummyWalletName, dummyAccountName);
+            service.BroadcastService = new FullNodeBroadcastService(cache, repository, tumblingState);
+            service.BlockExplorerService = new FullNodeBlockExplorerService(cache, repository, tumblingState);
+            service.TrustedBroadcastService = new FullNodeTrustedBroadcastService(service.BroadcastService, service.BlockExplorerService, repository, cache, tracker, tumblingState)
+            {
+                // BlockExplorer will already track the addresses, since they used a shared bitcoind, no need of tracking again (this would overwrite labels)
+                TrackPreviousScriptPubKey = false
+            };
+            return service;
         }
-        
-        public bool Broadcast(Transaction tx)
+
+        public IFeeService FeeService
         {
-            return true;
+            get; set;
         }
-
-        public void TrustedBroadcast(int cycleStart, TransactionType transactionType, uint correlation, TrustedBroadcastRequest broadcast)
+        public IWalletService WalletService
         {
+            get; set;
         }
-
-        public TransactionInformation[] GetTransactions(Script scriptPubKey, bool withProof)
+        public IBroadcastService BroadcastService
         {
-            return null;
+            get; set;
         }
-
-        public FeeRate GetFeeRate()
+        public IBlockExplorerService BlockExplorerService
         {
-            decimal relayFee = MempoolValidator.MinRelayTxFee.FeePerK.ToUnit(MoneyUnit.BTC);
-            var minimumRate = new FeeRate(Money.Coins(relayFee * 2), 1000); //0.00002000 BTC/kB
-            var fallbackFeeRate = new FeeRate(Money.Satoshis(50), 1);       //0.00050000 BTC/kB
-
-            // TODO add real fee estimation 
-            //var rate = _RPCClient.TryEstimateFeeRate(1) ??
-            //           _RPCClient.TryEstimateFeeRate(2) ??
-            //           _RPCClient.TryEstimateFeeRate(3) ??
-            //           FallBackFeeRate;
-
-            //if (rate < MinimumFeeRate)
-            //    rate = MinimumFeeRa
-            
-            return fallbackFeeRate;
+            get; set;
+        }
+        public ITrustedBroadcastService TrustedBroadcastService
+        {
+            get; set;
         }
     }
 }

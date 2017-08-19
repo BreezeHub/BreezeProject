@@ -6,72 +6,75 @@ using System.Threading.Tasks;
 
 namespace Stratis.Bitcoin.Features.BlockStore
 {
+    /// <summary>
+    /// The chain of block store loop steps that is executed when the
+    /// BlockStoreLoop's DownloadAndStoreBlocks is called.
+    /// <seealso cref="BlockStoreLoop.DownloadAndStoreBlocks"/>
+    /// </summary>
     internal sealed class BlockStoreStepChain
     {
         private List<BlockStoreLoopStep> steps = new List<BlockStoreLoopStep>();
 
+        /// <summary>Set the next step to execute in the BlockStoreLoop.</summary>
         internal void SetNextStep(BlockStoreLoopStep step)
         {
             this.steps.Add(step);
         }
 
-        internal async Task<BlockStoreLoopStepResult> Execute(ChainedBlock nextChainedBlock, bool disposeMode, CancellationToken cancellationToken)
+        /// <summary>
+        /// Executes the chain of BlockStoreLoop steps.
+        /// <para>
+        /// Each step will return a BlockStoreLoopStepResult which will either:
+        /// <list>
+        ///     <item>1: Break out of the ForEach</item>
+        ///     <item>2: Continue execution of the ForEach</item>
+        /// </list>
+        /// </para>
+        /// </summary>
+        /// <param name="nextChainedBlock">Next chained block to process</param>
+        /// <param name="disposeMode">This will <c>true</c> if Flush() was called on the BlockStore</param>
+        /// <param name="cancellationToken">Cancellation token to check</param>
+        /// <returns>BlockStoreLoopStepResult</returns>
+        internal async Task<StepResult> Execute(ChainedBlock nextChainedBlock, bool disposeMode, CancellationToken cancellationToken)
         {
-            var result = BlockStoreLoopStepResult.Next();
-
             foreach (var step in this.steps)
             {
                 var stepResult = await step.ExecuteAsync(nextChainedBlock, cancellationToken, disposeMode);
-                if (stepResult.ShouldBreak || stepResult.ShouldContinue)
-                {
-                    result = stepResult;
-                    break;
-                }
+                if ((stepResult == StepResult.Continue) || (stepResult == StepResult.Stop))
+                    return stepResult;
             }
 
-            return result;
+            return StepResult.Next;
         }
     }
 
+    /// <summary>Base class for each block store step.</summary>
     internal abstract class BlockStoreLoopStep
     {
         protected BlockStoreLoopStep(BlockStoreLoop blockStoreLoop)
         {
-            Guard.NotNull(blockStoreLoop, "blockStoreLoop");
+            Guard.NotNull(blockStoreLoop, nameof(blockStoreLoop));
 
             this.BlockStoreLoop = blockStoreLoop;
         }
 
         internal BlockStoreLoop BlockStoreLoop;
 
-        internal abstract Task<BlockStoreLoopStepResult> ExecuteAsync(ChainedBlock nextChainedBlock, CancellationToken cancellationToken, bool disposeMode);
+        internal abstract Task<StepResult> ExecuteAsync(ChainedBlock nextChainedBlock, CancellationToken cancellationToken, bool disposeMode);
     }
 
-    public sealed class BlockStoreLoopStepResult
+    /// <summary>
+    /// The result that is returned from executing each loop step.
+    /// </summary>   
+    public enum StepResult
     {
-        internal BlockStoreLoopStepResult() { }
+        /// <summary>Continue execution of the loop.</summary>
+        Continue,
 
-        public bool ShouldBreak { get; private set; }
-        public bool ShouldContinue { get; private set; }
+        /// <summary>Execute the next line of code in the loop.</summary>
+        Next,
 
-        internal static BlockStoreLoopStepResult Break()
-        {
-            var result = new BlockStoreLoopStepResult();
-            result.ShouldBreak = true;
-            return result;
-        }
-
-        internal static BlockStoreLoopStepResult Continue()
-        {
-            var result = new BlockStoreLoopStepResult();
-            result.ShouldContinue = true;
-            return result;
-        }
-
-        internal static BlockStoreLoopStepResult Next()
-        {
-            var result = new BlockStoreLoopStepResult();
-            return result;
-        }
+        /// <summary>Break out of the loop.</summary>
+        Stop,
     }
 }

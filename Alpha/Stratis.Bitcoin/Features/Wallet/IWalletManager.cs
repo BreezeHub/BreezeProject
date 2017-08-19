@@ -20,22 +20,30 @@ namespace Stratis.Bitcoin.Features.Wallet
         uint256 WalletTipHash { get; }
 
         /// <summary>
-        /// List all spendable transactions from all accounts
+        /// Lists all spendable transactions from all accounts.
         /// </summary>
         /// <returns>A collection of spendable outputs</returns>
         List<UnspentAccountReference> GetSpendableTransactions(string walletName, int confirmations = 0);
 
         /// <summary>
-        /// List all spendable transactions from an account specified in <see cref="WalletAccountReference"/>
+        /// Lists all spendable transactions from the account specified in <see cref="WalletAccountReference"/>.
         /// </summary>
         /// <returns>A collection of spendable outputs that belong to the given account.</returns>
         UnspentAccountReference GetSpendableTransactions(WalletAccountReference walletAccountReference, int confirmations = 0);
 
         /// <summary>
+        /// Lists all spendable transactions from the account specified in <see cref="WalletAccountReference"/>.
+        /// </summary>
+        /// <param name="account">The account in which to look for spendable transactions.</param>
+        /// <param name="confirmations">The minimum number of confirmations required for transactions to be considered.</param>
+        /// <returns>A collection of spendable outputs that belong to the given account.</returns>
+        UnspentAccountReference GetSpendableTransactions(HdAccount account, int confirmations = 0);
+
+        /// <summary>
         /// Gets the private key for the given address.
         /// </summary>
+        /// <param name="walletName">The name of the wallet.</param>
         /// <param name="password">The password used to encrypt sensitive info.</param>
-        /// <param name="name">The name of the wallet.</param>
         /// <param name="address">The address to get the private key for.</param>
         /// <returns></returns>
         ISecret GetKeyForAddress(string walletName, string password, HdAddress address);
@@ -97,19 +105,7 @@ namespace Stratis.Bitcoin.Features.Wallet
         /// </remarks>
         /// <returns>An unused account.</returns>
         HdAccount GetUnusedAccount(Wallet wallet, string password);
-
-        /// <summary>
-        /// Creates a new account.
-        /// </summary>
-        /// <param name="wallet">The wallet in which this account will be created.</param>
-        /// <param name="password">The password used to decrypt the private key.</param>
-        /// <remarks>
-        /// According to BIP44, an account at index (i) can only be created when the account
-        /// at index (i - 1) contains transactions.
-        /// </remarks>
-        /// <returns>The new account.</returns>
-        HdAccount CreateNewAccount(Wallet wallet, string password);
-
+        
         /// <summary>
         /// Gets an address that contains no transaction.
         /// </summary>

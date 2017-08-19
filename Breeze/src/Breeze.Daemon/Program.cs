@@ -22,8 +22,10 @@ namespace Breeze.Daemon
         private const string DefaultBitcoinUri = "http://localhost:5000";
         private const string DefaultStratisUri = "http://localhost:5105";
 
-        public static void Main(string[] args)
+        public static void Main(string[] args2)
         {
+            string[] args = new string[] {"light", "-testnet"};
+
             IFullNodeBuilder fullNodeBuilder = null;
 
             // get the api uri 

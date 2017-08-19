@@ -9,6 +9,8 @@ using Newtonsoft.Json;
 using NTumbleBit.ClassicTumbler;
 using NTumbleBit.PuzzlePromise;
 using NTumbleBit.PuzzleSolver;
+using Stratis.Bitcoin.Features.BlockStore;
+using Stratis.Bitcoin.Features.MemoryPool;
 using Stratis.Bitcoin.Features.Wallet;
 using Stratis.Bitcoin.Features.WatchOnlyWallet;
 
@@ -18,12 +20,19 @@ namespace Breeze.TumbleBit.Client
     {
         private const string StateFileName = "tumblebit_state.json";
 
-        private readonly ILogger logger;
-        private readonly ConcurrentChain chain;
-        private readonly IWalletManager walletManager;
-        private readonly IWatchOnlyWalletManager watchOnlyWalletManager;
-        private readonly CoinType coinType;
-        
+        public ILogger logger;
+        public ConcurrentChain chain;
+        public WalletManager walletManager;
+        public WalletSyncManager walletSyncManager;
+        public IWatchOnlyWalletManager watchOnlyWalletManager;
+        public WalletTransactionHandler walletTransactionHandler;
+        public BlockStoreManager blockStoreManager;
+        public MempoolManager mempoolManager;
+
+        // TODO: Does this need to be saved? Can be derived from network
+        public CoinType coinType;
+
+        // TODO: Remove or store the tumbler parameters for every used tumbler
         [JsonProperty("tumblerParameters")]
         public ClassicTumblerParameters TumblerParameters { get; set; }
 
@@ -39,6 +48,9 @@ namespace Breeze.TumbleBit.Client
         [JsonProperty("destinationWalletName", NullValueHandling = NullValueHandling.Ignore)]
         public string DestinationWalletName { get; set; }       
 
+        [JsonProperty("network", NullValueHandling = NullValueHandling.Ignore)]
+        public Network TumblerNetwork { get; set; }
+
         [JsonIgnore]
         public Wallet OriginWallet { get; set; }
 
@@ -52,15 +64,23 @@ namespace Breeze.TumbleBit.Client
 
         public TumblingState(ILoggerFactory loggerFactory, 
             ConcurrentChain chain,
-            IWalletManager walletManager,
+            WalletManager walletManager,
             IWatchOnlyWalletManager  watchOnlyWalletManager,
-            Network network)
+            Network network, 
+            WalletTransactionHandler walletTransactionHandler,
+            BlockStoreManager blockStoreManager,
+            MempoolManager mempoolManager,
+            WalletSyncManager walletSyncManager)
         {
             this.logger = loggerFactory.CreateLogger(this.GetType().FullName);
             this.chain = chain;
             this.walletManager = walletManager;
             this.watchOnlyWalletManager = watchOnlyWalletManager;
             this.coinType = (CoinType)network.Consensus.CoinType;
+            this.walletTransactionHandler = walletTransactionHandler;
+            this.blockStoreManager = blockStoreManager;
+            this.mempoolManager = mempoolManager;
+            this.walletSyncManager = walletSyncManager;
         }
 
         /// <inheritdoc />
@@ -86,6 +106,7 @@ namespace Breeze.TumbleBit.Client
             this.LastBlockReceivedHeight = savedState.LastBlockReceivedHeight;
             this.TumblerParameters = savedState.TumblerParameters;
             this.TumblerUri = savedState.TumblerUri;
+            this.TumblerNetwork = savedState.TumblerNetwork;
         }
 
         /// <inheritdoc />
