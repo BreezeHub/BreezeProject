@@ -77,12 +77,12 @@ namespace Breeze.TumbleBit.Client.Services
 
                     // TODO: Not efficient
 
-                    foreach (var walletName in this.tumblingState.walletManager.GetWallets())
+                    foreach (var wallet in this.tumblingState.walletManager.Wallets)
                     {
                         if (found)
                             break;
 
-                        var wallet = this.tumblingState.walletManager.GetWallet(walletName);
+                        //var wallet = this.tumblingState.walletManager.GetWallet(walletName);
 
                         foreach (var account in wallet.GetAccountsByCoinType(this.tumblingState.coinType))
                         {
@@ -148,9 +148,9 @@ namespace Breeze.TumbleBit.Client.Services
 
             // Search transactions in regular wallet for matching address criteria
 
-            foreach (var walletName in this.tumblingState.walletManager.GetWallets())
+            foreach (var wallet in this.tumblingState.walletManager.Wallets)
             {
-                var wallet = this.tumblingState.walletManager.GetWallet(walletName);
+                //var wallet = this.tumblingState.walletManager.GetWallet(walletName);
                 foreach (var walletTx in wallet.GetAllTransactionsByCoinType(this.tumblingState.coinType))
                 {
                     if (address == walletTx.ScriptPubKey.GetDestinationAddress(this.tumblingState.TumblerNetwork))

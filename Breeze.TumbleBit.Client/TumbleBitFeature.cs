@@ -9,6 +9,14 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using Stratis.Bitcoin.Features.Wallet.JsonConverters;
 
+using Stratis.Bitcoin.BlockPulling;
+using Stratis.Bitcoin.Builder;
+using Stratis.Bitcoin.Builder.Feature;
+using Stratis.Bitcoin.Configuration;
+using Stratis.Bitcoin.Connection;
+using Stratis.Bitcoin.Features.BlockStore;
+using Stratis.Bitcoin.Utilities;
+
 namespace Breeze.TumbleBit
 {
     public class TumbleBitFeature : FullNodeFeature
@@ -39,6 +47,9 @@ namespace Breeze.TumbleBit
                             Converters = new List<JsonConverter> { new NetworkConverter() }
                         };
 
+                        services.AddSingleton<BlockStoreLoop>();
+                        services.AddSingleton<IBlockRepository, BlockRepository>();
+                        services.AddSingleton<BlockStoreManager>();
                         services.AddSingleton<ITumbleBitManager, TumbleBitManager> ();
                         services.AddSingleton<TumbleBitController>();
                     });

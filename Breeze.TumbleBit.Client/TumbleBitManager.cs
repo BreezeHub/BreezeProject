@@ -38,12 +38,12 @@ namespace Breeze.TumbleBit.Client
      
         private ClassicTumblerParameters TumblerParameters { get; set; }
 
-        public TumbleBitManager(ILoggerFactory loggerFactory, WalletManager walletManager, IWatchOnlyWalletManager watchOnlyWalletManager, ConcurrentChain chain, Network network, Signals signals, WalletTransactionHandler walletTransactionHandler, BlockStoreManager blockStoreManager, MempoolManager mempoolManager, WalletSyncManager walletSyncManager)
+        public TumbleBitManager(ILoggerFactory loggerFactory, IWalletManager walletManager, IWatchOnlyWalletManager watchOnlyWalletManager, ConcurrentChain chain, Network network, Signals signals, IWalletTransactionHandler walletTransactionHandler, BlockStoreManager blockStoreManager, MempoolManager mempoolManager, IWalletSyncManager walletSyncManager)
         {
-            this.walletManager = walletManager;
+            this.walletManager = walletManager as WalletManager;
             this.watchOnlyWalletManager = watchOnlyWalletManager;
-            this.walletSyncManager = walletSyncManager;
-            this.walletTransactionHandler = walletTransactionHandler;
+            this.walletSyncManager = walletSyncManager as WalletSyncManager;
+            this.walletTransactionHandler = walletTransactionHandler as WalletTransactionHandler;
             this.chain = chain;
             this.signals = signals;
             this.network = network;

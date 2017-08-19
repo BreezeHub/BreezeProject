@@ -24,8 +24,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stratis.Bitcoin", "..\Alpha
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stratis.Bitcoin.Api", "..\Alpha\Stratis.Bitcoin.Api\Stratis.Bitcoin.Api.csproj", "{B77B3029-8E69-4A25-9E96-89064A22EB0E}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stratis.Bitcoin.Common", "..\Alpha\Stratis.Bitcoin.Common\Stratis.Bitcoin.Common.csproj", "{CBC421DE-6B43-45EF-A357-573D21EAC162}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stratis.Bitcoin.Features.LightWallet", "..\Alpha\Stratis.Bitcoin.Features.LightWallet\Stratis.Bitcoin.Features.LightWallet.csproj", "{A82FEECB-7C68-442E-B399-B5D7C540D63F}"
 EndProject
 Global
@@ -54,10 +52,6 @@ Global
 		{B77B3029-8E69-4A25-9E96-89064A22EB0E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B77B3029-8E69-4A25-9E96-89064A22EB0E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B77B3029-8E69-4A25-9E96-89064A22EB0E}.Release|Any CPU.Build.0 = Release|Any CPU
-		{CBC421DE-6B43-45EF-A357-573D21EAC162}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{CBC421DE-6B43-45EF-A357-573D21EAC162}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{CBC421DE-6B43-45EF-A357-573D21EAC162}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{CBC421DE-6B43-45EF-A357-573D21EAC162}.Release|Any CPU.Build.0 = Release|Any CPU
 		{A82FEECB-7C68-442E-B399-B5D7C540D63F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{A82FEECB-7C68-442E-B399-B5D7C540D63F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A82FEECB-7C68-442E-B399-B5D7C540D63F}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -69,7 +63,6 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{70A129BA-8471-4EEE-963C-EDE94840D537} = {2A35265F-9E1C-4C10-A87A-3DACA675CC06}
 		{B77B3029-8E69-4A25-9E96-89064A22EB0E} = {2A35265F-9E1C-4C10-A87A-3DACA675CC06}
-		{CBC421DE-6B43-45EF-A357-573D21EAC162} = {2A35265F-9E1C-4C10-A87A-3DACA675CC06}
 		{A82FEECB-7C68-442E-B399-B5D7C540D63F} = {2A35265F-9E1C-4C10-A87A-3DACA675CC06}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution

@@ -13,6 +13,7 @@ using Stratis.Bitcoin.Features.MemoryPool;
 using Stratis.Bitcoin.Features.Miner;
 using Stratis.Bitcoin.Features.Notifications;
 using Stratis.Bitcoin.Features.Wallet;
+using Stratis.Bitcoin.Features.WatchOnlyWallet;
 using Stratis.Bitcoin.Utilities;
 
 namespace Breeze.Daemon
@@ -22,10 +23,8 @@ namespace Breeze.Daemon
         private const string DefaultBitcoinUri = "http://localhost:5000";
         private const string DefaultStratisUri = "http://localhost:5105";
 
-        public static void Main(string[] args2)
+        public static void Main(string[] args)
         {
-            string[] args = new string[] {"light", "-testnet"};
-
             IFullNodeBuilder fullNodeBuilder = null;
 
             // get the api uri 
@@ -73,9 +72,20 @@ namespace Breeze.Daemon
                     fullNodeBuilder = new FullNodeBuilder()
                         .UseNodeSettings(nodeSettings)
                         .UseLightWallet()
+                        .UseWatchOnlyWallet()
                         .UseBlockNotification()
                         .UseTransactionNotification()
+                        .UseBlockStore()
+                        .UseConsensus()
+                        .UseMempool()
                         .UseApi();
+
+                    //we no longer pass the cbt uri in on the command line
+                    //we always get it from the config. 
+
+                    //currently tumblebit is bitcoin only
+                    if (args.Contains("-tumblebit"))
+                        fullNodeBuilder.UseTumbleBit(null);
                 }
                 else
                 {
@@ -87,16 +97,6 @@ namespace Breeze.Daemon
                         .UseWallet()
                         .UseApi();
                 }
-
-                //we no longer pass the cbt uri in on the command line
-                //we always get it from the config. 
-                
-                //if we want to enforce light wallet only for tumblebit then
-                //this code can be safely moved into the body of the if above.
-
-                //currently tumblebit is bitcoin only
-                if (args.Contains("-tumblebit"))
-                    fullNodeBuilder.UseTumbleBit(null);
             }
 
             var node = fullNodeBuilder.Build();
