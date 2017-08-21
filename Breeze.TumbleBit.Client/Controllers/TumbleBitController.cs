@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Breeze.TumbleBit.Client;
 using Breeze.TumbleBit.Models;
+using NBitcoin;
 using Stratis.Bitcoin.Utilities.JsonErrors;
 
 namespace Breeze.TumbleBit.Controllers
@@ -39,7 +41,15 @@ namespace Breeze.TumbleBit.Controllers
             try
             {
                 var tumblerParameters = await this.tumbleBitManager.ConnectToTumblerAsync(request.ServerAddress);
-                return this.Json(tumblerParameters);
+
+                var parameterDictionary = new Dictionary<string, string>()
+                {
+                    ["denomination"] = tumblerParameters.Denomination.ToString(),
+                    ["fee"] = tumblerParameters.Fee.ToString(),
+                    ["network"] = tumblerParameters.Network.Name,
+                    ["estimate"] = "10080"
+                };
+                return this.Json(parameterDictionary);
             }
             catch (Exception e)
             {                
