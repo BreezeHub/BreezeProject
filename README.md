@@ -4,10 +4,10 @@
 
 [1]: https://ci.appveyor.com/api/projects/status/j9g1kfpo48kf3eyr?svg=true
 [2]: https://ci.appveyor.com/project/breezehub/breeze
-[3]: https://travis-ci.org/breezehub/Breeze.svg?branch=tumblebit-alpha
-[4]: https://travis-ci.org/breezehub/Breeze
-[5]: https://travis-ci.org/breezehub/Breeze.svg?branch=tumblebit-alpha
-[6]: https://travis-ci.org/breezehub/Breeze
+[3]: https://travis-ci.org/BreezeHub/Breeze.svg?branch=tumblebit-alpha
+[4]: https://travis-ci.org/BreezeHub/Breeze
+[5]: https://travis-ci.org/BreezeHub/Breeze.svg?branch=tumblebit-alpha
+[6]: https://travis-ci.org/BreezeHub/Breeze
 
 
 # Breeze
