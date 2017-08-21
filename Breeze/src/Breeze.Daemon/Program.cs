@@ -5,6 +5,7 @@ using Stratis.Bitcoin.Builder;
 using Stratis.Bitcoin.Configuration;
 using NBitcoin;
 using NBitcoin.Protocol;
+using NTumbleBit.Logging;
 using Stratis.Bitcoin.Api;
 using Stratis.Bitcoin.Features.BlockStore;
 using Stratis.Bitcoin.Features.Consensus;
@@ -85,7 +86,10 @@ namespace Breeze.Daemon
 
                     //currently tumblebit is bitcoin only
                     if (args.Contains("-tumblebit"))
+                    {
+                        Logs.Configure(new FuncLoggerFactory(i => new CustomerConsoleLogger(i, (a, b) => true, false)));
                         fullNodeBuilder.UseTumbleBit(null);
+                    }
                 }
                 else
                 {
