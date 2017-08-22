@@ -44,6 +44,7 @@ namespace Breeze.TumbleBit.Controllers
 
                 var parameterDictionary = new Dictionary<string, string>()
                 {
+                    ["tumbler"] = this.tumbleBitManager.TumblerAddress.ToString(),
                     ["denomination"] = tumblerParameters.Denomination.ToString(),
                     ["fee"] = tumblerParameters.Fee.ToString(),
                     ["network"] = tumblerParameters.Network.Name,

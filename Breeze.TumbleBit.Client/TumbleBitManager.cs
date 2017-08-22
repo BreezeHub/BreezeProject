@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Flurl.Util;
 using Microsoft.Extensions.Logging;
 using NBitcoin;
 using NTumbleBit.ClassicTumbler;
@@ -38,6 +39,8 @@ namespace Breeze.TumbleBit.Client
      
         private ClassicTumblerParameters TumblerParameters { get; set; }
 
+        public Uri TumblerAddress { get; private set; }
+
         public TumbleBitManager(ILoggerFactory loggerFactory, IWalletManager walletManager, IWatchOnlyWalletManager watchOnlyWalletManager, ConcurrentChain chain, Network network, Signals signals, IWalletTransactionHandler walletTransactionHandler, BlockStoreManager blockStoreManager, MempoolManager mempoolManager, IWalletSyncManager walletSyncManager)
         {
             this.walletManager = walletManager as WalletManager;
@@ -60,13 +63,16 @@ namespace Breeze.TumbleBit.Client
         {
             // TODO this method will probably need to change as the connection to a tumbler is currently done during configuration
             // of the TumblebitRuntime. This method can then be modified to potentially be a convenience method 
-            // where a user wants to check a tumbler's paramters before commiting to tumbling (and therefore before configuring the runtime).
+            // where a user wants to check a tumbler's parameters before commiting to tumbling (and therefore before configuring the runtime).
 
             // TODO: Temporary measure
             string[] args = { "-testnet" };
 
             var config = new FullNodeTumblerClientConfiguration(this.tumblingState);
             config.LoadArgs(args);
+
+            //read the tumbler address from the config
+            this.TumblerAddress = new Uri( config.TumblerServer.ToString() );
 
             // AcceptAllClientConfiguration should be used if the interaction is null
             this.runtime = TumblerClientRuntime.FromConfiguration(config, null);
@@ -80,11 +86,11 @@ namespace Breeze.TumbleBit.Client
                 throw new Exception($"The tumbler is on network {this.TumblerParameters.Network} while the wallet is on network {this.network}.");
             }
             
-            // Load the current tumbling state fromt the file system
+            // Load the current tumbling state from the file system
             this.tumblingState.LoadStateFromMemory();
             
             // Update and save the state
-            this.tumblingState.TumblerUri = serverAddress;
+            this.tumblingState.TumblerUri = this.TumblerAddress;
             this.tumblingState.TumblerParameters = this.TumblerParameters;
             //cdthis.tumblingState.Save();
 

@@ -81,13 +81,13 @@ namespace Breeze.Daemon
                         .UseMempool()
                         .UseApi();
 
-                    //we no longer pass the cbt uri in on the command line
-                    //we always get it from the config. 
-
                     //currently tumblebit is bitcoin only
                     if (args.Contains("-tumblebit"))
                     {
                         Logs.Configure(new FuncLoggerFactory(i => new CustomerConsoleLogger(i, (a, b) => true, false)));
+
+                        //we no longer pass the cbt uri in on the command line
+                        //we always get it from the config. 
                         fullNodeBuilder.UseTumbleBit(null);
                     }
                 }
