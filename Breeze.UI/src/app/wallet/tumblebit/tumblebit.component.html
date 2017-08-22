@@ -31,18 +31,13 @@
             <div class="row">
               <label class="col-12 text-left" for="">Destination</label>
             </div>
-            <div class="input-group mb-4">
-              <input type="text" class="form-control" placeholder="Select a wallet or paste it">
-              <div ngbDropdown class="input-group-btn">
-                <button type="button" class="btn btn-secondary dropdown-toggle" id="walletDropdown" ngbDropdownToggle>
-                  <span class="icon-circle-down"></span>
-                </button>
-                <div ngbDropdownMenu aria-labelledby="walletDropdown" class="dropdown-menu dropdown-menu-right">
-                  <a class="dropdown-item" href="#">Action</a>
-                  <a class="dropdown-item" href="#">Another action</a>
-                  <a class="dropdown-item" href="#">Something else here</a>
-                </div>
-              </div>
+            <div class="form-group mb-4">
+              <select class="form-control custom-select" id="">
+                <option>wallet_08222017</option>
+                <option>wallet_michael</option>
+                <option>storageB</option>
+                <option>personalWallet</option>
+              </select>
             </div>
             <button type="button" class="btn btn-lg btn-primary mt-4">Start tumbling</button>
           </form>
