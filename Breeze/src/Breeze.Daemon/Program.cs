@@ -1,12 +1,16 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Breeze.TumbleBit;
+using Microsoft.Extensions.Logging.Console;
 using Stratis.Bitcoin.Builder;
 using Stratis.Bitcoin.Configuration;
 using NBitcoin;
 using NBitcoin.Protocol;
 using NTumbleBit.Logging;
+using Serilog;
 using Stratis.Bitcoin.Api;
+using Stratis.Bitcoin.Configuration.Logging;
 using Stratis.Bitcoin.Features.BlockStore;
 using Stratis.Bitcoin.Features.Consensus;
 using Stratis.Bitcoin.Features.LightWallet;
@@ -67,6 +71,7 @@ namespace Breeze.Daemon
             {
                 NodeSettings nodeSettings = NodeSettings.FromArguments(args);
                 nodeSettings.ApiUri = new Uri(string.IsNullOrEmpty(apiUri) ? DefaultBitcoinUri : apiUri);
+                
 
                 if (args.Contains("light"))
                 {
@@ -84,8 +89,11 @@ namespace Breeze.Daemon
                     //currently tumblebit is bitcoin only
                     if (args.Contains("-tumblebit"))
                     {
-                        Logs.Configure(new FuncLoggerFactory(i => new CustomerConsoleLogger(i, (a, b) => true, false)));
-
+                        //start NTumbleBit logging to the console
+                        //and switch the full node to log level: 
+                        //error only
+                        SetupTumbleBitLogs(nodeSettings);
+                   
                         //we no longer pass the cbt uri in on the command line
                         //we always get it from the config. 
                         fullNodeBuilder.UseTumbleBit(null);
@@ -107,6 +115,25 @@ namespace Breeze.Daemon
 
             //start Full Node - this will also start the API
             node.Run();
+        }
+
+        private static void SetupTumbleBitLogs(NodeSettings nodeSettings)
+        {
+            //turn on NTumbleBit to log to console 
+            Logs.Configure(new FuncLoggerFactory(i => new CustomerConsoleLogger(i, (a, b) => true, false)));
+
+            //switch Stratis.Bitcoin to Error level only so it does not flood the console
+            var switches = new Dictionary<string, Microsoft.Extensions.Logging.LogLevel>()
+            {
+                {"Default", Microsoft.Extensions.Logging.LogLevel.Information},
+                {"System", Microsoft.Extensions.Logging.LogLevel.Warning},
+                {"Microsoft", Microsoft.Extensions.Logging.LogLevel.Warning},
+                {"Microsoft.AspNetCore", Microsoft.Extensions.Logging.LogLevel.Error},
+                {"Stratis.Bitcoin", Microsoft.Extensions.Logging.LogLevel.Error}
+            };
+            ConsoleLoggerSettings settings = nodeSettings.LoggerFactory.GetConsoleSettings();
+            settings.Switches = switches;
+            settings.Reload();
         }
 
         private static Network InitStratisTest()
