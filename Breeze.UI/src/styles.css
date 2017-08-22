@@ -9148,8 +9148,8 @@ a.text-gray-dark:focus, a.text-gray-dark:hover {
 
 @font-face {
   font-family: 'icon';
-  src: url("./assets/fonts/icon.eot?qz0v16");
-  src: url("./assets/fonts/icon.eot?qz0v16#iefix") format("embedded-opentype"), url("./assets/fonts/icon.ttf?qz0v16") format("truetype"), url("./assets/fonts/icon.woff?qz0v16") format("woff"), url("./assets/fonts/icon.svg?qz0v16#icomoon") format("svg");
+  src: url("./assets/fonts/icon.eot?ste27o");
+  src: url("./assets/fonts/icon.eot?ste27o#iefix") format("embedded-opentype"), url("./assets/fonts/icon.ttf?ste27o") format("truetype"), url("./assets/fonts/icon.woff?ste27o") format("woff"), url("./assets/fonts/icon.svg?ste27o#icomoon") format("svg");
   font-weight: normal;
   font-style: normal;
 }
@@ -9300,6 +9300,11 @@ a.text-gray-dark:focus, a.text-gray-dark:hover {
   content: "\eae8";
 }
 
+.icon-tumblebit:before {
+  content: "\e901";
+  color: #dce8f1;
+}
+
 .icon-stratis:before {
   content: "\e900";
 }
@@ -9388,11 +9393,15 @@ a.text-gray-dark:focus, a.text-gray-dark:hover {
   box-shadow: 0 2px 10px 0 rgba(80, 96, 120, 0.1);
 }
 
-#content.bitcoin #Tumblebit svg.OFF {
+#content.bitcoin #Tumblebit i {
+  font-size: 7.5rem;
+}
+
+#content.bitcoin #Tumblebit i.OFF {
   fill: #DCE8F1 !important;
 }
 
-#content.bitcoin #Tumblebit svg.ON {
+#content.bitcoin #Tumblebit i.ON {
   fill: #F69D32 !important;
 }
 

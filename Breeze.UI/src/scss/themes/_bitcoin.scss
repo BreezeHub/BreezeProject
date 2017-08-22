@@ -86,7 +86,8 @@ $btn-secondary-border:           $gray-light !default;
 
     // Tumblebit
     #Tumblebit {
-      svg {
+      i {
+        font-size: 7.5rem;
         &.OFF {fill: #DCE8F1 !important;}
         &.ON { fill: $brand-primary !important;}
       }
