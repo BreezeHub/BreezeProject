@@ -46,6 +46,7 @@ namespace Breeze.TumbleBit.Client.Services
             {
                 cancellation.ThrowIfCancellationRequested();
                 var h = this.tumblingState.walletManager.WalletTipHash;
+
                 if (h != currentBlock)
                 {
                     _Cache.Refresh(h);
@@ -215,11 +216,34 @@ namespace Breeze.TumbleBit.Client.Services
         {
             try
             {
-                Transaction trx = this.tumblingState.mempoolManager.InfoAsync(txId)?.Result.Trx;
+                foreach (WatchedAddress addr in this.tumblingState.watchOnlyWalletManager.GetWatchOnlyWallet()
+                    .WatchedAddresses.Values)
+                {
+                    foreach (Stratis.Bitcoin.Features.WatchOnlyWallet.TransactionData trans in addr.Transactions.Values)
+                    {
+                        if (trans.Transaction.GetHash() == txId)
+                        {
+                            // Need number of confirmations as well
+                            var watchBlock = this.tumblingState.chain.GetBlock(trans.BlockHash);
+                            var watchConfCount = Math.Max(0, (this.tumblingState.chain.Tip.Height - watchBlock.Height));
 
-                if (trx == null)
-                    trx = this.tumblingState.blockStoreManager.BlockRepository?.GetTrxAsync(txId).Result;
-                
+                            return new TransactionInformation
+                            {
+                                Confirmations = watchConfCount,
+                                Transaction = trans.Transaction
+                            };
+                        }
+                    }
+                }
+
+                Console.WriteLine("Did not find transaction in watch-only wallet: " + txId.ToString());
+                return null;
+
+                // Transaction was not in watch-only wallet
+                var trx = this.tumblingState.blockStoreManager.BlockRepository.GetTrxAsync(txId).Result;
+
+                //this.tumblingState.walletManager.
+
                 // Need number of confirmations as well
                 var blockHash = this.tumblingState.blockStoreManager.BlockRepository?.GetTrxBlockIdAsync(txId).Result;
                 var block = this.tumblingState.chain.GetBlock(blockHash);
@@ -235,7 +259,11 @@ namespace Breeze.TumbleBit.Client.Services
                 };
             }
             // TODO: Replace this with the correct exception type
-            catch (RPCException) { return null; }
+            catch (Exception)
+            {
+                Console.WriteLine("Error looking up transaction: " + txId.ToString());
+                return null;
+            }
         }
 
         public void Track(Script scriptPubkey)

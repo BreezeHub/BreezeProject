@@ -101,10 +101,22 @@ namespace Breeze.TumbleBit.Client.Services
         {
             try
             {
-                Transaction trx = this.tumblingState.mempoolManager.InfoAsync(txId)?.Result.Trx;
+                Transaction trx = null;
+
+                foreach (WatchedAddress addr in this.tumblingState.watchOnlyWalletManager.GetWatchOnlyWallet()
+                    .WatchedAddresses.Values)
+                {
+                    foreach (Stratis.Bitcoin.Features.WatchOnlyWallet.TransactionData trans in addr.Transactions.Values)
+                    {
+                        if (trans.Transaction.GetHash() == txId)
+                        {
+                            return trans.Transaction;
+                        }
+                    }
+                }
 
                 if (trx == null)
-                    trx = this.tumblingState.blockStoreManager.BlockRepository?.GetTrxAsync(txId).Result;
+                    trx = this.tumblingState.blockStoreManager.BlockRepository.GetTrxAsync(txId).Result;
 
                 return trx;
             }

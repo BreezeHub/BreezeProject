@@ -39,6 +39,7 @@ namespace Breeze.TumbleBit.Client.Services
             _Repository = repository;
             _Cache = cache;
             _BlockExplorerService = new FullNodeBlockExplorerService(cache, repository, tumblingState);
+            this.tumblingState = tumblingState;
         }
 
         private readonly FullNodeBlockExplorerService _BlockExplorerService;

@@ -23,7 +23,6 @@ namespace Breeze.TumbleBit.Client
     {
         private ILoggerFactory loggerFactory;
         private readonly BlockStoreManager blockStoreManager;
-        private readonly MempoolManager mempoolManager;
         private readonly WalletManager walletManager;
         private readonly IWatchOnlyWalletManager watchOnlyWalletManager;
         private readonly WalletSyncManager walletSyncManager;
@@ -41,7 +40,7 @@ namespace Breeze.TumbleBit.Client
 
         public Uri TumblerAddress { get; private set; }
 
-        public TumbleBitManager(ILoggerFactory loggerFactory, IWalletManager walletManager, IWatchOnlyWalletManager watchOnlyWalletManager, ConcurrentChain chain, Network network, Signals signals, IWalletTransactionHandler walletTransactionHandler, BlockStoreManager blockStoreManager, MempoolManager mempoolManager, IWalletSyncManager walletSyncManager)
+        public TumbleBitManager(ILoggerFactory loggerFactory, IWalletManager walletManager, IWatchOnlyWalletManager watchOnlyWalletManager, ConcurrentChain chain, Network network, Signals signals, IWalletTransactionHandler walletTransactionHandler, BlockStoreManager blockStoreManager, IWalletSyncManager walletSyncManager)
         {
             this.walletManager = walletManager as WalletManager;
             this.watchOnlyWalletManager = watchOnlyWalletManager;
@@ -53,9 +52,8 @@ namespace Breeze.TumbleBit.Client
             this.loggerFactory = loggerFactory;
             this.logger = loggerFactory.CreateLogger(this.GetType().FullName);
             this.blockStoreManager = blockStoreManager;
-            this.mempoolManager = mempoolManager;
 
-            this.tumblingState = new TumblingState(loggerFactory, this.chain, this.walletManager, this.watchOnlyWalletManager, this.network, this.walletTransactionHandler, this.blockStoreManager, this.mempoolManager, this.walletSyncManager);
+            this.tumblingState = new TumblingState(loggerFactory, this.chain, this.walletManager, this.watchOnlyWalletManager, this.network, this.walletTransactionHandler, this.blockStoreManager, this.walletSyncManager);
         }
 
         /// <inheritdoc />

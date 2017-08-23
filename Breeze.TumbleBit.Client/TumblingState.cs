@@ -27,7 +27,6 @@ namespace Breeze.TumbleBit.Client
         public IWatchOnlyWalletManager watchOnlyWalletManager;
         public WalletTransactionHandler walletTransactionHandler;
         public BlockStoreManager blockStoreManager;
-        public MempoolManager mempoolManager;
 
         // TODO: Does this need to be saved? Can be derived from network
         public CoinType coinType;
@@ -69,7 +68,6 @@ namespace Breeze.TumbleBit.Client
             Network network, 
             WalletTransactionHandler walletTransactionHandler,
             BlockStoreManager blockStoreManager,
-            MempoolManager mempoolManager,
             WalletSyncManager walletSyncManager)
         {
             this.logger = loggerFactory.CreateLogger(this.GetType().FullName);
@@ -79,7 +77,6 @@ namespace Breeze.TumbleBit.Client
             this.coinType = (CoinType)network.Consensus.CoinType;
             this.walletTransactionHandler = walletTransactionHandler;
             this.blockStoreManager = blockStoreManager;
-            this.mempoolManager = mempoolManager;
             this.walletSyncManager = walletSyncManager;
         }
 
