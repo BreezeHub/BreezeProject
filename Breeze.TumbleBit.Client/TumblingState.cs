@@ -20,12 +20,25 @@ namespace Breeze.TumbleBit.Client
     {
         private const string StateFileName = "tumblebit_state.json";
 
+        [JsonIgnore]
         public ILogger logger;
+
+        [JsonIgnore]
         public ConcurrentChain chain;
+
+        [JsonIgnore]
         public WalletManager walletManager;
+
+        [JsonIgnore]
         public WalletSyncManager walletSyncManager;
+
+        [JsonIgnore]
         public IWatchOnlyWalletManager watchOnlyWalletManager;
+
+        [JsonIgnore]
         public WalletTransactionHandler walletTransactionHandler;
+
+        [JsonIgnore]
         public BlockStoreManager blockStoreManager;
 
         // TODO: Does this need to be saved? Can be derived from network
@@ -67,7 +80,6 @@ namespace Breeze.TumbleBit.Client
             IWatchOnlyWalletManager  watchOnlyWalletManager,
             Network network, 
             WalletTransactionHandler walletTransactionHandler,
-            BlockStoreManager blockStoreManager,
             WalletSyncManager walletSyncManager)
         {
             this.logger = loggerFactory.CreateLogger(this.GetType().FullName);
@@ -76,7 +88,6 @@ namespace Breeze.TumbleBit.Client
             this.watchOnlyWalletManager = watchOnlyWalletManager;
             this.coinType = (CoinType)network.Consensus.CoinType;
             this.walletTransactionHandler = walletTransactionHandler;
-            this.blockStoreManager = blockStoreManager;
             this.walletSyncManager = walletSyncManager;
         }
 
