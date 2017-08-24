@@ -1,15 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using Breeze.TumbleBit;
+﻿using Breeze.TumbleBit;
 using Microsoft.Extensions.Logging.Console;
-using Stratis.Bitcoin.Builder;
-using Stratis.Bitcoin.Configuration;
 using NBitcoin;
 using NBitcoin.Protocol;
+using NLog;
+using NLog.Config;
+using NLog.Targets;
 using NTumbleBit.Logging;
-using Serilog;
 using Stratis.Bitcoin.Api;
+using Stratis.Bitcoin.Builder;
+using Stratis.Bitcoin.Configuration;
 using Stratis.Bitcoin.Configuration.Logging;
 using Stratis.Bitcoin.Features.BlockStore;
 using Stratis.Bitcoin.Features.Consensus;
@@ -20,6 +19,12 @@ using Stratis.Bitcoin.Features.Notifications;
 using Stratis.Bitcoin.Features.Wallet;
 using Stratis.Bitcoin.Features.WatchOnlyWallet;
 using Stratis.Bitcoin.Utilities;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
+using Target = NBitcoin.Target;
 
 namespace Breeze.Daemon
 {
@@ -72,7 +77,6 @@ namespace Breeze.Daemon
                 NodeSettings nodeSettings = NodeSettings.FromArguments(args);
                 nodeSettings.ApiUri = new Uri(string.IsNullOrEmpty(apiUri) ? DefaultBitcoinUri : apiUri);
                 
-
                 if (args.Contains("light"))
                 {
                     fullNodeBuilder = new FullNodeBuilder()
@@ -81,19 +85,21 @@ namespace Breeze.Daemon
                         .UseWatchOnlyWallet()
                         .UseBlockNotification()
                         .UseTransactionNotification()
-                        .UseBlockStore()
-                        .UseConsensus()
-                        .UseMempool()
                         .UseApi();
 
                     //currently tumblebit is bitcoin only
                     if (args.Contains("-tumblebit"))
                     {
+                        Logs.Configure(new FuncLoggerFactory(i => new DualLogger(i, (a, b) => true, false)));
+
                         //start NTumbleBit logging to the console
                         //and switch the full node to log level: 
                         //error only
-                        SetupTumbleBitLogs(nodeSettings);
-                   
+                        SetupTumbleBitConsoleLogs(nodeSettings);
+
+                        //add logging to NLog
+                        SetupTumbleBitNLogs(nodeSettings);
+
                         //we no longer pass the cbt uri in on the command line
                         //we always get it from the config. 
                         fullNodeBuilder.UseTumbleBit(null);
@@ -117,11 +123,8 @@ namespace Breeze.Daemon
             node.Run();
         }
 
-        private static void SetupTumbleBitLogs(NodeSettings nodeSettings)
+        private static void SetupTumbleBitConsoleLogs(NodeSettings nodeSettings)
         {
-            //turn on NTumbleBit to log to console 
-            Logs.Configure(new FuncLoggerFactory(i => new CustomerConsoleLogger(i, (a, b) => true, false)));
-
             //switch Stratis.Bitcoin to Error level only so it does not flood the console
             var switches = new Dictionary<string, Microsoft.Extensions.Logging.LogLevel>()
             {
@@ -134,6 +137,30 @@ namespace Breeze.Daemon
             ConsoleLoggerSettings settings = nodeSettings.LoggerFactory.GetConsoleSettings();
             settings.Switches = switches;
             settings.Reload();
+        }
+
+        private static void SetupTumbleBitNLogs(NodeSettings nodeSettings)
+        {
+            var config = LogManager.Configuration;
+            var folder = Path.Combine(nodeSettings.DataDir, "Logs");
+
+            var tbTarget = new FileTarget();
+            tbTarget.Name = "tumblebit";
+            tbTarget.FileName = Path.Combine(folder, "tumblebit.txt");
+            tbTarget.ArchiveFileName = Path.Combine(folder, "tb-${date:universalTime=true:format=yyyy-MM-dd}.txt");
+            tbTarget.ArchiveNumbering = ArchiveNumberingMode.Sequence;
+            tbTarget.ArchiveEvery = FileArchivePeriod.Day;
+            tbTarget.MaxArchiveFiles = 7;
+            tbTarget.Layout = "[${longdate:universalTime=true} ${threadid}${mdlc:item=id}] ${level:uppercase=true}: ${callsite} ${message}";
+            tbTarget.Encoding = Encoding.UTF8;
+
+            var ruleTb = new LoggingRule("*", NLog.LogLevel.Info, tbTarget);
+            config.LoggingRules.Add(ruleTb);
+
+            config.AddTarget(tbTarget);
+
+            // Apply new rules.
+            LogManager.ReconfigExistingLoggers();
         }
 
         private static Network InitStratisTest()
