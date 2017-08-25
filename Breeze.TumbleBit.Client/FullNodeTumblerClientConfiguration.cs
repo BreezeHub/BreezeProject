@@ -134,33 +134,23 @@ namespace Breeze.TumbleBit.Client
 
             AllowInsecure = config.GetOrDefault<bool>("allowinsecure", IsTest(Network));
 
-            //RPCClient rpc = null;
-            //try
-            //{
-            //    rpc = RPCArgs.ConfigureRPCClient(Network);
-            //}
-            //catch
-            //{
-            //    throw new ConfigException("Please, fix rpc settings in " + ConfigurationFile);
-            //}
-
             DBreezeRepository = new DBreezeRepository(Path.Combine(DataDir, "db2"));
             Tracker = new Tracker(DBreezeRepository, Network);
             Services = Breeze.TumbleBit.Client.ExternalServices.CreateUsingFullNode(DBreezeRepository, Tracker, this.tumblingState);
 
             if (OutputWallet.RootKey != null && OutputWallet.KeyPath != null)
                 DestinationWallet = new ClientDestinationWallet(OutputWallet.RootKey, OutputWallet.KeyPath, DBreezeRepository, Network);
-            else if (OutputWallet.RPCArgs != null)
-            {
-                try
-                {
-                    DestinationWallet = new RPCDestinationWallet(OutputWallet.RPCArgs.ConfigureRPCClient(Network));
-                }
-                catch
-                {
-                    throw new ConfigException("Please, fix outputwallet rpc settings in " + ConfigurationFile);
-                }
-            }
+            //else if (OutputWallet.RPCArgs != null)
+            //{
+            //    try
+            //    {
+            //        DestinationWallet = new FullNodeDestinationWallet(tumblingState);
+            //    }
+            //    catch
+            //    {
+            //        throw new ConfigException("Unable to create destination wallet based on settings in " + ConfigurationFile);
+            //    }
+            //}
             else
                 throw new ConfigException("Missing configuration for outputwallet");
 

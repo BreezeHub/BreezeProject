@@ -7,10 +7,6 @@ using Microsoft.Extensions.Logging;
 using NBitcoin;
 using Newtonsoft.Json;
 using NTumbleBit.ClassicTumbler;
-using NTumbleBit.PuzzlePromise;
-using NTumbleBit.PuzzleSolver;
-using Stratis.Bitcoin.Features.BlockStore;
-using Stratis.Bitcoin.Features.MemoryPool;
 using Stratis.Bitcoin.Features.Wallet;
 using Stratis.Bitcoin.Features.WatchOnlyWallet;
 
@@ -37,9 +33,6 @@ namespace Breeze.TumbleBit.Client
 
         [JsonIgnore]
         public WalletTransactionHandler walletTransactionHandler;
-
-        [JsonIgnore]
-        public BlockStoreManager blockStoreManager;
 
         // TODO: Does this need to be saved? Can be derived from network
         public CoinType coinType;

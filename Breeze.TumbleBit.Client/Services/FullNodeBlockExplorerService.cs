@@ -45,7 +45,7 @@ namespace Breeze.TumbleBit.Client.Services
             while (true)
             {
                 cancellation.ThrowIfCancellationRequested();
-                var h = this.tumblingState.walletManager.WalletTipHash;
+                var h = this.tumblingState.chain.Tip.Header.GetHash();
 
                 if (h != currentBlock)
                 {
@@ -82,8 +82,6 @@ namespace Breeze.TumbleBit.Client.Services
                     {
                         if (found)
                             break;
-
-                        //var wallet = this.tumblingState.walletManager.GetWallet(walletName);
 
                         foreach (var account in wallet.GetAccountsByCoinType(this.tumblingState.coinType))
                         {
@@ -235,30 +233,31 @@ namespace Breeze.TumbleBit.Client.Services
                         }
                     }
                 }
-
-                Console.WriteLine("Did not find transaction in watch-only wallet: " + txId.ToString());
+                
+                Console.WriteLine("*** Transaction not found in watch-only wallet: " + txId);
                 return null;
 
                 // Transaction was not in watch-only wallet
-                var trx = this.tumblingState.blockStoreManager.BlockRepository.GetTrxAsync(txId).Result;
-
-                //this.tumblingState.walletManager.
-
-                // Need number of confirmations as well
-                var blockHash = this.tumblingState.blockStoreManager.BlockRepository?.GetTrxBlockIdAsync(txId).Result;
-                var block = this.tumblingState.chain.GetBlock(blockHash);
-                var blockHeight = block.Height;
-                var tipHeight = this.tumblingState.chain.Tip.Height;
-                var confirmations = tipHeight - blockHeight;
-                var confCount = Math.Max(0, confirmations);
-
-                return new TransactionInformation
+                /*
+                foreach (var walletTx in this.tumblingState.OriginWallet.GetAllTransactionsByCoinType(this.tumblingState.coinType))
                 {
-                    Confirmations = confCount,
-                    Transaction = trx
-                };
+                    if (walletTx.Id != txId)
+                        continue;
+
+                    var confCount = this.tumblingState.chain.Tip.Height - walletTx.BlockHeight;
+
+                    if (confCount == null)
+                        confCount = 0;
+
+                    return new TransactionInformation
+                    {
+                        Confirmations = confCount,
+                        Transaction = trx
+                    };
+                }
+                */
             }
-            // TODO: Replace this with the correct exception type
+            // TODO: Replace this with better exception type
             catch (Exception)
             {
                 Console.WriteLine("Error looking up transaction: " + txId.ToString());
@@ -283,11 +282,10 @@ namespace Breeze.TumbleBit.Client.Services
 
         public bool TrackPrunedTransaction(Transaction transaction, MerkleBlock merkleProof)
         {
-            var blockHash = this.tumblingState.blockStoreManager.BlockRepository?.GetTrxBlockIdAsync(transaction.GetHash()).Result;
-            var chainBlock = this.tumblingState.chain.GetBlock(blockHash);
-            var block = this.tumblingState.blockStoreManager.BlockRepository?.GetAsync(blockHash).Result;
+            var chainBlock = this.tumblingState.chain.GetBlock(merkleProof.Header.GetHash());
 
-            this.tumblingState.walletManager.ProcessTransaction(transaction, chainBlock.Height, block);
+            // TODO: We cannot obtain the block to pass to ProcessTransaction. Is this going to be a problem?
+            this.tumblingState.walletManager.ProcessTransaction(transaction, chainBlock.Height, null);
 
             _Cache.ImportTransaction(transaction, GetBlockConfirmations(merkleProof.Header.GetHash()));
 

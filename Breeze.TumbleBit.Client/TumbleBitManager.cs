@@ -22,7 +22,6 @@ namespace Breeze.TumbleBit.Client
     public class TumbleBitManager : ITumbleBitManager
     {
         private ILoggerFactory loggerFactory;
-        private readonly BlockStoreManager blockStoreManager;
         private readonly WalletManager walletManager;
         private readonly IWatchOnlyWalletManager watchOnlyWalletManager;
         private readonly WalletSyncManager walletSyncManager;
@@ -40,7 +39,7 @@ namespace Breeze.TumbleBit.Client
 
         public Uri TumblerAddress { get; private set; }
 
-        public TumbleBitManager(ILoggerFactory loggerFactory, IWalletManager walletManager, IWatchOnlyWalletManager watchOnlyWalletManager, ConcurrentChain chain, Network network, Signals signals, IWalletTransactionHandler walletTransactionHandler, BlockStoreManager blockStoreManager, IWalletSyncManager walletSyncManager)
+        public TumbleBitManager(ILoggerFactory loggerFactory, IWalletManager walletManager, IWatchOnlyWalletManager watchOnlyWalletManager, ConcurrentChain chain, Network network, Signals signals, IWalletTransactionHandler walletTransactionHandler, IWalletSyncManager walletSyncManager)
         {
             this.walletManager = walletManager as WalletManager;
             this.watchOnlyWalletManager = watchOnlyWalletManager;
@@ -51,9 +50,8 @@ namespace Breeze.TumbleBit.Client
             this.network = network;
             this.loggerFactory = loggerFactory;
             this.logger = loggerFactory.CreateLogger(this.GetType().FullName);
-            this.blockStoreManager = blockStoreManager;
 
-            this.tumblingState = new TumblingState(loggerFactory, this.chain, this.walletManager, this.watchOnlyWalletManager, this.network, this.walletTransactionHandler, this.blockStoreManager, this.walletSyncManager);
+            this.tumblingState = new TumblingState(loggerFactory, this.chain, this.walletManager, this.watchOnlyWalletManager, this.network, this.walletTransactionHandler, this.walletSyncManager);
         }
 
         /// <inheritdoc />
@@ -105,7 +103,7 @@ namespace Breeze.TumbleBit.Client
             }
 
             // TODO: Remove wallet logic while getting tumbler interaction to work
-            /*
+
             // make sure that the user is not trying to resume the process with a different wallet
             if (!string.IsNullOrEmpty(this.tumblingState.DestinationWalletName) && this.tumblingState.DestinationWalletName != destinationWalletName)
             {
@@ -129,7 +127,7 @@ namespace Breeze.TumbleBit.Client
             this.tumblingState.DestinationWalletName = destinationWalletName;
             this.tumblingState.OriginWallet = originWallet;
             this.tumblingState.OriginWalletName = originWalletName;
-            */
+
             //this.tumblingState.Save();
 
             // Subscribe to receive new block notifications
@@ -155,6 +153,10 @@ namespace Breeze.TumbleBit.Client
         {
             this.logger.LogDebug($"The tumbling process is wrapping up. Current height is {this.chain.Tip.Height}.");
             this.blockReceiver.Dispose();
+            //this.tumblingState.Save();
+
+            // TODO: Need to cleanly shutdown TumbleBit client runtime
+
             this.tumblingState.Delete();
             this.tumblingState = null;
         }
@@ -164,11 +166,11 @@ namespace Breeze.TumbleBit.Client
         {            
             this.logger.LogDebug($"Received block with height {height} during tumbling session.");
 
-            // update the block height in the tumbling state
+            // Update the block height in the tumbling state
             this.tumblingState.LastBlockReceivedHeight = height;
             //this.tumblingState.Save();
             
-            // TODO update the state of the tumbling session in this new block
+            // TODO: Update the state of the tumbling session in this new block
         }
     }
 }

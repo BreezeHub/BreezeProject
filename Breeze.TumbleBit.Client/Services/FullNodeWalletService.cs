@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices.ComTypes;
 using System.Threading.Tasks;
 using NBitcoin;
 using NBitcoin.RPC;
@@ -17,19 +18,15 @@ namespace Breeze.TumbleBit.Client.Services
     public class FullNodeWalletService : IWalletService
     {
         private TumblingState tumblingState;
-        private string walletName;
-        private string accountName;
 
         public FullNodeWalletService(TumblingState tumblingState, string walletName, string accountName)
         {
             this.tumblingState = tumblingState;
-            this.walletName = walletName;
-            this.accountName = accountName;
         }
 
         public IDestination GenerateAddress()
         {
-            Wallet wallet = this.tumblingState.walletManager.GetWallet(walletName);
+            Wallet wallet = this.tumblingState.walletManager.GetWallet(this.tumblingState.OriginWalletName);
 
             HdAddress hdAddress = null;
             BitcoinAddress address = null;
@@ -59,8 +56,33 @@ namespace Breeze.TumbleBit.Client.Services
             Transaction tx = new Transaction();
             tx.Outputs.Add(txOut);
 
-            WalletAccountReference accountRef = new WalletAccountReference(this.walletName, this.accountName);
+            var spendable = this.tumblingState.walletManager.GetSpendableTransactionsInWallet(this.tumblingState.OriginWalletName);
 
+            Dictionary<HdAccount, Money> accountBalances = new Dictionary<HdAccount, Money>();
+
+            // If multiple accounts are available find and choose the one with the most spendable funds
+            foreach (var spendableTx in spendable)
+            {
+                accountBalances[spendableTx.Account] = spendableTx.Transaction.SpendableAmount(false);
+            }
+
+            HdAccount highestBalance = null;
+            foreach (var accountKey in accountBalances.Keys)
+            {
+                if (highestBalance == null)
+                {
+                    highestBalance = accountKey;
+                    continue;
+                }
+
+                if (accountBalances[accountKey] > accountBalances[highestBalance])
+                {
+                    highestBalance = accountKey;
+                }
+            }
+
+            WalletAccountReference accountRef = new WalletAccountReference(this.tumblingState.OriginWalletName, highestBalance.Name);
+            
             List<Recipient> recipients = new List<Recipient>();
             Recipient recipient = new Recipient()
             {
