@@ -1,8 +1,6 @@
 ﻿using NBitcoin;
-using NBitcoin.RPC;
 using NTumbleBit.Logging;
 using NTumbleBit.PuzzleSolver;
-using NTumbleBit.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;

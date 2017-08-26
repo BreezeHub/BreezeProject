@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26730.3
+VisualStudioVersion = 15.0.26430.16
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "global", "global", "{2FF3130A-E8F3-4E0B-8733-B34C4A19910C}"
 	ProjectSection(SolutionItems) = preProject
@@ -25,6 +25,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stratis.Bitcoin.Api", "..\Alpha\Stratis.Bitcoin.Api\Stratis.Bitcoin.Api.csproj", "{B77B3029-8E69-4A25-9E96-89064A22EB0E}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stratis.Bitcoin.Features.LightWallet", "..\Alpha\Stratis.Bitcoin.Features.LightWallet\Stratis.Bitcoin.Features.LightWallet.csproj", "{A82FEECB-7C68-442E-B399-B5D7C540D63F}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stratis.Bitcoin.Features.WatchOnlyWallet", "..\Alpha\Stratis.Bitcoin.Features.WatchOnlyWallet\Stratis.Bitcoin.Features.WatchOnlyWallet.csproj", "{ACE507C6-0B05-4382-A812-A474A6A8B967}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -56,6 +58,10 @@ Global
 		{A82FEECB-7C68-442E-B399-B5D7C540D63F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A82FEECB-7C68-442E-B399-B5D7C540D63F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A82FEECB-7C68-442E-B399-B5D7C540D63F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ACE507C6-0B05-4382-A812-A474A6A8B967}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ACE507C6-0B05-4382-A812-A474A6A8B967}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ACE507C6-0B05-4382-A812-A474A6A8B967}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ACE507C6-0B05-4382-A812-A474A6A8B967}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -64,6 +70,7 @@ Global
 		{70A129BA-8471-4EEE-963C-EDE94840D537} = {2A35265F-9E1C-4C10-A87A-3DACA675CC06}
 		{B77B3029-8E69-4A25-9E96-89064A22EB0E} = {2A35265F-9E1C-4C10-A87A-3DACA675CC06}
 		{A82FEECB-7C68-442E-B399-B5D7C540D63F} = {2A35265F-9E1C-4C10-A87A-3DACA675CC06}
+		{ACE507C6-0B05-4382-A812-A474A6A8B967} = {2A35265F-9E1C-4C10-A87A-3DACA675CC06}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {2429359B-A981-4C96-81BF-21C6234E4715}

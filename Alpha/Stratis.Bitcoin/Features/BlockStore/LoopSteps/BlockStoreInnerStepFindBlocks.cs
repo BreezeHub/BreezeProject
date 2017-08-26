@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using Microsoft.Extensions.Logging;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Stratis.Bitcoin.Features.BlockStore.LoopSteps
@@ -6,42 +7,46 @@ namespace Stratis.Bitcoin.Features.BlockStore.LoopSteps
     /// <summary>
     /// Find blocks to download by asking the BlockPuller.
     /// <para>
-    /// If a stop condition is found <see cref="ShouldStopFindingBlocks"/> and
-    /// there aren't blocks to download anymore, return a Break() result causing the 
-    /// BlockStoreLoop to break execution and start again.
+    /// Find blocks until <see cref="BlockStoreInnerStepContext.DownloadStack"/> contains 
+    /// <see cref="BlockStoreInnerStepContext.DownloadStackThreshold"/> blocks.
     /// </para>
     /// <para>
     /// If a stop condition is found <see cref="ShouldStopFindingBlocks"/> and
     /// there are still blocks to download, stop finding new blocks and only execute
-    /// the download blocks inner step.
+    /// the read blocks inner step <see cref="BlockStoreInnerStepReadBlocks"/>.
     /// </para> 
-    /// <para>
-    /// If a stop condition is not found ask the block puller for the next blocks.
-    /// If the BatchDownloadSize has been reached, also stop finding new blocks.
-    /// </para>
     /// </summary>
     public sealed class BlockStoreInnerStepFindBlocks : BlockStoreInnerStep
     {
+        /// <summary>Instance logger.</summary>
+        private readonly ILogger logger;
+
+        /// <summary>
+        /// Initializes new instance of the object.
+        /// </summary>
+        /// <param name="loggerFactory">Factory for creating loggers.</param>
+        public BlockStoreInnerStepFindBlocks(ILoggerFactory loggerFactory)
+        {
+            this.logger = loggerFactory.CreateLogger(GetType().FullName);
+        }
+
         /// <inheritdoc/>
         public override async Task<InnerStepResult> ExecuteAsync(BlockStoreInnerStepContext context)
         {
-            context.GetNextBlock();
+            this.logger.LogTrace("()");
 
-            if (await ShouldStopFindingBlocks(context))
+            while (await ShouldStopFindingBlocks(context) == false)
             {
-                if (!context.DownloadStack.Any())
-                    return InnerStepResult.Stop;
-
-                context.StopFindingBlocks();
-            }
-            else
-            {
-                context.BlockStoreLoop.BlockPuller.AskBlock(context.NextChainedBlock);
                 context.DownloadStack.Enqueue(context.NextChainedBlock);
-
-                if (context.DownloadStack.Count == context.BlockStoreLoop.BatchDownloadSize)
-                    context.StopFindingBlocks();
+                context.GetNextBlock();
             }
+
+            context.StopFindingBlocks();
+
+            if (context.DownloadStack.Any())
+                context.BlockStoreLoop.BlockPuller.AskForMultipleBlocks(context.DownloadStack.ToArray());
+
+            this.logger.LogTrace("(-):{0}", InnerStepResult.Next);
 
             return InnerStepResult.Next;
         }
@@ -51,7 +56,10 @@ namespace Stratis.Bitcoin.Features.BlockStore.LoopSteps
             if (context.NextChainedBlock == null)
                 return true;
 
-            if (context.NextChainedBlock.Header.HashPrevBlock != context.InputChainedBlock.HashBlock)
+            if (context.DownloadStack.Count >= BlockStoreInnerStepContext.DownloadStackThreshold)
+                return true;
+
+            if (context.InputChainedBlock != null && (context.NextChainedBlock.Header.HashPrevBlock != context.InputChainedBlock.HashBlock))
                 return true;
 
             if (context.NextChainedBlock.Height > context.BlockStoreLoop.ChainState.HighestValidatedPoW?.Height)

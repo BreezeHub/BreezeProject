@@ -2,9 +2,7 @@
 using System.Collections.Generic;
 using Breeze.TumbleBit.Client;
 using Breeze.TumbleBit.Controllers;
-using Stratis.Bitcoin.Builder.Feature;
 using Microsoft.Extensions.DependencyInjection;
-using Stratis.Bitcoin.Builder;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using Stratis.Bitcoin.Features.Wallet.JsonConverters;

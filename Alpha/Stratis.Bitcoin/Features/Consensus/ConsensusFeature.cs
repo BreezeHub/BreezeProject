@@ -10,6 +10,8 @@ using Stratis.Bitcoin.Configuration;
 using Stratis.Bitcoin.Connection;
 using Stratis.Bitcoin.Features.Consensus.CoinViews;
 using Stratis.Bitcoin.Features.Consensus.Deployments;
+using Stratis.Bitcoin.Features.RPC.Controllers;
+using Stratis.Bitcoin.Interfaces;
 using Stratis.Bitcoin.Utilities;
 using System;
 using System.Threading;
@@ -34,6 +36,8 @@ namespace Stratis.Bitcoin.Features.Consensus
         private readonly StakeChainStore stakeChain;
         private readonly ILogger logger;
         private readonly ILoggerFactory loggerFactory;
+        private readonly IDateTimeProvider dateTimeProvider;
+        private readonly ConsensusManager consensusManager;
 
         public ConsensusFeature(
             DBreezeCoinView dBreezeCoinView,
@@ -50,6 +54,8 @@ namespace Stratis.Bitcoin.Features.Consensus
             NodeSettings nodeSettings,
             NodeDeployments nodeDeployments,
             ILoggerFactory loggerFactory,
+            IDateTimeProvider dateTimeProvider,
+            ConsensusManager consensusManager,
             StakeChainStore stakeChain = null)
         {
             this.dBreezeCoinView = dBreezeCoinView;
@@ -68,6 +74,8 @@ namespace Stratis.Bitcoin.Features.Consensus
             this.stakeChain = stakeChain;
             this.logger = loggerFactory.CreateLogger(this.GetType().FullName);
             this.loggerFactory = loggerFactory;
+            this.dateTimeProvider = dateTimeProvider;
+            this.consensusManager = consensusManager;
         }
 
         public override void Start()
@@ -201,6 +209,10 @@ namespace Stratis.Bitcoin.Features.Consensus
                     services.AddSingleton<CoinView, CachedCoinView>();
                     services.AddSingleton<LookaheadBlockPuller>();
                     services.AddSingleton<ConsensusLoop>();
+                    services.AddSingleton<ConsensusManager>();
+                    services.AddSingleton<IBlockDownloadState, ConsensusManager>();
+                    services.AddSingleton<INetworkDifficulty, ConsensusManager>();
+                    services.AddSingleton<ConsensusController>();
                 });
             });
 
@@ -230,6 +242,8 @@ namespace Stratis.Bitcoin.Features.Consensus
                         services.AddSingleton<ConsensusLoop>();
                         services.AddSingleton<StakeChainStore>().AddSingleton<StakeChain, StakeChainStore>(provider => provider.GetService<StakeChainStore>());
                         services.AddSingleton<StakeValidator>();
+                        services.AddSingleton<ConsensusManager>();
+                        services.AddSingleton<ConsensusController>();
                     });
             });
 

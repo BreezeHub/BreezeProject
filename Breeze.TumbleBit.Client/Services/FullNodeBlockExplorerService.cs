@@ -76,30 +76,26 @@ namespace Breeze.TumbleBit.Client.Services
                     found = false;
                     MerkleBlock proof = null;
 
-                    // TODO: Not efficient
-
-                    foreach (var wallet in this.tumblingState.walletManager.Wallets)
+                    foreach (var account in this.tumblingState.OriginWallet.GetAccountsByCoinType(this.tumblingState.coinType))
                     {
                         if (found)
                             break;
 
-                        foreach (var account in wallet.GetAccountsByCoinType(this.tumblingState.coinType))
+                        var txData = account.GetTransactionsById(tx.Transaction.GetHash());
+
+                        if (txData != null)
                         {
-                            var txData = account.GetTransactionsById(tx.Transaction.GetHash());
-                            if (txData != null)
-                            {
-                                found = true;
+                            found = true;
 
-                                // TODO: Is it possible for GetTransactionsById to return multiple results?
-                                var trx = txData.First<Stratis.Bitcoin.Features.Wallet.TransactionData>();
+                            // TODO: Is it possible for GetTransactionsById to return multiple results?
+                            var trx = txData.First<Stratis.Bitcoin.Features.Wallet.TransactionData>();
 
-                                proof = new MerkleBlock();
-                                proof.ReadWrite(Encoders.Hex.DecodeData(trx.MerkleProof.ToHex()));
+                            proof = new MerkleBlock();
+                            proof.ReadWrite(Encoders.Hex.DecodeData(trx.MerkleProof.ToHex()));
 
-                                tx.MerkleProof = proof;
+                            tx.MerkleProof = proof;
 
-                                break;
-                            }
+                            break;
                         }
                     }
 
@@ -147,15 +143,11 @@ namespace Breeze.TumbleBit.Client.Services
 
             // Search transactions in regular wallet for matching address criteria
 
-            foreach (var wallet in this.tumblingState.walletManager.Wallets)
+            foreach (var walletTx in this.tumblingState.OriginWallet.GetAllTransactionsByCoinType(this.tumblingState.coinType))
             {
-                //var wallet = this.tumblingState.walletManager.GetWallet(walletName);
-                foreach (var walletTx in wallet.GetAllTransactionsByCoinType(this.tumblingState.coinType))
+                if (address == walletTx.ScriptPubKey.GetDestinationAddress(this.tumblingState.TumblerNetwork))
                 {
-                    if (address == walletTx.ScriptPubKey.GetDestinationAddress(this.tumblingState.TumblerNetwork))
-                    {
-                        txIdList.Add(walletTx.Id);
-                    }
+                    txIdList.Add(walletTx.Id);
                 }
             }
 
