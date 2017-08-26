@@ -226,11 +226,7 @@ namespace Breeze.TumbleBit.Client.Services
                     }
                 }
                 
-                Console.WriteLine("*** Transaction not found in watch-only wallet: " + txId);
-                return null;
-
                 // Transaction was not in watch-only wallet
-                /*
                 foreach (var walletTx in this.tumblingState.OriginWallet.GetAllTransactionsByCoinType(this.tumblingState.coinType))
                 {
                     if (walletTx.Id != txId)
@@ -238,23 +234,19 @@ namespace Breeze.TumbleBit.Client.Services
 
                     var confCount = this.tumblingState.chain.Tip.Height - walletTx.BlockHeight;
 
-                    if (confCount == null)
-                        confCount = 0;
-
                     return new TransactionInformation
                     {
-                        Confirmations = confCount,
-                        Transaction = trx
+                        Confirmations = (int)confCount,
+                        Transaction = walletTx.Transaction
                     };
                 }
-                */
             }
-            // TODO: Replace this with better exception type
-            catch (Exception)
+            catch (Exception ex)
             {
-                Console.WriteLine("Error looking up transaction: " + txId.ToString());
-                return null;
+                Console.WriteLine("Error looking up transaction " + txId + ": " + ex);
             }
+
+            return null;
         }
 
         public void Track(Script scriptPubkey)

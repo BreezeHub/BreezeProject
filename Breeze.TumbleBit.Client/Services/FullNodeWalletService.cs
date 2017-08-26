@@ -55,7 +55,7 @@ namespace Breeze.TumbleBit.Client.Services
         {
             Transaction tx = new Transaction();
             tx.Outputs.Add(txOut);
-
+            
             var spendable = this.tumblingState.walletManager.GetSpendableTransactionsInWallet(this.tumblingState.OriginWalletName);
 
             Dictionary<HdAccount, Money> accountBalances = new Dictionary<HdAccount, Money>();
@@ -84,15 +84,9 @@ namespace Breeze.TumbleBit.Client.Services
             WalletAccountReference accountRef = new WalletAccountReference(this.tumblingState.OriginWalletName, highestBalance.Name);
             
             List<Recipient> recipients = new List<Recipient>();
-            Recipient recipient = new Recipient()
-            {
-                ScriptPubKey = txOut.ScriptPubKey,
-                Amount = txOut.Value
-            };
-
-            recipients.Add(recipient);
 
             var txBuildContext = new TransactionBuildContext(accountRef, recipients);
+            txBuildContext.WalletPassword = this.tumblingState.OriginWalletPassword;
             txBuildContext.OverrideFeeRate = feeRate;
             txBuildContext.Sign = true;
 

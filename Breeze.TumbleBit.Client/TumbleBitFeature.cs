@@ -30,7 +30,7 @@ namespace Breeze.TumbleBit
 
     public static class TumbleBitFeatureExtension
     {
-        public static IFullNodeBuilder UseTumbleBit(this IFullNodeBuilder fullNodeBuilder, Uri serverAddress)
+        public static IFullNodeBuilder UseTumbleBit(this IFullNodeBuilder fullNodeBuilder)
         {
             fullNodeBuilder.ConfigureFeature(features =>
             {

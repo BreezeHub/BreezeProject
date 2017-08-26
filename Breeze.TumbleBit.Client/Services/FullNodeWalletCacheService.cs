@@ -103,7 +103,8 @@ namespace Breeze.TumbleBit.Client.Services
             {
                 Transaction trx = null;
 
-                foreach (WatchedAddress addr in this.tumblingState.watchOnlyWalletManager.GetWatchOnlyWallet().WatchedAddresses.Values)
+                foreach (WatchedAddress addr in this.tumblingState.watchOnlyWalletManager.GetWatchOnlyWallet()
+                    .WatchedAddresses.Values)
                 {
                     foreach (Stratis.Bitcoin.Features.WatchOnlyWallet.TransactionData trans in addr.Transactions.Values)
                     {
@@ -114,18 +115,22 @@ namespace Breeze.TumbleBit.Client.Services
                     }
                 }
 
-                if (trx == null)
-                    //TODO: Check if full Transaction objects are needed for normal wallet
-                    Console.Write("*** Didn't locate transaction in WatchOnlyWallet (1): " + txId);
-                    //foreach (var tx in this.tumblingState.OriginWallet.GetAllTransactionsByCoinType(this.tumblingState.coinType))
-                    //{
-                    //    tx.
-                    //}
-                    //trx = this.tumblingState.blockStoreManager.BlockRepository.GetTrxAsync(txId).Result;
+                foreach (var tx in this.tumblingState.OriginWallet.GetAllTransactionsByCoinType(this.tumblingState.coinType))
+                {
+                    if (tx.Transaction.GetHash() == txId)
+                    {
+                        return tx.Transaction;
+                    }
+                }
 
-                return trx;
+                Console.WriteLine("Unable to locate transaction in wallet or watch-only wallet: " + txId);
+                return null;
             }
-            catch(Exception) { return null; }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Exception searching for transaction " + txId + ": " + ex);
+                return null;
+            }
         }
 
         public FullNodeWalletEntry[] GetEntries()

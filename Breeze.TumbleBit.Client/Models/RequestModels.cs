@@ -33,5 +33,8 @@ namespace Breeze.TumbleBit.Models
 
         [Required(ErrorMessage = "The name of the destination wallet is required.")]
         public string DestinationWalletName { get; set; }
+
+        [Required(ErrorMessage = "The password of the origin wallet is required.")]
+        public string OriginWalletPassword { get; set; }
     }
 }

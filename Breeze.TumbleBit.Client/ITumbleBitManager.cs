@@ -22,7 +22,7 @@ namespace Breeze.TumbleBit.Client
         /// </summary>
         Uri TumblerAddress { get; }
 
-        Task TumbleAsync(string originWalletName, string destinationWalletName);
+        Task TumbleAsync(string originWalletName, string destinationWalletName, string originWalletPassword);
 
         /// <summary>
         /// Processes a block received from the network.

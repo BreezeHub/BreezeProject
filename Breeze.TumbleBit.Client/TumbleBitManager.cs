@@ -30,7 +30,7 @@ namespace Breeze.TumbleBit.Client
         private readonly Signals signals;
         private readonly ConcurrentChain chain;
         private readonly Network network;
-        private TumblingState tumblingState;
+        public TumblingState tumblingState;
         private IDisposable blockReceiver;
         private TumblerClientRuntime runtime;
         private StateMachinesExecutor stateMachine;
@@ -94,7 +94,7 @@ namespace Breeze.TumbleBit.Client
         }
 
         /// <inheritdoc />
-        public Task TumbleAsync(string originWalletName, string destinationWalletName)
+        public Task TumbleAsync(string originWalletName, string destinationWalletName, string originWalletPassword)
         {
             // make sure the tumbler service is initialized
             if (this.TumblerParameters == null || this.runtime == null)
@@ -102,9 +102,9 @@ namespace Breeze.TumbleBit.Client
                 throw new Exception("Please connect to the tumbler first.");
             }
 
-            // TODO: Remove wallet logic while getting tumbler interaction to work
-
-            // make sure that the user is not trying to resume the process with a different wallet
+            // TODO: Check if in IBD
+            
+            // Make sure that the user is not trying to resume the process with a different wallet
             if (!string.IsNullOrEmpty(this.tumblingState.DestinationWalletName) && this.tumblingState.DestinationWalletName != destinationWalletName)
             {
                 throw new Exception("Please use the same destination wallet until the end of this tumbling session.");
@@ -122,11 +122,14 @@ namespace Breeze.TumbleBit.Client
                 throw new Exception($"Origin wallet not found. Have you created a wallet with name {originWalletName}?");
             }
 
-            // update the state and save
+            // TODO: Check if password is valid
+
+            // Update the state and save
             this.tumblingState.DestinationWallet = destinationWallet;
             this.tumblingState.DestinationWalletName = destinationWalletName;
             this.tumblingState.OriginWallet = originWallet;
             this.tumblingState.OriginWalletName = originWalletName;
+            this.tumblingState.OriginWalletPassword = originWalletPassword;
 
             //this.tumblingState.Save();
 
@@ -171,6 +174,7 @@ namespace Breeze.TumbleBit.Client
             //this.tumblingState.Save();
             
             // TODO: Update the state of the tumbling session in this new block
+            // TODO: Does anything else need to be done here? Transaction housekeeping is done in the wallet features
         }
     }
 }

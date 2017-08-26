@@ -61,7 +61,10 @@ namespace Breeze.TumbleBit.Client
 
         [JsonIgnore]
         public Wallet DestinationWallet { get; set; }
-        
+
+        [JsonIgnore]
+        public string OriginWalletPassword { get; set; }
+
         [JsonConstructor]
         public TumblingState()
         {
@@ -82,6 +85,7 @@ namespace Breeze.TumbleBit.Client
             this.coinType = (CoinType)network.Consensus.CoinType;
             this.walletTransactionHandler = walletTransactionHandler;
             this.walletSyncManager = walletSyncManager;
+            this.TumblerNetwork = network;
         }
 
         /// <inheritdoc />

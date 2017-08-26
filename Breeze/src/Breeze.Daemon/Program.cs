@@ -102,7 +102,7 @@ namespace Breeze.Daemon
 
                         //we no longer pass the cbt uri in on the command line
                         //we always get it from the config. 
-                        fullNodeBuilder.UseTumbleBit(null);
+                        fullNodeBuilder.UseTumbleBit();
                     }
                 }
                 else
