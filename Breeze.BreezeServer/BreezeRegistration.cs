@@ -56,12 +56,18 @@ namespace Breeze.BreezeServer
             if (!config.Ipv4Address.Equals(registrationToken.Ipv4Addr))
                 return false;
 
-            if (!config.Ipv6Address.Equals(registrationToken.Ipv6Addr))
+            if (config.Ipv6Address == null && registrationToken.Ipv6Addr != null)
+                return false;
+
+            if (config.Ipv6Address != null && registrationToken.Ipv6Addr == null)
+                return false;
+
+            if (config.Ipv6Address != null && !config.Ipv6Address.Equals(registrationToken.Ipv6Addr))
                 return false;
 
             if (config.OnionAddress != registrationToken.OnionAddress)
                 return false;
-
+              
             if (config.Port != registrationToken.Port)
                 return false;
             
