@@ -23,30 +23,44 @@ namespace BreezeCommon
 			return false;
 		}
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="reader"></param>
-		/// <param name="objectType"></param>
-		/// <param name="existingValue"></param>
-		/// <param name="serializer"></param>
-		/// <returns></returns>
-		public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
-		{
-			// convert an ipaddress represented as a string into an IPAddress object and return it to the caller
-			if (objectType == typeof(IPAddress))
-			{
-				return IPAddress.Parse(JToken.Load(reader).ToString());
-			}
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="reader"></param>
+        /// <param name="objectType"></param>
+        /// <param name="existingValue"></param>
+        /// <param name="serializer"></param>
+        /// <returns></returns>
+        public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+        {
+            // convert an ipaddress represented as a string into an IPAddress object and return it to the caller
+            if (objectType == typeof(IPAddress))
+            {
+                try
+                {
+                    return IPAddress.Parse(JToken.Load(reader).ToString());
+                }
+                catch (Exception)
+                {
+                    return null;
+                }
+            }
 
-			// convert an array of IPAddresses represented as strings into a List<IPAddress> object and return it to the caller
-			if (objectType == typeof(List<IPAddress>))
-			{
-				return JToken.Load(reader).Select(address => IPAddress.Parse((string)address)).ToList();
-			}
+            // convert an array of IPAddresses represented as strings into a List<IPAddress> object and return it to the caller
+            if (objectType == typeof(List<IPAddress>))
+            {
+                try
+                {
+                    return JToken.Load(reader).Select(address => IPAddress.Parse((string)address)).ToList();
+                }
+                catch (Exception)
+                {
+                    return null;
+                }
+            }
 
-			throw new NotImplementedException();
-		}
+            throw new NotImplementedException();
+        }
 
 		/// <summary>
 		/// 
