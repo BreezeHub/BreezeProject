@@ -136,6 +136,9 @@ namespace Breeze.BreezeServer
                     defaultTumblerRsaKeyFile
                 );
 
+                if (!TumblerRsaKey.Exists(this.TumblerRsaKeyFile))
+                    TumblerRsaKey.Create(this.TumblerRsaKeyFile);
+                
                 TumblerEcdsaKeyAddress = configFile.GetOrDefault<string>("tumbler.ecdsakeyaddress", null);
 
                 TxOutputValueSetting = new Money(configFile.GetOrDefault<int>("breeze.regtxoutputvalue", 1000), MoneyUnit.Satoshi);
