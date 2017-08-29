@@ -88,7 +88,7 @@ namespace Breeze.TumbleBit.Client
             // Update and save the state
             this.tumblingState.TumblerUri = this.TumblerAddress;
             this.tumblingState.TumblerParameters = this.TumblerParameters;
-            //cdthis.tumblingState.Save();
+            this.tumblingState.Save();
 
             return this.TumblerParameters;
         }
@@ -131,7 +131,7 @@ namespace Breeze.TumbleBit.Client
             this.tumblingState.OriginWalletName = originWalletName;
             this.tumblingState.OriginWalletPassword = originWalletPassword;
 
-            //this.tumblingState.Save();
+            this.tumblingState.Save();
 
             // Subscribe to receive new block notifications
             // TODO: Is this the right BlockObserver or should the one used by the Wallet feature be used?
@@ -156,7 +156,7 @@ namespace Breeze.TumbleBit.Client
         {
             this.logger.LogDebug($"The tumbling process is wrapping up. Current height is {this.chain.Tip.Height}.");
             this.blockReceiver.Dispose();
-            //this.tumblingState.Save();
+            this.tumblingState.Save();
 
             // TODO: Need to cleanly shutdown TumbleBit client runtime
 
@@ -171,7 +171,7 @@ namespace Breeze.TumbleBit.Client
 
             // Update the block height in the tumbling state
             this.tumblingState.LastBlockReceivedHeight = height;
-            //this.tumblingState.Save();
+            this.tumblingState.Save();
             
             // TODO: Update the state of the tumbling session in this new block
             // TODO: Does anything else need to be done here? Transaction housekeeping is done in the wallet features
