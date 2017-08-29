@@ -101,8 +101,6 @@ namespace Breeze.TumbleBit.Client.Services
         {
             try
             {
-                Transaction trx = null;
-
                 foreach (WatchedAddress addr in this.tumblingState.watchOnlyWalletManager.GetWatchOnlyWallet()
                     .WatchedAddresses.Values)
                 {
