@@ -148,7 +148,7 @@ namespace Breeze.TumbleBit.Client
         {
             this.logger.LogDebug($"Stopping the tumbling. Current height is {this.chain.Tip.Height}.");
             this.blockReceiver.Dispose();
-            //this.tumblingState.Save();
+            this.tumblingState.Save();
         }
 
         /// <inheritdoc />
