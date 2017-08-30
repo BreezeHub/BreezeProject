@@ -22,38 +22,49 @@ import { Subscription } from 'rxjs/Subscription';
 export class TumblebitComponent implements OnInit {
   constructor(private apiService: ApiService, private tumblebitService: TumblebitService, private globalService: GlobalService, private modalService: NgbModal, private fb: FormBuilder) {
     this.buildTumbleForm();
-    this.buildConnectForm();
   }
   private confirmedBalance: number;
+  private unconfirmedBalance: number;
+  private totalBalance: number;
+  private watchWalletName: string;
+  private watchConfirmedBalance: number;
+  private watchUnconfirmedBalance: number;
+  private watchTotalBalance: number;
   private walletBalanceSubscription: Subscription;
+  private watchWalletBalanceSubscription: Subscription;
+  private isConnected: Boolean = false;
   private tumblerParameters: any;
   private tumbleStatus: any;
   private tumbleForm: FormGroup;
+  private tumbling: Boolean = false;
   private connectForm: FormGroup;
+  private wallets: [string];
+  private tumblerAddress: string = "ctb://7obtcd7mkosmxeuh.onion/?h=03c632023c4a8587845ad918b8e5f53f7bf18319";
+
+  ngOnInit() {
+    this.getWalletFiles();
+    this.getWalletBalance();
+    this.getWatchWalletBalance();
+    this.checkTumblingStatus();
+    this.connect();
+  };
+
+  ngOnDestroy() {
+    this.walletBalanceSubscription.unsubscribe();
+    this.watchWalletBalanceSubscription.unsubscribe();
+  };
 
   private buildTumbleForm(): void {
     this.tumbleForm = this.fb.group({
-      'source': ['', Validators.required],
-      'destination': ['', Validators.required],
-    })
+      'selectWallet': ['', Validators.required],
+      'walletPassword': ['', Validators.required]
+    });
 
     this.tumbleForm.valueChanges
       .subscribe(data => this.onValueChanged(this.tumbleForm, this.tumbleFormErrors, data));
 
     this.onValueChanged(this.tumbleForm, this.tumbleFormErrors);
   }
-
-  private buildConnectForm(): void {
-    this.connectForm = this.fb.group({
-      'tumblerAddress': ['', Validators.required],
-    })
-
-    this.connectForm.valueChanges
-      .subscribe(data => this.onValueChanged(this.connectForm, this.connectFormErrors, data));
-
-    this.onValueChanged(this.connectForm, this.connectFormErrors);
-  }
-
 
   // TODO: abstract to a shared utility lib
   onValueChanged(originalForm: FormGroup, formErrors: object, data?: any) {
@@ -70,31 +81,28 @@ export class TumblebitComponent implements OnInit {
       }
     }
   }
-
-  connectFormErrors = {
-    'source': '',
-    'destination': '',
-  };
-
   tumbleFormErrors = {
-    'tumblerAddress': '',
+    'selectWallet': '',
+    'walletPassword': ''
   }
 
   validationMessages = {
-    'source': {
-      'required': 'A source address is required',
-    },
-    'destination': {
+    'selectWallet': {
       'required': 'A destination address is required.',
     },
-    'tumblerAddress': {
-      'required': 'A tumbler address is required.',
+    'walletPassword': {
+      'required': 'The source wallet password is required.',
     }
+  }
+
+  private checkTumblingStatus() {
+    //TODO: check if tumbling is already enabled.
+    this.tumbling = false;
   }
 
   private connect() {
     let connection = new TumblerConnectionRequest(
-      this.connectForm.get('tumblerAddress').value,
+      this.tumblerAddress,
       this.globalService.getNetwork()
     );
 
@@ -105,10 +113,12 @@ export class TumblebitComponent implements OnInit {
         response => {
           if (response.status >= 200 && response.status < 400) {
             this.tumblerParameters = response.json();
+            this.isConnected = true;
           }
         },
         error => {
           console.error(error);
+          this.isConnected = false;
           if (error.status === 0) {
             alert('Something went wrong while connecting to the TumbleBit Client. Please restart the application.');
           } else if (error.status >= 400) {
@@ -121,53 +131,58 @@ export class TumblebitComponent implements OnInit {
           }
         },
       )
-
-    console.log(this.tumblerParameters);
   }
 
-  private tumble() {
-    let tumbleRequest = new TumbleRequest(
-      this.tumbleForm.get('source').value,
-      this.tumbleForm.get('destination').value
-    )
+  private tumbleClicked() {
+    if (this.tumbling) {
+      this.stopTumble();
+    } else {
+      this.startTumbling();
+    }
+  }
 
-    this.tumblebitService
-      .tumble(tumbleRequest)
-      .subscribe(
-        response => {
-          if (response.status >= 200 && response.status < 400) {
-            this.tumbleStatus = response.json();
-          }
-        },
-        error => {
-          console.error(error);
-          if (error.status === 0) {
-            alert('Something went wrong while connecting to the TumbleBit Client. Please restart the application.');
-          } else if (error.status >= 400) {
-            if (!error.json().errors[0]) {
-              console.error(error);
-            }
-            else {
-              alert(error.json().errors[0].message);
-            }
-          }
-        },
+  private startTumbling() {
+    if (!this.isConnected) {
+      alert("Can't start tumbling when you're not connected to a server. Please try again later.")
+    } else {
+
+      let tumbleRequest = new TumbleRequest(
+        this.globalService.getWalletName(),
+        this.tumbleForm.get('selectWallet').value,
+        this.tumbleForm.get('walletPassword').value
       )
 
-      console.log(this.tumbleStatus);
+      this.tumblebitService
+        .tumble(tumbleRequest)
+        .subscribe(
+          response => {
+            if (response.status >= 200 && response.status < 400) {
+              this.tumbleStatus = response.json();
+            }
+          },
+          error => {
+            console.error(error);
+            if (error.status === 0) {
+              alert('Something went wrong while connecting to the TumbleBit Client. Please restart the application.');
+            } else if (error.status >= 400) {
+              if (!error.json().errors[0]) {
+                console.error(error);
+              }
+              else {
+                alert(error.json().errors[0].message);
+              }
+            }
+          },
+        )
+      ;
+    }
   }
 
   private stopTumble() {
+    //TODO: attach API stop method
     console.log('stopping tumble...');
+    this.tumbling = false;
   }
-
-  ngOnInit() {
-    this.getWalletBalance();
-  };
-
-  ngOnDestroy() {
-    this.walletBalanceSubscription.unsubscribe();
-  };
 
   // TODO: move into a shared service
   private getWalletBalance() {
@@ -178,6 +193,8 @@ export class TumblebitComponent implements OnInit {
           if (response.status >= 200 && response.status < 400) {
               let balanceResponse = response.json();
               this.confirmedBalance = balanceResponse.balances[0].amountConfirmed;
+              this.unconfirmedBalance = balanceResponse.balances[0].amountUnconfirmed;
+              this.totalBalance = this.confirmedBalance + this.unconfirmedBalance;
           }
         },
         error => {
@@ -197,4 +214,70 @@ export class TumblebitComponent implements OnInit {
     ;
   };
 
+  private getWatchWalletBalance() {
+    //TODO: attach to its own API function
+    let walletInfo = new WalletInfo(this.globalService.getWalletName(), this.globalService.getCoinType())
+    this.watchWalletBalanceSubscription = this.apiService.getWalletBalance(walletInfo)
+      .subscribe(
+        response =>  {
+          if (response.status >= 200 && response.status < 400) {
+              let balanceResponse = response.json();
+              this.watchConfirmedBalance = balanceResponse.balances[0].amountConfirmed;
+              this.watchUnconfirmedBalance = balanceResponse.balances[0].amountUnconfirmed;
+              this.watchTotalBalance = this.watchConfirmedBalance + this.watchUnconfirmedBalance;
+          }
+        },
+        error => {
+          console.log(error);
+          if (error.status === 0) {
+            alert('Something went wrong while connecting to the API. Make sure your address is correct and try again.');
+          } else if (error.status >= 400) {
+            if (!error.json().errors[0]) {
+              console.log(error);
+            }
+            else {
+              alert(error.json().errors[0].description);
+            }
+          }
+        }
+      )
+    ;
+  };
+
+  private getWalletFiles() {
+    this.apiService.getWalletFiles()
+      .subscribe(
+        response => {
+          if (response.status >= 200 && response.status < 400) {
+            let responseMessage = response.json();
+            this.wallets = responseMessage.walletsFiles;
+            this.globalService.setWalletPath(responseMessage.walletsPath);
+            if (this.wallets.length > 0) {
+              for (let wallet in this.wallets) {
+                this.wallets[wallet] = this.wallets[wallet].slice(0, -12);
+              }
+              this.updateWalletFileDisplay(this.wallets[0]);
+            } else {
+            }
+          }
+        },
+        error => {
+          if (error.status === 0) {
+            alert("Something went wrong while connecting to the API. Please restart the application.");
+          } else if (error.status >= 400) {
+            if (!error.json().errors[0]) {
+              console.log(error);
+            }
+            else {
+              alert(error.json().errors[0].message);
+            }
+          }
+        }
+      )
+    ;
+  }
+
+  private updateWalletFileDisplay(walletName: string) {
+    this.tumbleForm.patchValue({selectWallet: walletName})
+  }
 }

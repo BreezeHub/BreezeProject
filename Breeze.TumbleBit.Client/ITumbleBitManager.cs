@@ -18,11 +18,6 @@ namespace Breeze.TumbleBit.Client
         /// <returns></returns>
         Task<ClassicTumblerParameters> ConnectToTumblerAsync(Uri serverAddress);
 
-        /// <summary>
-        /// Get the Uri of the tumbler.
-        /// </summary>
-        Uri TumblerAddress { get; }
-
         Task TumbleAsync(string originWalletName, string destinationWalletName, string originWalletPassword);
 
         /// <summary>

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using NBitcoin;
-using NBitcoin.RPC;
 using NTumbleBit.Services;
 using Stratis.Bitcoin.Features.MemoryPool;
 
