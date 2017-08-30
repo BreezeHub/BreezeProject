@@ -82,5 +82,65 @@ namespace Breeze.TumbleBit.Controllers
                 return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, "An error occured starting tumbling session.", e.ToString());
             }
         }
+
+        /// <summary>
+        /// Is tumbler tumbling.
+        /// </summary>
+        [Route("is_tumbling")]
+        [HttpGet]
+        public async Task<IActionResult> IsTumblingAsync()
+        {
+            try
+            {
+                bool result = await this.tumbleBitManager.IsTumblingAsync();
+                return this.Json(result);
+            }
+            catch (Exception e)
+            {
+                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, "An error occured during IsTumbling request.", e.ToString());
+            }
+        }
+
+        /// <summary>
+        /// Stop the tumbler.
+        /// </summary>
+        [Route("stop")]
+        [HttpGet]
+        public async Task<IActionResult> StopAsync()
+        {
+            try
+            {
+                await this.tumbleBitManager.StopAsync();
+                return this.Ok();
+            }
+            catch (Exception e)
+            {
+                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, "An error occured during Stop request.", e.ToString());
+            }
+        }
+
+        /// <summary>
+        /// Connect to a tumbler.
+        /// </summary>
+        [Route("watchonly_balances")]
+        [HttpPost]
+        public async Task<IActionResult> GetWatchOnlyBalancesAsync()
+        {
+            try
+            {
+                var watchOnlyBalances = await this.tumbleBitManager.GetWatchOnlyBalances();
+
+                var parameterDictionary = new Dictionary<string, string>()
+                {
+                    ["confirmed"] = watchOnlyBalances.Confirmed.ToString(),
+                    ["unconfirmed"] = watchOnlyBalances.Unconfirmed.ToString()
+                };
+                return this.Json(parameterDictionary);
+            }
+            catch (Exception e)
+            {
+                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, $"An error occured retrieving the watch only balances.", e.ToString());
+            }
+        }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using Breeze.TumbleBit.Client.Models;
 using NBitcoin;
 using NTumbleBit.ClassicTumbler;
 
@@ -23,6 +24,24 @@ namespace Breeze.TumbleBit.Client
         Uri TumblerAddress { get; }
 
         Task TumbleAsync(string originWalletName, string destinationWalletName, string originWalletPassword);
+
+        /// <summary>
+        /// Returns whether the tumbler is tumbling.
+        /// </summary>
+        /// <returns></returns>
+        Task<bool> IsTumblingAsync();
+
+        /// <summary>
+        /// Stops the tumbler if it is tumbling.
+        /// </summary>
+        /// <returns></returns>
+        Task StopAsync();
+
+        /// <summary>
+        /// Get the confirmed and unconfirmed balances from the watchonly wallet.
+        /// </summary>
+        /// <returns></returns>
+        Task<WatchOnlyBalances> GetWatchOnlyBalances();
 
         /// <summary>
         /// Processes a block received from the network.

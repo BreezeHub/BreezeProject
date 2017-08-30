@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Breeze.TumbleBit.Client.Models;
 using Flurl.Util;
 using Microsoft.Extensions.Logging;
 using NBitcoin;
@@ -141,6 +142,24 @@ namespace Breeze.TumbleBit.Client
             this.stateMachine.Start();
 
             return Task.CompletedTask;
+        }
+
+        public async Task<bool> IsTumblingAsync()
+        {
+            //TODO: return real value (use await or change method return type to just 'bool')
+            return true;
+        }
+
+        public Task StopAsync()
+        {
+            //TODO
+            throw new NotImplementedException();
+        }
+
+        public Task<WatchOnlyBalances> GetWatchOnlyBalances()
+        {
+            //TODO
+            throw new NotImplementedException();
         }
 
         /// <inheritdoc />
