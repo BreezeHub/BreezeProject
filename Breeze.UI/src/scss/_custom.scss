@@ -81,10 +81,10 @@ em {
           opacity: 1;
           width: 2px;
           height: 20px;
-          background-color: $brand-primary;
+          background-color: #0E6682;
           float: right;
           position: absolute;
-          margin: 11px 6px 0 8px;
+          margin: 11px 6px 0 6px;
         }
       }
       &:hover {
@@ -429,15 +429,15 @@ $curve: cubic-bezier(0.650, 0.000, 0.450, 1.000);
  .slider .hide{display:none}
  .slider-track{position:absolute;cursor:pointer;background-image: linear-gradient(270deg, #2ECCA9 0%, #F7931A 100%);box-shadow:inset 0 1px 2px rgba(0,0,0,0.1);border-radius:4px}
  .slider-selection{position:absolute;background-image: linear-gradient(270deg, #2ECCA9 0%, #F7931A 51%, #FF5B8A 100%);; -webkit-box-sizing:border-box;-moz-box-sizing:border-box;box-sizing:border-box;border-radius:4px}
- .slider-track-low {position:absolute;background-color:#DCE8F1;-webkit-box-sizing:border-box;-moz-box-sizing:border-box;box-sizing:border-box;border-radius:4px}
- .slider-track-high {position:absolute;background-color:#DCE8F1;-webkit-box-sizing:border-box;-moz-box-sizing:border-box;box-sizing:border-box;border-radius:4px}
+ .slider-track-low {position:absolute;background-color:$gray-lighter;-webkit-box-sizing:border-box;-moz-box-sizing:border-box;box-sizing:border-box;border-radius:4px}
+ .slider-track-high {position:absolute;background-color:$gray-lighter;-webkit-box-sizing:border-box;-moz-box-sizing:border-box;box-sizing:border-box;border-radius:4px}
  .slider-handle:nth-child(1) {position:absolute;top:0;width:14px;height:14px;background-color: $brand-danger !important;}
  .slider-handle:nth-child(2) {position:absolute;top:0;width:14px;height:14px;background-color: $brand-primary !important;}
  .slider-handle:nth-child(3) {position:absolute;top:0;width:14px;height:14px;background-color: $brand-success !important;}
  .slider-handle.round{border-radius:50%}
  .slider-handle.triangle{background:transparent none}
  .slider-handle.custom{background:transparent none}
- .slider-tick{position:absolute;width:14px;height:14px;background-color: $white; border: 2px solid #DCE8F1;}
+ .slider-tick{position:absolute;width:14px;height:14px;background-color: $white; border: 2px solid $gray-lighter;}
  .slider-tick.round{border-radius:50%}
  .slider-tick.triangle{background:transparent none}
  .slider-tick.custom{background:transparent none}
@@ -449,29 +449,38 @@ $curve: cubic-bezier(0.650, 0.000, 0.450, 1.000);
 // LOGIN
 .login {
   height: 100vh;
-  background-image: linear-gradient(-180deg, #FFFFFF 33%, rgba(47,186,255,0.43) 100%);
+  background-image: linear-gradient(0deg, #1488C8 0%, #20B7C1 99%);
   border: 2px solid $white;
+  border-top: none !important;
   box-sizing: border-box;
     -moz-box-sizing: border-box;
     -webkit-box-sizing: border-box;
 
   .container {
+    .form-control-feedback {
+      color: $white;
+      margin: 1em 0;
+      background-color: rgba($pink, .8);
+      display: inline-block;
+      padding: .3em 1em;
+      border-radius: 40px;
+    }
     label {
-      color: $gray;
+      color: $gray-lightest;
       font-size: .825em;
       text-align: left !important;
     }
     .display-5 {
       font-family: "Lato-Bold";
       font-size: 1.25em;
-      color: $darkgray;
+      color: $white;
       letter-spacing: 0.64px;
       text-transform: uppercase;
     }
     .lead {
-      font-size: 1.15em;
-      color: $blue;
-      font-weight: 400;
+      font-size: 1em;
+      color: rgba($gray-lighter, .9);
+      font-weight: 300;
       line-height: 1.25em;
       margin: 2em 0;
     }
@@ -480,6 +489,7 @@ $curve: cubic-bezier(0.650, 0.000, 0.450, 1.000);
       font-size: 1em;
     }
     .btn-linkgray {
+      color: $darkgray;
       background-color: transparent !important;
       text-decoration: underline;
       &:hover {
@@ -487,12 +497,15 @@ $curve: cubic-bezier(0.650, 0.000, 0.450, 1.000);
         color: lighten($darkgray,10%);
       }
     }
-    form {margin-bottom: 4em;}
+    form {margin-bottom: 1em;}
     .textback {
       a {
-        color: #C0BECC;
+        color: $darkgray;
         text-decoration: underline;
-        &:hover {text-decoration: none;}
+        &:hover {
+          text-decoration: none;
+          color: lighten($darkgray,10%);
+        }
       }
     }
     .badge {
@@ -509,8 +522,9 @@ $curve: cubic-bezier(0.650, 0.000, 0.450, 1.000);
 #Tumblebit {
   padding-top: 4em;
   label {
-    font-weight: 400;
+    font-size: .85em;
     color: $gray;
+    letter-spacing: 0.43px;
   }
   .btn-danger {
     color: $btn-danger-bg !important;

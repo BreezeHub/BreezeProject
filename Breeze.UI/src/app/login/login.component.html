@@ -20,20 +20,26 @@
           </form>
         </div>
         <!-- /row-->
-        <div class="row d-flex justify-content-center">
+        <div class="row d-flex justify-content-center mb-4">
           <button type="submit" class="btn btn-darkgray btn-lg" [disabled]="!openWalletForm.valid" (click)="onDecryptClicked()">Decrypt</button>
         </div>
       </div>
       <!-- /row-->
       <div class="row d-flex justify-content-center" *ngIf="hasWallet;else no_wallet">
-        <p class="lead">If you would like to create or restore a wallet please click the button below.</p>
+        <p class="lead">If you would like to create or restore a wallet please click the button below.
+          <span class="row d-flex justify-content-center">
+            <button type="button" class="btn btn-linkgray btn-lg" (click)="onCreateClicked()">Create or restore a wallet</button>
+          </span>
+        </p>
       </div>
       <ng-template #no_wallet>
-        <p class="lead">Looks like you're new here. <br />Please create or restore a wallet.</p>
+        <p class="lead">Looks like you're new here. <br />Please create or restore a wallet.
+          <span class="row d-flex justify-content-center">
+            <button type="button" class="btn btn-linkgray btn-lg" (click)="onCreateClicked()">Create or restore a wallet</button>
+          </span>
+        </p>
       </ng-template>
-      <div class="row d-flex justify-content-center">
-        <button type="button" class="btn btn-linkgray btn-lg" (click)="onCreateClicked()">Create or restore a wallet</button>
-      </div>
+
     </div>
     <!-- /container-->
   </div>
