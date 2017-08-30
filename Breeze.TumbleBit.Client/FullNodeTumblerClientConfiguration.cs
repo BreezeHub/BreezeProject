@@ -61,8 +61,9 @@ namespace Breeze.TumbleBit.Client
                 if (key != null)
                     OutputWallet.RootKey = new BitcoinExtPubKey(key, Network);
             }
-            catch
+            catch (Exception e)
             {
+                Console.WriteLine(e.ToString());
                 throw new ConfigException("outputwallet.extpubkey is not configured correctly");
             }
 
