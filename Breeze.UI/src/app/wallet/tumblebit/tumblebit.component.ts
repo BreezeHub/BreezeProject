@@ -97,7 +97,7 @@ export class TumblebitComponent implements OnInit {
 
   private checkTumblingStatus() {
     //TODO: check if tumbling is already enabled.
-    this.tumbling = true;
+    this.tumbling = false;
   }
 
   private connect() {
