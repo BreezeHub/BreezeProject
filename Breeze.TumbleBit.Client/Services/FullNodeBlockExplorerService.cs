@@ -74,7 +74,6 @@ namespace Breeze.TumbleBit.Client.Services
                 foreach (var tx in results.ToList())
                 {
                     found = false;
-                    MerkleBlock proof = null;
 
                     foreach (var account in this.tumblingState.OriginWallet.GetAccountsByCoinType(this.tumblingState.coinType))
                     {
@@ -90,10 +89,11 @@ namespace Breeze.TumbleBit.Client.Services
                             // TODO: Is it possible for GetTransactionsById to return multiple results?
                             var trx = txData.First<Stratis.Bitcoin.Features.Wallet.TransactionData>();
 
-                            proof = new MerkleBlock();
-                            proof.ReadWrite(Encoders.Hex.DecodeData(trx.MerkleProof.ToHex()));
-
-                            tx.MerkleProof = proof;
+                            tx.MerkleProof = new MerkleBlock()
+                            {
+                                Header = this.tumblingState.chain.GetBlock(trx.BlockHash).Header,
+                                PartialMerkleTree = trx.MerkleProof
+                            };
 
                             break;
                         }

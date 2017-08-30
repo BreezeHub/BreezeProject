@@ -89,6 +89,7 @@ namespace Breeze.TumbleBit.Client.Services
             txBuildContext.WalletPassword = this.tumblingState.OriginWalletPassword;
             txBuildContext.OverrideFeeRate = feeRate;
             txBuildContext.Sign = true;
+            txBuildContext.MinConfirmations = 0;
 
             // FundTransaction modifies tx directly
             this.tumblingState.walletTransactionHandler.FundTransaction(txBuildContext, tx);
