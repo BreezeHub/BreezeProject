@@ -65,6 +65,8 @@ namespace Breeze.TumbleBit.Client
             // TODO: Temporary measure
             string[] args = { "-testnet" };
 
+            this.tumblingState.TumblerUri = serverAddress;
+
             var config = new FullNodeTumblerClientConfiguration(this.tumblingState);
             config.LoadArgs(args);
 
@@ -131,6 +133,24 @@ namespace Breeze.TumbleBit.Client
             this.tumblingState.OriginWallet = originWallet;
             this.tumblingState.OriginWalletName = originWalletName;
             this.tumblingState.OriginWalletPassword = originWalletPassword;
+
+            var accounts = this.tumblingState.DestinationWallet.GetAccountsByCoinType(this.tumblingState.coinType);
+            // TODO: Possibly need to preserve destination account name in tumbling state. Default to first account for now
+            string accountName = null;
+            foreach (var account in accounts)
+            {
+                if (account.Index == 0)
+                    accountName = account.Name;
+            }
+            var destAccount = this.tumblingState.DestinationWallet.GetAccountByCoinType(accountName, this.tumblingState.coinType);
+
+            var key = destAccount.ExtendedPubKey;
+            var keyPath = new KeyPath("0");
+            var extPubKey = new BitcoinExtPubKey(key, this.runtime.Network);
+            if (key != null)
+
+                this.runtime.DestinationWallet =
+                    new ClientDestinationWallet(extPubKey, keyPath, this.runtime.Repository, this.runtime.Network);
 
             this.tumblingState.Save();
 

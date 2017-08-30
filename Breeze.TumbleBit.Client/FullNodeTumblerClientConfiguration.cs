@@ -45,6 +45,8 @@ namespace Breeze.TumbleBit.Client
             if (!OnlyMonitor && TumblerServer == null)
                 throw new ConfigException("tumbler.server not configured");
 
+            // Move this to Breeze TB client 'tumble' method
+            /*
             try
             {
                 var accounts = this.tumblingState.DestinationWallet.GetAccountsByCoinType(this.tumblingState.coinType);
@@ -66,6 +68,7 @@ namespace Breeze.TumbleBit.Client
                 Console.WriteLine(e.ToString());
                 throw new ConfigException("outputwallet.extpubkey is not configured correctly");
             }
+            */
 
             OutputWallet.KeyPath = new KeyPath("0");
 
@@ -88,10 +91,10 @@ namespace Breeze.TumbleBit.Client
             // Need to use our own ExternalServices implementations to remove RPC dependency
             Services = Breeze.TumbleBit.Client.ExternalServices.CreateUsingFullNode(DBreezeRepository, Tracker, this.tumblingState);
 
-            if (OutputWallet.RootKey != null && OutputWallet.KeyPath != null)
-                DestinationWallet = new ClientDestinationWallet(OutputWallet.RootKey, OutputWallet.KeyPath, DBreezeRepository, Network);
-            else
-                throw new ConfigException("Missing configuration for outputwallet");
+            //if (OutputWallet.RootKey != null && OutputWallet.KeyPath != null)
+            //    DestinationWallet = new ClientDestinationWallet(OutputWallet.RootKey, OutputWallet.KeyPath, DBreezeRepository, Network);
+            //else
+            //    throw new ConfigException("Missing configuration for outputwallet");
 
             return this;
         }
