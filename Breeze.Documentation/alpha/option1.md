@@ -3,6 +3,8 @@
 ### Prerequisites
 Breeze wallet is dependent on [node](https://nodejs.org/) and [dotnetcore](https://www.microsoft.com/net/core).  Please install these frameworks on your system before proceeding.
 
+This process setup tor, which is needed for the privavy protocol.  If you already have tor running you should instead use [option three](https://github.com/BreezeHub/Breeze/blob/tumblebit-alpha/Breeze.Documentation/alpha/option3.md) and setup tor yourself.
+
 * [Node download](https://nodejs.org/en/download/)
 * [.Net Core download](https://www.microsoft.com/net/core)
 
