@@ -1,5 +1,7 @@
 # Running Breeze Wallet with Breeze Privacy Protocol (alpha)
 
+Use these steps to setup Breeze Wallet that includes the Privacy Protocol.
+
 ### Prerequisites
 Breeze wallet is dependent on [node](https://nodejs.org/) and [dotnetcore](https://www.microsoft.com/net/core).  Please install these frameworks on your system before proceeding.
 
