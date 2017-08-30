@@ -10,26 +10,17 @@ code {color: $spacegray !important;}
 .form-control:-moz-placeholder { color: $input-color-placeholder; }  /* Mozilla Firefox 4 to 18 */
 .form-control:-ms-input-placeholder { color: $input-color-placeholder; }  /* Internet Explorer 10-11 */
 
-// button
-.twitter {
-  border-color: #2FBAFF !important;
-  color: #2FBAFF !important;
-  &:hover {
-    background-color: #2FBAFF !important;
-    color: $white !important;
-  }
-}
-.facebook {
-  border-color: #2D1DE7 !important;
-  color: #2D1DE7 !important;
-  &:hover {
-    background-color: #2D1DE7 !important;
-    color: $white !important;
-  }
-}
 // badge default
 .badge {
   &.badge-default {color: $gray;}
+}
+// feedback
+.form-control-feedback {
+  color: $pink;
+  margin: .5em 0;
+  text-align: left !important;
+  font-size: .85em;
+  font-style: italic;
 }
 
 // loading
@@ -77,7 +68,7 @@ em {
   width: 70px;
   height: 100%;
   overflow-y: auto;
-  background: #122B41;
+  background: $brand-primary;
   .menu {
     li {
       opacity: .3;
@@ -114,9 +105,9 @@ em {
       text-align: center;
       transition: .1s ease-in;
       a {
-        color: #7385A0;
+        color: rgba($white,.6);
         &:hover {
-          color:lighten(#7385A0, 15%);
+          color:$white;
           text-decoration: none;
         }
       }
@@ -132,12 +123,12 @@ em {
 .jumbotron {
   h5 {
     font-size: .85em;
-    color: $gray-dark;
+    color: $gray;
     letter-spacing: 0.43px;
   }
   .lead {
     color: $black;
-    font-size: 1.25em;
+    font-size: 1.75em;
     font-weight: 500;
     .h2 {
       font-size: 2em;
@@ -153,16 +144,16 @@ em {
 
 // transactions
 #transaction {
-  padding-top: 2em;
   .muted {opacity: .5;}
   h5 {
     font-size: .85em;
-    color: $gray-dark;
+    color: $gray;
     letter-spacing: 0.43px;
   }
   .card {
     li {
       line-height: 2.5em;
+      &.transactionDate {color: $gray-light;}
       a {
         &:hover {
           cursor: pointer;
@@ -185,7 +176,7 @@ em {
   background: $white;
   width: auto;
   height: 40px;
-  border: 1px solid #DBDBDB;
+  border: 1px solid $teal;
   box-shadow: 0 1px 11px 0 rgba(80,96,120,.2);
   border-radius: 80px;
   position: fixed;
@@ -250,8 +241,7 @@ em {
 }
 #modalSend {
   label {
-    color: $blue;
-    text-transform: uppercase;
+    color: $gray;
     font-size: .825em;
   }
   .float-right {a {text-decoration: underline; &:hover {text-decoration: none;}}}
@@ -260,15 +250,13 @@ em {
   .myAddress {margin-bottom: 2em;}
   .modal-body {padding: 0 3em;}
   label {
-    color: $blue;
-    text-transform: uppercase;
+    color: $gray;
     font-size: .825em;
   }
 }
 #modalDetail, #modalCheck, #modalSettings {
   .blockLabel {
-    color: $blue;
-    text-transform: uppercase;
+    color: $gray;
     font-size: .825em;
   }
   .blockText {
@@ -469,8 +457,7 @@ $curve: cubic-bezier(0.650, 0.000, 0.450, 1.000);
 
   .container {
     label {
-      color: $blue;
-      text-transform: uppercase;
+      color: $gray;
       font-size: .825em;
       text-align: left !important;
     }
@@ -523,15 +510,13 @@ $curve: cubic-bezier(0.650, 0.000, 0.450, 1.000);
   padding-top: 4em;
   label {
     font-weight: 400;
-    color: #878685;
-    letter-spacing: .43px;
+    color: $gray;
   }
   .btn-danger {
     color: $btn-danger-bg !important;
     background: rgba($btn-danger-bg, .4);
   }
   .table {
-    letter-spacing: .43px;
     font-size: 0.75rem;
     background: white;
     border: 1px solid $teal;
