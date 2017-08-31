@@ -13,6 +13,7 @@ branches:
   # whitelist
   only:
     - master
+    - tumblebit-alpha
 
 #---------------------------------#
 #    environment configuration    #
