@@ -39,8 +39,7 @@ namespace Breeze.TumbleBit.Client
 
         private bool isConnected { get; set; }
         private bool isTumbling { get; set; }
-
-        private ClassicTumblerParameters TumblerParameters { get; set; }
+        private ClassicTumblerParameters tumblerParameters { get; set; }
 
         public string TumblerAddress { get; private set; }
 
@@ -80,29 +79,29 @@ namespace Breeze.TumbleBit.Client
 
             //this.tumblerService = new TumblerService(serverAddress);
             //this.TumblerParameters = await this.tumblerService.GetClassicTumblerParametersAsync();
-            this.TumblerParameters = runtime.TumblerParameters;
+            this.tumblerParameters = runtime.TumblerParameters;
 
-            if (this.TumblerParameters.Network != this.network)
+            if (this.tumblerParameters.Network != this.network)
             {
-                throw new Exception($"The tumbler is on network {this.TumblerParameters.Network} while the wallet is on network {this.network}.");
+                throw new Exception($"The tumbler is on network {this.tumblerParameters.Network} while the wallet is on network {this.network}.");
             }
             
             // Load the current tumbling state from the file system
             this.tumblingState.LoadStateFromMemory();
             
             // Update and save the state
-            this.tumblingState.TumblerParameters = this.TumblerParameters;
+            this.tumblingState.TumblerParameters = this.tumblerParameters;
             this.isConnected = true;
             this.tumblingState.Save();
 
-            return Task.FromResult(this.TumblerParameters);
+            return Task.FromResult(this.tumblerParameters);
         }
 
         /// <inheritdoc />
         public Task TumbleAsync(string originWalletName, string destinationWalletName, string originWalletPassword)
         {
             // make sure the tumbler service is initialized
-            if (this.TumblerParameters == null || this.runtime == null || !this.isConnected)
+            if (this.tumblerParameters == null || this.runtime == null || !this.isConnected)
             {
                 throw new Exception("Please connect to the tumbler first.");
             }
@@ -226,6 +225,11 @@ namespace Breeze.TumbleBit.Client
         public bool IsTumbling()
         {
             return this.isTumbling;
+        }
+
+        public ClassicTumblerParameters GetTumblerParameters()
+        {
+            return this.tumblerParameters;
         }
     }
 }
