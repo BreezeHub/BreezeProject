@@ -26,3 +26,6 @@ tumbler.server=ctb://01234567890ABCDEF.onion?h=7a87f8d7vd98s7d898d
 ```
 
 Quit the client and restart for the change to take effect.  You should see the change in the breeze wallet user interface. 
+
+Enjoy and please give us [feedback](https://stratisplatform.slack.com/messages/C5F5GGLC8/), [contribute](https://github.com/BreezeHub) and join us on the [slack](https://stratisplatform.slack.com/messages/C5F5GGLC8/).
+
