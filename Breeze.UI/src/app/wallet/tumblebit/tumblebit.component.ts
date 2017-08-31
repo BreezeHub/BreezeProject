@@ -33,6 +33,7 @@ export class TumblebitComponent implements OnInit {
   private walletBalanceSubscription: Subscription;
   private watchWalletBalanceSubscription: Subscription;
   private isConnected: Boolean = false;
+  private tumblerAddressCopied: boolean = false;
   private tumblerParameters: any;
   private estimate: number;
   private fee: number;
@@ -96,6 +97,10 @@ export class TumblebitComponent implements OnInit {
     'walletPassword': {
       'required': 'The source wallet password is required.',
     }
+  }
+
+  private onCopiedClick() {
+    this.tumblerAddressCopied = true;
   }
 
   private checkTumblingStatus() {
