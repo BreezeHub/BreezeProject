@@ -17,16 +17,15 @@ export class TumblebitService {
 
   // Might make sense to populate tumblerParams here because services are singletons
 
-  connectToTumbler(body: TumblerConnectionRequest): Observable<any> {
+  connectToTumbler(): Observable<any> {
     return this.http
-      .post(this.tumblerClientUrl + 'connect', JSON.stringify(body), {headers: this.headers})
+      .get(this.tumblerClientUrl + 'connect')
       .map((response: Response) => response);
-
   };
 
   getTumblingStatus(): Observable<any> {
     return this.http
-      .get(this.tumblerClientUrl + 'is_tumbling')
+      .get(this.tumblerClientUrl + 'is-tumbling')
       .map((response: Response) => response);
   }
 

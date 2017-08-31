@@ -34,6 +34,9 @@ export class TumblebitComponent implements OnInit {
   private watchWalletBalanceSubscription: Subscription;
   private isConnected: Boolean = false;
   private tumblerParameters: any;
+  private estimate: number;
+  private fee: number;
+  private denomination: number;
   private tumbleStatus: any;
   private tumbleForm: FormGroup;
   private tumbling: Boolean = false;
@@ -128,12 +131,15 @@ export class TumblebitComponent implements OnInit {
     );
 
     this.tumblebitService
-      .connectToTumbler(connection)
+      .connectToTumbler()
       .subscribe(
         // TODO abstract into shared utility method
         response => {
           if (response.status >= 200 && response.status < 400) {
             this.tumblerParameters = response.json();
+            this.estimate = this.tumblerParameters.estimate / 3600;
+            this.fee = this.tumblerParameters.fee * 100;
+            this.denomination = this.tumblerParameters.denomination;
             this.isConnected = true;
           }
         },

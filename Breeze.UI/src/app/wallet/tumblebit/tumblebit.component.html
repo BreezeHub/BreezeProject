@@ -7,7 +7,7 @@
         <div class="col-xs-12 col-sm-6 text-center">
           <div class="col-10 my-4 offset-1">
             <i class="icon-tumblebit my-4 OFF"></i>
-            <p class="help mt-4">The Privacy Protocol takes one bitcoin at a time, anonymizes them, and returns them to the destination wallet. It can take some time to return several coins.</p>
+            <p class="help mt-4">The Privacy Protocol takes one bitcoin at a time, anonymizes them, and transfers them to the destination wallet. It can take some time to transfer several coins.</p>
           </div>
           <form class="col-10 my-4 offset-1" [formGroup]="tumbleForm">
             <div class="row" *ngIf="!tumbling">
@@ -47,7 +47,7 @@
             </thead>
             <tbody>
               <tr>
-                <td><span class="badge badge-default">ctb://2gyawufklq43jmxe.onion?h=74c1acc3e95c4bb26a0</span></td>
+                <td><span class="badge badge-default">{{ tumblerAddress }}</span></td>
               </tr>
             </tbody>
           </table>
@@ -57,20 +57,20 @@
             <thead>
               <tr>
                 <th>Balance</th>
-                <th>Wallet</th>
-                <th>Watch only</th>
+                <th>Source</th>
+                <th>Destination</th>
               </tr>
             </thead>
             <tbody>
               <tr>
-                <td>Pending</td>
-                <td>{{ unconfirmedBalance | coinNotation }}</td>
-                <td>{{ watchUnconfirmedBalance | coinNotation }}</td>
-              </tr>
-              <tr>
                 <td>Available</td>
                 <td>{{ confirmedBalance | coinNotation }}</td>
                 <td>{{ watchConfirmedBalance | coinNotation }}</td>
+              </tr>
+              <tr>
+                <td>Pending</td>
+                <td>{{ unconfirmedBalance | coinNotation }}</td>
+                <td>{{ watchUnconfirmedBalance | coinNotation }}</td>
               </tr>
               <tr class="total">
                 <td>Total</td>
@@ -84,18 +84,18 @@
           <table class="table" *ngIf="isConnected">
             <tbody>
               <tr>
-                <td><strong>Estimate</strong>{{ tumblerParameters.estimate }} seconds</td>
+                <td><strong>Estimate</strong>{{ estimate }} Hours</td>
               </tr>
               <tr>
-                <td><strong>Fees</strong> {{ tumblerParameters.fee }}</td>
+                <td><strong>Fee</strong> {{ fee | number:'1.2-2' }}%</td>
               </tr>
               <tr>
-                <td><strong>Denomination</strong> {{ tumblerParameters.denomination }}</td>
+                <td><strong>Denomination</strong> {{ denomination }} TBTC</td>
               </tr>
             </tbody>
           </table>
           <!-- /table 3-->
-          <label class="float-right" for=""><em>Breeze Privacy Protocol (powered by TumbleBit)</em></label>
+          <label class="float-right" for=""><em>Powered by TumbleBit and Stratis Blockchain Technology</em></label>
         </div>
         <!-- /right column -->
 
