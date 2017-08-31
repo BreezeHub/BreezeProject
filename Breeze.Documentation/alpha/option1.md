@@ -24,7 +24,9 @@ Mac OSX
 
 Mac users need to install Tor prior to running the alpha.  It can be installed via Homebrew.
 
-```/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
-brew install tor```
+``` 
+//usr//bin//ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)
+brew install tor 
+```
 
 
