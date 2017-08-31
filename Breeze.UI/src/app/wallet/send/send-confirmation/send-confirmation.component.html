@@ -7,7 +7,7 @@
         <p class="lead text-success text-center">
           <strong>Your transaction has been sent with success !</strong>
         </p>
-        <small class="text-center">
+        <small class="text-center d-block">
          <a class="btn btn-link" (click)="toggleDetails()">Show details</a>
        </small>
          <div *ngIf="showDetails" id="collapseExample">
@@ -22,7 +22,7 @@
             </ul>
             <ul class="list-inline row">
               <li class="list-inline-item col blockLabel">Destination</li>
-              <li class="list-inline-item col-9 blockText"><code>{{ transaction.destinationAddress }}</code></li>
+              <li class="list-inline-item col-9 blockText mt-2"><code>{{ transaction.destinationAddress }}</code></li>
             </ul>
             <!-- <ul class="list-inline row">
               <li class="list-inline-item col blockLabel">Date</li>

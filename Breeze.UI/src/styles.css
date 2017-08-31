@@ -319,7 +319,7 @@ em.display-4 {
   color: #1B354B;
 }
 
-#modalCheck .lead {
+#modalCheck .lead, #modalCheck .d-block {
   animation: 2s ease 0s normal forwards 1 fadein;
 }
 
@@ -846,6 +846,10 @@ input.cmn-toggle-round-flat:checked + label:after {
   border: 1px solid #DBDBDB;
   box-shadow: 0 2px 10px 0 rgba(80, 96, 120, 0.1);
   margin-bottom: 2.75em;
+}
+
+#Tumblebit .table .badge.badge-default {
+  font-size: 1em !important;
 }
 
 #Tumblebit .table .total td {

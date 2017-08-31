@@ -260,7 +260,7 @@ em {
   }
 }
 #modalCheck {
-  .lead {animation: 2s ease 0s normal forwards 1 fadein;}
+  .lead, .d-block {animation: 2s ease 0s normal forwards 1 fadein;}
   @keyframes fadein {
     0% {opacity:0;}
     66% {opacity:0;}
@@ -510,6 +510,9 @@ $curve: cubic-bezier(0.650, 0.000, 0.450, 1.000);
     background: rgba($btn-danger-bg, .4);
   }
   .table {
+    .badge {
+      &.badge-default {font-size: 1em !important;}
+    }
     font-size: 0.75rem;
     background: white;
     border: 1px solid $teal;
