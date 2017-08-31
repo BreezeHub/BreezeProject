@@ -158,10 +158,12 @@ export class TumblebitComponent implements OnInit {
           response => {
             if (response.status >= 200 && response.status < 400) {
               this.tumbleStatus = response.json();
+              this.tumbling = true;
             }
           },
           error => {
             console.error(error);
+            this.tumbling = false;
             if (error.status === 0) {
               alert('Something went wrong while connecting to the TumbleBit Client. Please restart the application.');
             } else if (error.status >= 400) {
