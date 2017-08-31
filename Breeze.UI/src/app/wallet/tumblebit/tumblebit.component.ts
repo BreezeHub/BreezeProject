@@ -104,29 +104,28 @@ export class TumblebitComponent implements OnInit {
   }
 
   private checkTumblingStatus() {
-    this.tumbling = false;
-
-    // this.tumblebitService.getTumblingStatus()
-    //   .subscribe(
-    //     response => {
-    //       if (response.status >= 200 && response.status < 400) {
-    //         this.tumbling = response.json();
-    //       }
-    //     },
-    //     error => {
-    //       console.error(error);
-    //       if (error.status === 0) {
-    //         alert('Something went wrong while connecting to the TumbleBit Client. Please restart the application.');
-    //       } else if (error.status >= 400) {
-    //         if (!error.json().errors[0]) {
-    //           console.error(error);
-    //         }
-    //         else {
-    //           alert(error.json().errors[0].message);
-    //         }
-    //       }
-    //     }
-    //   )
+    this.tumblebitService.getTumblingStatus()
+      .subscribe(
+        response => {
+          if (response.status >= 200 && response.status < 400) {
+            this.tumbling = response.json();
+          }
+        },
+        error => {
+          console.error(error);
+          if (error.status === 0) {
+            alert('Something went wrong while connecting to the TumbleBit Client. Please restart the application.');
+          } else if (error.status >= 400) {
+            if (!error.json().errors[0]) {
+              console.error(error);
+            }
+            else {
+              alert(error.json().errors[0].message);
+            }
+          }
+        }
+      )
+    ;
   }
 
   private connectToTumbler() {
@@ -166,6 +165,7 @@ export class TumblebitComponent implements OnInit {
   }
 
   private tumbleClicked() {
+    this.checkTumblingStatus();
     if (this.tumbling) {
       this.stopTumbling();
     } else {
@@ -183,15 +183,13 @@ export class TumblebitComponent implements OnInit {
         this.tumbleForm.get('walletPassword').value
       )
 
-      console.log(tumbleRequest);
-
       this.tumblebitService
         .startTumbling(tumbleRequest)
         .subscribe(
           response => {
             if (response.status >= 200 && response.status < 400) {
-              this.tumbleStatus = response.json();
               this.tumbling = true;
+              //this.tumbleStatus = response.json();
             }
           },
           error => {
