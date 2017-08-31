@@ -1,6 +1,6 @@
-## How to build the Breeze Daemon
+## How to build Breeze Wallet
 
-To build breeze wallet with Breeze Privacy Protocol, you need to first build the daemon then the client.
+To build breeze wallet with Breeze Privacy Protocol, you need to first build and run Breeze Daemon.
 
 Breeze daemon is the backend REST service, hosting a Bitcoin node upon which Breeze UI depends:
 
@@ -17,7 +17,7 @@ cd Breeze
 dotnet restore
 dotnet build
 
-# Run a daemon Bitcoin SPV node on testnet
+# Run a daemon Bitcoin SPV node on testnet with tumblebit
 cd src/Breeze.Daemon
 dotnet run light -testnet -tumblebit
 ```
