@@ -149,15 +149,13 @@ em {
     color: $gray;
   }
   .card {
+    &:hover {
+      cursor: pointer;
+      text-decoration: none !important;
+    }
     li {
       line-height: 2.5em;
       &.transactionDate {color: $gray-light;}
-      a {
-        &:hover {
-          cursor: pointer;
-          text-decoration: underline;
-        }
-      }
     }
   }
 }
@@ -531,6 +529,13 @@ $curve: cubic-bezier(0.650, 0.000, 0.450, 1.000);
     border: 1px solid $teal;
     box-shadow: 0 2px 10px 0 rgba(80,96,120,0.10);
     margin-bottom: 2.75em;
+
+    .badge {
+      &.badge-default {
+        padding: 0.6em 1.2em;
+        font-size: 1.1em;
+      }
+  }
 
     .total {
       td {font-weight: bold;}

@@ -6,7 +6,6 @@
  */
 body {
   overflow-x: hidden;
-  letter-spacing: .43px;
 }
 
 a:hover, button:hover {
@@ -159,7 +158,6 @@ em.display-4 {
 .jumbotron h5 {
   font-size: .85em;
   color: #98A3B3;
-  letter-spacing: 0.43px;
 }
 
 .jumbotron .lead {
@@ -186,7 +184,11 @@ em.display-4 {
 #transaction h5 {
   font-size: .85em;
   color: #98A3B3;
-  letter-spacing: 0.43px;
+}
+
+#transaction .card:hover {
+  cursor: pointer;
+  text-decoration: none !important;
 }
 
 #transaction .card li {
@@ -195,11 +197,6 @@ em.display-4 {
 
 #transaction .card li.transactionDate {
   color: #BAC4D1;
-}
-
-#transaction .card li a:hover {
-  cursor: pointer;
-  text-decoration: underline;
 }
 
 .badge.badge-danger {
@@ -790,7 +787,6 @@ input.cmn-toggle-round-flat:checked + label:after {
   font-family: "Lato-Bold";
   font-size: 1.25em;
   color: #fff;
-  letter-spacing: 0.64px;
   text-transform: uppercase;
 }
 
@@ -803,7 +799,6 @@ input.cmn-toggle-round-flat:checked + label:after {
 }
 
 .login .container .btn-darkgray {
-  letter-spacing: 1px;
   font-size: 1em;
 }
 
@@ -848,7 +843,6 @@ input.cmn-toggle-round-flat:checked + label:after {
 #Tumblebit label {
   font-size: .85em;
   color: #98A3B3;
-  letter-spacing: 0.43px;
 }
 
 #Tumblebit .btn-danger {
@@ -862,6 +856,11 @@ input.cmn-toggle-round-flat:checked + label:after {
   border: 1px solid #D7E0ED;
   box-shadow: 0 2px 10px 0 rgba(80, 96, 120, 0.1);
   margin-bottom: 2.75em;
+}
+
+#Tumblebit .table .badge.badge-default {
+  padding: 0.6em 1.2em;
+  font-size: 1.1em;
 }
 
 #Tumblebit .table .total td {
