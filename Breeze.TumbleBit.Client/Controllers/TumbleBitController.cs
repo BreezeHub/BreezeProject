@@ -28,7 +28,7 @@ namespace Breeze.TumbleBit.Controllers
         /// Connect to a tumbler.
         /// </summary>
         [Route("connect")]
-        [HttpPost]
+        [HttpGet]
         public async Task<IActionResult> ConnectAsync()
         {
             // checks the request is valid
