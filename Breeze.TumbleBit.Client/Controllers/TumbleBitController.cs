@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Breeze.TumbleBit.Client;
 using Breeze.TumbleBit.Models;
 using NBitcoin;
+using NTumbleBit.ClassicTumbler;
 using Stratis.Bitcoin.Features.Wallet;
 using Stratis.Bitcoin.Features.Wallet.Models;
 using Stratis.Bitcoin.Utilities;
@@ -43,15 +44,29 @@ namespace Breeze.TumbleBit.Controllers
                 return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, "Formatting error", string.Join(Environment.NewLine, errors));
             }
 
-            if (this.tumbleBitManager.IsConnected() || this.tumbleBitManager.IsTumbling())
-            {
-                // Do not want to connect again as it is unnecessary and can cause problems
-                return this.Ok();
-            }
-
             try
             {
-                var tumblerParameters = await this.tumbleBitManager.ConnectToTumblerAsync();
+                ClassicTumblerParameters tumblerParameters;
+
+                if (this.tumbleBitManager.IsConnected() || this.tumbleBitManager.IsTumbling())
+                {
+                    // Do not want to connect again as it is unnecessary and can cause problems
+                    // Only return previously retrieved parameters
+                    tumblerParameters = this.tumbleBitManager.GetTumblerParameters();
+
+                    var retrievedParameterDictionary = new Dictionary<string, string>()
+                    {
+                        ["tumbler"] = this.tumbleBitManager.TumblerAddress,
+                        ["denomination"] = tumblerParameters.Denomination.ToString(),
+                        ["fee"] = tumblerParameters.Fee.ToString(),
+                        ["network"] = tumblerParameters.Network.Name,
+                        ["estimate"] = "10080"
+                    };
+
+                    return this.Json(retrievedParameterDictionary);
+                }
+
+                tumblerParameters = await this.tumbleBitManager.ConnectToTumblerAsync();
 
                 var parameterDictionary = new Dictionary<string, string>()
                 {
@@ -65,7 +80,7 @@ namespace Breeze.TumbleBit.Controllers
                 return this.Json(parameterDictionary);
             }
             catch (Exception e)
-            {                
+            {
                 return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, $"An error occured connecting to the tumbler with uri {this.tumbleBitManager.TumblerAddress}.", e.ToString());
             }
         }
