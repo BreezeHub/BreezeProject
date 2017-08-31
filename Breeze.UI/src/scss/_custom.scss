@@ -3,33 +3,23 @@
 // Copy variables from `_variables.scss` to this file to override default values
 // without modifying source files.
 
-body {overflow-x: hidden; letter-spacing: .43px;}
+body {overflow-x: hidden;}
 a, button {&:hover {cursor: pointer !important;}}
 code {color: $spacegray !important;}
 .form-control::-webkit-input-placeholder { color: $input-color-placeholder; }  /* WebKit, Blink, Edge */
 .form-control:-moz-placeholder { color: $input-color-placeholder; }  /* Mozilla Firefox 4 to 18 */
 .form-control:-ms-input-placeholder { color: $input-color-placeholder; }  /* Internet Explorer 10-11 */
 
-// button
-.twitter {
-  border-color: #2FBAFF !important;
-  color: #2FBAFF !important;
-  &:hover {
-    background-color: #2FBAFF !important;
-    color: $white !important;
-  }
-}
-.facebook {
-  border-color: #2D1DE7 !important;
-  color: #2D1DE7 !important;
-  &:hover {
-    background-color: #2D1DE7 !important;
-    color: $white !important;
-  }
-}
 // badge default
 .badge {
   &.badge-default {color: $gray;}
+}
+
+// feedbacks
+.form-control-feedback {
+  color: $pink;
+  font-style: italic;
+  font-size: .85em;
 }
 
 // loading
@@ -133,11 +123,10 @@ em {
   h5 {
     font-size: .85em;
     color: $gray-dark;
-    letter-spacing: 0.43px;
   }
   .lead {
     color: $black;
-    font-size: 1.25em;
+    font-size: 1.85em;
     font-weight: 500;
     .h2 {
       font-size: 2em;
@@ -158,18 +147,13 @@ em {
   h5 {
     font-size: .85em;
     color: $gray-dark;
-    letter-spacing: 0.43px;
   }
   .card {
-    li {
-      line-height: 2.5em;
-      a {
-        &:hover {
-          cursor: pointer;
-          text-decoration: underline;
-        }
-      }
+    &:hover {
+      cursor: pointer;
+      text-decoration: none !important;
     }
+    li {line-height: 2.5em;}
   }
 }
 
@@ -478,7 +462,6 @@ $curve: cubic-bezier(0.650, 0.000, 0.450, 1.000);
       font-family: "Lato-Bold";
       font-size: 1.25em;
       color: $darkgray;
-      letter-spacing: 0.64px;
       text-transform: uppercase;
     }
     .lead {
@@ -488,10 +471,7 @@ $curve: cubic-bezier(0.650, 0.000, 0.450, 1.000);
       line-height: 1.25em;
       margin: 2em 0;
     }
-    .btn-darkgray {
-      letter-spacing: 1px;
-      font-size: 1em;
-    }
+    .btn-darkgray {font-size: 1em;}
     .btn-linkgray {
       background-color: transparent !important;
       text-decoration: underline;
@@ -522,16 +502,14 @@ $curve: cubic-bezier(0.650, 0.000, 0.450, 1.000);
 #Tumblebit {
   padding-top: 4em;
   label {
-    font-weight: 400;
-    color: #878685;
-    letter-spacing: .43px;
+    font-size: .85em;
+    color: $gray-dark;
   }
   .btn-danger {
     color: $btn-danger-bg !important;
     background: rgba($btn-danger-bg, .4);
   }
   .table {
-    letter-spacing: .43px;
     font-size: 0.75rem;
     background: white;
     border: 1px solid $teal;

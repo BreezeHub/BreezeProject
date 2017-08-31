@@ -87,9 +87,15 @@ $btn-secondary-border:           $gray-light !default;
     // Tumblebit
     #Tumblebit {
       i {
-        font-size: 7.5rem;
-        &.OFF {fill: #DCE8F1 !important;}
-        &.ON { fill: $brand-primary !important;}
+        font-size: 6.5rem;
+        &.OFF {
+          -webkit-text-fill-color: #DCE8F1 !important;
+          fill: #DCE8F1 !important;
+        }
+        &.ON {
+          -webkit-text-fill-color:: $brand-primary !important;
+          fill: $brand-primary !important;
+        }
       }
       .help {
         color: $gray;
