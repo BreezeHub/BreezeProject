@@ -848,8 +848,20 @@ input.cmn-toggle-round-flat:checked + label:after {
   margin-bottom: 2.75em;
 }
 
+#Tumblebit .table a {
+  color: #f69d32;
+}
+
+#Tumblebit .table a:hover {
+  text-decoration: underline;
+}
+
 #Tumblebit .table .badge.badge-default {
   font-size: 1em !important;
+}
+
+#Tumblebit .table .badge.badge-success {
+  border-radius: 0 !important;
 }
 
 #Tumblebit .table .total td {
@@ -1571,6 +1583,7 @@ code {
   color: #bd4147;
   background-color: #f7f7f9;
   border-radius: 0.25rem;
+  overflow-wrap: break-word;
 }
 
 a > code {
