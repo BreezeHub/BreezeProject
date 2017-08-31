@@ -21,6 +21,7 @@ namespace Breeze.TumbleBit.Controllers
     public class TumbleBitController : Controller
     {
         private readonly IWalletManager walletManager;
+        private readonly ITumbleBitManager tumbleBitManager;
 
         public TumbleBitController(ITumbleBitManager tumbleBitManager, IWalletManager walletManager)
         {
