@@ -3,7 +3,7 @@
 // Copy variables from `_variables.scss` to this file to override default values
 // without modifying source files.
 
-body {overflow-x: hidden; letter-spacing: .43px;}
+body {overflow-x: hidden;}
 a, button {&:hover {cursor: pointer !important;}}
 code {color: $spacegray !important;}
 .form-control::-webkit-input-placeholder { color: $input-color-placeholder; }  /* WebKit, Blink, Edge */
@@ -14,13 +14,12 @@ code {color: $spacegray !important;}
 .badge {
   &.badge-default {color: $gray;}
 }
-// feedback
+
+// feedbacks
 .form-control-feedback {
   color: $pink;
-  margin: .5em 0;
-  text-align: left !important;
-  font-size: .85em;
   font-style: italic;
+  font-size: .85em;
 }
 
 // loading
@@ -68,7 +67,7 @@ em {
   width: 70px;
   height: 100%;
   overflow-y: auto;
-  background: $brand-primary;
+  background: #122B41;
   .menu {
     li {
       opacity: .3;
@@ -81,10 +80,10 @@ em {
           opacity: 1;
           width: 2px;
           height: 20px;
-          background-color: #0E6682;
+          background-color: $brand-primary;
           float: right;
           position: absolute;
-          margin: 11px 6px 0 6px;
+          margin: 11px 6px 0 8px;
         }
       }
       &:hover {
@@ -105,9 +104,9 @@ em {
       text-align: center;
       transition: .1s ease-in;
       a {
-        color: rgba($white,.6);
+        color: #7385A0;
         &:hover {
-          color:$white;
+          color:lighten(#7385A0, 15%);
           text-decoration: none;
         }
       }
@@ -123,12 +122,11 @@ em {
 .jumbotron {
   h5 {
     font-size: .85em;
-    color: $gray;
-    letter-spacing: 0.43px;
+    color: $gray-dark;
   }
   .lead {
     color: $black;
-    font-size: 1.75em;
+    font-size: 1.85em;
     font-weight: 500;
     .h2 {
       font-size: 2em;
@@ -144,23 +142,18 @@ em {
 
 // transactions
 #transaction {
+  padding-top: 2em;
   .muted {opacity: .5;}
   h5 {
     font-size: .85em;
-    color: $gray;
-    letter-spacing: 0.43px;
+    color: $gray-dark;
   }
   .card {
-    li {
-      line-height: 2.5em;
-      &.transactionDate {color: $gray-light;}
-      a {
-        &:hover {
-          cursor: pointer;
-          text-decoration: underline;
-        }
-      }
+    &:hover {
+      cursor: pointer;
+      text-decoration: none !important;
     }
+    li {line-height: 2.5em;}
   }
 }
 
@@ -176,7 +169,7 @@ em {
   background: $white;
   width: auto;
   height: 40px;
-  border: 1px solid $teal;
+  border: 1px solid #DBDBDB;
   box-shadow: 0 1px 11px 0 rgba(80,96,120,.2);
   border-radius: 80px;
   position: fixed;
@@ -241,7 +234,8 @@ em {
 }
 #modalSend {
   label {
-    color: $gray;
+    color: $blue;
+    text-transform: uppercase;
     font-size: .825em;
   }
   .float-right {a {text-decoration: underline; &:hover {text-decoration: none;}}}
@@ -250,13 +244,15 @@ em {
   .myAddress {margin-bottom: 2em;}
   .modal-body {padding: 0 3em;}
   label {
-    color: $gray;
+    color: $blue;
+    text-transform: uppercase;
     font-size: .825em;
   }
 }
 #modalDetail, #modalCheck, #modalSettings {
   .blockLabel {
-    color: $gray;
+    color: $blue;
+    text-transform: uppercase;
     font-size: .825em;
   }
   .blockText {
@@ -264,7 +260,7 @@ em {
   }
 }
 #modalCheck {
-  .lead {animation: 2s ease 0s normal forwards 1 fadein;}
+  .lead, .d-block {animation: 2s ease 0s normal forwards 1 fadein;}
   @keyframes fadein {
     0% {opacity:0;}
     66% {opacity:0;}
@@ -429,15 +425,15 @@ $curve: cubic-bezier(0.650, 0.000, 0.450, 1.000);
  .slider .hide{display:none}
  .slider-track{position:absolute;cursor:pointer;background-image: linear-gradient(270deg, #2ECCA9 0%, #F7931A 100%);box-shadow:inset 0 1px 2px rgba(0,0,0,0.1);border-radius:4px}
  .slider-selection{position:absolute;background-image: linear-gradient(270deg, #2ECCA9 0%, #F7931A 51%, #FF5B8A 100%);; -webkit-box-sizing:border-box;-moz-box-sizing:border-box;box-sizing:border-box;border-radius:4px}
- .slider-track-low {position:absolute;background-color:$gray-lighter;-webkit-box-sizing:border-box;-moz-box-sizing:border-box;box-sizing:border-box;border-radius:4px}
- .slider-track-high {position:absolute;background-color:$gray-lighter;-webkit-box-sizing:border-box;-moz-box-sizing:border-box;box-sizing:border-box;border-radius:4px}
+ .slider-track-low {position:absolute;background-color:#DCE8F1;-webkit-box-sizing:border-box;-moz-box-sizing:border-box;box-sizing:border-box;border-radius:4px}
+ .slider-track-high {position:absolute;background-color:#DCE8F1;-webkit-box-sizing:border-box;-moz-box-sizing:border-box;box-sizing:border-box;border-radius:4px}
  .slider-handle:nth-child(1) {position:absolute;top:0;width:14px;height:14px;background-color: $brand-danger !important;}
  .slider-handle:nth-child(2) {position:absolute;top:0;width:14px;height:14px;background-color: $brand-primary !important;}
  .slider-handle:nth-child(3) {position:absolute;top:0;width:14px;height:14px;background-color: $brand-success !important;}
  .slider-handle.round{border-radius:50%}
  .slider-handle.triangle{background:transparent none}
  .slider-handle.custom{background:transparent none}
- .slider-tick{position:absolute;width:14px;height:14px;background-color: $white; border: 2px solid $gray-lighter;}
+ .slider-tick{position:absolute;width:14px;height:14px;background-color: $white; border: 2px solid #DCE8F1;}
  .slider-tick.round{border-radius:50%}
  .slider-tick.triangle{background:transparent none}
  .slider-tick.custom{background:transparent none}
@@ -449,47 +445,34 @@ $curve: cubic-bezier(0.650, 0.000, 0.450, 1.000);
 // LOGIN
 .login {
   height: 100vh;
-  background-image: linear-gradient(0deg, #1488C8 0%, #20B7C1 99%);
+  background-image: linear-gradient(-180deg, #FFFFFF 33%, rgba(47,186,255,0.43) 100%);
   border: 2px solid $white;
-  border-top: none !important;
   box-sizing: border-box;
     -moz-box-sizing: border-box;
     -webkit-box-sizing: border-box;
 
   .container {
-    .form-control-feedback {
-      color: $white;
-      margin: 1em 0;
-      background-color: rgba($pink, .8);
-      display: inline-block;
-      padding: .3em 1em;
-      border-radius: 40px;
-    }
     label {
-      color: $gray-lightest;
+      color: $blue;
+      text-transform: uppercase;
       font-size: .825em;
       text-align: left !important;
     }
     .display-5 {
       font-family: "Lato-Bold";
       font-size: 1.25em;
-      color: $white;
-      letter-spacing: 0.64px;
+      color: $darkgray;
       text-transform: uppercase;
     }
     .lead {
-      font-size: 1em;
-      color: rgba($gray-lighter, .9);
-      font-weight: 300;
+      font-size: 1.15em;
+      color: $blue;
+      font-weight: 400;
       line-height: 1.25em;
-      margin: 2em 0;
+      margin: 0 0 2em 0;
     }
-    .btn-darkgray {
-      letter-spacing: 1px;
-      font-size: 1em;
-    }
+    .btn-darkgray {font-size: 1em;}
     .btn-linkgray {
-      color: $darkgray;
       background-color: transparent !important;
       text-decoration: underline;
       &:hover {
@@ -497,15 +480,12 @@ $curve: cubic-bezier(0.650, 0.000, 0.450, 1.000);
         color: lighten($darkgray,10%);
       }
     }
-    form {margin-bottom: 1em;}
+    form {margin: 2em 0;}
     .textback {
       a {
-        color: $darkgray;
+        color: #C0BECC;
         text-decoration: underline;
-        &:hover {
-          text-decoration: none;
-          color: lighten($darkgray,10%);
-        }
+        &:hover {text-decoration: none;}
       }
     }
     .badge {
@@ -523,14 +503,16 @@ $curve: cubic-bezier(0.650, 0.000, 0.450, 1.000);
   padding-top: 4em;
   label {
     font-size: .85em;
-    color: $gray;
-    letter-spacing: 0.43px;
+    color: $gray-dark;
   }
   .btn-danger {
     color: $btn-danger-bg !important;
     background: rgba($btn-danger-bg, .4);
   }
   .table {
+    .badge {
+      &.badge-default {font-size: 1em !important;}
+    }
     font-size: 0.75rem;
     background: white;
     border: 1px solid $teal;

@@ -8,6 +8,7 @@ using NBitcoin;
 using NTumbleBit.ClassicTumbler;
 using NTumbleBit.ClassicTumbler.CLI;
 using NTumbleBit.ClassicTumbler.Client;
+using Stratis.Bitcoin.Configuration;
 using Stratis.Bitcoin.Features.BlockStore;
 using Stratis.Bitcoin.Features.MemoryPool;
 using Stratis.Bitcoin.Features.Wallet;
@@ -38,9 +39,9 @@ namespace Breeze.TumbleBit.Client
      
         private ClassicTumblerParameters TumblerParameters { get; set; }
 
-        public Uri TumblerAddress { get; private set; }
+        public string TumblerAddress { get; private set; }
 
-        public TumbleBitManager(ILoggerFactory loggerFactory, IWalletManager walletManager, IWatchOnlyWalletManager watchOnlyWalletManager, ConcurrentChain chain, Network network, Signals signals, IWalletTransactionHandler walletTransactionHandler, IWalletSyncManager walletSyncManager)
+        public TumbleBitManager(ILoggerFactory loggerFactory, NodeSettings nodeSettings, IWalletManager walletManager, IWatchOnlyWalletManager watchOnlyWalletManager, ConcurrentChain chain, Network network, Signals signals, IWalletTransactionHandler walletTransactionHandler, IWalletSyncManager walletSyncManager)
         {
             this.walletManager = walletManager as WalletManager;
             this.watchOnlyWalletManager = watchOnlyWalletManager;
@@ -51,12 +52,13 @@ namespace Breeze.TumbleBit.Client
             this.network = network;
             this.loggerFactory = loggerFactory;
             this.logger = loggerFactory.CreateLogger(this.GetType().FullName);
+            this.TumblerAddress = nodeSettings.TumblerAddress;
 
             this.tumblingState = new TumblingState(loggerFactory, this.chain, this.walletManager, this.watchOnlyWalletManager, this.network, this.walletTransactionHandler, this.walletSyncManager);
         }
 
         /// <inheritdoc />
-        public async Task<ClassicTumblerParameters> ConnectToTumblerAsync(Uri serverAddress)
+        public Task<ClassicTumblerParameters> ConnectToTumblerAsync()
         {
             // TODO this method will probably need to change as the connection to a tumbler is currently done during configuration
             // of the TumblebitRuntime. This method can then be modified to potentially be a convenience method 
@@ -65,13 +67,10 @@ namespace Breeze.TumbleBit.Client
             // TODO: Temporary measure
             string[] args = { "-testnet" };
 
-            this.tumblingState.TumblerUri = serverAddress;
+            this.tumblingState.TumblerUri = new Uri(this.TumblerAddress);
 
             var config = new FullNodeTumblerClientConfiguration(this.tumblingState);
             config.LoadArgs(args);
-
-            //read the tumbler address from the config
-            this.TumblerAddress = new Uri( config.TumblerServer.ToString() );
 
             // AcceptAllClientConfiguration should be used if the interaction is null
             this.runtime = TumblerClientRuntime.FromConfiguration(config, null);
@@ -89,11 +88,10 @@ namespace Breeze.TumbleBit.Client
             this.tumblingState.LoadStateFromMemory();
             
             // Update and save the state
-            this.tumblingState.TumblerUri = this.TumblerAddress;
             this.tumblingState.TumblerParameters = this.TumblerParameters;
             this.tumblingState.Save();
 
-            return this.TumblerParameters;
+            return Task.FromResult(this.TumblerParameters);
         }
 
         /// <inheritdoc />
@@ -164,10 +162,10 @@ namespace Breeze.TumbleBit.Client
             return Task.CompletedTask;
         }
 
-        public async Task<bool> IsTumblingAsync()
+        public /*async*/ Task<bool> IsTumblingAsync()
         {
             //TODO: return real value (use await or change method return type to just 'bool')
-            return true;
+            return Task.FromResult(true); //TODO: or this
         }
 
         public Task StopAsync()

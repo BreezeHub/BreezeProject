@@ -6,26 +6,13 @@ The uri address used to connect the Breeze Wallet to a Breeze Server is not edit
 We do not recommend you change your server if you have already started tumbling coins.
 ```
 
-If you wish to change it, navigate to your NTumbleBit folder and locate the client.conf to change the server address.
-
-The configuration file can be found in the user's home directory at `.ntumblebit/client.conf` or `%appdata%\NTumblebit\client.conf` on Windows.
-
-| OS | NTumbleBit/TestNet/ config parent directory |
-| --- | --- |
-| Linux                   | /home/\<username\>/.ntumblebit/          |
-| Mac OS                  | /Users/\<username\>/.ntumblebit/         |
-| Windows Vista, 7, 8, 10 | C:\Users\\<username\>\.ntumblebit\       |
-| Windows XP              | C:\Documents and Settings\\<username\>\Application Data\.ntumblebit\ |
-
-
-You will find the tumbler parameter in client.conf and you can edit it with your favorite text editor:
+If you wish to change it you can start the Daemon with the command line, for example:
 
 ```
-# Tumbler Server 
-tumbler.server=ctb://01234567890ABCDEF.onion?h=7a87f8d7vd98s7d898d
+dotnet run light -testnet - tumblebit -ppuri=ctb://7obtcd7mkosmxeuh.onion/?h=03c632023c4a8587845ad918b8e5f53f7bf18319
 ```
 
-Quit the client and restart for the change to take effect.  You should see the change in the breeze wallet user interface. 
+You can see [here](https://github.com/BreezeHub/Breeze/blob/tumblebit-alpha/Breeze.Documentation/alpha/option3.md) how to do this in more detail.
 
 Enjoy and please give us [feedback](https://stratisplatform.slack.com/messages/C5F5GGLC8/), [contribute](https://github.com/BreezeHub) and join us on the [slack](https://stratisplatform.slack.com/messages/C5F5GGLC8/).
 

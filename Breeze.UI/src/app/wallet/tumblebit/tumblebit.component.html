@@ -7,7 +7,7 @@
         <div class="col-xs-12 col-sm-6 text-center">
           <div class="col-10 my-4 offset-1">
             <i class="icon-tumblebit my-4 OFF"></i>
-            <p class="help mt-4">The Privacy Protocol takes one bitcoin at a time, anonymizes them, and transfers them to the destination wallet. It can take some time to transfer several coins.</p>
+            <p class="help mt-4">The Privacy Protocol takes one bitcoin at a time, anonymizes them, and returns them to the destination wallet. It can take some time to return several coins.</p>
           </div>
           <form class="col-10 my-4 offset-1" [formGroup]="tumbleForm">
             <div class="row" *ngIf="!tumbling">
@@ -29,7 +29,7 @@
             </div>
             <input *ngIf="!tumbling" type="password" class="form-control" formControlName="walletPassword"  placeholder="Please enter you wallet password.">
               <div *ngIf="tumbleFormErrors.walletPassword" class="form-control-feedback">{{ tumbleFormErrors.walletPassword }}</div>
-            <button type="button" class="btn btn-lg btn-primary mt-4" (click)="tumbleClicked()">{{ tumbling ? "Stop Tumbling" : "Start Tumbling" }}
+            <button type="button" class="btn btn-lg btn-primary mt-4" (click)="tumbleClicked()">{{ tumbling ? "Stop" : "Start" }}
             </button>
           </form>
         </div>
@@ -95,6 +95,7 @@
             </tbody>
           </table>
           <!-- /table 3-->
+          <label class="float-right" for=""><em>Breeze Privacy Protocol (powered by TumbleBit)</em></label>
         </div>
         <!-- /right column -->
 

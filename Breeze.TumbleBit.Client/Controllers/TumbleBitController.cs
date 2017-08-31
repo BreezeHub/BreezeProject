@@ -29,7 +29,7 @@ namespace Breeze.TumbleBit.Controllers
         /// </summary>
         [Route("connect")]
         [HttpPost]
-        public async Task<IActionResult> ConnectAsync([FromBody] TumblerConnectionRequest request)
+        public async Task<IActionResult> ConnectAsync()
         {
             // checks the request is valid
             if (!this.ModelState.IsValid)
@@ -40,11 +40,11 @@ namespace Breeze.TumbleBit.Controllers
 
             try
             {
-                var tumblerParameters = await this.tumbleBitManager.ConnectToTumblerAsync(request.ServerAddress);
+                var tumblerParameters = await this.tumbleBitManager.ConnectToTumblerAsync();
 
                 var parameterDictionary = new Dictionary<string, string>()
                 {
-                    ["tumbler"] = request.ServerAddress.ToString(),
+                    ["tumbler"] = this.tumbleBitManager.TumblerAddress,
                     ["denomination"] = tumblerParameters.Denomination.ToString(),
                     ["fee"] = tumblerParameters.Fee.ToString(),
                     ["network"] = tumblerParameters.Network.Name,
@@ -54,7 +54,7 @@ namespace Breeze.TumbleBit.Controllers
             }
             catch (Exception e)
             {                
-                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, $"An error occured connecting to the tumbler with uri {request.ServerAddress}.", e.ToString());
+                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, $"An error occured connecting to the tumbler with uri {this.tumbleBitManager.TumblerAddress}.", e.ToString());
             }
         }
 
