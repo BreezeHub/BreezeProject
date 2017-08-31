@@ -82,6 +82,9 @@ namespace Stratis.Bitcoin.Configuration
         /// <summary>URI to node's API interface.</summary>
         public Uri ApiUri { get; set; }
 
+        /// <summary>Full uri of the tumbler.</summary>
+        public string TumblerAddress { get; set; } = "ctb://7obtcd7mkosmxeuh.onion/?h=03c632023c4a8587845ad918b8e5f53f7bf18319";
+
         /// <summary>
         /// Initializes a new instance of the object.
         /// <para>This constructor does not load the configuration itself.</para>
