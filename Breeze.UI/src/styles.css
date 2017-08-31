@@ -9405,14 +9405,16 @@ a.text-gray-dark:focus, a.text-gray-dark:hover {
 }
 
 #content.bitcoin #Tumblebit i {
-  font-size: 7.5rem;
+  font-size: 6.5rem;
 }
 
 #content.bitcoin #Tumblebit i.OFF {
+  -webkit-text-fill-color: #DCE8F1 !important;
   fill: #DCE8F1 !important;
 }
 
 #content.bitcoin #Tumblebit i.ON {
+  -webkit-text-fill-color: #189BC5 !important;
   fill: #189BC5 !important;
 }
 

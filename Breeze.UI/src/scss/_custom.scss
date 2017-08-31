@@ -3,7 +3,7 @@
 // Copy variables from `_variables.scss` to this file to override default values
 // without modifying source files.
 
-body {overflow-x: hidden; letter-spacing: .43px;}
+body {overflow-x: hidden;}
 a, button {&:hover {cursor: pointer !important;}}
 code {color: $spacegray !important;}
 .form-control::-webkit-input-placeholder { color: $input-color-placeholder; }  /* WebKit, Blink, Edge */
@@ -124,7 +124,6 @@ em {
   h5 {
     font-size: .85em;
     color: $gray;
-    letter-spacing: 0.43px;
   }
   .lead {
     color: $black;
@@ -148,7 +147,6 @@ em {
   h5 {
     font-size: .85em;
     color: $gray;
-    letter-spacing: 0.43px;
   }
   .card {
     li {
@@ -474,7 +472,6 @@ $curve: cubic-bezier(0.650, 0.000, 0.450, 1.000);
       font-family: "Lato-Bold";
       font-size: 1.25em;
       color: $white;
-      letter-spacing: 0.64px;
       text-transform: uppercase;
     }
     .lead {
@@ -485,7 +482,6 @@ $curve: cubic-bezier(0.650, 0.000, 0.450, 1.000);
       margin: 2em 0;
     }
     .btn-darkgray {
-      letter-spacing: 1px;
       font-size: 1em;
     }
     .btn-linkgray {
@@ -524,7 +520,6 @@ $curve: cubic-bezier(0.650, 0.000, 0.450, 1.000);
   label {
     font-size: .85em;
     color: $gray;
-    letter-spacing: 0.43px;
   }
   .btn-danger {
     color: $btn-danger-bg !important;
