@@ -469,7 +469,7 @@ $curve: cubic-bezier(0.650, 0.000, 0.450, 1.000);
       color: $blue;
       font-weight: 400;
       line-height: 1.25em;
-      margin: 2em 0;
+      margin: 0 0 2em 0;
     }
     .btn-darkgray {font-size: 1em;}
     .btn-linkgray {
@@ -480,7 +480,7 @@ $curve: cubic-bezier(0.650, 0.000, 0.450, 1.000);
         color: lighten($darkgray,10%);
       }
     }
-    form {margin-bottom: 4em;}
+    form {margin: 2em 0;}
     .textback {
       a {
         color: #C0BECC;

@@ -787,7 +787,7 @@ input.cmn-toggle-round-flat:checked + label:after {
   color: #7385A0;
   font-weight: 400;
   line-height: 1.25em;
-  margin: 2em 0;
+  margin: 0 0 2em 0;
 }
 
 .login .container .btn-darkgray {
@@ -805,7 +805,7 @@ input.cmn-toggle-round-flat:checked + label:after {
 }
 
 .login .container form {
-  margin-bottom: 4em;
+  margin: 2em 0;
 }
 
 .login .container .textback a {
