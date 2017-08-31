@@ -46,7 +46,7 @@ export class TumblebitComponent implements OnInit {
     this.getWalletBalance();
     this.getWatchWalletBalance();
     this.checkTumblingStatus();
-    this.connect();
+    this.connectToTumbler();
   };
 
   ngOnDestroy() {
@@ -96,18 +96,39 @@ export class TumblebitComponent implements OnInit {
   }
 
   private checkTumblingStatus() {
-    //TODO: check if tumbling is already enabled.
     this.tumbling = false;
+
+    // this.tumblebitService.getTumblingStatus()
+    //   .subscribe(
+    //     response => {
+    //       if (response.status >= 200 && response.status < 400) {
+    //         this.tumbling = response.json();
+    //       }
+    //     },
+    //     error => {
+    //       console.error(error);
+    //       if (error.status === 0) {
+    //         alert('Something went wrong while connecting to the TumbleBit Client. Please restart the application.');
+    //       } else if (error.status >= 400) {
+    //         if (!error.json().errors[0]) {
+    //           console.error(error);
+    //         }
+    //         else {
+    //           alert(error.json().errors[0].message);
+    //         }
+    //       }
+    //     }
+    //   )
   }
 
-  private connect() {
+  private connectToTumbler() {
     let connection = new TumblerConnectionRequest(
       this.tumblerAddress,
       this.globalService.getNetwork()
     );
 
     this.tumblebitService
-      .connect(connection)
+      .connectToTumbler(connection)
       .subscribe(
         // TODO abstract into shared utility method
         response => {
@@ -129,13 +150,13 @@ export class TumblebitComponent implements OnInit {
               alert(error.json().errors[0].message);
             }
           }
-        },
+        }
       )
   }
 
   private tumbleClicked() {
     if (this.tumbling) {
-      this.stopTumble();
+      this.stopTumbling();
     } else {
       this.startTumbling();
     }
@@ -145,15 +166,16 @@ export class TumblebitComponent implements OnInit {
     if (!this.isConnected) {
       alert("Can't start tumbling when you're not connected to a server. Please try again later.")
     } else {
-
       let tumbleRequest = new TumbleRequest(
         this.globalService.getWalletName(),
         this.tumbleForm.get('selectWallet').value,
         this.tumbleForm.get('walletPassword').value
       )
 
+      console.log(tumbleRequest);
+
       this.tumblebitService
-        .tumble(tumbleRequest)
+        .startTumbling(tumbleRequest)
         .subscribe(
           response => {
             if (response.status >= 200 && response.status < 400) {
@@ -180,10 +202,30 @@ export class TumblebitComponent implements OnInit {
     }
   }
 
-  private stopTumble() {
-    //TODO: attach API stop method
-    console.log('stopping tumble...');
+  private stopTumbling() {
     this.tumbling = false;
+    // this.tumblebitService.stopTumbling()
+    //   .subscribe(
+    //     response => {
+    //       if (response.status >= 200 && response.status < 400) {
+    //         this.tumbling = false;
+    //       }
+    //     },
+    //     error => {
+    //       console.error(error);
+    //       if (error.status === 0) {
+    //         alert('Something went wrong while connecting to the TumbleBit Client. Please restart the application.');
+    //       } else if (error.status >= 400) {
+    //         if (!error.json().errors[0]) {
+    //           console.error(error);
+    //         }
+    //         else {
+    //           alert(error.json().errors[0].message);
+    //         }
+    //       }
+    //     }
+    //   )
+    // ;
   }
 
   // TODO: move into a shared service

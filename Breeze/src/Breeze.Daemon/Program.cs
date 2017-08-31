@@ -100,6 +100,11 @@ namespace Breeze.Daemon
                         //add logging to NLog
                         SetupTumbleBitNLogs(nodeSettings);
 
+                        var tumblerAddress = args.GetValueOf("-ppuri");
+                        if (tumblerAddress != null)
+                            nodeSettings.TumblerAddress = tumblerAddress;
+
+
                         //we no longer pass the cbt uri in on the command line
                         //we always get it from the config. 
                         fullNodeBuilder.UseTumbleBit();

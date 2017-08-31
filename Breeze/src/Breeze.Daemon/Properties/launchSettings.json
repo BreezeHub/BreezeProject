@@ -2,7 +2,7 @@
   "profiles": {
     "Breeze.Daemon Main": {
       "commandName": "Project",
-      "commandLineArgs": "light -testnet -tumblebit"
+      "commandLineArgs": "light -testnet -tumblebit -ppuri=ctb://7obtcd7mkosmxeuh.onion/?h=03c632023c4a8587845ad918b8e5f53f7bf18319"
     },
     "Breeze.Daemon TestNet": {
       "commandName": "Project",

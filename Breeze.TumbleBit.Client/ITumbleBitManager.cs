@@ -16,7 +16,7 @@ namespace Breeze.TumbleBit.Client
         /// </summary>
         /// <param name="serverAddress">The URI of the tumbler.</param>
         /// <returns></returns>
-        Task<ClassicTumblerParameters> ConnectToTumblerAsync(Uri serverAddress);
+        Task<ClassicTumblerParameters> ConnectToTumblerAsync();
 
         Task TumbleAsync(string originWalletName, string destinationWalletName, string originWalletPassword);
 
@@ -54,5 +54,20 @@ namespace Breeze.TumbleBit.Client
         /// Finishes the tumbling and clean up all saved data.
         /// </summary>
         void FinishTumbling();
+
+        /// <summary>
+        /// tumbler address
+        /// </summary>
+        string TumblerAddress { get; }
+
+        /// <summary>
+        /// Method for interrogating whether server has already been connected to
+        /// </summary>
+        bool IsConnected();
+
+        /// <summary>
+        /// Method for interrogating whether tumbling client has been initialised & is running
+        /// </summary>
+        bool IsTumbling();
     }
 }

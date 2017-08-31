@@ -8,6 +8,7 @@ using NBitcoin;
 using NTumbleBit.ClassicTumbler;
 using NTumbleBit.ClassicTumbler.CLI;
 using NTumbleBit.ClassicTumbler.Client;
+using Stratis.Bitcoin.Configuration;
 using Stratis.Bitcoin.Features.BlockStore;
 using Stratis.Bitcoin.Features.MemoryPool;
 using Stratis.Bitcoin.Features.Wallet;
@@ -35,12 +36,15 @@ namespace Breeze.TumbleBit.Client
         private IDisposable blockReceiver;
         private TumblerClientRuntime runtime;
         private StateMachinesExecutor stateMachine;
-     
+
+        private bool isConnected { get; set; }
+        private bool isTumbling { get; set; }
+
         private ClassicTumblerParameters TumblerParameters { get; set; }
 
-        public Uri TumblerAddress { get; private set; }
+        public string TumblerAddress { get; private set; }
 
-        public TumbleBitManager(ILoggerFactory loggerFactory, IWalletManager walletManager, IWatchOnlyWalletManager watchOnlyWalletManager, ConcurrentChain chain, Network network, Signals signals, IWalletTransactionHandler walletTransactionHandler, IWalletSyncManager walletSyncManager)
+        public TumbleBitManager(ILoggerFactory loggerFactory, NodeSettings nodeSettings, IWalletManager walletManager, IWatchOnlyWalletManager watchOnlyWalletManager, ConcurrentChain chain, Network network, Signals signals, IWalletTransactionHandler walletTransactionHandler, IWalletSyncManager walletSyncManager)
         {
             this.walletManager = walletManager as WalletManager;
             this.watchOnlyWalletManager = watchOnlyWalletManager;
@@ -51,12 +55,13 @@ namespace Breeze.TumbleBit.Client
             this.network = network;
             this.loggerFactory = loggerFactory;
             this.logger = loggerFactory.CreateLogger(this.GetType().FullName);
+            this.TumblerAddress = nodeSettings.TumblerAddress;
 
             this.tumblingState = new TumblingState(loggerFactory, this.chain, this.walletManager, this.watchOnlyWalletManager, this.network, this.walletTransactionHandler, this.walletSyncManager);
         }
 
         /// <inheritdoc />
-        public Task<ClassicTumblerParameters> ConnectToTumblerAsync(Uri serverAddress)
+        public Task<ClassicTumblerParameters> ConnectToTumblerAsync()
         {
             // TODO this method will probably need to change as the connection to a tumbler is currently done during configuration
             // of the TumblebitRuntime. This method can then be modified to potentially be a convenience method 
@@ -65,13 +70,10 @@ namespace Breeze.TumbleBit.Client
             // TODO: Temporary measure
             string[] args = { "-testnet" };
 
-            this.tumblingState.TumblerUri = serverAddress;
+            this.tumblingState.TumblerUri = new Uri(this.TumblerAddress);
 
             var config = new FullNodeTumblerClientConfiguration(this.tumblingState);
             config.LoadArgs(args);
-
-            //read the tumbler address from the config
-            this.TumblerAddress = new Uri( config.TumblerServer.ToString() );
 
             // AcceptAllClientConfiguration should be used if the interaction is null
             this.runtime = TumblerClientRuntime.FromConfiguration(config, null);
@@ -89,8 +91,8 @@ namespace Breeze.TumbleBit.Client
             this.tumblingState.LoadStateFromMemory();
             
             // Update and save the state
-            this.tumblingState.TumblerUri = this.TumblerAddress;
             this.tumblingState.TumblerParameters = this.TumblerParameters;
+            this.isConnected = true;
             this.tumblingState.Save();
 
             return Task.FromResult(this.TumblerParameters);
@@ -100,7 +102,7 @@ namespace Breeze.TumbleBit.Client
         public Task TumbleAsync(string originWalletName, string destinationWalletName, string originWalletPassword)
         {
             // make sure the tumbler service is initialized
-            if (this.TumblerParameters == null || this.runtime == null)
+            if (this.TumblerParameters == null || this.runtime == null || !this.isConnected)
             {
                 throw new Exception("Please connect to the tumbler first.");
             }
@@ -148,7 +150,6 @@ namespace Breeze.TumbleBit.Client
             var keyPath = new KeyPath("0");
             var extPubKey = new BitcoinExtPubKey(key, this.runtime.Network);
             if (key != null)
-
                 this.runtime.DestinationWallet =
                     new ClientDestinationWallet(extPubKey, keyPath, this.runtime.Repository, this.runtime.Network);
 
@@ -161,13 +162,14 @@ namespace Breeze.TumbleBit.Client
             this.stateMachine = new StateMachinesExecutor(this.runtime);
             this.stateMachine.Start();
 
+            this.isTumbling = true;
+
             return Task.CompletedTask;
         }
 
         public /*async*/ Task<bool> IsTumblingAsync()
         {
-            //TODO: return real value (use await or change method return type to just 'bool')
-            return Task.FromResult(true); //TODO: or this
+            return Task.FromResult(this.isTumbling);
         }
 
         public Task StopAsync()
@@ -214,6 +216,16 @@ namespace Breeze.TumbleBit.Client
             
             // TODO: Update the state of the tumbling session in this new block
             // TODO: Does anything else need to be done here? Transaction housekeeping is done in the wallet features
+        }
+
+        public bool IsConnected()
+        {
+            return this.isConnected;
+        }
+
+        public bool IsTumbling()
+        {
+            return this.isTumbling;
         }
     }
 }

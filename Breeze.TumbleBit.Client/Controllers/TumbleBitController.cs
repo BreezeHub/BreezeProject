@@ -28,8 +28,8 @@ namespace Breeze.TumbleBit.Controllers
         /// Connect to a tumbler.
         /// </summary>
         [Route("connect")]
-        [HttpPost]
-        public async Task<IActionResult> ConnectAsync([FromBody] TumblerConnectionRequest request)
+        [HttpGet]
+        public async Task<IActionResult> ConnectAsync()
         {
             // checks the request is valid
             if (!this.ModelState.IsValid)
@@ -38,23 +38,30 @@ namespace Breeze.TumbleBit.Controllers
                 return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, "Formatting error", string.Join(Environment.NewLine, errors));
             }
 
+            if (this.tumbleBitManager.IsConnected() || this.tumbleBitManager.IsTumbling())
+            {
+                // Do not want to connect again as it is unnecessary and can cause problems
+                return this.Ok();
+            }
+
             try
             {
-                var tumblerParameters = await this.tumbleBitManager.ConnectToTumblerAsync(request.ServerAddress);
+                var tumblerParameters = await this.tumbleBitManager.ConnectToTumblerAsync();
 
                 var parameterDictionary = new Dictionary<string, string>()
                 {
-                    ["tumbler"] = request.ServerAddress.ToString(),
+                    ["tumbler"] = this.tumbleBitManager.TumblerAddress,
                     ["denomination"] = tumblerParameters.Denomination.ToString(),
                     ["fee"] = tumblerParameters.Fee.ToString(),
                     ["network"] = tumblerParameters.Network.Name,
                     ["estimate"] = "10080"
                 };
+
                 return this.Json(parameterDictionary);
             }
             catch (Exception e)
             {                
-                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, $"An error occured connecting to the tumbler with uri {request.ServerAddress}.", e.ToString());
+                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, $"An error occured connecting to the tumbler with uri {this.tumbleBitManager.TumblerAddress}.", e.ToString());
             }
         }
 
@@ -72,6 +79,11 @@ namespace Breeze.TumbleBit.Controllers
                 return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, "Formatting error", string.Join(Environment.NewLine, errors));
             }
 
+            if (this.tumbleBitManager.IsTumbling())
+            {
+                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, "Already started tumbling", "");
+            }
+
             try
             {
                 await this.tumbleBitManager.TumbleAsync(request.OriginWalletName, request.DestinationWalletName, request.OriginWalletPassword);
@@ -86,7 +98,7 @@ namespace Breeze.TumbleBit.Controllers
         /// <summary>
         /// Is tumbler tumbling.
         /// </summary>
-        [Route("is_tumbling")]
+        [Route("is-tumbling")]
         [HttpGet]
         public async Task<IActionResult> IsTumblingAsync()
         {
