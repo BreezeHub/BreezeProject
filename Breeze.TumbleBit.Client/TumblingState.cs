@@ -34,6 +34,9 @@ namespace Breeze.TumbleBit.Client
         [JsonIgnore]
         public WalletTransactionHandler walletTransactionHandler;
 
+        [JsonIgnore]
+        public bool IsConnected { get; set; }
+
         // TODO: Does this need to be saved? Can be derived from network
         public CoinType coinType;
 

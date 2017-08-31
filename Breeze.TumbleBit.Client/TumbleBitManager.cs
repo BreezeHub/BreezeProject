@@ -36,7 +36,10 @@ namespace Breeze.TumbleBit.Client
         private IDisposable blockReceiver;
         private TumblerClientRuntime runtime;
         private StateMachinesExecutor stateMachine;
-     
+
+        private bool isConnected { get; set; }
+        private bool isTumbling { get; set; }
+
         private ClassicTumblerParameters TumblerParameters { get; set; }
 
         public string TumblerAddress { get; private set; }
@@ -89,6 +92,7 @@ namespace Breeze.TumbleBit.Client
             
             // Update and save the state
             this.tumblingState.TumblerParameters = this.TumblerParameters;
+            this.isConnected = true;
             this.tumblingState.Save();
 
             return Task.FromResult(this.TumblerParameters);
@@ -98,7 +102,7 @@ namespace Breeze.TumbleBit.Client
         public Task TumbleAsync(string originWalletName, string destinationWalletName, string originWalletPassword)
         {
             // make sure the tumbler service is initialized
-            if (this.TumblerParameters == null || this.runtime == null)
+            if (this.TumblerParameters == null || this.runtime == null || !this.isConnected)
             {
                 throw new Exception("Please connect to the tumbler first.");
             }
@@ -146,7 +150,6 @@ namespace Breeze.TumbleBit.Client
             var keyPath = new KeyPath("0");
             var extPubKey = new BitcoinExtPubKey(key, this.runtime.Network);
             if (key != null)
-
                 this.runtime.DestinationWallet =
                     new ClientDestinationWallet(extPubKey, keyPath, this.runtime.Repository, this.runtime.Network);
 
@@ -159,13 +162,14 @@ namespace Breeze.TumbleBit.Client
             this.stateMachine = new StateMachinesExecutor(this.runtime);
             this.stateMachine.Start();
 
+            this.isTumbling = true;
+
             return Task.CompletedTask;
         }
 
         public /*async*/ Task<bool> IsTumblingAsync()
         {
-            //TODO: return real value (use await or change method return type to just 'bool')
-            return Task.FromResult(true); //TODO: or this
+            return Task.FromResult(this.isTumbling);
         }
 
         public Task StopAsync()
@@ -212,6 +216,16 @@ namespace Breeze.TumbleBit.Client
             
             // TODO: Update the state of the tumbling session in this new block
             // TODO: Does anything else need to be done here? Transaction housekeeping is done in the wallet features
+        }
+
+        public bool IsConnected()
+        {
+            return this.isConnected;
+        }
+
+        public bool IsTumbling()
+        {
+            return this.isTumbling;
         }
     }
 }

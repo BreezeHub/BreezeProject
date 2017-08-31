@@ -38,6 +38,12 @@ namespace Breeze.TumbleBit.Controllers
                 return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, "Formatting error", string.Join(Environment.NewLine, errors));
             }
 
+            if (this.tumbleBitManager.IsConnected() || this.tumbleBitManager.IsTumbling())
+            {
+                // Do not want to connect again as it is unnecessary and can cause problems
+                return this.Ok();
+            }
+
             try
             {
                 var tumblerParameters = await this.tumbleBitManager.ConnectToTumblerAsync();
@@ -50,6 +56,7 @@ namespace Breeze.TumbleBit.Controllers
                     ["network"] = tumblerParameters.Network.Name,
                     ["estimate"] = "10080"
                 };
+
                 return this.Json(parameterDictionary);
             }
             catch (Exception e)
@@ -70,6 +77,11 @@ namespace Breeze.TumbleBit.Controllers
             {
                 var errors = this.ModelState.Values.SelectMany(e => e.Errors.Select(m => m.ErrorMessage));
                 return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, "Formatting error", string.Join(Environment.NewLine, errors));
+            }
+
+            if (this.tumbleBitManager.IsTumbling())
+            {
+                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, "Already started tumbling", "");
             }
 
             try

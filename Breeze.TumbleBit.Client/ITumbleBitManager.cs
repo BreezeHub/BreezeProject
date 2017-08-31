@@ -60,5 +60,14 @@ namespace Breeze.TumbleBit.Client
         /// </summary>
         string TumblerAddress { get; }
 
+        /// <summary>
+        /// Method for interrogating whether server has already been connected to
+        /// </summary>
+        bool IsConnected();
+
+        /// <summary>
+        /// Method for interrogating whether tumbling client has been initialised & is running
+        /// </summary>
+        bool IsTumbling();
     }
 }
