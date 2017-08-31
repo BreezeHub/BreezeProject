@@ -7,6 +7,9 @@ using Microsoft.AspNetCore.Mvc;
 using Breeze.TumbleBit.Client;
 using Breeze.TumbleBit.Models;
 using NBitcoin;
+using Stratis.Bitcoin.Features.Wallet;
+using Stratis.Bitcoin.Features.Wallet.Models;
+using Stratis.Bitcoin.Utilities;
 using Stratis.Bitcoin.Utilities.JsonErrors;
 
 namespace Breeze.TumbleBit.Controllers
@@ -17,11 +20,12 @@ namespace Breeze.TumbleBit.Controllers
     [Route("api/[controller]")]
     public class TumbleBitController : Controller
     {
-        private readonly ITumbleBitManager tumbleBitManager;
+        private readonly IWalletManager walletManager;
 
-        public TumbleBitController(ITumbleBitManager tumbleBitManager)
+        public TumbleBitController(ITumbleBitManager tumbleBitManager, IWalletManager walletManager)
         {
             this.tumbleBitManager = tumbleBitManager;
+            this.walletManager = walletManager;
         }
 
         /// <summary>
@@ -152,6 +156,54 @@ namespace Breeze.TumbleBit.Controllers
             catch (Exception e)
             {
                 return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, $"An error occured retrieving the watch only balances.", e.ToString());
+            }
+        }
+        
+        /// <summary>
+        /// Gets the balance of the destination wallet.
+        /// </summary>
+        /// <param name="request">The request parameters.</param>        
+        /// <returns></returns>
+        [Route("destination-balance")]
+        [HttpGet]
+        public IActionResult GetDestinationBalance([FromQuery] WalletBalanceRequest request)
+        {
+            Guard.NotNull(request, nameof(request));
+
+            // checks the request is valid
+            if (!this.ModelState.IsValid)
+            {
+                var errors = this.ModelState.Values.SelectMany(e => e.Errors.Select(m => m.ErrorMessage));
+                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, "Formatting error", string.Join(Environment.NewLine, errors));
+            }
+
+            try
+            {
+                WalletBalanceModel model = new WalletBalanceModel();
+
+                var accounts = this.walletManager.GetAccounts(request.WalletName).ToList();
+                foreach (var account in accounts)
+                {
+                    var result = account.GetSpendableAmount();
+
+                    AccountBalance balance = new AccountBalance
+                    {
+                        //TODO:update this for mainnet
+                        CoinType = CoinType.Testnet,
+                        Name = account.Name,
+                        HdPath = account.HdPath,
+                        AmountConfirmed = result.ConfirmedAmount,
+                        AmountUnconfirmed = result.UnConfirmedAmount,
+                    };
+
+                    model.AccountsBalances.Add(balance);
+                }
+
+                return this.Json(model);
+            }
+            catch (Exception e)
+            {
+                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
             }
         }
     }
