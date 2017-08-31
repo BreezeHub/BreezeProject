@@ -74,17 +74,17 @@
               <tr>
                 <td>Available</td>
                 <td>{{ confirmedBalance | coinNotation }}</td>
-                <td>{{ watchConfirmedBalance | coinNotation }}</td>
+                <td>{{ destinationConfirmedBalance | coinNotation }}</td>
               </tr>
               <tr>
                 <td>Pending</td>
                 <td>{{ unconfirmedBalance | coinNotation }}</td>
-                <td>{{ watchUnconfirmedBalance | coinNotation }}</td>
+                <td>{{ destinationUnconfirmedBalance | coinNotation }}</td>
               </tr>
               <tr class="total">
                 <td>Total</td>
                 <td>{{ totalBalance | coinNotation }}</td>
-                <td>{{ watchTotalBalance | coinNotation }}</td>
+                <td>{{ destinationTotalBalance | coinNotation }}</td>
               </tr>
             </tbody>
           </table>

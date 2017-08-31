@@ -26,12 +26,12 @@ export class TumblebitComponent implements OnInit {
   private confirmedBalance: number;
   private unconfirmedBalance: number;
   private totalBalance: number;
-  private watchWalletName: string;
-  private watchConfirmedBalance: number;
-  private watchUnconfirmedBalance: number;
-  private watchTotalBalance: number;
   private walletBalanceSubscription: Subscription;
-  private watchWalletBalanceSubscription: Subscription;
+  private destinationWalletName: string;
+  private destinationConfirmedBalance: number;
+  private destinationUnconfirmedBalance: number;
+  private destinationTotalBalance: number;
+  private destinationWalletBalanceSubscription: Subscription;
   private isConnected: Boolean = false;
   private tumblerAddressCopied: boolean = false;
   private tumblerParameters: any;
@@ -48,14 +48,13 @@ export class TumblebitComponent implements OnInit {
   ngOnInit() {
     this.getWalletFiles();
     this.getWalletBalance();
-    this.getWatchWalletBalance();
     this.checkTumblingStatus();
     this.connectToTumbler();
   };
 
   ngOnDestroy() {
     this.walletBalanceSubscription.unsubscribe();
-    this.watchWalletBalanceSubscription.unsubscribe();
+    this.destinationWalletBalanceSubscription.unsubscribe();
   };
 
   private buildTumbleForm(): void {
@@ -72,6 +71,11 @@ export class TumblebitComponent implements OnInit {
 
   // TODO: abstract to a shared utility lib
   onValueChanged(originalForm: FormGroup, formErrors: object, data?: any) {
+    if (this.destinationWalletBalanceSubscription) {
+      this.destinationWalletBalanceSubscription.unsubscribe();
+      this.destinationWalletName = this.tumbleForm.get("selectWallet").value;
+      this.getDestinationWalletBalance();
+    }
     if (!originalForm) { return; }
     const form = originalForm;
     for (const field in formErrors) {
@@ -162,6 +166,7 @@ export class TumblebitComponent implements OnInit {
           }
         }
       )
+    ;
   }
 
   private tumbleClicked() {
@@ -179,7 +184,7 @@ export class TumblebitComponent implements OnInit {
     } else {
       let tumbleRequest = new TumbleRequest(
         this.globalService.getWalletName(),
-        this.tumbleForm.get('selectWallet').value,
+        this.destinationWalletName,
         this.tumbleForm.get('walletPassword').value
       )
 
@@ -267,17 +272,15 @@ export class TumblebitComponent implements OnInit {
     ;
   };
 
-  private getWatchWalletBalance() {
-    //TODO: attach to its own API function
-    let walletInfo = new WalletInfo(this.globalService.getWalletName(), this.globalService.getCoinType())
-    this.watchWalletBalanceSubscription = this.apiService.getWalletBalance(walletInfo)
+  private getDestinationWalletBalance() {
+    this.destinationWalletBalanceSubscription = this.tumblebitService.getWalletDestinationBalance(this.destinationWalletName)
       .subscribe(
         response =>  {
           if (response.status >= 200 && response.status < 400) {
-              let balanceResponse = response.json();
-              this.watchConfirmedBalance = balanceResponse.balances[0].amountConfirmed;
-              this.watchUnconfirmedBalance = balanceResponse.balances[0].amountUnconfirmed;
-              this.watchTotalBalance = this.watchConfirmedBalance + this.watchUnconfirmedBalance;
+            let balanceResponse = response.json();
+            this.destinationConfirmedBalance = balanceResponse.balances[0].amountConfirmed;
+            this.destinationUnconfirmedBalance = balanceResponse.balances[0].amountUnconfirmed;
+            this.destinationTotalBalance = this.destinationConfirmedBalance + this.destinationUnconfirmedBalance;
           }
         },
         error => {
@@ -325,6 +328,10 @@ export class TumblebitComponent implements OnInit {
               alert(error.json().errors[0].message);
             }
           }
+        },
+        () => {
+          this.destinationWalletName = this.tumbleForm.get("selectWallet").value;
+          this.getDestinationWalletBalance()
         }
       )
     ;

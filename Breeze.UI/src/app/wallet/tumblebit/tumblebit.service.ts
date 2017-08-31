@@ -15,6 +15,8 @@ export class TumblebitService {
   private tumblerClientUrl = 'http://localhost:5000/api/TumbleBit/';
   private headers = new Headers({ 'Content-Type': 'application/json' });
 
+  private pollingInterval = 10000;
+
   // Might make sense to populate tumblerParams here because services are singletons
 
   connectToTumbler(): Observable<any> {
@@ -38,6 +40,17 @@ export class TumblebitService {
   stopTumbling(): Observable<any> {
     return this.http
       .get(this.tumblerClientUrl + 'stop')
+      .map((response: Response) => response);
+  }
+
+  getWalletDestinationBalance(data: string): Observable<any> {
+    let params: URLSearchParams = new URLSearchParams();
+    params.set('walletName', data);
+
+    return Observable
+      .interval(this.pollingInterval)
+      .startWith(0)
+      .switchMap(() => this.http.get(this.tumblerClientUrl + 'destination-balance', new RequestOptions({headers: this.headers, search: params})))
       .map((response: Response) => response);
   }
 }
