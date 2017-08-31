@@ -123,7 +123,7 @@ function startApi() {
       apiPath = path.join(__dirname, '".\\assets\\daemon\\Breeze.Daemon.exe"');
   }
 
-  apiProcess = exec('"' + apiPath + '" light -testnet', {
+  apiProcess = exec('"' + apiPath + '" light -testnet -tumblebit', {
       detached: true
   }, (error, stdout, stderr) => {
       if (error) {
