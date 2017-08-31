@@ -41,3 +41,6 @@ npm install
 
 - Using development variables (environments/index.ts) :  `npm run electron:dev`
 - Using production variables (environments/index.prod.ts) :  `npm run electron:prod`
+
+Enjoy and please give us [feedback](https://stratisplatform.slack.com/messages/C5F5GGLC8/), [contribute](https://github.com/BreezeHub) and join us on the [slack](https://stratisplatform.slack.com/messages/C5F5GGLC8/).
+
