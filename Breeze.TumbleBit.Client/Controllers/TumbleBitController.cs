@@ -98,7 +98,7 @@ namespace Breeze.TumbleBit.Controllers
         /// <summary>
         /// Is tumbler tumbling.
         /// </summary>
-        [Route("is_tumbling")]
+        [Route("is-tumbling")]
         [HttpGet]
         public async Task<IActionResult> IsTumblingAsync()
         {
