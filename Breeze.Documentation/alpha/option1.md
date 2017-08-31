@@ -29,4 +29,5 @@ Mac users need to install Tor prior to running the alpha.  It can be installed v
 brew install tor 
 ```
 
+Enjoy and please give us [feedback](https://stratisplatform.slack.com/messages/C5F5GGLC8/), [contribute](https://github.com/BreezeHub) and join us on the [slack](https://stratisplatform.slack.com/messages/C5F5GGLC8/).
 
