@@ -69,5 +69,11 @@ namespace Breeze.TumbleBit.Client
         /// Method for interrogating whether tumbling client has been initialised & is running
         /// </summary>
         bool IsTumbling();
+
+        /// <summary>
+        /// Method to retrieve tumbler parameters if connection has been previously established
+        /// </summary>
+        /// <returns></returns>
+        ClassicTumblerParameters GetTumblerParameters();
     }
 }
