@@ -56,7 +56,7 @@ namespace Breeze.TumbleBit.Client
         }
 
         /// <inheritdoc />
-        public async Task<ClassicTumblerParameters> ConnectToTumblerAsync(Uri serverAddress)
+        public Task<ClassicTumblerParameters> ConnectToTumblerAsync(Uri serverAddress)
         {
             // TODO this method will probably need to change as the connection to a tumbler is currently done during configuration
             // of the TumblebitRuntime. This method can then be modified to potentially be a convenience method 
@@ -93,7 +93,7 @@ namespace Breeze.TumbleBit.Client
             this.tumblingState.TumblerParameters = this.TumblerParameters;
             this.tumblingState.Save();
 
-            return this.TumblerParameters;
+            return Task.FromResult(this.TumblerParameters);
         }
 
         /// <inheritdoc />
@@ -164,10 +164,10 @@ namespace Breeze.TumbleBit.Client
             return Task.CompletedTask;
         }
 
-        public async Task<bool> IsTumblingAsync()
+        public /*async*/ Task<bool> IsTumblingAsync()
         {
             //TODO: return real value (use await or change method return type to just 'bool')
-            return true;
+            return Task.FromResult(true); //TODO: or this
         }
 
         public Task StopAsync()

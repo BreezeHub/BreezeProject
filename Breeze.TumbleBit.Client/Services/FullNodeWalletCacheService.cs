@@ -184,9 +184,6 @@ namespace Breeze.TumbleBit.Client.Services
                     var block = this.tumblingState.chain.GetBlock(watchOnlyTx.Value.BlockHash);
                     var confCount = this.tumblingState.chain.Tip.Height - block.Height;
 
-                    if (confCount == null)
-                        confCount = 0;
-
                     var entry = new FullNodeWalletEntry()
                     {
                         TransactionId = watchOnlyTx.Value.Transaction.GetHash(),
