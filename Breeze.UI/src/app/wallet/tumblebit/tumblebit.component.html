@@ -7,10 +7,10 @@
         <div class="col-xs-12 col-sm-6 text-center">
           <div class="col-10 my-4 offset-1">
             <i class="icon-tumblebit my-4 OFF"></i>
-            <p class="help mt-4">The Privacy Protocol takes one bitcoin at a time, anonymizes them, and returns them to the destination wallet. It can take some time to transfer several coins.</p>
+            <p class="help mt-4">The Privacy Protocol takes one bitcoin at a time, anonymizes them, and transfers them to the destination wallet. It can take some time to transfer several coins.</p>
           </div>
           <form class="col-10 my-4 offset-1" [formGroup]="tumbleForm">
-            <div class="row">
+            <div class="row" *ngIf="!tumbling">
               <label class="col-12 text-left" for="">Destination</label>
             </div>
             <!-- <div class="form-group mb-4">
@@ -21,13 +21,13 @@
                 <option>personalWallet</option>
               </select>
             </div> -->
-            <select class="form-control custom-select col-12" formControlName="selectWallet">
+            <select *ngIf="!tumbling" class="form-control custom-select col-12" formControlName="selectWallet">
               <option *ngFor="let wallet of wallets" [value]="wallet">{{ wallet }}</option>
             </select>
-            <div class="row">
+            <div *ngIf="!tumbling" class="row">
               <label class="col-12 text-left mt-3">Wallet Password</label>
             </div>
-            <input type="password" class="form-control" formControlName="walletPassword" placeholder="Please enter you wallet password.">
+            <input *ngIf="!tumbling" type="password" class="form-control" formControlName="walletPassword"  placeholder="Please enter you wallet password.">
               <div *ngIf="tumbleFormErrors.walletPassword" class="form-control-feedback">{{ tumbleFormErrors.walletPassword }}</div>
             <button type="button" class="btn btn-lg btn-primary mt-4" (click)="tumbleClicked()">{{ tumbling ? "Stop Tumbling" : "Start Tumbling" }}
             </button>
