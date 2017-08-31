@@ -1,12 +1,12 @@
 # Changing the Breeze Server that your Breeze Wallet uses for Privacy
 
-The uri address used to connect the wallet to a Breeze Server is not editable from the user interface in this release.
+The uri address used to connect the Breeze Wallet to a Breeze Server is not editable from the user interface in this release.
 
 ```
 We do not recommend you change your server if you have already started tumbling coins.
 ```
 
-If you wish to change it, navigate to your NTumbleBit folder and locate the client.conf and change the value.
+If you wish to change it, navigate to your NTumbleBit folder and locate the client.conf to change the server address.
 
 The configuration file can be found in the user's home directory at `.ntumblebit/client.conf` or `%appdata%\NTumblebit\client.conf` on Windows.
 
