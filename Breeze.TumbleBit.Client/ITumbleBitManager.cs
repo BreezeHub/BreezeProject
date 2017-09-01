@@ -27,7 +27,7 @@ namespace Breeze.TumbleBit.Client
         Task<bool> IsTumblingAsync();
 
         /// <summary>
-        /// Stops the tumbler if it is tumbling.
+        /// Stops the tumbler if it is tumbling and switches to readonly mode.
         /// </summary>
         /// <returns></returns>
         Task StopAsync();

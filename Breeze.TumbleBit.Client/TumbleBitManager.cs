@@ -171,10 +171,20 @@ namespace Breeze.TumbleBit.Client
             return Task.FromResult(this.isTumbling);
         }
 
-        public Task StopAsync()
+        public async Task StopAsync()
         {
-            //TODO
-            throw new NotImplementedException();
+            await this.stateMachine.Stop();
+            this.isTumbling = false;
+
+            //now restart in read only mode
+            string[] args = { "-testnet" };
+
+            var config = new FullNodeTumblerClientConfiguration(this.tumblingState);
+            config.OnlyMonitor = true;
+            config.LoadArgs(args);
+
+            this.runtime = TumblerClientRuntime.FromConfiguration(config, null);
+            this.tumblingState.Save();
         }
 
         /// <inheritdoc />
