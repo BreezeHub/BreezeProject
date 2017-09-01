@@ -6,7 +6,8 @@
         <!-- left column -->
         <div class="col-xs-12 col-sm-6 text-center">
           <div class="col-10 my-4 offset-1">
-            <i class="icon-tumblebit my-4 OFF"></i>
+            <i *ngIf="!tumbling" class="icon-tumblebit my-4 OFF"></i>
+            <i *ngIf="tumbling" class="icon-tumblebit my-4 ON"></i>
             <p class="help mt-4">The Privacy Protocol takes one bitcoin at a time, anonymizes them, and transfers them to the destination wallet. It can take some time to transfer several coins.</p>
           </div>
           <form class="col-10 my-4 offset-1" [formGroup]="tumbleForm">
