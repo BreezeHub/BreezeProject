@@ -33,12 +33,6 @@ namespace Breeze.TumbleBit.Client
         Task StopAsync();
 
         /// <summary>
-        /// Get the confirmed and unconfirmed balances from the watchonly wallet.
-        /// </summary>
-        /// <returns></returns>
-        Task<WatchOnlyBalances> GetWatchOnlyBalances();
-
-        /// <summary>
         /// Processes a block received from the network.
         /// </summary>
         /// <param name="height">The height of the block in the blockchain.</param>

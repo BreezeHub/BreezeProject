@@ -177,12 +177,6 @@ namespace Breeze.TumbleBit.Client
             throw new NotImplementedException();
         }
 
-        public Task<WatchOnlyBalances> GetWatchOnlyBalances()
-        {
-            //TODO
-            throw new NotImplementedException();
-        }
-
         /// <inheritdoc />
         public void PauseTumbling()
         {

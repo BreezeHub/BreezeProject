@@ -152,30 +152,6 @@ namespace Breeze.TumbleBit.Controllers
         }
 
         /// <summary>
-        /// Connect to a tumbler.
-        /// </summary>
-        [Route("watchonly_balances")]
-        [HttpPost]
-        public async Task<IActionResult> GetWatchOnlyBalancesAsync()
-        {
-            try
-            {
-                var watchOnlyBalances = await this.tumbleBitManager.GetWatchOnlyBalances();
-
-                var parameterDictionary = new Dictionary<string, string>()
-                {
-                    ["confirmed"] = watchOnlyBalances.Confirmed.ToString(),
-                    ["unconfirmed"] = watchOnlyBalances.Unconfirmed.ToString()
-                };
-                return this.Json(parameterDictionary);
-            }
-            catch (Exception e)
-            {
-                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, $"An error occured retrieving the watch only balances.", e.ToString());
-            }
-        }
-        
-        /// <summary>
         /// Gets the balance of the destination wallet.
         /// </summary>
         /// <param name="request">The request parameters.</param>        
