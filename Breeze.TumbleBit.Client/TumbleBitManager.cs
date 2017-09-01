@@ -23,6 +23,13 @@ namespace Breeze.TumbleBit.Client
     /// <seealso cref="Breeze.TumbleBit.Client.ITumbleBitManager" />
     public class TumbleBitManager : ITumbleBitManager
     {
+        public enum TumbleState
+        {
+            Started,
+            Stopped,
+            MonitorOnly
+        }
+
         private ILoggerFactory loggerFactory;
         private readonly WalletManager walletManager;
         private readonly IWatchOnlyWalletManager watchOnlyWalletManager;
@@ -38,7 +45,7 @@ namespace Breeze.TumbleBit.Client
         private StateMachinesExecutor stateMachine;
 
         private bool isConnected { get; set; }
-        private bool isTumbling { get; set; }
+        public TumbleState State { get; set; } = TumbleState.Stopped;
         private ClassicTumblerParameters tumblerParameters { get; set; }
 
         public string TumblerAddress { get; private set; }
@@ -161,20 +168,14 @@ namespace Breeze.TumbleBit.Client
             this.stateMachine = new StateMachinesExecutor(this.runtime);
             this.stateMachine.Start();
 
-            this.isTumbling = true;
+            this.State = TumbleState.Started;
 
             return Task.CompletedTask;
-        }
-
-        public /*async*/ Task<bool> IsTumblingAsync()
-        {
-            return Task.FromResult(this.isTumbling);
         }
 
         public async Task StopAsync()
         {
             await this.stateMachine.Stop();
-            this.isTumbling = false;
 
             //now restart in read only mode
             string[] args = { "-testnet" };
@@ -185,6 +186,7 @@ namespace Breeze.TumbleBit.Client
 
             this.runtime = TumblerClientRuntime.FromConfiguration(config, null);
             this.tumblingState.Save();
+            this.State = TumbleState.MonitorOnly;
         }
 
         /// <inheritdoc />
@@ -225,12 +227,7 @@ namespace Breeze.TumbleBit.Client
         {
             return this.isConnected;
         }
-
-        public bool IsTumbling()
-        {
-            return this.isTumbling;
-        }
-
+        
         public ClassicTumblerParameters GetTumblerParameters()
         {
             return this.tumblerParameters;

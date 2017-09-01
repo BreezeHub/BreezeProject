@@ -21,12 +21,6 @@ namespace Breeze.TumbleBit.Client
         Task TumbleAsync(string originWalletName, string destinationWalletName, string originWalletPassword);
 
         /// <summary>
-        /// Returns whether the tumbler is tumbling.
-        /// </summary>
-        /// <returns></returns>
-        Task<bool> IsTumblingAsync();
-
-        /// <summary>
         /// Stops the tumbler if it is tumbling and switches to readonly mode.
         /// </summary>
         /// <returns></returns>
@@ -60,14 +54,15 @@ namespace Breeze.TumbleBit.Client
         bool IsConnected();
 
         /// <summary>
-        /// Method for interrogating whether tumbling client has been initialised & is running
-        /// </summary>
-        bool IsTumbling();
-
-        /// <summary>
         /// Method to retrieve tumbler parameters if connection has been previously established
         /// </summary>
         /// <returns></returns>
         ClassicTumblerParameters GetTumblerParameters();
+
+        /// <summary>
+        /// The state of the tumbler
+        /// </summary>
+        TumbleBitManager.TumbleState State { get; set; }
+
     }
 }
