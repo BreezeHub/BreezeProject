@@ -23,6 +23,13 @@ namespace Breeze.TumbleBit.Client
     /// <seealso cref="Breeze.TumbleBit.Client.ITumbleBitManager" />
     public class TumbleBitManager : ITumbleBitManager
     {
+        public enum TumbleState
+        {
+            Started,
+            Stopped,
+            MonitorOnly
+        }
+
         private ILoggerFactory loggerFactory;
         private readonly WalletManager walletManager;
         private readonly IWatchOnlyWalletManager watchOnlyWalletManager;
@@ -38,7 +45,7 @@ namespace Breeze.TumbleBit.Client
         private StateMachinesExecutor stateMachine;
 
         private bool isConnected { get; set; }
-        private bool isTumbling { get; set; }
+        public TumbleState State { get; set; } = TumbleState.Stopped;
         private ClassicTumblerParameters tumblerParameters { get; set; }
 
         public string TumblerAddress { get; private set; }
@@ -161,26 +168,25 @@ namespace Breeze.TumbleBit.Client
             this.stateMachine = new StateMachinesExecutor(this.runtime);
             this.stateMachine.Start();
 
-            this.isTumbling = true;
+            this.State = TumbleState.Started;
 
             return Task.CompletedTask;
         }
 
-        public /*async*/ Task<bool> IsTumblingAsync()
+        public async Task StopAsync()
         {
-            return Task.FromResult(this.isTumbling);
-        }
+            await this.stateMachine.Stop();
 
-        public Task StopAsync()
-        {
-            //TODO
-            throw new NotImplementedException();
-        }
+            //now restart in read only mode
+            string[] args = { "-testnet" };
 
-        public Task<WatchOnlyBalances> GetWatchOnlyBalances()
-        {
-            //TODO
-            throw new NotImplementedException();
+            var config = new FullNodeTumblerClientConfiguration(this.tumblingState);
+            config.OnlyMonitor = true;
+            config.LoadArgs(args);
+
+            this.runtime = TumblerClientRuntime.FromConfiguration(config, null);
+            this.tumblingState.Save();
+            this.State = TumbleState.MonitorOnly;
         }
 
         /// <inheritdoc />
@@ -221,12 +227,7 @@ namespace Breeze.TumbleBit.Client
         {
             return this.isConnected;
         }
-
-        public bool IsTumbling()
-        {
-            return this.isTumbling;
-        }
-
+        
         public ClassicTumblerParameters GetTumblerParameters()
         {
             return this.tumblerParameters;

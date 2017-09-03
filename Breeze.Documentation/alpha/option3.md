@@ -37,6 +37,12 @@ From within Breeze.UI directory run:
 npm install
 ```
 
+To run the app in debug mode:
+
+```
+npm start
+```
+
 ## To build for production
 
 - Using development variables (environments/index.ts) :  `npm run electron:dev`
