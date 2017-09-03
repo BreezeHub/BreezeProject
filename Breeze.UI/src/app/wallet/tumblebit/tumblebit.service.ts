@@ -15,7 +15,7 @@ export class TumblebitService {
   private tumblerClientUrl = 'http://localhost:5000/api/TumbleBit/';
   private headers = new Headers({ 'Content-Type': 'application/json' });
 
-  private pollingInterval = 10000;
+  private pollingInterval = 3000;
 
   // Might make sense to populate tumblerParams here because services are singletons
 
@@ -25,9 +25,11 @@ export class TumblebitService {
       .map((response: Response) => response);
   };
 
-  getTumblingStatus(): Observable<any> {
-    return this.http
-      .get(this.tumblerClientUrl + 'is-tumbling')
+  getTumblingState(): Observable<any> {
+    return Observable
+      .interval(this.pollingInterval)
+      .startWith(0)
+      .switchMap(() => this.http.get(this.tumblerClientUrl + 'tumbling-state'))
       .map((response: Response) => response);
   }
 

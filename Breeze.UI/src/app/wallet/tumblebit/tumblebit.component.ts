@@ -39,11 +39,12 @@ export class TumblebitComponent implements OnInit {
   private fee: number;
   private denomination: number;
   private tumbleStatus: any;
+  private tumbleStateSubscription: Subscription;
   private tumbleForm: FormGroup;
   private tumbling: Boolean = false;
   private connectForm: FormGroup;
   private wallets: [string];
-  private tumblerAddress: string = "ctb://7obtcd7mkosmxeuh.onion/?h=03c632023c4a8587845ad918b8e5f53f7bf18319";
+  private tumblerAddress: string = "Unknown";
 
   ngOnInit() {
     this.getWalletFiles();
@@ -55,6 +56,7 @@ export class TumblebitComponent implements OnInit {
   ngOnDestroy() {
     this.walletBalanceSubscription.unsubscribe();
     this.destinationWalletBalanceSubscription.unsubscribe();
+    this.tumbleStateSubscription.unsubscribe();
   };
 
   private buildTumbleForm(): void {
@@ -108,11 +110,15 @@ export class TumblebitComponent implements OnInit {
   }
 
   private checkTumblingStatus() {
-    this.tumblebitService.getTumblingStatus()
+    this.tumbleStateSubscription = this.tumblebitService.getTumblingState()
       .subscribe(
         response => {
           if (response.status >= 200 && response.status < 400) {
-            this.tumbling = response.json();
+            if (response.json() === "MonitorOnly" || response.json() === "Stopped") {
+              this.tumbling = false;
+            } else if (response.json() === "Tumbling" || response.json() === "Started") {
+              this.tumbling = true;
+            }
           }
         },
         error => {
@@ -145,6 +151,7 @@ export class TumblebitComponent implements OnInit {
         response => {
           if (response.status >= 200 && response.status < 400) {
             this.tumblerParameters = response.json();
+            this.tumblerAddress = this.tumblerParameters.tumbler
             this.estimate = this.tumblerParameters.estimate / 3600;
             this.fee = this.tumblerParameters.fee * 100;
             this.denomination = this.tumblerParameters.denomination;
@@ -217,29 +224,28 @@ export class TumblebitComponent implements OnInit {
   }
 
   private stopTumbling() {
-    this.tumbling = false;
-    // this.tumblebitService.stopTumbling()
-    //   .subscribe(
-    //     response => {
-    //       if (response.status >= 200 && response.status < 400) {
-    //         this.tumbling = false;
-    //       }
-    //     },
-    //     error => {
-    //       console.error(error);
-    //       if (error.status === 0) {
-    //         alert('Something went wrong while connecting to the TumbleBit Client. Please restart the application.');
-    //       } else if (error.status >= 400) {
-    //         if (!error.json().errors[0]) {
-    //           console.error(error);
-    //         }
-    //         else {
-    //           alert(error.json().errors[0].message);
-    //         }
-    //       }
-    //     }
-    //   )
-    // ;
+    this.tumblebitService.stopTumbling()
+      .subscribe(
+        response => {
+          if (response.status >= 200 && response.status < 400) {
+            this.tumbling = false;
+          }
+        },
+        error => {
+          console.error(error);
+          if (error.status === 0) {
+            alert('Something went wrong while connecting to the TumbleBit Client. Please restart the application.');
+          } else if (error.status >= 400) {
+            if (!error.json().errors[0]) {
+              console.error(error);
+            }
+            else {
+              alert(error.json().errors[0].message);
+            }
+          }
+        }
+      )
+    ;
   }
 
   // TODO: move into a shared service
