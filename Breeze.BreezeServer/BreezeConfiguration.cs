@@ -122,13 +122,18 @@ namespace Breeze.BreezeServer
                 TumblerApiBaseUrl = configFile.GetOrDefault<string>("tumbler.url", null);
 
                 // Use user keyfile; default new key if invalid
-                TumblerRsaKeyFile = configFile.GetOrDefault<string>("tumbler.rsakeyfile", Path.Combine(GetDefaultDataDir("NTumbleBitServer"), "Tumbler.pem"));
-                
+
                 var bitcoinNetwork = "MainNet";
                 if (IsTestNet)
                 {
                     bitcoinNetwork = "TestNet";
                 }
+
+                // Create directory for key files if it does not already exist
+                Directory.CreateDirectory(Path.Combine(GetDefaultDataDir("NTumbleBitServer"), bitcoinNetwork));
+
+                TumblerRsaKeyFile = configFile.GetOrDefault<string>("tumbler.rsakeyfile", Path.Combine(GetDefaultDataDir("NTumbleBitServer"), "Tumbler.pem"));
+                
                 var nTumbleBitPath = GetDefaultDataDir("NTumbleBitServer");
                 var defaultTumblerRsaKeyFile = Path.Combine(nTumbleBitPath, bitcoinNetwork, "Tumbler.pem");
                 TumblerRsaKeyFile = BreezeConfigurationValidator.ValidateTumblerRsaKeyFile(
@@ -147,6 +152,7 @@ namespace Breeze.BreezeServer
             catch (Exception e)
             {
                 Console.WriteLine(e);
+
                 throw new Exception("ERROR: Unable to read configuration");
             }
         }
