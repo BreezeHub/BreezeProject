@@ -11,23 +11,19 @@
 
 # BreezeServer
 
-(*** **Update 25th July 2017:** *We are continuing to work on this documentation please check back for regular updates.* ***)
+BreezeServer is a service host for our implementation of [TumbleBit](http://tumblebit.cash) in .NET Core. It is an trustless bitcoin-compatible anonymous payments protocol.
 
-BreezeServer is a service host for our implementation of [TumbleBit](http://tumblebit.cash) in .NET Core. It is an untrusted<sup>*</sup> bitcoin-compatible anonymous payments protocol.
-
-<sup>*</sup>Here *untrusted*, is used in a cryptographic context to indicate that the TumbleBit protocol does not require trust to perform its function.
-
-## The BreezeServer Experimental Release
+## The BreezeServer Alpha Release
 This release includes the following:
 
 ###### Node Advertisment Protocol
 
   A high level overview of the protocol *operations* performed by each Breeze TumbleBit Server is as follows:
-  1. The node operator starts up the BreezeServer software
-  2. The node checks to see if it has registered itself on the Stratis blockchain before
-  3. If it has registered, the tumbler service is initialized as normal
-  4. If the node has not yet registered, or if its configuration has changed, the registration transaction updates and is broadcast again.
-  5. Once registered the service is ready for connections from BreezeClients.
+  1. The node operator starts up the BreezeServer software.
+  2. The node checks to see if it has already registered itself on the Stratis blockchain.
+  3. If it has registered, the tumbler service is initialized as normal.
+  4. If the node has not yet registered, or if its configuration has changed, the registration transaction updates and it broadcasts again.
+  5. Once registered the service is ready for connections from BreezeClients such as BreezeWallet.
 
 ###### Registration Transaction
 
@@ -48,52 +44,67 @@ As this is alpha software, the tumbler is currently configured to only operate o
 #### Prerequisites:
 
 As a user, you will need:
-  - [.NET Core SDK 1.0.4](https://github.com/dotnet/core/blob/master/release-notes/download-archives/1.0.4-sdk-download.md) (see below)
-  - [StratisX](https://github.com/stratisproject/StratisX) fully synced, rpc enabled
-  - [Bitcoin Core 0.13.1](https://bitcoin.org/bin/bitcoin-core-0.13.1/) fully synched, rpc enabled
+  - [.NET Core 1.1.2 SDK 1.0.4](https://github.com/dotnet/core/blob/master/release-notes/download-archives/1.1.2-download.md) which is available for Windows, Mac OS and several Linux distributions (RHEL, Ubuntu, Debian, Fedora, CentOS, SUSE).
+  - [StratisD](https://github.com/stratisproject/StratisX) fully synced, rpc enabled
+  - [Bitcoin Core 0.13.1](https://bitcoin.org/bin/bitcoin-core-0.13.1/) or later.  Fully sync'd, rpc enabled.
 
-You can easily install the SDK on ubuntu systems after installing the runtime by running:
-```
-sudo apt-get install dotnet-dev-1.0.4
-```
-More information about installing .NET Core on your system can be found [here](https://www.microsoft.com/net/core). Later versions of Bitcoin Core should work as well.
+#### Install .Net Core SDK:
 
-If you are a developer or want to browse the code, you additionally require:
-  - [Visual Studio Code](https://code.visualstudio.com/) with [C# Extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode.csharp) (cross platform)
-  - [Visual Studio 2017](https://www.visualstudio.com/downloads/) (Windows only)
+More information about installing .NET Core on your system can be found [here](https://www.microsoft.com/net/core).  If you are a developer or want to browse the code, you may like to install one of the following:
 
-#### Configuring Bitcoin Core for testnet
-[Download](https://bitcoin.org/bin/bitcoin-core-0.13.1/) Bitcoin Core 0.13.1
-Create/edit your bitcoin.conf:
+  - [Visual Studio Code](https://code.visualstudio.com/) with [C# Extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode.csharp) (cross platform), or
+  - [Visual Studio 2017](https://www.visualstudio.com/downloads/) (Windows and Mac OS)
+
+#### Install Stratis X (and configure StratisX to use the stratis testnet blockchain)
+
+##### Windows and Mac
+
+Packages for Windows and Mac OS X can be found [here](https://github.com/stratisproject/stratisX/releases/tag/v2.0.0.3).
+
+Run the installed *stratisqt* in testnet mode and let it sync the testnet blockchain transaction.
+
 ```
-# ~/.bitcoin/bitcoin.conf
-# run on testnet
+stratis-qt -testnet
+```
+
+This will create a folder on your computer named Stratis in the following location:
+
+```
+%AppData%\Roaming\Stratis
+```
+
+Close the software, create a ```stratis.conf``` file in this folder and set it up a follows:
+
+```
+# ~/.stratis/stratis.conf
+
+# Run on the test network instead of the real bitcoin network.
 testnet=1
 
-# server=1 tells Bitcoin-Qt and bitcoind to accept JSON-RPC commands
+# reindex the blockchain
+txindex=1
+
+#run in the background
+daemon=1
+
+# RPC user and password. We don't yet support cookie authentication
+rpcuser=stratisuser
+rpcpassword=stratispassword
+
+#accept json rpc commands
 server=1
 
-# Enable pruning to reduce storage requirements by deleting old blocks. 
+# Optional: pruning can reduce the disk usage
 prune=2000
-
-rpcuser=bitcoinuser
-rpcpassword=bitcoinpassword
 ```
+Run again. This time you need not specify explicitly the testnet flag, because you already set it in the config. You can send it some testcoins.
 
-Place the file in the relevant directory based on your system:
-| OS | bitcoin.conf parent directory |
-| --- | --- |
-| Linux                   | /home/\<username\>/.bitcoin/                                     |
-| Mac OS                  | /Users/\<username\>/Library/Application Support/Bitcoin/         |
-| Windows Vista, 7, 8, 10 | C:\Users\\<username\>\AppData\Roaming\Bitcoin\                   |
-| Windows XP              | C:\Documents and Settings\\<username\>\Application Data\Bitcoin\ |
+##### Linux
 
-Finally, boot up bitcoind or bitcoin-qt, let it sync with the network, and send it some coin.
+On linux we currently recommend you install and run stratisd v2.0.0.3.
 
-#### Configuring StratisX node to use the stratis testnet blockchain
-
-##### Step 1: Create a user for running stratisd
-This step is optional, but for better security and resource separation I suggest you create a separate user just for running stratisd. We will also use the ~/bin directory to keep locally installed files (others might want to use /usr/local/bin instead). We will download source code files to the ~/src directory.
+###### Step 1: Create a user for running stratisd (optional)
+This step is optional, but for better security and resource separation we suggest you create a separate user just for running stratisd. We will also use the ~/bin directory to keep locally installed files (others might want to use /usr/local/bin instead). We will download source code files to the ~/src directory. (Example here is for linux and was tested on Ubuntu).
 
 Enter the following at your terminal:
 ```
@@ -113,8 +124,7 @@ Leave the stratis user at your shell:
 exit
 ```
 
-##### Step 2: Download StratisX
-We currently recommend StratisX to run stratisd v2.0.0.3.
+###### Step 2: Download StratisD
 
 Here are some pointers for ubuntu:
 ```
@@ -128,7 +138,7 @@ make -f makefile.unix # This will error if you don't have all dependencies liste
 cp -a stratisd ~/bin   
 ```
 
-##### Step 3: Configure & run StratisX on testnet
+###### Step 3: Configure & run StratisD on testnet
 
 Create/edit your stratis.conf:
 ```
@@ -152,6 +162,9 @@ daemon=1
 rpcuser=stratisuser
 rpcpassword=stratispassword
 
+#accept json rpc commands
+server=1
+
 # Optional: pruning can reduce the disk usage
 prune=2000
 ```
@@ -173,28 +186,53 @@ Allow some time to pass so stratisd connects to the network and starts downloadi
 stratisd getinfo
 ```
 
-#### Installing .NET Core
+#### Configuring Bitcoin Core for testnet
 
-BreezeServer is built upon .NET Core.
+[Download](https://bitcoin.org/en/bitcoin-core/) Bitcoin Core.
 
-You will need to install it on your system following [these instructions](https://www.microsoft.com/net/core).
+Create/edit your bitcoin.conf:
+```
+# ~/.bitcoin/bitcoin.conf
+# run on testnet
+testnet=1
+
+# server=1 tells Bitcoin-Qt and bitcoind to accept JSON-RPC commands
+server=1
+
+# Enable pruning to reduce storage requirements by deleting old blocks. 
+prune=2000
+
+rpcuser=bitcoinuser
+rpcpassword=bitcoinpassword
+```
+
+Place the file in the relevant directory based on your system:
+
+| OS | bitcoin.conf parent directory |
+| --- | --- |
+| Linux                   | /home/\<username\>/.bitcoin/                                     |
+| Mac OS                  | /Users/\<username\>/Library/Application Support/Bitcoin/         |
+| Windows Vista, 7, 8, 10 | C:\Users\\<username\>\AppData\Roaming\Bitcoin\                   |
+| Windows XP              | C:\Documents and Settings\\<username\>\Application Data\Bitcoin\ |
+
+Finally, boot up bitcoind or bitcoin-qt, let it sync with the network, and send it some coin.
+
 
 #### Getting the Code
 
 Navigate to where you would like to save the code in your shell and then:
 ```
-git clone git@github.com:BreezeHub/BreezeServer.git --recursive
+git clone http://www.github.com/BreezeHub/BreezeServer.git --recursive
 ```
 The `--recursive` command is vital because BreezeServer relies on git submodules.
 
-#### `dotnet restore`
+In the newly created Breeze.Server folder run the following command:
 
-According to the documentation:
-> The `dotnet restore` command uses NuGet to restore dependencies as well as project-specific tools that are specified in the project file. By default, the restoration of dependencies and tools are performed in parallel.
+```dotnet restore```
 
-run `dotnet restore` inside the newly created BreezeServer directory.
+The `dotnet restore` command uses NuGet to restore dependencies as well as project-specific tools that are specified in the project file.
 
-#### Running Tests
+#### Running Tests (optional)
 
 ```
 cd Breeze.BreezeServer.Tests/
@@ -213,23 +251,72 @@ Test Run Successful.
 Test execution time: 4.5518 Seconds
 ```
 
-#### Configuring NTumbleBit to RPC bitcoind
+##### Setup Tor
 
-###### Key files from NTumbleBit
-Our codebase does not yet generate the identifying `Tumbler.pem` rsa key. To get this key, one must clone the NTumbleBit repository
+The server requires Tor Hidden Services as part of the privacy protocol.  Download Tor [here](https://www.torproject.org/download/download) and run it with the following command.
 
 ```
-git clone git@github.com:NTumbleBit/NTumbleBit.git
+tor -controlport 9051 -cookieauthentication 1
 ```
-and run the NTumbleBit server to generate `Tumbler.pem`, we'll need this later:
+#### Configure & Run
+
+##### Notes before you start
+- Your wallet is only as secure as your configuration files, so apply appropriate permissions.
+- This is pre-release alpha software. You should only be working testnet.
+
+##### Server
+After installing .NET Core, launching stratisd or stratisqt on testnet.  Run the server and an empty configuration file will be generated for you.
+
 ```
-cd NTumbleBit/NTumbleBit.ClassicTumbler.Server.CLI
-dotnet restore
+cd Breeze.BreezeServer
 dotnet run -testnet
 ```
 
+##### Configuring `breeze.conf`
+Now we're ready to set up `breeze.conf`. Edit the contents to look something like this.  The minimum config to get a working version is shown:
+
+```
+# ~/.breezeserver/breeze.conf
+# %AppData%\Roaming\breeze.conf
+
+# we must work on testnet for the alpha
+testnet=1
+
+#these settings are the RPC connection to your stratis wallet,
+#can be found in stratis.conf
+rpc.user=stratisuser
+rpc.password=stratispassword
+
+#use the default post 26174
+rpc.url=http://127.0.0.1:26174
+
+breeze.ipv4=127.0.0.1
+#breeze.ipv6=2001:0db8:85a3:0000:0000:8a2e:0370:7334
+#breeze.onion=0123456789ABCDEF
+#breeze.port=37123
+
+# for testing purposes, feel free to change these values
+#breeze.regtxfeevalue=10000
+#breeze.regtxoutputvalue=1000
+
+tumbler.url=http://127.0.0.1:37123/api/v1/
+
+# reference the key file we just generated
+#tumbler.rsakeyfile=/home/dan/.breezeserver/Tumbler.pem
+
+# reference the pubkey of the stratisd testnet wallet containing the registration tx fee
+# Get a list of your stratisd addresses with `stratisd listaddressgroupings`
+#or generate a 'receive' address if you are using stratisX
+tumbler.ecdsakeyaddress=<stratisd wallet address>
+```
+
+Run the server again with `dotnet run -testnet` within `<path-to-BreezeServer>/Breeze.BreezeServer`, and keep it running.
+
+
+#### Configuring NTumbleBit to RPC bitcoind
+
 ###### Configuration file
-After running NTumbleBit, a configuration directory will be created. This is where `Tumbler.pem` will be.
+After running the server and getting a successful tumbler registration, a configuration directory will be created. You will find a default server.conf file has been generated:
 
 | OS | NTumbleBit/TestNet/ config parent directory |
 | --- | --- |
@@ -238,33 +325,18 @@ After running NTumbleBit, a configuration directory will be created. This is whe
 | Windows Vista, 7, 8, 10 | C:\Users\\<username\>\.ntumblebitserver\       |
 | Windows XP              | C:\Documents and Settings\\<username\>\Application Data\.ntumblebitserver\ |
 
-edit the `server.conf` file within the `TestNet` directory to configure RPC with bitcoind
+edit the `server.conf` file within the `TestNet` directory to configure RPC with bitcoind and also add your tor settings.
 ```
 # ~/.ntumblebitserver/TestNet/server.conf
 rpc.url=http://127.0.0.1:18332/
 rpc.user=bitcoinuser
 rpc.password=bitcoinpassword
+
+tor.enabled=true
+tor.server=127.0.0.1:9051
+tor.cookiefile={path to your cookie file}
+tor.virtualport=80
 ```
-
-#### Configure & Run
-
-#####Notes before you start
-- Your wallet is only as secure as your configuration files, so apply appropriate permissions.
-- We are working on the testnet from here on.
-
-##### Server
-After installing .NET Core, launching stratisd on testnet, and restoring dependencies via `dotnet restore`...
-
-First run the server and the configuration will be generated for you.
-
-```
-cd Breeze.BreezeServer
-dotnet run -testnet
-```
-
-###### Key files from NTumbleBit
-Our codebase does not yet generate the identifying `Tumbler.pem` rsa key. Copy this key from the NTumbleBit config folder referenced earlier.
-The RSA key file `Tumbler.pem` should be located in the NTumbleBitServer data directory. It will be in `~/.ntumblebitserver/TestNet/Tumbler.pem` on ubuntu. Look at the table in the NTumbleBit section above if you can't find it on your system. Copy this file into the same directory as `breeze.conf`
 
 BreezeServer's configuration file can be found in the user's home directory at `.breezeserver/breeze.conf` or `%appdata%\Breeze.BreezeServer\breeze.conf` on Windows.
 
@@ -275,8 +347,9 @@ BreezeServer's configuration file can be found in the user's home directory at `
 | Windows Vista, 7, 8, 10 | C:\Users\\<username\>\AppData\Roaming\BreezeServer\                   |
 | Windows XP              | C:\Documents and Settings\\<username\>\Application Data\BreezeServer\ |
 
+
+#### on ubuntu...
 ```
-# on ubuntu...
 cp ~/.ntumblebitserver/TestNet/Tumbler.pem ~/.breezeserver/
 ```
 
@@ -292,46 +365,7 @@ stratisd getnewaddress
 ```
 The output of this command is our `tumbler.ecdsakeyaddress` for our conf file.
 
-##### Configuring `breeze.conf`
-Now we're ready to set up `breeze.conf`. Edit the contents to look something like this:
-
-```
-# ~/.breezeserver/breeze.conf
-
-testnet=1
-rpc.user=stratisuser
-rpc.password=stratispassword
-rpc.url=http://127.0.0.1:26174
-breeze.ipv4=127.0.0.1
-#breeze.ipv6=2001:0db8:85a3:0000:0000:8a2e:0370:7334
-#breeze.onion=0123456789ABCDEF
-breeze.port=37123
-
-# for testing purposes, feel free to change these values
-breeze.regtxfeevalue=10000
-breeze.regtxoutputvalue=1000
-
-tumbler.url=http://127.0.0.1:37123/api/v1/
-
-# reference the key file we just generated
-tumbler.rsakeyfile=/home/dan/.breezeserver/Tumbler.pem
-
-# reference the pubkey of the stratisd testnet wallet containing the registration tx fee
-# Get a list of your stratisd addresses with `stratisd listaddressgroupings`
-tumbler.ecdsakeyaddress=<stratisd wallet address>
-```
-
-Run the server again with `dotnet run -testnet` within `<path-to-BreezeServer>/Breeze.BreezeServer`, and keep it running.
 
 ##### Client
 
-After starting the server, the address of the tumbler will be printed to console. The client config key `tumbler.server` should be set to this address.
-
-At this stage the client is hosted  in [NTumbleBit](https://github.com/ntumblebit/ntumblebit)
-
-Breeze.BreezeClient is not implemented yet. Please view the [documentation](https://github.com/ntumblebit/ntumblebit/wiki/How-to-Run#the-client) for NTumbleBit Client
-
-###### The registration transaction
-
-###### FAQ
-Please read the [FAQ](https://github.com/BreezeHub/BreezeServer/wiki/FAQ) if you are struggling.
+After starting the server, the address of the tumbler will be printed to console. This address can be copied for use in the client.
