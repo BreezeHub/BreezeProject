@@ -49,17 +49,10 @@
             <tbody>
               <tr>
                 <td>
-                  <code data-toggle="tooltip" data-placement="top" title="{{ tumblerAddress }}">{{ tumblerAddress | slice:0:60 }}...</code>
-                  <span class="ml-3">
-                    <a ngxClipboard [cbContent]="tumblerAddress" (click)="onCopiedClick()">copy</a>
-                  </span>
+                  <code data-toggle="tooltip" data-placement="top" title="{{ tumblerAddress }}">{{ tumblerAddress }}...</code>
                 </td>
-
               </tr>
             </tbody>
-            <div class="text-center" *ngIf="tumblerAddressCopied">
-              <span class="badge badge-success col">The server address has been copied to your clipboard.</span>
-            </div>
           </table>
           <!-- /table 1-->
           <!-- table 2 -->
