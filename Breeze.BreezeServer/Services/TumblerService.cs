@@ -28,9 +28,10 @@ namespace Breeze.BreezeServer
 			else
 				args = new string[] {"-testnet"};
 
-			Logs.Configure(new FuncLoggerFactory(i => new CustomerConsoleLogger(i, (a, b) => true, false)));
+            ConsoleLoggerProcessor loggerProcessor = new ConsoleLoggerProcessor();
+            Logs.Configure(new FuncLoggerFactory(i => new CustomerConsoleLogger(i, Logs.SupportDebug(false), false, loggerProcessor)));
 
-			using (var interactive = new Interactive())
+            using (var interactive = new Interactive())
 			{
 				var config = new TumblerConfiguration();
 				config.LoadArgs(args);
