@@ -44,7 +44,7 @@ export class TumblebitComponent implements OnInit {
   private tumbling: Boolean = false;
   private connectForm: FormGroup;
   private wallets: [string];
-  private tumblerAddress: string = "Unknown";
+  private tumblerAddress: string = "Connecting...";
 
   ngOnInit() {
     this.getWalletFiles();
