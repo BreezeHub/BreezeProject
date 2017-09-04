@@ -29,5 +29,11 @@ Mac users need to install Tor prior to running the alpha.  It can be installed v
 brew install tor 
 ```
 
+Navigate to your Tor folder and issue this command to start Tor:
+
+```
+tor -controlport -9051 -cookieauthentication 1
+```
+
 Enjoy and please give us [feedback](https://stratisplatform.slack.com/messages/C5F5GGLC8/), [contribute](https://github.com/BreezeHub) and join us on the [slack](https://stratisplatform.slack.com/messages/C5F5GGLC8/).
 
