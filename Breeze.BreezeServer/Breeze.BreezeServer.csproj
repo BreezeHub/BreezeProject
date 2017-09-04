@@ -35,7 +35,7 @@
     <PackageReference Include="CommandLineParser" Version="2.1.1-beta" />
     <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
     <PackageReference Include="DBreeze" Version="1.84.0" />
-    <PackageReference Include="NStratis" Version="4.0.0.15" />
+    <PackageReference Include="NStratis" Version="4.0.0.32" />
     <PackageReference Include="Serilog.Extensions.Logging.File" Version="1.0.1" />	
   </ItemGroup>
 
