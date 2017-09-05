@@ -12,20 +12,42 @@ using NTumbleBit.Services;
 using Stratis.Bitcoin;
 using Stratis.Bitcoin.Features.Wallet;
 using Stratis.Bitcoin.Features.WatchOnlyWallet;
+using NTumbleBit;
 
 namespace Breeze.TumbleBit.Client.Services
 {
+    class ClientEscapeData
+    {
+        public ScriptCoin EscrowedCoin
+        {
+            get;
+            set;
+        }
+        public TransactionSignature ClientSignature
+        {
+            get;
+            set;
+        }
+        public Key EscrowKey
+        {
+            get;
+            set;
+        }
+    }
+
     public class FullNodeWalletService : IWalletService
     {
         private TumblingState tumblingState;
 
-        public FullNodeWalletService(TumblingState tumblingState, string walletName, string accountName)
+        public FullNodeWalletService(TumblingState tumblingState)
         {
             this.tumblingState = tumblingState;
         }
 
-        public IDestination GenerateAddress()
+        public async Task<IDestination> GenerateAddressAsync()
         {
+            // TODO: Equivalent of addwitnessaddress rpc?
+
             Wallet wallet = this.tumblingState.walletManager.GetWallet(this.tumblingState.OriginWalletName);
 
             HdAddress hdAddress = null;
@@ -51,7 +73,7 @@ namespace Breeze.TumbleBit.Client.Services
             return coin;
         }
 
-        public Transaction FundTransaction(TxOut txOut, FeeRate feeRate)
+        public async Task<Transaction> FundTransactionAsync(TxOut txOut, FeeRate feeRate)
         {
             Transaction tx = new Transaction();
             tx.Outputs.Add(txOut);
@@ -93,6 +115,53 @@ namespace Breeze.TumbleBit.Client.Services
 
             // FundTransaction modifies tx directly
             this.tumblingState.walletTransactionHandler.FundTransaction(txBuildContext, tx);
+
+            return tx;
+        }
+
+        public async Task<Transaction> ReceiveAsync(ScriptCoin escrowedCoin, TransactionSignature clientSignature, Key escrowKey, FeeRate feeRate)
+        {
+            var input = new ClientEscapeData()
+            {
+                ClientSignature = clientSignature,
+                EscrowedCoin = escrowedCoin,
+                EscrowKey = escrowKey
+            };
+
+            var cashout = await GenerateAddressAsync();
+            var tx = new Transaction();
+
+            // Note placeholders - this step is performed again further on
+            var txin = new TxIn(input.EscrowedCoin.Outpoint);
+            txin.ScriptSig = new Script(
+            Op.GetPushOp(TrustedBroadcastRequest.PlaceholderSignature),
+            Op.GetPushOp(TrustedBroadcastRequest.PlaceholderSignature),
+            Op.GetPushOp(input.EscrowedCoin.Redeem.ToBytes())
+            );
+            txin.Witnessify();
+            tx.AddInput(txin);
+
+            tx.Outputs.Add(new TxOut()
+            {
+                ScriptPubKey = cashout.ScriptPubKey,
+                Value = input.EscrowedCoin.Amount
+            });
+
+            ScriptCoin[] coinArray = { input.EscrowedCoin };
+
+            var currentFee = tx.GetFee(coinArray);
+            tx.Outputs[0].Value -= feeRate.GetFee(tx) - currentFee;
+
+            var txin2 = tx.Inputs[0];
+            var signature = tx.SignInput(input.EscrowKey, input.EscrowedCoin);
+            txin2.ScriptSig = new Script(
+            Op.GetPushOp(input.ClientSignature.ToBytes()),
+            Op.GetPushOp(signature.ToBytes()),
+            Op.GetPushOp(input.EscrowedCoin.Redeem.ToBytes())
+            );
+            txin2.Witnessify();
+
+            this.tumblingState.walletManager.SendTransaction(tx.ToHex());
 
             return tx;
         }

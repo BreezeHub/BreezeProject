@@ -32,12 +32,8 @@ namespace Breeze.TumbleBit.Client
                 };
             }
 
-            // TODO: These ultimately need to be brought in from the tumblebit client UI
-            string dummyWalletName = "";
-            string dummyAccountName = "";
-
             FullNodeWalletCache cache = new FullNodeWalletCache(repository, tumblingState);
-            service.WalletService = new FullNodeWalletService(tumblingState, dummyWalletName, dummyAccountName);
+            service.WalletService = new FullNodeWalletService(tumblingState);
             service.BroadcastService = new FullNodeBroadcastService(cache, repository, tumblingState);
             service.BlockExplorerService = new FullNodeBlockExplorerService(cache, repository, tumblingState);
             service.TrustedBroadcastService = new FullNodeTrustedBroadcastService(service.BroadcastService, service.BlockExplorerService, repository, cache, tracker, tumblingState)

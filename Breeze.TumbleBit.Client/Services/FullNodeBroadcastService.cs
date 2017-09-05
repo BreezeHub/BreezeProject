@@ -65,21 +65,29 @@ namespace Breeze.TumbleBit.Client.Services
             var transactions = Repository.List<Record>("Broadcasts");
             foreach (var tx in transactions)
                 tx.Transaction.CacheHashes();
-            return transactions.TopologicalSort(tx => transactions.Where(tx2 => tx.Transaction.Inputs.Any<TxIn>(input => input.PrevOut.Hash == tx2.Transaction.GetHash()))).ToArray();
-        }
 
+            var txByTxId = transactions.ToDictionary(t => t.Transaction.GetHash());
+            var dependsOn = transactions.Select(t => new
+            {
+                Tx = t,
+                Depends = t.Transaction.Inputs.Select(i => i.PrevOut)
+                                              .Where(o => txByTxId.ContainsKey(o.Hash))
+                                              .Select(o => txByTxId[o.Hash])
+            })
+            .ToDictionary(o => o.Tx, o => o.Depends.ToArray());
+            return transactions.TopologicalSort(tx => dependsOn[tx]).ToArray();
+        }
         public Transaction[] TryBroadcast()
         {
             uint256[] r = null;
             return TryBroadcast(ref r);
         }
-
         public Transaction[] TryBroadcast(ref uint256[] knownBroadcasted)
         {
             var startTime = DateTimeOffset.UtcNow;
             int totalEntries = 0;
             List<Transaction> broadcasted = new List<Transaction>();
-
+            var broadcasting = new List<Tuple<Transaction, Task<bool>>>();
             HashSet<uint256> knownBroadcastedSet = new HashSet<uint256>(knownBroadcasted ?? new uint256[0]);
             int height = _Cache.BlockCount;
             foreach (var obj in _Cache.GetEntries())
@@ -91,65 +99,62 @@ namespace Breeze.TumbleBit.Client.Services
             foreach (var tx in GetTransactions())
             {
                 totalEntries++;
-                if (!knownBroadcastedSet.Contains(tx.Transaction.GetHash()) &&
-                    TryBroadcastCore(tx, height))
+                if (!knownBroadcastedSet.Contains(tx.Transaction.GetHash()))
                 {
-                    broadcasted.Add(tx.Transaction);
+                    broadcasting.Add(Tuple.Create(tx.Transaction, TryBroadcastCoreAsync(tx, height)));
                 }
                 knownBroadcastedSet.Add(tx.Transaction.GetHash());
             }
+
             knownBroadcasted = knownBroadcastedSet.ToArray();
+
+            foreach (var broadcast in broadcasting)
+            {
+                if (broadcast.Item2.GetAwaiter().GetResult())
+                    broadcasted.Add(broadcast.Item1);
+            }
+
             Logs.Broadcasters.LogInformation($"Broadcasted {broadcasted.Count} transaction(s), monitoring {totalEntries} entries in {(long)(DateTimeOffset.UtcNow - startTime).TotalSeconds} seconds");
             return broadcasted.ToArray();
         }
 
-        private bool TryBroadcastCore(Record tx, int currentHeight)
+        private async Task<bool> TryBroadcastCoreAsync(Record tx, int currentHeight)
         {
-            bool remove;
-            var result = TryBroadcastCore(tx, currentHeight, out remove);
-            if (remove)
-                RemoveRecord(tx);
-            return result;
-        }
-
-        private bool TryBroadcastCore(Record tx, int currentHeight, out bool remove)
-        {
-            remove = currentHeight >= tx.Expiration;
-
-            // Happens when the caller does not know the previous input yet
-            if (tx.Transaction.Inputs.Count == 0 || tx.Transaction.Inputs[0].PrevOut.Hash == uint256.Zero)
-                return false;
-
-            bool isFinal = tx.Transaction.IsFinal(DateTimeOffset.UtcNow, currentHeight + 1);
-            if (!isFinal || IsDoubleSpend(tx.Transaction))
-                return false;
-
+            bool remove = false;
             try
             {
-                if (!this.tumblingState.walletManager.SendTransaction(tx.Transaction.ToHex()))
+                remove = currentHeight >= tx.Expiration;
+
+                //Happens when the caller does not know the previous input yet
+                if (tx.Transaction.Inputs.Count == 0 || tx.Transaction.Inputs[0].PrevOut.Hash == uint256.Zero)
                     return false;
-                
-                _Cache.ImportTransaction(tx.Transaction, 0);
-                Logs.Broadcasters.LogInformation($"Broadcasted {tx.Transaction.GetHash()}");
-                return true;
-            }
-            // TODO: Change exception type to better reflect use of full node
-            catch (RPCException ex)
-            {
-                if (ex.RPCResult == null || ex.RPCResult.Error == null)
+
+                bool isFinal = tx.Transaction.IsFinal(DateTimeOffset.UtcNow, currentHeight + 1);
+                if (!isFinal || IsDoubleSpend(tx.Transaction))
+                    return false;
+
+                try
                 {
-                    return false;
+                    this.tumblingState.walletManager.SendTransaction(tx.Transaction.ToHex());
+
+                    _Cache.ImportTransaction(tx.Transaction, 0);
+                    Logs.Broadcasters.LogInformation($"Broadcasted {tx.Transaction.GetHash()}");
+                    return true;
                 }
-                var error = ex.RPCResult.Error.Message;
-                if (ex.RPCResult.Error.Code != RPCErrorCode.RPC_TRANSACTION_ALREADY_IN_CHAIN &&
-                   !error.EndsWith("bad-txns-inputs-spent", StringComparison.OrdinalIgnoreCase) &&
-                   !error.EndsWith("txn-mempool-conflict", StringComparison.OrdinalIgnoreCase) &&
-                   !error.EndsWith("Missing inputs", StringComparison.OrdinalIgnoreCase))
+                catch (Exception ex)
                 {
+                    Console.WriteLine("Error broadcasting transaction: " + ex);
+
+                    // TODO: As per original code, need to determine the error to decide whether to remove
                     remove = false;
                 }
+                return false;
             }
-            return false;
+            finally
+            {
+                if (remove)
+                    RemoveRecord(tx);
+            }
         }
 
         private bool IsDoubleSpend(Transaction tx)
@@ -178,7 +183,7 @@ namespace Breeze.TumbleBit.Client.Services
             Repository.UpdateOrInsert<Transaction>("CachedTransactions", tx.Transaction.GetHash().ToString(), tx.Transaction, (a, b) => a);
         }
 
-        public bool Broadcast(Transaction transaction)
+        public Task<bool> BroadcastAsync(Transaction transaction)
         {
             var record = new Record();
             record.Transaction = transaction;
@@ -186,7 +191,7 @@ namespace Breeze.TumbleBit.Client.Services
             //3 days expiration
             record.Expiration = height + (int)(TimeSpan.FromDays(3).Ticks / Network.Main.Consensus.PowTargetSpacing.Ticks);
             Repository.UpdateOrInsert<Record>("Broadcasts", transaction.GetHash().ToString(), record, (o, n) => o);
-            return TryBroadcastCore(record, height);
+            return TryBroadcastCoreAsync(record, height);
         }
 
         public Transaction GetKnownTransaction(uint256 txId)

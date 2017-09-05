@@ -10,10 +10,6 @@ namespace Breeze.TumbleBit.Client.Services
 {
     public class FullNodeFeeService : IFeeService
     {
-        public FullNodeFeeService()
-        {
-        }
-
         public FeeRate FallBackFeeRate
         {
             get; set;
@@ -23,7 +19,25 @@ namespace Breeze.TumbleBit.Client.Services
             get; set;
         }
 
-        public FeeRate GetFeeRate()
+        FeeRate _CachedValue;
+        DateTimeOffset _CachedValueTime;
+        TimeSpan CacheExpiration = TimeSpan.FromSeconds(60 * 5);
+        public async Task<FeeRate> GetFeeRateAsync()
+        {
+            if (DateTimeOffset.UtcNow - _CachedValueTime > CacheExpiration)
+            {
+                var rate = await FetchRateAsync();
+                _CachedValue = rate;
+                _CachedValueTime = DateTimeOffset.UtcNow;
+                return rate;
+            }
+            else
+            {
+                return _CachedValue;
+            }
+        }
+
+        private async Task<FeeRate> FetchRateAsync()
         {
             decimal relayFee = MempoolValidator.MinRelayTxFee.FeePerK.ToUnit(MoneyUnit.BTC);
             var minimumRate = new FeeRate(Money.Coins(relayFee * 2), 1000); //0.00002000 BTC/kB

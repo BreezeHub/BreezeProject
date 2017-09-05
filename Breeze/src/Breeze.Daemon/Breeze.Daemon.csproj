@@ -21,6 +21,7 @@
     <ProjectReference Include="..\..\..\Alpha\Stratis.Bitcoin.Api\Stratis.Bitcoin.Api.csproj" />
     <ProjectReference Include="..\..\..\Alpha\Stratis.Bitcoin.Features.LightWallet\Stratis.Bitcoin.Features.LightWallet.csproj" />
     <ProjectReference Include="..\..\..\Alpha\Stratis.Bitcoin\Stratis.Bitcoin.csproj" />
+    <ProjectReference Include="..\..\..\BreezeCommon\BreezeProtocol\NTumbleBit\NTumbleBit.csproj" />
     <ProjectReference Include="..\..\..\Breeze.TumbleBit.Client\Breeze.TumbleBit.Client.csproj" />
   </ItemGroup>
 

@@ -35,7 +35,9 @@ namespace Breeze.Daemon
 
         public DualLogger(string name, Func<string, LogLevel, bool> filter, bool includeScopes)
         {
-            this.consoleLogger = new CustomerConsoleLogger(name, filter, includeScopes);
+            var loggerProcessor = new ConsoleLoggerProcessor();
+
+            this.consoleLogger = new CustomerConsoleLogger(name, filter, includeScopes, loggerProcessor);
 
             NLogLoggerProvider nLoggerProvider = new NLogLoggerProvider();
             this.nLogger = nLoggerProvider.CreateLogger(name);

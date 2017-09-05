@@ -165,6 +165,9 @@ namespace Breeze.TumbleBit.Client
             // TODO: Is this the right BlockObserver or should the one used by the Wallet feature be used?
             this.blockReceiver = this.signals.SubscribeForBlocks(new BlockObserver(this.chain, this));
 
+            var broadcaster = runtime.CreateBroadcasterJob();
+            broadcaster.Start();
+
             this.stateMachine = new StateMachinesExecutor(this.runtime);
             this.stateMachine.Start();
 

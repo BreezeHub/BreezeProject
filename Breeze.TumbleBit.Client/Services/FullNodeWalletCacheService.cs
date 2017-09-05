@@ -1,4 +1,5 @@
 ﻿using NBitcoin;
+using NTumbleBit.Logging;
 using NTumbleBit.Services;
 using Newtonsoft.Json.Linq;
 using System;
@@ -6,11 +7,10 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
-using Stratis.Bitcoin;
-using Stratis.Bitcoin.Features.BlockStore;
 using Stratis.Bitcoin.Features.WatchOnlyWallet;
 using Stratis.Bitcoin.Features.Wallet;
+using NTumbleBit;
+using System.Threading.Tasks;
 
 namespace Breeze.TumbleBit.Client.Services
 {
@@ -24,16 +24,24 @@ namespace Breeze.TumbleBit.Client.Services
         {
             get; set;
         }
+
+        public Transaction Transaction
+        {
+            get; set;
+        }
     }
 
     /// <summary>
-    /// Workaround around slow Bitcoin Core RPC. 
-    /// We are refreshing the list of received transaction once per block.
+    /// We are refreshing the list of received transactions once per block.
     /// </summary>
     public class FullNodeWalletCache
     {
         private readonly IRepository _Repo;
         private TumblingState tumblingState;
+
+        MultiValueDictionary<Script, FullNodeWalletEntry> _TxByScriptId = new MultiValueDictionary<Script, FullNodeWalletEntry>();
+        ConcurrentDictionary<uint256, FullNodeWalletEntry> _WalletEntries = new ConcurrentDictionary<uint256, FullNodeWalletEntry>();
+        const int MaxConfirmations = 1400;
 
         public FullNodeWalletCache(IRepository repository, TumblingState tumblingState)
         {
@@ -50,17 +58,17 @@ namespace Breeze.TumbleBit.Client.Services
 
         public void Refresh(uint256 currentBlock)
         {
-            var refreshedAt = _RefreshedAtBlock;
-            if(refreshedAt != currentBlock)
+            if (_RefreshedAtBlock != currentBlock)
             {
-                lock(_Transactions)
+                var newBlockCount = this.tumblingState.chain.Tip.Height;
+                //If we just udpated the value...
+                if (Interlocked.Exchange(ref _BlockCount, newBlockCount) != newBlockCount)
                 {
-                    if(refreshedAt != currentBlock)
-                    {
-                        RefreshBlockCount();
-                        _Transactions = ListTransactions(ref _KnownTransactions);
-                        _RefreshedAtBlock = currentBlock;
-                    }
+                    _RefreshedAtBlock = currentBlock;
+                    var startTime = DateTimeOffset.UtcNow;
+                    ListTransactions();
+                    //Logs.Wallet.LogInformation($"Updated {_WalletEntries.Count} cached transactions in {(long)(DateTimeOffset.UtcNow - startTime).TotalSeconds} seconds");
+                    Console.WriteLine($"Updated {_WalletEntries.Count} cached transactions in {(long)(DateTimeOffset.UtcNow - startTime).TotalSeconds} seconds");
                 }
             }
         }
@@ -70,45 +78,38 @@ namespace Breeze.TumbleBit.Client.Services
         {
             get
             {
-                if(_BlockCount == 0)
+                if (_BlockCount == 0)
                 {
-                    RefreshBlockCount();
+                    _BlockCount = this.tumblingState.chain.Tip.Height;
                 }
                 return _BlockCount;
             }
         }
 
-        private void RefreshBlockCount()
-        {
-                Interlocked.Exchange(ref _BlockCount, this.tumblingState.walletManager.LastBlockHeight());
-        }
-
         public Transaction GetTransaction(uint256 txId)
         {
-            var cached = GetCachedTransaction(txId);
-            if(cached != null)
-                return cached;
-            var tx = FetchTransaction(txId);
-            if(tx == null)
-                return null;
-            PutCached(tx);
-            return tx;
+            FullNodeWalletEntry entry = null;
+            if (_WalletEntries.TryGetValue(txId, out entry))
+            {
+                return entry.Transaction;
+            }
+            return null;
         }
 
-        ConcurrentDictionary<uint256, Transaction> _TransactionsByTxId = new ConcurrentDictionary<uint256, Transaction>();
+        //ConcurrentDictionary<uint256, Transaction> _TransactionsByTxId = new ConcurrentDictionary<uint256, Transaction>();
 
-        private Transaction FetchTransaction(uint256 txId)
+        // Made this non-static since you can't keep this static & search for transactions in the wallet
+        private async Task<Transaction> FetchTransactionAsync(uint256 txId)
         {
             try
             {
-                foreach (WatchedAddress addr in this.tumblingState.watchOnlyWalletManager.GetWatchOnlyWallet()
-                    .WatchedAddresses.Values)
+                foreach (WatchedAddress addr in this.tumblingState.watchOnlyWalletManager.GetWatchOnlyWallet().WatchedAddresses.Values)
                 {
                     foreach (Stratis.Bitcoin.Features.WatchOnlyWallet.TransactionData trans in addr.Transactions.Values)
                     {
                         if (trans.Transaction.GetHash() == txId)
                         {
-                            return trans.Transaction;
+                             return trans.Transaction;
                         }
                     }
                 }
@@ -131,48 +132,65 @@ namespace Breeze.TumbleBit.Client.Services
             }
         }
 
-        public FullNodeWalletEntry[] GetEntries()
+        public ICollection<FullNodeWalletEntry> GetEntries()
         {
-            lock(_Transactions)
+            return _WalletEntries.Values;
+        }
+
+        public IEnumerable<FullNodeWalletEntry> GetEntriesFromScript(Script script)
+        {
+            lock (_TxByScriptId)
             {
-                return _Transactions.ToArray();
+                IReadOnlyCollection<FullNodeWalletEntry> transactions = null;
+                if (_TxByScriptId.TryGetValue(script, out transactions))
+                    return transactions.ToArray();
+                return new FullNodeWalletEntry[0];
             }
         }
 
-        private void PutCached(Transaction tx)
+        private void AddTxByScriptId(uint256 txId, FullNodeWalletEntry entry)
         {
-            tx.CacheHashes();
-            _Repo.UpdateOrInsert("CachedTransactions", tx.GetHash().ToString(), tx, (a, b) => b);
-            lock(_TransactionsByTxId)
+            IEnumerable<Script> scripts = GetScriptsOf(entry.Transaction);
+            lock (_TxByScriptId)
             {
-                _TransactionsByTxId.TryAdd(tx.GetHash(), tx);
+                foreach (var s in scripts)
+                {
+                    _TxByScriptId.Add(s, entry);
+                }
+            }
+        }
+        private void RemoveTxByScriptId(FullNodeWalletEntry entry)
+        {
+            IEnumerable<Script> scripts = GetScriptsOf(entry.Transaction);
+            lock (_TxByScriptId)
+            {
+                foreach (var s in scripts)
+                {
+                    _TxByScriptId.Remove(s, entry);
+                }
             }
         }
 
-        private Transaction GetCachedTransaction(uint256 txId)
+        private static IEnumerable<Script> GetScriptsOf(Transaction tx)
         {
-            Transaction tx = null;
-            if(_TransactionsByTxId.TryGetValue(txId, out tx))
-            {
-                return tx;
-            }
-            var cached = _Repo.Get<Transaction>("CachedTransactions", txId.ToString());
-            if(cached != null)
-                _TransactionsByTxId.TryAdd(txId, cached);
-            return cached;
+            return tx.Outputs.Select(o => o.ScriptPubKey)
+                                    .Concat(tx.Inputs.Select(o => o.GetSigner()?.ScriptPubKey))
+                                    .Where(script => script != null);
         }
 
-
-        List<FullNodeWalletEntry> _Transactions = new List<FullNodeWalletEntry>();
-        HashSet<uint256> _KnownTransactions = new HashSet<uint256>();
-        List<FullNodeWalletEntry> ListTransactions(ref HashSet<uint256> knownTransactions)
+        void ListTransactions()
         {
-            List<FullNodeWalletEntry> array = new List<FullNodeWalletEntry>();
-            knownTransactions = new HashSet<uint256>();
-            var removeFromCache = new HashSet<uint256>(_TransactionsByTxId.Values.Select(tx => tx.GetHash()));
+            // TODO: Drop the batching from the RPC version to make the code simpler?
+
+            var removeFromWalletEntries = new HashSet<uint256>(_WalletEntries.Keys);
+
+            HashSet<uint256> processedTransacions = new HashSet<uint256>();
 
             // List all transactions, including those in watch-only wallet
             // (zero confirmations are acceptable)
+
+            // Original RPC command with parameters:
+            //var result = _RPCClient.SendCommand("listtransactions", "*", count, skip, true);
 
             // First examine watch-only wallet
             var watchOnlyWallet = this.tumblingState.watchOnlyWalletManager.GetWatchOnlyWallet();
@@ -184,28 +202,32 @@ namespace Breeze.TumbleBit.Client.Services
                     var block = this.tumblingState.chain.GetBlock(watchOnlyTx.Value.BlockHash);
                     var confCount = this.tumblingState.chain.Tip.Height - block.Height;
 
+                    // Ignore very old transactions
+                    if (confCount > MaxConfirmations)
+                        continue;
+
                     var entry = new FullNodeWalletEntry()
                     {
                         TransactionId = watchOnlyTx.Value.Transaction.GetHash(),
                         Confirmations = (int)confCount
                     };
 
-                    removeFromCache.Remove(watchOnlyTx.Value.Transaction.GetHash());
-                    if (knownTransactions.Add(entry.TransactionId))
-                    {
-                        array.Add(entry);
-                    }
+                    if (_WalletEntries.TryAdd(entry.TransactionId, entry))
+                        AddTxByScriptId(entry.TransactionId, entry);
                 }
             }
 
             // List transactions in regular source wallet
-            var wallet = this.tumblingState.OriginWallet;
-            foreach (var walletTx in wallet.GetAllTransactionsByCoinType(this.tumblingState.coinType))
+            foreach (var walletTx in this.tumblingState.OriginWallet.GetAllTransactionsByCoinType(this.tumblingState.coinType))
             {
                 var confCount = this.tumblingState.chain.Tip.Height - walletTx.BlockHeight;
 
                 if (confCount == null)
                     confCount = 0;
+
+                // Ignore very old transactions
+                if (confCount > MaxConfirmations)
+                    continue;
 
                 var entry = new FullNodeWalletEntry()
                 {
@@ -213,38 +235,31 @@ namespace Breeze.TumbleBit.Client.Services
                     Confirmations = (int)confCount
                 };
 
-                removeFromCache.Remove(walletTx.Id);
-                if (knownTransactions.Add(entry.TransactionId))
-                {
-                    array.Add(entry);
-                }
+                if (_WalletEntries.TryAdd(entry.TransactionId, entry))
+                    AddTxByScriptId(entry.TransactionId, entry);
             }
 
-            // TODO: Filter out high confirmation transactions upfront as in original code
-            
-            foreach (var remove in removeFromCache)
+            foreach (var remove in removeFromWalletEntries)
             {
-                Transaction opt;
-                _TransactionsByTxId.TryRemove(remove, out opt);
-            }
-            return array;
+                FullNodeWalletEntry opt;
+                if (_WalletEntries.TryRemove(remove, out opt))
+                {
+                    RemoveTxByScriptId(opt);
+                }
+            }        
         }
 
         public void ImportTransaction(Transaction transaction, int confirmations)
         {
-            PutCached(transaction);
-            lock(_Transactions)
+            var txId = transaction.GetHash();
+            var entry = new FullNodeWalletEntry()
             {
-                if(_KnownTransactions.Add(transaction.GetHash()))
-                {
-                    _Transactions.Insert(0,
-                        new FullNodeWalletEntry()
-                        {
-                            Confirmations = confirmations,
-                            TransactionId = transaction.GetHash()
-                        });
-                }
-            }
+                Confirmations = confirmations,
+                TransactionId = transaction.GetHash(),
+                Transaction = transaction
+            };
+            if (_WalletEntries.TryAdd(txId, entry))
+                AddTxByScriptId(txId, entry);
         }
     }
 }
