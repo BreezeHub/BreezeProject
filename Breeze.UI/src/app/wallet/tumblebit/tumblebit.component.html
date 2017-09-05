@@ -23,6 +23,7 @@
               </select>
             </div> -->
             <select *ngIf="!tumbling" class="form-control custom-select col-12" formControlName="selectWallet">
+              <option selected>Select a wallet ...</option>
               <option *ngFor="let wallet of wallets" [value]="wallet">{{ wallet }}</option>
             </select>
             <div *ngIf="!tumbling" class="row">

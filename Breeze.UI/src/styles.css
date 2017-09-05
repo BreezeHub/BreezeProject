@@ -9,7 +9,20 @@ body {
 }
 
 a:hover, button:hover {
-  cursor: pointer !important;
+  cursor: pointer;
+  -webkit-transform-origin: center bottom;
+  transform-origin: center bottom;
+  -webkit-animation-duration: 2s;
+  animation-duration: 2s;
+}
+
+button:disabled {
+  background: #98A3B3 !important;
+  border-color: #98A3B3 !important;
+}
+
+button:disabled:hover {
+  cursor: not-allowed !important;
 }
 
 code {
@@ -293,10 +306,6 @@ em.display-4 {
 
 #modalSend .float-right a:hover {
   text-decoration: none;
-}
-
-#modalReceive .myAddress {
-  margin-bottom: 2em;
 }
 
 #modalReceive .modal-body {
@@ -858,10 +867,6 @@ input.cmn-toggle-round-flat:checked + label:after {
 
 #Tumblebit .table .badge.badge-default {
   font-size: 1em !important;
-}
-
-#Tumblebit .table .badge.badge-success {
-  border-radius: 0 !important;
 }
 
 #Tumblebit .table .total td {
@@ -1579,7 +1584,7 @@ samp {
 
 code {
   padding: 0.2rem 0.4rem;
-  font-size: 90%;
+  font-size: 92%;
   color: #bd4147;
   background-color: #f7f7f9;
   border-radius: 0.25rem;
@@ -1594,7 +1599,7 @@ a > code {
 
 kbd {
   padding: 0.2rem 0.4rem;
-  font-size: 90%;
+  font-size: 92%;
   color: #fff;
   background-color: #878685;
   border-radius: 0.2rem;
@@ -1610,7 +1615,7 @@ pre {
   display: block;
   margin-top: 0;
   margin-bottom: 1rem;
-  font-size: 90%;
+  font-size: 92%;
   color: #878685;
 }
 
@@ -3249,7 +3254,7 @@ select.form-control-lg:not([size]):not([multiple]), .input-group-lg > select.for
 
 .btn.disabled, .btn:disabled {
   cursor: not-allowed;
-  opacity: .65;
+  opacity: 1;
 }
 
 .btn:active, .btn.active {

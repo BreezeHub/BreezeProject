@@ -4,7 +4,22 @@
 // without modifying source files.
 
 body {overflow-x: hidden;}
-a, button {&:hover {cursor: pointer !important;}}
+a, button {
+  &:hover {
+    cursor: pointer;
+    -webkit-transform-origin: center bottom;
+    transform-origin: center bottom;
+    -webkit-animation-duration: 2s;
+    animation-duration: 2s;
+  }
+}
+button {
+  &:disabled  {
+    background: $gray !important;
+    border-color:$gray !important;
+    &:hover {cursor: not-allowed !important;}
+  }
+}
 code {color: $spacegray !important;}
 .form-control::-webkit-input-placeholder { color: $input-color-placeholder; }  /* WebKit, Blink, Edge */
 .form-control:-moz-placeholder { color: $input-color-placeholder; }  /* Mozilla Firefox 4 to 18 */
@@ -241,7 +256,6 @@ em {
   .float-right {a {text-decoration: underline; &:hover {text-decoration: none;}}}
 }
 #modalReceive {
-  .myAddress {margin-bottom: 2em;}
   .modal-body {padding: 0 3em;}
   label {
     color: $blue;
@@ -516,7 +530,6 @@ $curve: cubic-bezier(0.650, 0.000, 0.450, 1.000);
     }
     .badge {
       &.badge-default {font-size: 1em !important;}
-      &.badge-success {border-radius: 0 !important;}
     }
     font-size: 0.75rem;
     background: white;
