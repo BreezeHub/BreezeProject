@@ -26,13 +26,7 @@
               <option selected>Select a wallet ...</option>
               <option *ngFor="let wallet of wallets" [value]="wallet">{{ wallet }}</option>
             </select>
-            <div *ngIf="!tumbling" class="row">
-              <label class="col-12 text-left mt-3">Wallet Password</label>
-            </div>
-            <input *ngIf="!tumbling" type="password" class="form-control" formControlName="walletPassword"  placeholder="Please enter you wallet password.">
-              <div *ngIf="tumbleFormErrors.walletPassword" class="form-control-feedback">{{ tumbleFormErrors.walletPassword }}</div>
-            <button type="button" class="btn btn-lg btn-primary mt-4" (click)="tumbleClicked()">{{ tumbling ? "Stop" : "Start" }}
-            </button>
+            <button type="button" class="btn btn-lg btn-primary mt-4" (click)="tumbleClicked()">{{ tumbling ? "Stop" : "Start" }}</button>
           </form>
         </div>
         <!-- /left column-->
@@ -50,7 +44,7 @@
             <tbody>
               <tr>
                 <td>
-                  <code data-toggle="tooltip" data-placement="top" title="{{ tumblerAddress }}">{{ tumblerAddress }}...</code>
+                  <code data-toggle="tooltip" data-placement="top" title="{{ tumblerAddress }}">{{ tumblerAddress }}</code>
                 </td>
               </tr>
             </tbody>

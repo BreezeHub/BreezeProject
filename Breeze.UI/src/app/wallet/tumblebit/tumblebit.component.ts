@@ -2,6 +2,7 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { NgbModal, NgbActiveModal, NgbDropdown } from '@ng-bootstrap/ng-bootstrap';
 import { FormGroup, FormControl, Validators, FormBuilder } from '@angular/forms';
 
+import { PasswordConfirmationComponent } from './password-confirmation/password-confirmation.component';
 import { ApiService } from '../../shared/services/api.service';
 import { GlobalService } from '../../shared/services/global.service';
 import { WalletInfo } from '../../shared/classes/wallet-info';
@@ -189,37 +190,9 @@ export class TumblebitComponent implements OnInit {
     if (!this.isConnected) {
       alert("Can't start tumbling when you're not connected to a server. Please try again later.")
     } else {
-      let tumbleRequest = new TumbleRequest(
-        this.globalService.getWalletName(),
-        this.destinationWalletName,
-        this.tumbleForm.get('walletPassword').value
-      )
-
-      this.tumblebitService
-        .startTumbling(tumbleRequest)
-        .subscribe(
-          response => {
-            if (response.status >= 200 && response.status < 400) {
-              this.tumbling = true;
-              //this.tumbleStatus = response.json();
-            }
-          },
-          error => {
-            console.error(error);
-            this.tumbling = false;
-            if (error.status === 0) {
-              alert('Something went wrong while connecting to the TumbleBit Client. Please restart the application.');
-            } else if (error.status >= 400) {
-              if (!error.json().errors[0]) {
-                console.error(error);
-              }
-              else {
-                alert(error.json().errors[0].message);
-              }
-            }
-          },
-        )
-      ;
+      const modalRef = this.modalService.open(PasswordConfirmationComponent);
+      modalRef.componentInstance.sourceWalletName = this.globalService.getWalletName();
+      modalRef.componentInstance.destinationWalletName = this.destinationWalletName;
     }
   }
 

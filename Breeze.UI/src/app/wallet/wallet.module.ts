@@ -33,7 +33,7 @@ import { TransactionDetailsComponent } from './transaction-details/transaction-d
     TumblebitComponent,
     HistoryComponent,
     SidebarComponent,
-    StatusBarComponent
+    StatusBarComponent,
   ],
   exports: []
 })

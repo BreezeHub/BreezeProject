@@ -15,11 +15,13 @@ import { LoginComponent } from './login/login.component';
 
 import { ApiService } from './shared/services/api.service';
 import { GlobalService } from './shared/services/global.service';
+import { TumblebitService } from './wallet/tumblebit/tumblebit.service';
 
 import { SendComponent } from './wallet/send/send.component';
 import { SendConfirmationComponent } from './wallet/send/send-confirmation/send-confirmation.component';
 import { ReceiveComponent } from './wallet/receive/receive.component';
 import { TransactionDetailsComponent } from './wallet/transaction-details/transaction-details.component';
+import { PasswordConfirmationComponent } from './wallet/tumblebit/password-confirmation/password-confirmation.component';
 import { LogoutConfirmationComponent } from './wallet/logout-confirmation/logout-confirmation.component';
 
 
@@ -39,19 +41,21 @@ import { LogoutConfirmationComponent } from './wallet/logout-confirmation/logout
     AppComponent,
     LoginComponent,
     LogoutConfirmationComponent,
+    PasswordConfirmationComponent,
     SendComponent,
     SendConfirmationComponent,
     ReceiveComponent,
     TransactionDetailsComponent
   ],
   entryComponents: [
+    PasswordConfirmationComponent,
     SendComponent,
     SendConfirmationComponent,
     ReceiveComponent,
     TransactionDetailsComponent,
     LogoutConfirmationComponent
   ],
-  providers: [ ApiService, GlobalService, Title ],
+  providers: [ ApiService, GlobalService, Title, TumblebitService ],
   bootstrap: [ AppComponent ]
 })
 
