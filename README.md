@@ -46,7 +46,7 @@ As this is alpha software, the tumbler is currently configured to only operate o
 As a user, you will need:
   - [.NET Core 1.1.2 SDK 1.0.4](https://github.com/dotnet/core/blob/master/release-notes/download-archives/1.1.2-download.md) which is available for Windows, Mac OS and several Linux distributions (RHEL, Ubuntu, Debian, Fedora, CentOS, SUSE).
   - [StratisD](https://github.com/stratisproject/StratisX) fully synced, rpc enabled
-  - [Bitcoin Core 0.13.1](https://bitcoin.org/bin/bitcoin-core-0.13.1/) or later.  Fully sync'd, rpc enabled.
+  - [Bitcoin Core 0.14.1](https://bitcoin.org/) or later.  Fully sync'd, rpc enabled.
 
 #### Install .Net Core SDK:
 
