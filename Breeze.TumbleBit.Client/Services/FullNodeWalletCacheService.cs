@@ -209,7 +209,8 @@ namespace Breeze.TumbleBit.Client.Services
                     var entry = new FullNodeWalletEntry()
                     {
                         TransactionId = watchOnlyTx.Value.Transaction.GetHash(),
-                        Confirmations = (int)confCount
+                        Confirmations = (int)confCount,
+                        Transaction = watchOnlyTx.Value.Transaction
                     };
 
                     if (_WalletEntries.TryAdd(entry.TransactionId, entry))
@@ -232,7 +233,8 @@ namespace Breeze.TumbleBit.Client.Services
                 var entry = new FullNodeWalletEntry()
                 {
                     TransactionId = walletTx.Id,
-                    Confirmations = (int)confCount
+                    Confirmations = (int)confCount,
+                    Transaction = walletTx.Transaction
                 };
 
                 if (_WalletEntries.TryAdd(entry.TransactionId, entry))
