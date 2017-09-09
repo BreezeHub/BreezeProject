@@ -42,7 +42,7 @@ namespace Breeze.TumbleBit
                         {
                             Formatting = Formatting.Indented,                            
                             ContractResolver = new CamelCasePropertyNamesContractResolver(),
-                            Converters = new List<JsonConverter> { new NetworkConverter() }
+                            Converters = new List<JsonConverter> { new NetworkConverter(), new PermutationTestProofConverter() }
                         };
 
                         services.AddSingleton<ITumbleBitManager, TumbleBitManager> ();
