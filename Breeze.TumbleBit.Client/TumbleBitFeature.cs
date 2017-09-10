@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using Stratis.Bitcoin.Features.Wallet.JsonConverters;
+using NTumbleBit.JsonConverters;
 
 using Stratis.Bitcoin.BlockPulling;
 using Stratis.Bitcoin.Builder;
@@ -42,7 +43,12 @@ namespace Breeze.TumbleBit
                         {
                             Formatting = Formatting.Indented,                            
                             ContractResolver = new CamelCasePropertyNamesContractResolver(),
-                            Converters = new List<JsonConverter> { new NetworkConverter(), new PermutationTestProofConverter() }
+                            Converters = new List<JsonConverter>
+                            {
+                                new NetworkConverter(),
+                                new PermutationTestProofConverter(),
+                                new PoupardSternProofConverter()
+                            }
                         };
 
                         services.AddSingleton<ITumbleBitManager, TumbleBitManager> ();
