@@ -312,13 +312,20 @@ namespace Breeze.TumbleBit.Client.Services
             if (chainBlock == null)
                 return false;
 
-            // TODO: We cannot obtain the complete block to pass to ProcessTransaction. Is this going to be a problem?
-            await Task.Run(() => this.tumblingState.walletManager.ProcessTransaction(transaction, chainBlock.Height, null)).ConfigureAwait(false);
-
-            if (success)
+            await Task.Run(() =>
             {
-                _Cache.ImportTransaction(transaction, GetBlockConfirmations(merkleProof.Header.GetHash()));
-            }
+                // TODO: We cannot obtain the complete block to pass to ProcessTransaction. Is this going to be a problem?
+                this.tumblingState.walletManager.ProcessTransaction(transaction, chainBlock.Height, null);
+
+                // We don't really have the same error conditions available that the original code used to determine success
+                success = true;
+
+                if (success)
+                {
+                    _Cache.ImportTransaction(transaction, GetBlockConfirmations(merkleProof.Header.GetHash()));
+                }
+            }).ConfigureAwait(false);
+
             return success;
         }
 
