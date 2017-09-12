@@ -36,7 +36,7 @@ namespace Breeze.TumbleBit.Client.Services
     /// </summary>
     public class FullNodeWalletCache
     {
-        private readonly IRepository _Repo;
+        private readonly IRepository repo;
         private TumblingState tumblingState;
 
         MultiValueDictionary<Script, FullNodeWalletEntry> _TxByScriptId = new MultiValueDictionary<Script, FullNodeWalletEntry>();
@@ -45,13 +45,8 @@ namespace Breeze.TumbleBit.Client.Services
 
         public FullNodeWalletCache(IRepository repository, TumblingState tumblingState)
         {
-            if(repository == null)
-                throw new ArgumentNullException("repository");
-            if (tumblingState == null)
-                throw new ArgumentNullException("tumblingState");
-
-            _Repo = repository;
-            this.tumblingState = tumblingState;
+            this.repo = repository ?? throw new ArgumentNullException("repository");
+            this.tumblingState = tumblingState ?? throw new ArgumentNullException("tumblingState");
         }
 
         volatile uint256 _RefreshedAtBlock;
@@ -88,8 +83,7 @@ namespace Breeze.TumbleBit.Client.Services
 
         public Transaction GetTransaction(uint256 txId)
         {
-            FullNodeWalletEntry entry = null;
-            if (_WalletEntries.TryGetValue(txId, out entry))
+            if (_WalletEntries.TryGetValue(txId, out FullNodeWalletEntry entry))
             {
                 return entry.Transaction;
             }
@@ -219,26 +213,29 @@ namespace Breeze.TumbleBit.Client.Services
             }
 
             // List transactions in regular source wallet
-            foreach (var walletTx in this.tumblingState.OriginWallet.GetAllTransactionsByCoinType(this.tumblingState.coinType))
+            foreach (var wallet in this.tumblingState.walletManager.Wallets)
             {
-                var confCount = this.tumblingState.chain.Tip.Height - walletTx.BlockHeight;
-
-                if (confCount == null)
-                    confCount = 0;
-
-                // Ignore very old transactions
-                if (confCount > MaxConfirmations)
-                    continue;
-
-                var entry = new FullNodeWalletEntry()
+                foreach (var walletTx in wallet.GetAllTransactionsByCoinType(this.tumblingState.coinType))
                 {
-                    TransactionId = walletTx.Id,
-                    Confirmations = (int)confCount,
-                    Transaction = walletTx.Transaction
-                };
+                    var confCount = this.tumblingState.chain.Tip.Height - walletTx.BlockHeight;
 
-                if (_WalletEntries.TryAdd(entry.TransactionId, entry))
-                    AddTxByScriptId(entry.TransactionId, entry);
+                    if (confCount == null)
+                        confCount = 0;
+
+                    // Ignore very old transactions
+                    if (confCount > MaxConfirmations)
+                        continue;
+
+                    var entry = new FullNodeWalletEntry()
+                    {
+                        TransactionId = walletTx.Id,
+                        Confirmations = (int)confCount,
+                        Transaction = walletTx.Transaction
+                    };
+
+                    if (_WalletEntries.TryAdd(entry.TransactionId, entry))
+                        AddTxByScriptId(entry.TransactionId, entry);
+                }
             }
 
             // TODO: The original code is somewhat unclear - removeFromWalletEntries is never added to in ListTransactions

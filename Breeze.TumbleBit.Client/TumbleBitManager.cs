@@ -14,6 +14,7 @@ using Stratis.Bitcoin.Features.MemoryPool;
 using Stratis.Bitcoin.Features.Wallet;
 using Stratis.Bitcoin.Features.WatchOnlyWallet;
 using Stratis.Bitcoin.Signals;
+using NTumbleBit.Services;
 
 namespace Breeze.TumbleBit.Client
 {
@@ -25,9 +26,8 @@ namespace Breeze.TumbleBit.Client
     {
         public enum TumbleState
         {
-            Started,
-            Stopped,
-            MonitorOnly
+            Tumbling,
+            OnlyMonitor
         }
 
         private ILoggerFactory loggerFactory;
@@ -43,12 +43,11 @@ namespace Breeze.TumbleBit.Client
         private IDisposable blockReceiver;
         private TumblerClientRuntime runtime;
         private StateMachinesExecutor stateMachine;
+        private BroadcasterJob broadcasterJob;
 
-        private bool isConnected { get; set; }
-        public TumbleState State { get; set; } = TumbleState.Stopped;
-        private ClassicTumblerParameters tumblerParameters { get; set; }
-
-        public string TumblerAddress { get; private set; }
+        public TumbleState State { get; private set; } = TumbleState.OnlyMonitor;
+        public ClassicTumblerParameters TumblerParameters { get; private set; } = null;
+        public string TumblerAddress { get; private set; } = null;
 
         public TumbleBitManager(ILoggerFactory loggerFactory, NodeSettings nodeSettings, IWalletManager walletManager, IWatchOnlyWalletManager watchOnlyWalletManager, ConcurrentChain chain, Network network, Signals signals, IWalletTransactionHandler walletTransactionHandler, IWalletSyncManager walletSyncManager)
         {
@@ -67,82 +66,44 @@ namespace Breeze.TumbleBit.Client
         }
 
         /// <inheritdoc />
-        public Task<ClassicTumblerParameters> ConnectToTumblerAsync()
+        public async Task<ClassicTumblerParameters> ConnectToTumblerAsync()
         {
-            // TODO this method will probably need to change as the connection to a tumbler is currently done during configuration
-            // of the TumblebitRuntime. This method can then be modified to potentially be a convenience method 
-            // where a user wants to check a tumbler's parameters before commiting to tumbling (and therefore before configuring the runtime).
-
-            // TODO: Temporary measure
-            string[] args = { "-testnet", "-debug" };
-
             this.tumblingState.TumblerUri = new Uri(this.TumblerAddress);
-
-            var config = new FullNodeTumblerClientConfiguration(this.tumblingState);
-            config.LoadArgs(args);
-
-            // AcceptAllClientConfiguration should be used if the interaction is null
-            this.runtime = TumblerClientRuntime.FromConfiguration(config, null);
-
-            //this.tumblerService = new TumblerService(serverAddress);
-            //this.TumblerParameters = await this.tumblerService.GetClassicTumblerParametersAsync();
-            this.tumblerParameters = runtime.TumblerParameters;
-
-            if (this.tumblerParameters.Network != this.network)
+            var config = new FullNodeTumblerClientConfiguration(this.tumblingState, onlyMonitor: false, connectionTest: true);
+            TumblerClientRuntime rt = null;
+            try
             {
-                throw new Exception($"The tumbler is on network {this.tumblerParameters.Network} while the wallet is on network {this.network}.");
+                rt = await TumblerClientRuntime.FromConfigurationAsync(config, connectionTest:true).ConfigureAwait(false);
+                return rt.TumblerParameters;
             }
-            
-            // Load the current tumbling state from the file system
-            this.tumblingState.LoadStateFromMemory();
-            
-            // Update and save the state
-            this.tumblingState.TumblerParameters = this.tumblerParameters;
-            this.isConnected = true;
-            this.tumblingState.Save();
-
-            return Task.FromResult(this.tumblerParameters);
+            finally
+            {
+                rt?.Dispose();
+            }
         }
 
         /// <inheritdoc />
-        public Task TumbleAsync(string originWalletName, string destinationWalletName, string originWalletPassword)
+        public async Task TumbleAsync(string originWalletName, string destinationWalletName, string originWalletPassword)
         {
-            // make sure the tumbler service is initialized
-            if (this.tumblerParameters == null || this.runtime == null || !this.isConnected)
+            // make sure it won't start new tumbling round
+            if (this.State == TumbleState.Tumbling)
             {
-                throw new Exception("Please connect to the tumbler first.");
+                throw new Exception("Tumbling is already running");
             }
 
-            // Check if chain is downloaded - can't do TB initialisation with blocks that have already passed
-            if (!this.tumblingState.chain.IsDownloaded())
-            {
-                throw new Exception("Please connect to the tumbler first.");
-            }
-            
-            // Make sure that the user is not trying to resume the process with a different wallet
-            if (!string.IsNullOrEmpty(this.tumblingState.DestinationWalletName) && this.tumblingState.DestinationWalletName != destinationWalletName)
-            {
-                throw new Exception("Please use the same destination wallet until the end of this tumbling session.");
-            }
+            this.tumblingState.TumblerUri = new Uri(this.TumblerAddress);
+
+            // TODO: Check if in IBD
 
             Wallet destinationWallet = this.walletManager.GetWallet(destinationWalletName);
-            if (destinationWallet == null)
-            {
-                throw new Exception($"Destination wallet not found. Have you created a wallet with name {destinationWalletName}?");
-            }
-
             Wallet originWallet = this.walletManager.GetWallet(originWalletName);
-            if (originWallet == null)
-            {
-                throw new Exception($"Origin wallet not found. Have you created a wallet with name {originWalletName}?");
-            }
 
             // TODO: Check if password is valid
 
             // Update the state and save
-            this.tumblingState.DestinationWallet = destinationWallet;
+            this.tumblingState.DestinationWallet = destinationWallet ?? throw new Exception($"Destination wallet not found. Have you created a wallet with name {destinationWalletName}?");
             this.tumblingState.DestinationWalletName = destinationWalletName;
-            this.tumblingState.OriginWallet = originWallet;
+            this.tumblingState.OriginWallet = originWallet ?? throw new Exception($"Origin wallet not found. Have you created a wallet with name {originWalletName}?");
             this.tumblingState.OriginWalletName = originWalletName;
             this.tumblingState.OriginWalletPassword = originWalletPassword;
 
@@ -158,86 +119,90 @@ namespace Breeze.TumbleBit.Client
 
             var key = destAccount.ExtendedPubKey;
             var keyPath = new KeyPath("0");
+
+            // stop and dispose onlymonitor
+            if (this.broadcasterJob != null && this.broadcasterJob.Started)
+            {
+                await this.broadcasterJob.Stop().ConfigureAwait(false);
+            }
+            this.runtime?.Dispose();
+
+            var config = new FullNodeTumblerClientConfiguration(this.tumblingState, onlyMonitor: false);
+            this.runtime = await TumblerClientRuntime.FromConfigurationAsync(config).ConfigureAwait(false);
+
             var extPubKey = new BitcoinExtPubKey(key, this.runtime.Network);
             if (key != null)
                 this.runtime.DestinationWallet =
                     new ClientDestinationWallet(extPubKey, keyPath, this.runtime.Repository, this.runtime.Network);
-
-            this.tumblingState.Save();
+            this.TumblerParameters = this.runtime.TumblerParameters;
+            // run onlymonitor mode
+            this.broadcasterJob = this.runtime.CreateBroadcasterJob();
+            this.broadcasterJob.Start();
 
             // Subscribe to receive new block notifications
             // TODO: Is this the right BlockObserver or should the one used by the Wallet feature be used?
             this.blockReceiver = this.signals.SubscribeForBlocks(new BlockObserver(this.chain, this));
-
-            var broadcaster = runtime.CreateBroadcasterJob();
-            broadcaster.Start();
-
+            // run tumbling mode
             this.stateMachine = new StateMachinesExecutor(this.runtime);
             this.stateMachine.Start();
 
-            this.State = TumbleState.Started;
+            this.State = TumbleState.Tumbling;
 
-            return Task.CompletedTask;
+            return;
         }
 
-        public async Task StopAsync()
+        public async Task OnlyMonitorAsync()
         {
-            await this.stateMachine.Stop();
-
-            //now restart in read only mode
-            string[] args = { "-testnet" };
-
-            var config = new FullNodeTumblerClientConfiguration(this.tumblingState);
-            config.OnlyMonitor = true;
-            config.LoadArgs(args);
-
-            this.runtime = TumblerClientRuntime.FromConfiguration(config, null);
-            this.tumblingState.Save();
-            this.State = TumbleState.MonitorOnly;
-        }
-
-        /// <inheritdoc />
-        public void PauseTumbling()
-        {
-            this.logger.LogDebug($"Stopping the tumbling. Current height is {this.chain.Tip.Height}.");
-            this.blockReceiver.Dispose();
-            this.tumblingState.Save();
-        }
-
-        /// <inheritdoc />
-        public void FinishTumbling()
-        {
-            this.logger.LogDebug($"The tumbling process is wrapping up. Current height is {this.chain.Tip.Height}.");
-            this.blockReceiver.Dispose();
-            this.tumblingState.Save();
-
-            // TODO: Need to cleanly shutdown TumbleBit client runtime
-
-            this.tumblingState.Delete();
-            this.tumblingState = null;
+            // onlymonitor is running by default, so it's enough if statemachine is stopped
+            if (this.stateMachine != null && this.stateMachine.Started)
+            {
+                await this.stateMachine.Stop().ConfigureAwait(false);
+            }
+            this.State = TumbleState.OnlyMonitor;
         }
 
         /// <inheritdoc />
         public void ProcessBlock(int height, Block block)
-        {            
+        {
             this.logger.LogDebug($"Received block with height {height} during tumbling session.");
 
             // Update the block height in the tumbling state
             this.tumblingState.LastBlockReceivedHeight = height;
-            this.tumblingState.Save();
-            
+
             // TODO: Update the state of the tumbling session in this new block
             // TODO: Does anything else need to be done here? Transaction housekeeping is done in the wallet features
         }
 
-        public bool IsConnected()
+        public async Task Initialize()
         {
-            return this.isConnected;
+            // Start broadcasterJob (onlymonitor mode)
+            if (this.broadcasterJob == null || !this.broadcasterJob.Started)
+            {
+                var config = new FullNodeTumblerClientConfiguration(this.tumblingState, onlyMonitor: true);
+                this.runtime = await TumblerClientRuntime.FromConfigurationAsync(config).ConfigureAwait(false);
+
+                this.State = TumbleState.OnlyMonitor;
+
+                this.broadcasterJob = this.runtime.CreateBroadcasterJob();
+                this.broadcasterJob.Start();
+            }
         }
-        
-        public ClassicTumblerParameters GetTumblerParameters()
+
+        public void Dispose()
         {
-            return this.tumblerParameters;
+            this.blockReceiver?.Dispose();
+
+            if (this.broadcasterJob != null && this.broadcasterJob.Started)
+            {
+                this.broadcasterJob.Stop();
+            }
+
+            if (this.stateMachine != null && this.stateMachine.Started)
+            {
+                this.stateMachine.Stop();
+            }
+
+            this.runtime?.Dispose();
         }
     }
 }
