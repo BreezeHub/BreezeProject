@@ -48,7 +48,7 @@ namespace Breeze.Daemon
                 var network = args.Contains("-testnet") ? Network.StratisTest : Network.StratisMain;
                 if (args.Contains("-testnet"))
                     args = args.Append("-addnode=13.64.76.48").ToArray(); // TODO: fix this temp hack 
-                var nodeSettings = NodeSettings.FromArguments(args, "stratis", network, ProtocolVersion.ALT_PROTOCOL_VERSION);                
+                var nodeSettings = NodeSettings.FromArguments(args, "stratis", network, ProtocolVersion.ALT_PROTOCOL_VERSION);
                 nodeSettings.ApiUri = new Uri(string.IsNullOrEmpty(apiUri) ? DefaultStratisUri : apiUri);
 
                 if (args.Contains("light"))
@@ -76,7 +76,7 @@ namespace Breeze.Daemon
             {
                 NodeSettings nodeSettings = NodeSettings.FromArguments(args);
                 nodeSettings.ApiUri = new Uri(string.IsNullOrEmpty(apiUri) ? DefaultBitcoinUri : apiUri);
-                
+
                 if (args.Contains("light"))
                 {
                     fullNodeBuilder = new FullNodeBuilder()
