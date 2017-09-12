@@ -47,7 +47,8 @@ namespace Breeze.TumbleBit
                             {
                                 new NetworkConverter(),
                                 new PermutationTestProofConverter(),
-                                new PoupardSternProofConverter()
+                                new PoupardSternProofConverter(),
+                                new RsaPubKeyConverter()
                             }
                         };
 
