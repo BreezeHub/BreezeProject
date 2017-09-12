@@ -73,10 +73,9 @@ namespace Breeze.TumbleBit.Client.Services
 
             if (withProof)
             {
-                bool found;
-
                 foreach (var tx in results.ToList())
                 {
+                    bool found = false;
                     var completion = new TaskCompletionSource<MerkleBlock>();
                     bool isRequester = true;
                     var txid = tx.Transaction.GetHash();
@@ -92,27 +91,39 @@ namespace Breeze.TumbleBit.Client.Services
                         {
                             MerkleBlock proof = null;
 
-                            found = false;
-
                             foreach (var account in this.tumblingState.OriginWallet.GetAccountsByCoinType(this.tumblingState.coinType))
                             {
-                                if (found)
-                                    break;
-
                                 var txData = account.GetTransactionsById(tx.Transaction.GetHash());
 
                                 if (txData != null)
                                 {
-                                    found = true;
-
                                     // TODO: Is it possible for GetTransactionsById to return multiple results?
                                     var trx = txData.First<Stratis.Bitcoin.Features.Wallet.TransactionData>();
 
-                                    proof = new MerkleBlock()
+                                    Console.WriteLine("Transaction " + trx.Id + " confirmation status: " + trx.IsConfirmed());
+                                    Console.WriteLine("Transaction " + trx.Id + " block hash: " + trx.BlockHash);
+
+                                    // Transaction is not confirmed yet - cannot generate a Merkle proof for it as there is no block
+                                    if (trx.BlockHash == null)
                                     {
-                                        Header = this.tumblingState.chain.GetBlock(trx.BlockHash).Header,
-                                        PartialMerkleTree = trx.MerkleProof
-                                    };
+                                        completion.TrySetResult(null);
+                                        break;
+                                    }
+
+                                    found = true;
+
+                                    try
+                                    {
+                                        proof = new MerkleBlock()
+                                        {
+                                            Header = this.tumblingState.chain.GetBlock(trx.BlockHash).Header,
+                                            PartialMerkleTree = trx.MerkleProof
+                                        };
+                                    }
+                                    catch (Exception e)
+                                    {
+                                        Console.WriteLine("Could not create Merkle block for transaction " + tx.Transaction.GetHash() + " in block " + trx.BlockHash);
+                                    }
 
                                     tx.MerkleProof = proof;
                                     completion.TrySetResult(proof);

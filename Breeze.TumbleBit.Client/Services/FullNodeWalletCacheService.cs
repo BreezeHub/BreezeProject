@@ -180,7 +180,7 @@ namespace Breeze.TumbleBit.Client.Services
 
         void ListTransactions()
         {
-            // TODO: Drop the batching from the RPC version to make the code simpler?
+            // Dropped the batching from the RPC version to make the code simpler?
 
             var removeFromWalletEntries = new HashSet<uint256>(_WalletEntries.Keys);
 
@@ -241,6 +241,7 @@ namespace Breeze.TumbleBit.Client.Services
                     AddTxByScriptId(entry.TransactionId, entry);
             }
 
+            // TODO: The original code is somewhat unclear - removeFromWalletEntries is never added to in ListTransactions
             foreach (var remove in removeFromWalletEntries)
             {
                 FullNodeWalletEntry opt;

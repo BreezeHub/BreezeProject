@@ -146,6 +146,7 @@ namespace Breeze.TumbleBit.Client.Services
                     Console.WriteLine("Error broadcasting transaction: " + ex);
 
                     // TODO: As per original code, need to determine the error to decide whether to remove
+                    // TODO: For a light wallet there is currently insufficient information about broadcast failure & other nodes' mempool acceptance
                     remove = false;
                 }
                 return false;
@@ -179,6 +180,7 @@ namespace Breeze.TumbleBit.Client.Services
 
         private void RemoveRecord(Record tx)
         {
+            Console.WriteLine("Removing transaction from broadcast: " + tx.Transaction.GetHash());
             Repository.Delete<Record>("Broadcasts", tx.Transaction.GetHash().ToString());
             Repository.UpdateOrInsert<Transaction>("CachedTransactions", tx.Transaction.GetHash().ToString(), tx.Transaction, (a, b) => a);
         }

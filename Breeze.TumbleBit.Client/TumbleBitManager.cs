@@ -74,7 +74,7 @@ namespace Breeze.TumbleBit.Client
             // where a user wants to check a tumbler's parameters before commiting to tumbling (and therefore before configuring the runtime).
 
             // TODO: Temporary measure
-            string[] args = { "-testnet" };
+            string[] args = { "-testnet", "-debug" };
 
             this.tumblingState.TumblerUri = new Uri(this.TumblerAddress);
 
@@ -113,7 +113,11 @@ namespace Breeze.TumbleBit.Client
                 throw new Exception("Please connect to the tumbler first.");
             }
 
-            // TODO: Check if in IBD
+            // Check if chain is downloaded - can't do TB initialisation with blocks that have already passed
+            if (!this.tumblingState.chain.IsDownloaded())
+            {
+                throw new Exception("Please connect to the tumbler first.");
+            }
             
             // Make sure that the user is not trying to resume the process with a different wallet
             if (!string.IsNullOrEmpty(this.tumblingState.DestinationWalletName) && this.tumblingState.DestinationWalletName != destinationWalletName)
