@@ -82,7 +82,7 @@
           <table class="table" *ngIf="isConnected">
             <tbody>
               <tr>
-                <td><strong>Estimate</strong>{{ estimate }} Hours</td>
+                <td><strong>Estimate</strong>{{ estimate | number:'1.2-2' }} Hours</td>
               </tr>
               <tr>
                 <td><strong>Fee</strong> {{ fee | number:'1.2-2' }}%</td>
