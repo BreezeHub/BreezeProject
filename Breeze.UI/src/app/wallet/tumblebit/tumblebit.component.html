@@ -14,18 +14,11 @@
             <div class="row" *ngIf="!tumbling">
               <label class="col-12 text-left" for="">Destination</label>
             </div>
-            <!-- <div class="form-group mb-4">
-              <select class="form-control custom-select" id="">
-                <option>wallet_08222017</option>
-                <option>wallet_michael</option>
-                <option>storageB</option>
-                <option>personalWallet</option>
+            <div class="form-group mb-4">
+              <select *ngIf="!tumbling" class="form-control custom-select" formControlName="selectWallet">
+                <option *ngFor="let wallet of wallets" [value]="wallet">{{ wallet }}</option>
               </select>
-            </div> -->
-            <select *ngIf="!tumbling" class="form-control custom-select col-12" formControlName="selectWallet">
-              <option selected>Select a wallet ...</option>
-              <option *ngFor="let wallet of wallets" [value]="wallet">{{ wallet }}</option>
-            </select>
+            </div>
             <button type="button" class="btn btn-lg btn-primary mt-4" (click)="tumbleClicked()">{{ tumbling ? "Stop" : "Start" }}</button>
           </form>
         </div>
