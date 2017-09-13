@@ -113,12 +113,6 @@ namespace Stratis.Bitcoin.Features.WatchOnlyWallet
         [JsonIgnore]
         public Transaction Transaction => Transaction.Parse(this.Hex);
 
-        ///// <summary>
-        ///// The height of the block including this transaction.
-        ///// </summary>
-        //[JsonProperty(PropertyName = "blockHeight", NullValueHandling = NullValueHandling.Ignore)]
-        //public int? BlockHeight { get; set; }
-
         /// <summary>
         /// The hash of the block including this transaction.
         /// </summary>
