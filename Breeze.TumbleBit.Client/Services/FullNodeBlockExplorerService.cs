@@ -73,10 +73,9 @@ namespace Breeze.TumbleBit.Client.Services
 
             if (withProof)
             {
-                bool found;
-
                 foreach (var tx in results.ToList())
                 {
+                    bool found = false;
                     var completion = new TaskCompletionSource<MerkleBlock>();
                     bool isRequester = true;
                     var txid = tx.Transaction.GetHash();
@@ -92,27 +91,39 @@ namespace Breeze.TumbleBit.Client.Services
                         {
                             MerkleBlock proof = null;
 
-                            found = false;
-
                             foreach (var account in this.tumblingState.OriginWallet.GetAccountsByCoinType(this.tumblingState.coinType))
                             {
-                                if (found)
-                                    break;
-
                                 var txData = account.GetTransactionsById(tx.Transaction.GetHash());
 
                                 if (txData != null)
                                 {
-                                    found = true;
-
                                     // TODO: Is it possible for GetTransactionsById to return multiple results?
                                     var trx = txData.First<Stratis.Bitcoin.Features.Wallet.TransactionData>();
 
-                                    proof = new MerkleBlock()
+                                    Console.WriteLine("Transaction " + trx.Id + " confirmation status: " + trx.IsConfirmed());
+                                    Console.WriteLine("Transaction " + trx.Id + " block hash: " + trx.BlockHash);
+
+                                    // Transaction is not confirmed yet - do not yet have a Merkle proof for it as there is no block
+                                    if (trx.BlockHash == null)
                                     {
-                                        Header = this.tumblingState.chain.GetBlock(trx.BlockHash).Header,
-                                        PartialMerkleTree = trx.MerkleProof
-                                    };
+                                        completion.TrySetResult(null);
+                                        break;
+                                    }
+
+                                    found = true;
+
+                                    try
+                                    {
+                                        proof = new MerkleBlock()
+                                        {
+                                            Header = this.tumblingState.chain.GetBlock(trx.BlockHash).Header,
+                                            PartialMerkleTree = trx.MerkleProof
+                                        };
+                                    }
+                                    catch (Exception e)
+                                    {
+                                        Console.WriteLine("Could not create Merkle block for transaction " + tx.Transaction.GetHash() + " in block " + trx.BlockHash);
+                                    }
 
                                     tx.MerkleProof = proof;
                                     completion.TrySetResult(proof);
@@ -121,7 +132,55 @@ namespace Breeze.TumbleBit.Client.Services
                                 }
                             }
 
-                            if (found == false)
+                            // The transaction should not be in both wallets normally
+                            if (!found)
+                            {
+                                foreach (WatchedAddress addr in this.tumblingState.watchOnlyWalletManager.GetWatchOnlyWallet().WatchedAddresses.Values)
+                                {
+                                    addr.Transactions.TryGetValue(tx.Transaction.GetHash().ToString(), out Stratis.Bitcoin.Features.WatchOnlyWallet.TransactionData woTx);
+
+                                    if (woTx != null)
+                                    {
+                                        Console.WriteLine("Watch-only transaction " + woTx.Id + " block hash: " + woTx.BlockHash);
+
+                                        if (woTx.BlockHash == null)
+                                        {
+                                            Console.WriteLine("Watch-only transaction is not confirmed yet - do not yet have a Merkle proof for it as there is no block");
+                                            completion.TrySetResult(null);
+                                            break;
+                                        }
+
+                                        if (woTx.MerkleProof == null)
+                                        {
+                                            Console.WriteLine("Watch-only transaction has no Merkle proof recorded");
+                                            completion.TrySetResult(null);
+                                            break;
+                                        }
+
+                                        found = true;
+
+                                        try
+                                        {
+                                            proof = new MerkleBlock()
+                                            {
+                                                Header = this.tumblingState.chain.GetBlock(woTx.BlockHash).Header,
+                                                PartialMerkleTree = woTx.MerkleProof
+                                            };
+                                        }
+                                        catch (Exception e)
+                                        {
+                                            Console.WriteLine("Could not create Merkle block for transaction " + tx.Transaction.GetHash() + " in block " + woTx.BlockHash);
+                                        }
+
+                                        tx.MerkleProof = proof;
+                                        completion.TrySetResult(proof);
+
+                                        break;
+                                    }
+                                }
+                            }
+
+                            if (!found)
                             {
                                 completion.TrySetResult(null);
                                 continue;
@@ -267,7 +326,7 @@ namespace Breeze.TumbleBit.Client.Services
                     if (walletTx.Id != txId)
                         continue;
 
-                    var confCount = this.tumblingState.chain.Tip.Height - walletTx.BlockHeight;
+                    var confCount = (walletTx.BlockHeight != null) ? (this.tumblingState.chain.Tip.Height - walletTx.BlockHeight) : 0;
 
                     return new TransactionInformation
                     {
@@ -312,15 +371,24 @@ namespace Breeze.TumbleBit.Client.Services
             if (chainBlock == null)
                 return false;
 
-            // TODO: We cannot obtain the complete block to pass to ProcessTransaction. Is this going to be a problem?
-            await Task.Run(() => this.tumblingState.walletManager.ProcessTransaction(transaction, chainBlock.Height, null)).ConfigureAwait(false);
-
-            if (success)
+            await Task.Run(() =>
             {
-                _Cache.ImportTransaction(transaction, GetBlockConfirmations(merkleProof.Header.GetHash()));
-            }
+                // TODO: We cannot obtain the complete block to pass to ProcessTransaction. Is this going to be a problem?
+                this.tumblingState.walletManager.ProcessTransaction(transaction, chainBlock.Height, null);
+
+                // TODO: Track via Watch Only wallet instead?
+                //this.tumblingState.watchOnlyWalletManager.WatchAddress(scriptPubkey.GetDestinationAddress(this.tumblingState.TumblerNetwork).ToString()))
+
+                // We don't really have the same error conditions available that the original code used to determine success
+                success = true;
+
+                if (success)
+                {
+                    _Cache.ImportTransaction(transaction, GetBlockConfirmations(merkleProof.Header.GetHash()));
+                }
+            }).ConfigureAwait(false);
+
             return success;
         }
-
     }
 }

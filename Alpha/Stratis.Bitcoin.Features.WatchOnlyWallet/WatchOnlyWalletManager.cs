@@ -86,7 +86,6 @@ namespace Stratis.Bitcoin.Features.WatchOnlyWallet
         public void ProcessTransaction(Transaction transaction, Block block = null)
         {
             var hash = transaction.GetHash();
-            this.logger.LogDebug($"watch only wallet received transaction - hash: {hash}, coin: {this.coinType}");
 
             // Check the transaction outputs for transactions we might be interested in.
             foreach (TxOut utxo in transaction.Outputs)
@@ -96,13 +95,16 @@ namespace Stratis.Bitcoin.Features.WatchOnlyWallet
 
                 if (addressInWallet != null)
                 {
+                    this.logger.LogDebug($"watch only wallet received transaction - hash: {hash}, coin: {this.coinType}");
+
                     // Retrieve a transaction, if present.
-                    string transactionHash = transaction.GetHash().ToString();
-                    addressInWallet.Transactions.TryGetValue(transactionHash, out TransactionData existingTransaction);
+                    uint256 transactionHash = transaction.GetHash();
+                    addressInWallet.Transactions.TryGetValue(transactionHash.ToString(), out TransactionData existingTransaction);
                     if (existingTransaction == null)
                     {
-                        addressInWallet.Transactions.TryAdd(transactionHash, new TransactionData
+                        addressInWallet.Transactions.TryAdd(transactionHash.ToString(), new TransactionData
                         {
+                            Id = transactionHash,
                             Hex = transaction.ToHex(),
                             BlockHash = block?.GetHash(),
                         });
@@ -111,6 +113,15 @@ namespace Stratis.Bitcoin.Features.WatchOnlyWallet
                     {
                         // If there is a transaction already present, update the hash of the block containing it.
                         existingTransaction.BlockHash = block?.GetHash();
+
+                        // Fix up data if watch only wallet had transactions in it before introduction of new fields
+                        if (existingTransaction.Id == null)
+                            existingTransaction.Id = transactionHash;
+
+                        if (block != null && existingTransaction.MerkleProof == null)
+                        {
+                            existingTransaction.MerkleProof = new MerkleBlock(block, new[] { transactionHash }).PartialMerkleTree;
+                        }
                     }
 
                     this.SaveWatchOnlyWallet();

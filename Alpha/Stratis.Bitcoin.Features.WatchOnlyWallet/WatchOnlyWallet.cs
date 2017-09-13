@@ -95,6 +95,13 @@ namespace Stratis.Bitcoin.Features.WatchOnlyWallet
     public class TransactionData
     {
         /// <summary>
+        /// Transaction id.
+        /// </summary>
+        [JsonProperty(PropertyName = "id")]
+        [JsonConverter(typeof(UInt256JsonConverter))]
+        public uint256 Id { get; set; }
+
+        /// <summary>
         /// Hexadecimal representation of a transaction affecting a script being watched.
         /// </summary>
         [JsonProperty(PropertyName = "hex")]
@@ -106,12 +113,25 @@ namespace Stratis.Bitcoin.Features.WatchOnlyWallet
         [JsonIgnore]
         public Transaction Transaction => Transaction.Parse(this.Hex);
 
+        ///// <summary>
+        ///// The height of the block including this transaction.
+        ///// </summary>
+        //[JsonProperty(PropertyName = "blockHeight", NullValueHandling = NullValueHandling.Ignore)]
+        //public int? BlockHeight { get; set; }
+
         /// <summary>
         /// The hash of the block including this transaction.
         /// </summary>
         [JsonProperty(PropertyName = "blockHash", NullValueHandling = NullValueHandling.Ignore)]
         [JsonConverter(typeof(UInt256JsonConverter))]
         public uint256 BlockHash { get; set; }
+
+        /// <summary>
+        /// Gets or sets the Merkle proof for this transaction.
+        /// </summary>
+        [JsonProperty(PropertyName = "merkleProof", NullValueHandling = NullValueHandling.Ignore)]
+        [JsonConverter(typeof(BitcoinSerializableJsonConverter))]
+        public PartialMerkleTree MerkleProof { get; set; }
     }
 
     #region Json Converters

@@ -46,27 +46,11 @@ namespace Breeze.TumbleBit.Controllers
 
             try
             {
-                ClassicTumblerParameters tumblerParameters;
+                var tumblerParameters = await this.tumbleBitManager.ConnectToTumblerAsync().ConfigureAwait(false);
 
-                if (this.tumbleBitManager.IsConnected() || this.tumbleBitManager.State == TumbleBitManager.TumbleState.Started)
-                {
-                    // Do not want to connect again as it is unnecessary and can cause problems
-                    // Only return previously retrieved parameters
-                    tumblerParameters = this.tumbleBitManager.GetTumblerParameters();
-
-                    var retrievedParameterDictionary = new Dictionary<string, string>()
-                    {
-                        ["tumbler"] = this.tumbleBitManager.TumblerAddress,
-                        ["denomination"] = tumblerParameters.Denomination.ToString(),
-                        ["fee"] = tumblerParameters.Fee.ToString(),
-                        ["network"] = tumblerParameters.Network.Name,
-                        ["estimate"] = "10080"
-                    };
-
-                    return this.Json(retrievedParameterDictionary);
-                }
-
-                tumblerParameters = await this.tumbleBitManager.ConnectToTumblerAsync();
+                var periods = tumblerParameters.CycleGenerator.FirstCycle.GetPeriods();
+                var lengthBlocks = periods.Total.End - periods.Total.Start;
+                var cycleLengthSeconds = lengthBlocks * 10 * 60;
 
                 var parameterDictionary = new Dictionary<string, string>()
                 {
@@ -74,7 +58,7 @@ namespace Breeze.TumbleBit.Controllers
                     ["denomination"] = tumblerParameters.Denomination.ToString(),
                     ["fee"] = tumblerParameters.Fee.ToString(),
                     ["network"] = tumblerParameters.Network.Name,
-                    ["estimate"] = "10080"
+                    ["estimate"] = cycleLengthSeconds.ToString()
                 };
 
                 return this.Json(parameterDictionary);
@@ -99,7 +83,7 @@ namespace Breeze.TumbleBit.Controllers
                 return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, "Formatting error", string.Join(Environment.NewLine, errors));
             }
 
-            if (this.tumbleBitManager.State == TumbleBitManager.TumbleState.Started)
+            if (this.tumbleBitManager.State == TumbleBitManager.TumbleState.Tumbling)
             {
                 return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, "Already started tumbling", "");
             }
@@ -129,25 +113,25 @@ namespace Breeze.TumbleBit.Controllers
             }
             catch (Exception e)
             {
-                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, "An error occured during IsTumbling request.", e.ToString());
+                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, "An error occured during tumbling-state request.", e.ToString());
             }
         }
 
         /// <summary>
-        /// Stop the tumbler.
+        /// Flip the tumbler to onlymonitor mode.
         /// </summary>
-        [Route("stop")]
+        [Route("onlymonitor")]
         [HttpGet]
-        public async Task<IActionResult> StopAsync()
+        public async Task<IActionResult> OnlyMonitorAsync()
         {
             try
             {
-                await this.tumbleBitManager.StopAsync();
+                await this.tumbleBitManager.OnlyMonitorAsync().ConfigureAwait(false);
                 return this.Ok();
             }
             catch (Exception e)
             {
-                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, "An error occured during Stop request.", e.ToString());
+                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, "An error occured during onlymonitor request.", e.ToString());
             }
         }
 
