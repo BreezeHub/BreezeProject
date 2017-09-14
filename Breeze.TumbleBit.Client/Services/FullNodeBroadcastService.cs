@@ -26,37 +26,21 @@ namespace Breeze.TumbleBit.Client.Services
             }
         }
 
-        FullNodeWalletCache _Cache;
-        private TumblingState tumblingState;
+        private FullNodeWalletCache Cache { get; }
+        private TumblingState TumblingState { get; }
+        private IRepository Repository { get; }
+
+        public FullNodeBlockExplorerService BlockExplorerService { get; }
 
         public FullNodeBroadcastService(FullNodeWalletCache cache, IRepository repository, TumblingState tumblingState)
         {
-            if (tumblingState == null)
-                throw new ArgumentNullException(nameof(tumblingState));
-            
-            _Repository = repository ?? throw new ArgumentNullException(nameof(repository));
-            _Cache = cache;
-            _BlockExplorerService = new FullNodeBlockExplorerService(cache, tumblingState);
-            this.tumblingState = tumblingState;
+            Cache = cache ?? throw new ArgumentNullException(nameof(cache));
+            Repository = repository ?? throw new ArgumentNullException(nameof(repository));
+            TumblingState = tumblingState ?? throw new ArgumentNullException(nameof(tumblingState));
+            BlockExplorerService = new FullNodeBlockExplorerService(cache, tumblingState);
         }
 
-        private readonly FullNodeBlockExplorerService _BlockExplorerService;
-        public FullNodeBlockExplorerService BlockExplorerService
-        {
-            get
-            {
-                return _BlockExplorerService;
-            }
-        }
-
-        private readonly IRepository _Repository;
-        public IRepository Repository
-        {
-            get
-            {
-                return _Repository;
-            }
-        }
+        
 
         public Record[] GetTransactions()
         {
@@ -87,8 +71,8 @@ namespace Breeze.TumbleBit.Client.Services
             List<Transaction> broadcasted = new List<Transaction>();
             var broadcasting = new List<Tuple<Transaction, Task<bool>>>();
             HashSet<uint256> knownBroadcastedSet = new HashSet<uint256>(knownBroadcasted ?? new uint256[0]);
-            int height = _Cache.BlockCount;
-            foreach (var obj in _Cache.GetEntries())
+            int height = Cache.BlockCount;
+            foreach (var obj in Cache.GetEntries())
             {
                 if (obj.Confirmations > 0)
                     knownBroadcastedSet.Add(obj.TransactionId);
@@ -133,9 +117,9 @@ namespace Breeze.TumbleBit.Client.Services
 
                 try
                 {
-                    this.tumblingState.WalletManager.SendTransaction(tx.Transaction.ToHex());
+                    this.TumblingState.WalletManager.SendTransaction(tx.Transaction.ToHex());
 
-                    _Cache.ImportTransaction(tx.Transaction, 0);
+                    Cache.ImportTransaction(tx.Transaction, 0);
                     Logs.Broadcasters.LogInformation($"Broadcasted {tx.Transaction.GetHash()}");
                     return true;
                 }
@@ -159,11 +143,11 @@ namespace Breeze.TumbleBit.Client.Services
         private bool IsDoubleSpend(Transaction tx)
         {
             var spentInputs = new HashSet<OutPoint>(tx.Inputs.Select(txin => txin.PrevOut));
-            foreach (var entry in _Cache.GetEntries())
+            foreach (var entry in Cache.GetEntries())
             {
                 if (entry.Confirmations > 0)
                 {
-                    var walletTransaction = _Cache.GetTransaction(entry.TransactionId);
+                    var walletTransaction = Cache.GetTransaction(entry.TransactionId);
                     foreach (var input in walletTransaction.Inputs)
                     {
                         if (spentInputs.Contains(input.PrevOut))
@@ -187,7 +171,7 @@ namespace Breeze.TumbleBit.Client.Services
         {
             var record = new Record();
             record.Transaction = transaction;
-            var height = _Cache.BlockCount;
+            var height = Cache.BlockCount;
             //3 days expiration
             record.Expiration = height + (int)(TimeSpan.FromDays(3).Ticks / Network.Main.Consensus.PowTargetSpacing.Ticks);
             Repository.UpdateOrInsert<Record>("Broadcasts", transaction.GetHash().ToString(), record, (o, n) => o);

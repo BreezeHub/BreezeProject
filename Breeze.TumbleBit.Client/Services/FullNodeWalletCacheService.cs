@@ -16,19 +16,9 @@ namespace Breeze.TumbleBit.Client.Services
 {
     public class FullNodeWalletEntry
     {
-        public uint256 TransactionId
-        {
-            get; set;
-        }
-        public int Confirmations
-        {
-            get; set;
-        }
-
-        public Transaction Transaction
-        {
-            get; set;
-        }
+        public uint256 TransactionId { get; set; }
+        public int Confirmations { get; set; }
+        public Transaction Transaction { get; set; }
     }
 
     /// <summary>
@@ -36,32 +26,32 @@ namespace Breeze.TumbleBit.Client.Services
     /// </summary>
     public class FullNodeWalletCache
     {
-        private TumblingState tumblingState;
+        private TumblingState TumblingState { get; }
 
-        MultiValueDictionary<Script, FullNodeWalletEntry> _TxByScriptId = new MultiValueDictionary<Script, FullNodeWalletEntry>();
-        ConcurrentDictionary<uint256, FullNodeWalletEntry> _WalletEntries = new ConcurrentDictionary<uint256, FullNodeWalletEntry>();
-        const int MaxConfirmations = 1400;
+        private MultiValueDictionary<Script, FullNodeWalletEntry> txByScriptId = new MultiValueDictionary<Script, FullNodeWalletEntry>();
+        private ConcurrentDictionary<uint256, FullNodeWalletEntry> walletEntries = new ConcurrentDictionary<uint256, FullNodeWalletEntry>();
+        private const int MaxConfirmations = 1400;
+
+        private volatile uint256 refreshedAtBlock;
 
         public FullNodeWalletCache(TumblingState tumblingState)
         {
-            this.tumblingState = tumblingState ?? throw new ArgumentNullException(nameof(tumblingState));
+            TumblingState = tumblingState ?? throw new ArgumentNullException(nameof(tumblingState));
         }
-
-        volatile uint256 _RefreshedAtBlock;
 
         public void Refresh(uint256 currentBlock)
         {
-            if (_RefreshedAtBlock != currentBlock)
+            if (this.refreshedAtBlock != currentBlock)
             {
-                var newBlockCount = this.tumblingState.Chain.Tip.Height;
+                var newBlockCount = this.TumblingState.Chain.Tip.Height;
                 //If we just udpated the value...
                 if (Interlocked.Exchange(ref _BlockCount, newBlockCount) != newBlockCount)
                 {
-                    _RefreshedAtBlock = currentBlock;
+                    this.refreshedAtBlock = currentBlock;
                     var startTime = DateTimeOffset.UtcNow;
                     ListTransactions();
                     //Logs.Wallet.LogInformation($"Updated {_WalletEntries.Count} cached transactions in {(long)(DateTimeOffset.UtcNow - startTime).TotalSeconds} seconds");
-                    Console.WriteLine($"Updated {_WalletEntries.Count} cached transactions in {(long)(DateTimeOffset.UtcNow - startTime).TotalSeconds} seconds");
+                    Console.WriteLine($"Updated {this.walletEntries.Count} cached transactions in {(long)(DateTimeOffset.UtcNow - startTime).TotalSeconds} seconds");
                 }
             }
         }
@@ -73,7 +63,7 @@ namespace Breeze.TumbleBit.Client.Services
             {
                 if (_BlockCount == 0)
                 {
-                    _BlockCount = this.tumblingState.Chain.Tip.Height;
+                    _BlockCount = this.TumblingState.Chain.Tip.Height;
                 }
                 return _BlockCount;
             }
@@ -81,7 +71,7 @@ namespace Breeze.TumbleBit.Client.Services
 
         public Transaction GetTransaction(uint256 txId)
         {
-            if (_WalletEntries.TryGetValue(txId, out FullNodeWalletEntry entry))
+            if (this.walletEntries.TryGetValue(txId, out FullNodeWalletEntry entry))
             {
                 return entry.Transaction;
             }
@@ -95,7 +85,7 @@ namespace Breeze.TumbleBit.Client.Services
         {
             try
             {
-                foreach (WatchedAddress addr in this.tumblingState.WatchOnlyWalletManager.GetWatchOnlyWallet().WatchedAddresses.Values)
+                foreach (WatchedAddress addr in this.TumblingState.WatchOnlyWalletManager.GetWatchOnlyWallet().WatchedAddresses.Values)
                 {
                     foreach (Stratis.Bitcoin.Features.WatchOnlyWallet.TransactionData trans in addr.Transactions.Values)
                     {
@@ -106,7 +96,7 @@ namespace Breeze.TumbleBit.Client.Services
                     }
                 }
 
-                foreach (var tx in this.tumblingState.OriginWallet.GetAllTransactionsByCoinType(this.tumblingState.CoinType))
+                foreach (var tx in this.TumblingState.OriginWallet.GetAllTransactionsByCoinType(this.TumblingState.CoinType))
                 {
                     if (tx.Transaction.GetHash() == txId)
                     {
@@ -126,15 +116,15 @@ namespace Breeze.TumbleBit.Client.Services
 
         public ICollection<FullNodeWalletEntry> GetEntries()
         {
-            return _WalletEntries.Values;
+            return this.walletEntries.Values;
         }
 
         public IEnumerable<FullNodeWalletEntry> GetEntriesFromScript(Script script)
         {
-            lock (_TxByScriptId)
+            lock (this.txByScriptId)
             {
                 IReadOnlyCollection<FullNodeWalletEntry> transactions = null;
-                if (_TxByScriptId.TryGetValue(script, out transactions))
+                if (this.txByScriptId.TryGetValue(script, out transactions))
                     return transactions.ToArray();
                 return new FullNodeWalletEntry[0];
             }
@@ -143,22 +133,22 @@ namespace Breeze.TumbleBit.Client.Services
         private void AddTxByScriptId(uint256 txId, FullNodeWalletEntry entry)
         {
             IEnumerable<Script> scripts = GetScriptsOf(entry.Transaction);
-            lock (_TxByScriptId)
+            lock (this.txByScriptId)
             {
                 foreach (var s in scripts)
                 {
-                    _TxByScriptId.Add(s, entry);
+                    this.txByScriptId.Add(s, entry);
                 }
             }
         }
         private void RemoveTxByScriptId(FullNodeWalletEntry entry)
         {
             IEnumerable<Script> scripts = GetScriptsOf(entry.Transaction);
-            lock (_TxByScriptId)
+            lock (this.txByScriptId)
             {
                 foreach (var s in scripts)
                 {
-                    _TxByScriptId.Remove(s, entry);
+                    this.txByScriptId.Remove(s, entry);
                 }
             }
         }
@@ -174,7 +164,7 @@ namespace Breeze.TumbleBit.Client.Services
         {
             // Dropped the batching from the RPC version to make the code simpler?
 
-            var removeFromWalletEntries = new HashSet<uint256>(_WalletEntries.Keys);
+            var removeFromWalletEntries = new HashSet<uint256>(this.walletEntries.Keys);
 
             HashSet<uint256> processedTransacions = new HashSet<uint256>();
 
@@ -185,14 +175,14 @@ namespace Breeze.TumbleBit.Client.Services
             //var result = _RPCClient.SendCommand("listtransactions", "*", count, skip, true);
 
             // First examine watch-only wallet
-            var watchOnlyWallet = this.tumblingState.WatchOnlyWalletManager.GetWatchOnlyWallet();
+            var watchOnlyWallet = this.TumblingState.WatchOnlyWalletManager.GetWatchOnlyWallet();
 
             foreach (var watchedAddress in watchOnlyWallet.WatchedAddresses)
             {
                 foreach (var watchOnlyTx in watchedAddress.Value.Transactions)
                 {
-                    var block = this.tumblingState.Chain.GetBlock(watchOnlyTx.Value.BlockHash);
-                    var confCount = this.tumblingState.Chain.Tip.Height - block.Height;
+                    var block = this.TumblingState.Chain.GetBlock(watchOnlyTx.Value.BlockHash);
+                    var confCount = this.TumblingState.Chain.Tip.Height - block.Height;
 
                     // Ignore very old transactions
                     if (confCount > MaxConfirmations)
@@ -205,17 +195,17 @@ namespace Breeze.TumbleBit.Client.Services
                         Transaction = watchOnlyTx.Value.Transaction
                     };
 
-                    if (_WalletEntries.TryAdd(entry.TransactionId, entry))
+                    if (this.walletEntries.TryAdd(entry.TransactionId, entry))
                         AddTxByScriptId(entry.TransactionId, entry);
                 }
             }
 
             // List transactions in regular source wallet
-            foreach (var wallet in this.tumblingState.WalletManager.Wallets)
+            foreach (var wallet in this.TumblingState.WalletManager.Wallets)
             {
-                foreach (var walletTx in wallet.GetAllTransactionsByCoinType(this.tumblingState.CoinType))
+                foreach (var walletTx in wallet.GetAllTransactionsByCoinType(this.TumblingState.CoinType))
                 {
-                    var confCount = this.tumblingState.Chain.Tip.Height - walletTx.BlockHeight;
+                    var confCount = this.TumblingState.Chain.Tip.Height - walletTx.BlockHeight;
 
                     if (confCount == null)
                         confCount = 0;
@@ -231,7 +221,7 @@ namespace Breeze.TumbleBit.Client.Services
                         Transaction = walletTx.Transaction
                     };
 
-                    if (_WalletEntries.TryAdd(entry.TransactionId, entry))
+                    if (this.walletEntries.TryAdd(entry.TransactionId, entry))
                         AddTxByScriptId(entry.TransactionId, entry);
                 }
             }
@@ -240,7 +230,7 @@ namespace Breeze.TumbleBit.Client.Services
             foreach (var remove in removeFromWalletEntries)
             {
                 FullNodeWalletEntry opt;
-                if (_WalletEntries.TryRemove(remove, out opt))
+                if (this.walletEntries.TryRemove(remove, out opt))
                 {
                     RemoveTxByScriptId(opt);
                 }
@@ -256,7 +246,7 @@ namespace Breeze.TumbleBit.Client.Services
                 TransactionId = transaction.GetHash(),
                 Transaction = transaction
             };
-            if (_WalletEntries.TryAdd(txId, entry))
+            if (this.walletEntries.TryAdd(txId, entry))
                 AddTxByScriptId(txId, entry);
         }
     }

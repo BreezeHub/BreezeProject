@@ -18,42 +18,30 @@ namespace Breeze.TumbleBit.Client.Services
 {
     class ClientEscapeData
     {
-        public ScriptCoin EscrowedCoin
-        {
-            get;
-            set;
-        }
-        public TransactionSignature ClientSignature
-        {
-            get;
-            set;
-        }
-        public Key EscrowKey
-        {
-            get;
-            set;
-        }
+        public ScriptCoin EscrowedCoin { get; set; }
+        public TransactionSignature ClientSignature { get; set; }
+        public Key EscrowKey { get; set; }
     }
 
     public class FullNodeWalletService : IWalletService
     {
-        private TumblingState tumblingState;
+        private TumblingState TumblingState { get; }
 
         public FullNodeWalletService(TumblingState tumblingState)
         {
-            this.tumblingState = tumblingState;
+            TumblingState = tumblingState ?? throw new ArgumentNullException(nameof(tumblingState));
         }
 
         public async Task<IDestination> GenerateAddressAsync()
         {
             // TODO: Equivalent of addwitnessaddress rpc?
 
-            Wallet wallet = this.tumblingState.WalletManager.GetWallet(this.tumblingState.OriginWalletName);
+            Wallet wallet = this.TumblingState.WalletManager.GetWallet(this.TumblingState.OriginWalletName);
 
             HdAddress hdAddress = null;
             BitcoinAddress address = null;
 
-            foreach (var account in wallet.GetAccountsByCoinType(this.tumblingState.CoinType))
+            foreach (var account in wallet.GetAccountsByCoinType(this.TumblingState.CoinType))
             {
                 // Iterate through accounts until unused address is found
                 hdAddress = account.GetFirstUnusedReceivingAddress();
@@ -78,7 +66,7 @@ namespace Breeze.TumbleBit.Client.Services
             Transaction tx = new Transaction();
             tx.Outputs.Add(txOut);
             
-            var spendable = this.tumblingState.WalletManager.GetSpendableTransactionsInWallet(this.tumblingState.OriginWalletName);
+            var spendable = this.TumblingState.WalletManager.GetSpendableTransactionsInWallet(this.TumblingState.OriginWalletName);
 
             Dictionary<HdAccount, Money> accountBalances = new Dictionary<HdAccount, Money>();
 
@@ -103,18 +91,18 @@ namespace Breeze.TumbleBit.Client.Services
                 }
             }
 
-            WalletAccountReference accountRef = new WalletAccountReference(this.tumblingState.OriginWalletName, highestBalance.Name);
+            WalletAccountReference accountRef = new WalletAccountReference(this.TumblingState.OriginWalletName, highestBalance.Name);
             
             List<Recipient> recipients = new List<Recipient>();
 
             var txBuildContext = new TransactionBuildContext(accountRef, recipients);
-            txBuildContext.WalletPassword = this.tumblingState.OriginWalletPassword;
+            txBuildContext.WalletPassword = this.TumblingState.OriginWalletPassword;
             txBuildContext.OverrideFeeRate = feeRate;
             txBuildContext.Sign = true;
             txBuildContext.MinConfirmations = 0;
 
             // FundTransaction modifies tx directly
-            this.tumblingState.WalletTransactionHandler.FundTransaction(txBuildContext, tx);
+            this.TumblingState.WalletTransactionHandler.FundTransaction(txBuildContext, tx);
 
             return tx;
         }
@@ -161,7 +149,7 @@ namespace Breeze.TumbleBit.Client.Services
             );
             txin2.Witnessify();
 
-            this.tumblingState.WalletManager.SendTransaction(tx.ToHex());
+            this.TumblingState.WalletManager.SendTransaction(tx.ToHex());
 
             return tx;
         }
