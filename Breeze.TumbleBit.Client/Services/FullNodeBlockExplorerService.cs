@@ -23,16 +23,9 @@ namespace Breeze.TumbleBit.Client.Services
 
         public FullNodeBlockExplorerService(FullNodeWalletCache cache, IRepository repo, TumblingState tumblingState)
         {
-            if (cache == null)
-                throw new ArgumentNullException("cache");
-            if (repo == null)
-                throw new ArgumentNullException("repo");
-            if (tumblingState == null)
-                throw new ArgumentNullException("tumblingState");
-
-            _Cache = cache;
-            _Repo = repo;
-            this.tumblingState = tumblingState;
+            _Cache = cache ?? throw new ArgumentNullException(nameof(cache));
+            _Repo = repo ?? throw new ArgumentNullException(nameof(repo));
+            this.tumblingState = tumblingState ?? throw new ArgumentNullException(nameof(tumblingState));
         }
 
         public int GetCurrentHeight()

@@ -17,9 +17,7 @@ namespace Breeze.TumbleBit.Client
         private TumblingState tumblingState;
         public FullNodeDestinationWallet(TumblingState tumblingState)
         {
-            if (tumblingState == null)
-                throw new ArgumentNullException("tumblingState");
-            this.tumblingState = tumblingState;
+            this.tumblingState = tumblingState ?? throw new ArgumentNullException(nameof(tumblingState));
         }
 
         public KeyPath GetKeyPath(Script script)

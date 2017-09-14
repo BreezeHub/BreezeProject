@@ -18,7 +18,7 @@ namespace Breeze.TumbleBit.Client.Services
 
         public FullNodeFeeService(IWalletFeePolicy walletFeePolicy)
         {
-            WalletFeePolicy = walletFeePolicy ?? throw new ArgumentException(nameof(walletFeePolicy));
+            WalletFeePolicy = walletFeePolicy ?? throw new ArgumentNullException(nameof(walletFeePolicy));
         }
 
         private FeeRate cachedValue;

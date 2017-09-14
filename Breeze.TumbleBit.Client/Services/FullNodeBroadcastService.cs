@@ -31,12 +31,10 @@ namespace Breeze.TumbleBit.Client.Services
 
         public FullNodeBroadcastService(FullNodeWalletCache cache, IRepository repository, TumblingState tumblingState)
         {
-            if (repository == null)
-                throw new ArgumentNullException(nameof(repository));
             if (tumblingState == null)
                 throw new ArgumentNullException(nameof(tumblingState));
             
-            _Repository = repository;
+            _Repository = repository ?? throw new ArgumentNullException(nameof(repository));
             _Cache = cache;
             _BlockExplorerService = new FullNodeBlockExplorerService(cache, repository, tumblingState);
             this.tumblingState = tumblingState;

@@ -19,8 +19,8 @@ namespace Breeze.TumbleBit.Client
         private TumblingState tumblingState;
         public FullNodeTumblerClientConfiguration(TumblingState tumblingState, bool onlyMonitor, bool connectionTest = false)
         {
-            this.tumblingState = tumblingState;
-            Network = tumblingState.TumblerNetwork;
+            this.tumblingState = tumblingState ?? throw new ArgumentNullException(nameof(tumblingState));
+            Network = tumblingState.TumblerNetwork ?? throw new ArgumentNullException(nameof(tumblingState.TumblerNetwork));
 
             if (!onlyMonitor || connectionTest)
             {

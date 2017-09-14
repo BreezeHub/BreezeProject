@@ -45,8 +45,8 @@ namespace Breeze.TumbleBit.Client.Services
 
         public FullNodeWalletCache(IRepository repository, TumblingState tumblingState)
         {
-            this.repo = repository ?? throw new ArgumentNullException("repository");
-            this.tumblingState = tumblingState ?? throw new ArgumentNullException("tumblingState");
+            this.repo = repository ?? throw new ArgumentNullException(nameof(repository));
+            this.tumblingState = tumblingState ?? throw new ArgumentNullException(nameof(tumblingState));
         }
 
         volatile uint256 _RefreshedAtBlock;
