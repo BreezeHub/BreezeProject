@@ -11,7 +11,7 @@ namespace Breeze.TumbleBit.Client
 {
     public class ExternalServices : IExternalServices
     {
-        public static ExternalServices CreateUsingFullNode(IRepository repository, Tracker tracker, TumblingState tumblingState)
+        public static ExternalServices CreateFromFullNode(IRepository repository, Tracker tracker, TumblingState tumblingState)
         {
             var minimumRate = new FeeRate(MempoolValidator.MinRelayTxFee.FeePerK);
             var service = new ExternalServices();

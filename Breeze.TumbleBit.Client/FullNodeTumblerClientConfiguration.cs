@@ -62,7 +62,7 @@ namespace Breeze.TumbleBit.Client
             Tracker = new Tracker(DBreezeRepository, Network);
 
             // Need to use our own ExternalServices implementations to remove RPC dependency
-            Services = ExternalServices.CreateUsingFullNode(DBreezeRepository, Tracker, this.tumblingState);
+            Services = ExternalServices.CreateFromFullNode(DBreezeRepository, Tracker, this.tumblingState);
         }
     }
 }
