@@ -48,22 +48,29 @@ export class TumblebitComponent implements OnInit {
   private tumblerAddress: string = "Connecting...";
 
   ngOnInit() {
+    this.connectToTumbler();
+    this.checkTumblingStatus();
     this.getWalletFiles();
     this.getWalletBalance();
-    this.checkTumblingStatus();
-    this.connectToTumbler();
   };
 
   ngOnDestroy() {
-    this.walletBalanceSubscription.unsubscribe();
-    this.destinationWalletBalanceSubscription.unsubscribe();
-    this.tumbleStateSubscription.unsubscribe();
+    if (this.walletBalanceSubscription){
+      this.walletBalanceSubscription.unsubscribe();
+    }
+
+    if (this.destinationWalletBalanceSubscription) {
+      this.destinationWalletBalanceSubscription.unsubscribe();
+    }
+
+    if (this.tumbleStateSubscription) {
+      this.tumbleStateSubscription.unsubscribe();
+    }
   };
 
   private buildTumbleForm(): void {
     this.tumbleForm = this.fb.group({
-      'selectWallet': ['', Validators.required],
-      'walletPassword': ['', Validators.required]
+      'selectWallet': ['', Validators.required]
     });
 
     this.tumbleForm.valueChanges
@@ -74,11 +81,12 @@ export class TumblebitComponent implements OnInit {
 
   // TODO: abstract to a shared utility lib
   onValueChanged(originalForm: FormGroup, formErrors: object, data?: any) {
-    if (this.destinationWalletBalanceSubscription) {
-      this.destinationWalletBalanceSubscription.unsubscribe();
-      this.destinationWalletName = this.tumbleForm.get("selectWallet").value;
+    this.destinationWalletName = this.tumbleForm.get("selectWallet").value;
+
+    if (this.destinationWalletName) {
       this.getDestinationWalletBalance();
     }
+
     if (!originalForm) { return; }
     const form = originalForm;
     for (const field in formErrors) {
@@ -93,21 +101,13 @@ export class TumblebitComponent implements OnInit {
     }
   }
   tumbleFormErrors = {
-    'selectWallet': '',
-    'walletPassword': ''
+    'selectWallet': ''
   }
 
   validationMessages = {
     'selectWallet': {
       'required': 'A destination address is required.',
-    },
-    'walletPassword': {
-      'required': 'The source wallet password is required.',
     }
-  }
-
-  private onCopiedClick() {
-    this.tumblerAddressCopied = true;
   }
 
   private checkTumblingStatus() {
@@ -252,6 +252,9 @@ export class TumblebitComponent implements OnInit {
   };
 
   private getDestinationWalletBalance() {
+    if (this.destinationWalletBalanceSubscription) {
+      this.destinationWalletBalanceSubscription.unsubscribe();
+    }
     this.destinationWalletBalanceSubscription = this.tumblebitService.getWalletDestinationBalance(this.destinationWalletName)
       .subscribe(
         response =>  {
@@ -286,12 +289,11 @@ export class TumblebitComponent implements OnInit {
           if (response.status >= 200 && response.status < 400) {
             let responseMessage = response.json();
             this.wallets = responseMessage.walletsFiles;
-            this.globalService.setWalletPath(responseMessage.walletsPath);
             if (this.wallets.length > 0) {
               for (let wallet in this.wallets) {
                 this.wallets[wallet] = this.wallets[wallet].slice(0, -12);
               }
-              this.updateWalletFileDisplay(this.wallets[0]);
+              //this.updateWalletFileDisplay(this.wallets[0]);
             } else {
             }
           }
@@ -309,8 +311,8 @@ export class TumblebitComponent implements OnInit {
           }
         },
         () => {
-          this.destinationWalletName = this.tumbleForm.get("selectWallet").value;
-          this.getDestinationWalletBalance()
+          // this.destinationWalletName = this.tumbleForm.get("selectWallet").value;
+          // this.getDestinationWalletBalance()
         }
       )
     ;

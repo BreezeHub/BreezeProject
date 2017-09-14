@@ -16,10 +16,11 @@
             </div>
             <div class="form-group mb-4">
               <select *ngIf="!tumbling" class="form-control custom-select" formControlName="selectWallet">
+                <option value="" disabled selected>Please choose a destination wallet...</option>
                 <option *ngFor="let wallet of wallets" [value]="wallet">{{ wallet }}</option>
               </select>
             </div>
-            <button type="button" class="btn btn-lg btn-primary mt-4" (click)="tumbleClicked()">{{ tumbling ? "Stop" : "Start" }}</button>
+            <button type="button" class="btn btn-lg btn-primary mt-4" (click)="tumbleClicked()" [disabled]="!isConnected">{{ tumbling ? "Stop" : "Start" }}</button>
           </form>
         </div>
         <!-- /left column-->
