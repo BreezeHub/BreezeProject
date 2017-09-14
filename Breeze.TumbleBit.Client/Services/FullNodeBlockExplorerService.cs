@@ -18,23 +18,22 @@ namespace Breeze.TumbleBit.Client.Services
     public class FullNodeBlockExplorerService : IBlockExplorerService
     {
         FullNodeWalletCache _Cache;
+        IRepository _Repo;
         private TumblingState tumblingState;
 
         public FullNodeBlockExplorerService(FullNodeWalletCache cache, IRepository repo, TumblingState tumblingState)
         {
-            if (repo == null)
-                throw new ArgumentNullException("repo");
             if (cache == null)
                 throw new ArgumentNullException("cache");
+            if (repo == null)
+                throw new ArgumentNullException("repo");
             if (tumblingState == null)
                 throw new ArgumentNullException("tumblingState");
 
-            _Repo = repo;
             _Cache = cache;
+            _Repo = repo;
             this.tumblingState = tumblingState;
         }
-
-        IRepository _Repo;
 
         public int GetCurrentHeight()
         {
@@ -300,23 +299,17 @@ namespace Breeze.TumbleBit.Client.Services
         {
             try
             {
-                foreach (WatchedAddress addr in this.tumblingState.watchOnlyWalletManager.GetWatchOnlyWallet()
-                    .WatchedAddresses.Values)
+                foreach (WatchedAddress addr in this.tumblingState.watchOnlyWalletManager.GetWatchOnlyWallet().WatchedAddresses.Values)
                 {
-                    foreach (Stratis.Bitcoin.Features.WatchOnlyWallet.TransactionData trans in addr.Transactions.Values)
-                    {
-                        if (trans.Transaction.GetHash() == txId)
-                        {
-                            // Need number of confirmations as well
-                            var watchBlock = this.tumblingState.chain.GetBlock(trans.BlockHash);
-                            var watchConfCount = Math.Max(0, (this.tumblingState.chain.Tip.Height - watchBlock.Height));
+                    addr.Transactions.TryGetValue(txId.ToString(), out Stratis.Bitcoin.Features.WatchOnlyWallet.TransactionData trans);
 
-                            return new TransactionInformation
-                            {
-                                Confirmations = watchConfCount,
-                                Transaction = trans.Transaction
-                            };
-                        }
+                    if (trans != null)
+                    {
+                        return new TransactionInformation
+                        {
+                            Confirmations = GetBlockConfirmations(trans.BlockHash),
+                            Transaction = trans.Transaction
+                        };
                     }
                 }
                 
@@ -326,11 +319,9 @@ namespace Breeze.TumbleBit.Client.Services
                     if (walletTx.Id != txId)
                         continue;
 
-                    var confCount = (walletTx.BlockHeight != null) ? (this.tumblingState.chain.Tip.Height - walletTx.BlockHeight) : 0;
-
                     return new TransactionInformation
                     {
-                        Confirmations = (int)confCount,
+                        Confirmations = GetBlockConfirmations(walletTx.BlockHash),
                         Transaction = walletTx.Transaction
                     };
                 }
@@ -350,13 +341,16 @@ namespace Breeze.TumbleBit.Client.Services
 
         public int GetBlockConfirmations(uint256 blockId)
         {
+            if (blockId == null)
+                return 0;
+
             ChainedBlock block = this.tumblingState.chain.GetBlock(blockId);
 
             if (block == null)
                 return 0;
 
             int tipHeight = this.tumblingState.chain.Tip.Height;
-            int confirmations = tipHeight - block.Height;
+            int confirmations = tipHeight - block.Height + 1;
             int confCount = Math.Max(0, confirmations);
 
             return confCount;
@@ -377,7 +371,6 @@ namespace Breeze.TumbleBit.Client.Services
                 this.tumblingState.walletManager.ProcessTransaction(transaction, chainBlock.Height, null);
 
                 // TODO: Track via Watch Only wallet instead?
-                //this.tumblingState.watchOnlyWalletManager.WatchAddress(scriptPubkey.GetDestinationAddress(this.tumblingState.TumblerNetwork).ToString()))
 
                 // We don't really have the same error conditions available that the original code used to determine success
                 success = true;
