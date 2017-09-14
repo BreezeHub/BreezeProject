@@ -83,35 +83,38 @@ namespace Breeze.TumbleBit.Client.Services
         // Made this non-static since you can't keep this static & search for transactions in the wallet
         private async Task<Transaction> FetchTransactionAsync(uint256 txId)
         {
-            try
+            return await Task.Run(() =>
             {
-                foreach (WatchedAddress addr in this.TumblingState.WatchOnlyWalletManager.GetWatchOnlyWallet().WatchedAddresses.Values)
+                try
                 {
-                    foreach (Stratis.Bitcoin.Features.WatchOnlyWallet.TransactionData trans in addr.Transactions.Values)
+                    foreach (WatchedAddress addr in this.TumblingState.WatchOnlyWalletManager.GetWatchOnlyWallet().WatchedAddresses.Values)
                     {
-                        if (trans.Transaction.GetHash() == txId)
+                        foreach (Stratis.Bitcoin.Features.WatchOnlyWallet.TransactionData trans in addr.Transactions.Values)
                         {
-                             return trans.Transaction;
+                            if (trans.Transaction.GetHash() == txId)
+                            {
+                                return trans.Transaction;
+                            }
                         }
                     }
-                }
 
-                foreach (var tx in this.TumblingState.OriginWallet.GetAllTransactionsByCoinType(this.TumblingState.CoinType))
-                {
-                    if (tx.Transaction.GetHash() == txId)
+                    foreach (var tx in this.TumblingState.OriginWallet.GetAllTransactionsByCoinType(this.TumblingState.CoinType))
                     {
-                        return tx.Transaction;
+                        if (tx.Transaction.GetHash() == txId)
+                        {
+                            return tx.Transaction;
+                        }
                     }
-                }
 
-                Console.WriteLine("Unable to locate transaction in wallet or watch-only wallet: " + txId);
-                return null;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("Exception searching for transaction " + txId + ": " + ex);
-                return null;
-            }
+                    Console.WriteLine("Unable to locate transaction in wallet or watch-only wallet: " + txId);
+                    return null;
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Exception searching for transaction " + txId + ": " + ex);
+                    return null;
+                }
+            }).ConfigureAwait(false);
         }
 
         public ICollection<FullNodeWalletEntry> GetEntries()

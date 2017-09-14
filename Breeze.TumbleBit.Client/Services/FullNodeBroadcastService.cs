@@ -102,42 +102,45 @@ namespace Breeze.TumbleBit.Client.Services
 
         private async Task<bool> TryBroadcastCoreAsync(Record tx, int currentHeight)
         {
-            bool remove = false;
-            try
+            return await Task.Run(() =>
             {
-                remove = currentHeight >= tx.Expiration;
-
-                //Happens when the caller does not know the previous input yet
-                if (tx.Transaction.Inputs.Count == 0 || tx.Transaction.Inputs[0].PrevOut.Hash == uint256.Zero)
-                    return false;
-
-                bool isFinal = tx.Transaction.IsFinal(DateTimeOffset.UtcNow, currentHeight + 1);
-                if (!isFinal || IsDoubleSpend(tx.Transaction))
-                    return false;
-
+                bool remove = false;
                 try
                 {
-                    this.TumblingState.WalletManager.SendTransaction(tx.Transaction.ToHex());
+                    remove = currentHeight >= tx.Expiration;
 
-                    Cache.ImportTransaction(tx.Transaction, 0);
-                    Logs.Broadcasters.LogInformation($"Broadcasted {tx.Transaction.GetHash()}");
-                    return true;
+                    //Happens when the caller does not know the previous input yet
+                    if (tx.Transaction.Inputs.Count == 0 || tx.Transaction.Inputs[0].PrevOut.Hash == uint256.Zero)
+                        return false;
+
+                    bool isFinal = tx.Transaction.IsFinal(DateTimeOffset.UtcNow, currentHeight + 1);
+                    if (!isFinal || IsDoubleSpend(tx.Transaction))
+                        return false;
+
+                    try
+                    {
+                        this.TumblingState.WalletManager.SendTransaction(tx.Transaction.ToHex());
+
+                        Cache.ImportTransaction(tx.Transaction, 0);
+                        Logs.Broadcasters.LogInformation($"Broadcasted {tx.Transaction.GetHash()}");
+                        return true;
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine("Error broadcasting transaction: " + ex);
+
+                        // TODO: As per original code, need to determine the error to decide whether to remove
+                        // TODO: For a light wallet there is currently insufficient information about broadcast failure & other nodes' mempool acceptance
+                        remove = false;
+                    }
+                    return false;
                 }
-                catch (Exception ex)
+                finally
                 {
-                    Console.WriteLine("Error broadcasting transaction: " + ex);
-
-                    // TODO: As per original code, need to determine the error to decide whether to remove
-                    // TODO: For a light wallet there is currently insufficient information about broadcast failure & other nodes' mempool acceptance
-                    remove = false;
+                    if (remove)
+                        RemoveRecord(tx);
                 }
-                return false;
-            }
-            finally
-            {
-                if (remove)
-                    RemoveRecord(tx);
-            }
+            }).ConfigureAwait(false);
         }
 
         private bool IsDoubleSpend(Transaction tx)

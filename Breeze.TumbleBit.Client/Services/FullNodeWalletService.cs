@@ -34,23 +34,26 @@ namespace Breeze.TumbleBit.Client.Services
 
         public async Task<IDestination> GenerateAddressAsync()
         {
-            // TODO: Equivalent of addwitnessaddress rpc?
-
-            Wallet wallet = this.TumblingState.WalletManager.GetWallet(this.TumblingState.OriginWalletName);
-
-            HdAddress hdAddress = null;
-            BitcoinAddress address = null;
-
-            foreach (var account in wallet.GetAccountsByCoinType(this.TumblingState.CoinType))
+            return await Task.Run(() =>
             {
-                // Iterate through accounts until unused address is found
-                hdAddress = account.GetFirstUnusedReceivingAddress();
-                address = BitcoinAddress.Create(hdAddress.Address, wallet.Network);
-                if (address != null)
-                    return address;
-            }
+                // TODO: Equivalent of addwitnessaddress rpc?
 
-            return null;
+                Wallet wallet = this.TumblingState.WalletManager.GetWallet(this.TumblingState.OriginWalletName);
+
+                HdAddress hdAddress = null;
+                BitcoinAddress address = null;
+
+                foreach (var account in wallet.GetAccountsByCoinType(this.TumblingState.CoinType))
+                {
+                    // Iterate through accounts until unused address is found
+                    hdAddress = account.GetFirstUnusedReceivingAddress();
+                    address = BitcoinAddress.Create(hdAddress.Address, wallet.Network);
+                    if (address != null)
+                        return address;
+                }
+
+                return null;
+            }).ConfigureAwait(false);
         }
 
         public Coin AsCoin(UnspentCoin c)
@@ -63,48 +66,51 @@ namespace Breeze.TumbleBit.Client.Services
 
         public async Task<Transaction> FundTransactionAsync(TxOut txOut, FeeRate feeRate)
         {
-            Transaction tx = new Transaction();
-            tx.Outputs.Add(txOut);
-            
-            var spendable = this.TumblingState.WalletManager.GetSpendableTransactionsInWallet(this.TumblingState.OriginWalletName);
-
-            Dictionary<HdAccount, Money> accountBalances = new Dictionary<HdAccount, Money>();
-
-            // If multiple accounts are available find and choose the one with the most spendable funds
-            foreach (var spendableTx in spendable)
+            return await Task.Run(() =>
             {
-                accountBalances[spendableTx.Account] = spendableTx.Transaction.SpendableAmount(false);
-            }
+                Transaction tx = new Transaction();
+                tx.Outputs.Add(txOut);
 
-            HdAccount highestBalance = null;
-            foreach (var accountKey in accountBalances.Keys)
-            {
-                if (highestBalance == null)
+                var spendable = this.TumblingState.WalletManager.GetSpendableTransactionsInWallet(this.TumblingState.OriginWalletName);
+
+                Dictionary<HdAccount, Money> accountBalances = new Dictionary<HdAccount, Money>();
+
+                // If multiple accounts are available find and choose the one with the most spendable funds
+                foreach (var spendableTx in spendable)
                 {
-                    highestBalance = accountKey;
-                    continue;
+                    accountBalances[spendableTx.Account] = spendableTx.Transaction.SpendableAmount(false);
                 }
 
-                if (accountBalances[accountKey] > accountBalances[highestBalance])
+                HdAccount highestBalance = null;
+                foreach (var accountKey in accountBalances.Keys)
                 {
-                    highestBalance = accountKey;
+                    if (highestBalance == null)
+                    {
+                        highestBalance = accountKey;
+                        continue;
+                    }
+
+                    if (accountBalances[accountKey] > accountBalances[highestBalance])
+                    {
+                        highestBalance = accountKey;
+                    }
                 }
-            }
 
-            WalletAccountReference accountRef = new WalletAccountReference(this.TumblingState.OriginWalletName, highestBalance.Name);
-            
-            List<Recipient> recipients = new List<Recipient>();
+                WalletAccountReference accountRef = new WalletAccountReference(this.TumblingState.OriginWalletName, highestBalance.Name);
 
-            var txBuildContext = new TransactionBuildContext(accountRef, recipients);
-            txBuildContext.WalletPassword = this.TumblingState.OriginWalletPassword;
-            txBuildContext.OverrideFeeRate = feeRate;
-            txBuildContext.Sign = true;
-            txBuildContext.MinConfirmations = 0;
+                List<Recipient> recipients = new List<Recipient>();
 
-            // FundTransaction modifies tx directly
-            this.TumblingState.WalletTransactionHandler.FundTransaction(txBuildContext, tx);
+                var txBuildContext = new TransactionBuildContext(accountRef, recipients);
+                txBuildContext.WalletPassword = this.TumblingState.OriginWalletPassword;
+                txBuildContext.OverrideFeeRate = feeRate;
+                txBuildContext.Sign = true;
+                txBuildContext.MinConfirmations = 0;
 
-            return tx;
+                // FundTransaction modifies tx directly
+                this.TumblingState.WalletTransactionHandler.FundTransaction(txBuildContext, tx);
+
+                return tx;
+            }).ConfigureAwait(false);
         }
 
         public async Task<Transaction> ReceiveAsync(ScriptCoin escrowedCoin, TransactionSignature clientSignature, Key escrowKey, FeeRate feeRate)
