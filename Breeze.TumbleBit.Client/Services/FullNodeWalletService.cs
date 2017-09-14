@@ -48,12 +48,12 @@ namespace Breeze.TumbleBit.Client.Services
         {
             // TODO: Equivalent of addwitnessaddress rpc?
 
-            Wallet wallet = this.tumblingState.walletManager.GetWallet(this.tumblingState.OriginWalletName);
+            Wallet wallet = this.tumblingState.WalletManager.GetWallet(this.tumblingState.OriginWalletName);
 
             HdAddress hdAddress = null;
             BitcoinAddress address = null;
 
-            foreach (var account in wallet.GetAccountsByCoinType(this.tumblingState.coinType))
+            foreach (var account in wallet.GetAccountsByCoinType(this.tumblingState.CoinType))
             {
                 // Iterate through accounts until unused address is found
                 hdAddress = account.GetFirstUnusedReceivingAddress();
@@ -78,7 +78,7 @@ namespace Breeze.TumbleBit.Client.Services
             Transaction tx = new Transaction();
             tx.Outputs.Add(txOut);
             
-            var spendable = this.tumblingState.walletManager.GetSpendableTransactionsInWallet(this.tumblingState.OriginWalletName);
+            var spendable = this.tumblingState.WalletManager.GetSpendableTransactionsInWallet(this.tumblingState.OriginWalletName);
 
             Dictionary<HdAccount, Money> accountBalances = new Dictionary<HdAccount, Money>();
 
@@ -114,7 +114,7 @@ namespace Breeze.TumbleBit.Client.Services
             txBuildContext.MinConfirmations = 0;
 
             // FundTransaction modifies tx directly
-            this.tumblingState.walletTransactionHandler.FundTransaction(txBuildContext, tx);
+            this.tumblingState.WalletTransactionHandler.FundTransaction(txBuildContext, tx);
 
             return tx;
         }
@@ -161,7 +161,7 @@ namespace Breeze.TumbleBit.Client.Services
             );
             txin2.Witnessify();
 
-            this.tumblingState.walletManager.SendTransaction(tx.ToHex());
+            this.tumblingState.WalletManager.SendTransaction(tx.ToHex());
 
             return tx;
         }

@@ -102,7 +102,7 @@ namespace Breeze.TumbleBit.Client.Services
 
             var address = broadcast.PreviousScriptPubKey?.GetDestinationAddress(this.tumblingState.TumblerNetwork);
             if (address != null && TrackPreviousScriptPubKey)
-                this.tumblingState.watchOnlyWalletManager.WatchAddress(address.ScriptPubKey.GetDestinationAddress(this.tumblingState.TumblerNetwork).ToString());
+                this.tumblingState.WatchOnlyWalletManager.WatchAddress(address.ScriptPubKey.GetDestinationAddress(this.tumblingState.TumblerNetwork).ToString());
             
             var height = _Cache.BlockCount;
             var record = new Record();

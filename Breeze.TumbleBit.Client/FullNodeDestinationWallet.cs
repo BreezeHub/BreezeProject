@@ -28,7 +28,7 @@ namespace Breeze.TumbleBit.Client
             if (address == null)
                 return null;
 
-            foreach (var account in this.tumblingState.walletManager.GetAccounts(this.tumblingState.DestinationWalletName))
+            foreach (var account in this.tumblingState.WalletManager.GetAccounts(this.tumblingState.DestinationWalletName))
             {
                 foreach (var hdAddress in account.GetCombinedAddresses())
                 {
@@ -46,10 +46,10 @@ namespace Breeze.TumbleBit.Client
 
         public Script GetNewDestination()
         {
-            Wallet wallet = this.tumblingState.walletManager.GetWallet(this.tumblingState.DestinationWalletName);
+            Wallet wallet = this.tumblingState.WalletManager.GetWallet(this.tumblingState.DestinationWalletName);
 
             // TODO: Ideally need some mechanism for ensuring the same account is always used
-            foreach (var account in wallet.GetAccountsByCoinType(this.tumblingState.coinType))
+            foreach (var account in wallet.GetAccountsByCoinType(this.tumblingState.CoinType))
             {
                 // Iterate through accounts until unused address is found
                 HdAddress hdAddress = account.GetFirstUnusedReceivingAddress();

@@ -135,7 +135,7 @@ namespace Breeze.TumbleBit.Client.Services
 
                 try
                 {
-                    this.tumblingState.walletManager.SendTransaction(tx.Transaction.ToHex());
+                    this.tumblingState.WalletManager.SendTransaction(tx.Transaction.ToHex());
 
                     _Cache.ImportTransaction(tx.Transaction, 0);
                     Logs.Broadcasters.LogInformation($"Broadcasted {tx.Transaction.GetHash()}");

@@ -107,7 +107,7 @@ namespace Breeze.TumbleBit.Client
             this.tumblingState.OriginWalletName = originWalletName;
             this.tumblingState.OriginWalletPassword = originWalletPassword;
 
-            var accounts = this.tumblingState.DestinationWallet.GetAccountsByCoinType(this.tumblingState.coinType);
+            var accounts = this.tumblingState.DestinationWallet.GetAccountsByCoinType(this.tumblingState.CoinType);
             // TODO: Possibly need to preserve destination account name in tumbling state. Default to first account for now
             string accountName = null;
             foreach (var account in accounts)
@@ -115,7 +115,7 @@ namespace Breeze.TumbleBit.Client
                 if (account.Index == 0)
                     accountName = account.Name;
             }
-            var destAccount = this.tumblingState.DestinationWallet.GetAccountByCoinType(accountName, this.tumblingState.coinType);
+            var destAccount = this.tumblingState.DestinationWallet.GetAccountByCoinType(accountName, this.tumblingState.CoinType);
 
             var key = destAccount.ExtendedPubKey;
             var keyPath = new KeyPath("0");
