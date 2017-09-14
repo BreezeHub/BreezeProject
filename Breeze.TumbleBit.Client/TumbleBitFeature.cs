@@ -15,6 +15,8 @@ using Stratis.Bitcoin.Configuration;
 using Stratis.Bitcoin.Connection;
 using Stratis.Bitcoin.Features.BlockStore;
 using Stratis.Bitcoin.Utilities;
+using Stratis.Bitcoin.Features.Wallet;
+using Stratis.Bitcoin.Features.LightWallet;
 
 namespace Breeze.TumbleBit
 {
@@ -63,6 +65,7 @@ namespace Breeze.TumbleBit
 
                         services.AddSingleton<ITumbleBitManager, TumbleBitManager> ();
                         services.AddSingleton<TumbleBitController>();
+                        services.AddSingleton<IWalletFeePolicy, LightWalletFeePolicy>();
                     });
             });
 

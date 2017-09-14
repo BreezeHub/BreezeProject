@@ -31,14 +31,12 @@ namespace Breeze.TumbleBit.Client.Services
 
         public FullNodeBroadcastService(FullNodeWalletCache cache, IRepository repository, TumblingState tumblingState)
         {
-            if (repository == null)
-                throw new ArgumentNullException(nameof(repository));
             if (tumblingState == null)
                 throw new ArgumentNullException(nameof(tumblingState));
             
-            _Repository = repository;
+            _Repository = repository ?? throw new ArgumentNullException(nameof(repository));
             _Cache = cache;
-            _BlockExplorerService = new FullNodeBlockExplorerService(cache, repository, tumblingState);
+            _BlockExplorerService = new FullNodeBlockExplorerService(cache, tumblingState);
             this.tumblingState = tumblingState;
         }
 
@@ -135,7 +133,7 @@ namespace Breeze.TumbleBit.Client.Services
 
                 try
                 {
-                    this.tumblingState.walletManager.SendTransaction(tx.Transaction.ToHex());
+                    this.tumblingState.WalletManager.SendTransaction(tx.Transaction.ToHex());
 
                     _Cache.ImportTransaction(tx.Transaction, 0);
                     Logs.Broadcasters.LogInformation($"Broadcasted {tx.Transaction.GetHash()}");

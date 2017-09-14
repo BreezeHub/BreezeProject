@@ -36,17 +36,15 @@ namespace Breeze.TumbleBit.Client.Services
     /// </summary>
     public class FullNodeWalletCache
     {
-        private readonly IRepository repo;
         private TumblingState tumblingState;
 
         MultiValueDictionary<Script, FullNodeWalletEntry> _TxByScriptId = new MultiValueDictionary<Script, FullNodeWalletEntry>();
         ConcurrentDictionary<uint256, FullNodeWalletEntry> _WalletEntries = new ConcurrentDictionary<uint256, FullNodeWalletEntry>();
         const int MaxConfirmations = 1400;
 
-        public FullNodeWalletCache(IRepository repository, TumblingState tumblingState)
+        public FullNodeWalletCache(TumblingState tumblingState)
         {
-            this.repo = repository ?? throw new ArgumentNullException("repository");
-            this.tumblingState = tumblingState ?? throw new ArgumentNullException("tumblingState");
+            this.tumblingState = tumblingState ?? throw new ArgumentNullException(nameof(tumblingState));
         }
 
         volatile uint256 _RefreshedAtBlock;
@@ -55,7 +53,7 @@ namespace Breeze.TumbleBit.Client.Services
         {
             if (_RefreshedAtBlock != currentBlock)
             {
-                var newBlockCount = this.tumblingState.chain.Tip.Height;
+                var newBlockCount = this.tumblingState.Chain.Tip.Height;
                 //If we just udpated the value...
                 if (Interlocked.Exchange(ref _BlockCount, newBlockCount) != newBlockCount)
                 {
@@ -75,7 +73,7 @@ namespace Breeze.TumbleBit.Client.Services
             {
                 if (_BlockCount == 0)
                 {
-                    _BlockCount = this.tumblingState.chain.Tip.Height;
+                    _BlockCount = this.tumblingState.Chain.Tip.Height;
                 }
                 return _BlockCount;
             }
@@ -97,7 +95,7 @@ namespace Breeze.TumbleBit.Client.Services
         {
             try
             {
-                foreach (WatchedAddress addr in this.tumblingState.watchOnlyWalletManager.GetWatchOnlyWallet().WatchedAddresses.Values)
+                foreach (WatchedAddress addr in this.tumblingState.WatchOnlyWalletManager.GetWatchOnlyWallet().WatchedAddresses.Values)
                 {
                     foreach (Stratis.Bitcoin.Features.WatchOnlyWallet.TransactionData trans in addr.Transactions.Values)
                     {
@@ -108,7 +106,7 @@ namespace Breeze.TumbleBit.Client.Services
                     }
                 }
 
-                foreach (var tx in this.tumblingState.OriginWallet.GetAllTransactionsByCoinType(this.tumblingState.coinType))
+                foreach (var tx in this.tumblingState.OriginWallet.GetAllTransactionsByCoinType(this.tumblingState.CoinType))
                 {
                     if (tx.Transaction.GetHash() == txId)
                     {
@@ -187,14 +185,14 @@ namespace Breeze.TumbleBit.Client.Services
             //var result = _RPCClient.SendCommand("listtransactions", "*", count, skip, true);
 
             // First examine watch-only wallet
-            var watchOnlyWallet = this.tumblingState.watchOnlyWalletManager.GetWatchOnlyWallet();
+            var watchOnlyWallet = this.tumblingState.WatchOnlyWalletManager.GetWatchOnlyWallet();
 
             foreach (var watchedAddress in watchOnlyWallet.WatchedAddresses)
             {
                 foreach (var watchOnlyTx in watchedAddress.Value.Transactions)
                 {
-                    var block = this.tumblingState.chain.GetBlock(watchOnlyTx.Value.BlockHash);
-                    var confCount = this.tumblingState.chain.Tip.Height - block.Height;
+                    var block = this.tumblingState.Chain.GetBlock(watchOnlyTx.Value.BlockHash);
+                    var confCount = this.tumblingState.Chain.Tip.Height - block.Height;
 
                     // Ignore very old transactions
                     if (confCount > MaxConfirmations)
@@ -213,11 +211,11 @@ namespace Breeze.TumbleBit.Client.Services
             }
 
             // List transactions in regular source wallet
-            foreach (var wallet in this.tumblingState.walletManager.Wallets)
+            foreach (var wallet in this.tumblingState.WalletManager.Wallets)
             {
-                foreach (var walletTx in wallet.GetAllTransactionsByCoinType(this.tumblingState.coinType))
+                foreach (var walletTx in wallet.GetAllTransactionsByCoinType(this.tumblingState.CoinType))
                 {
-                    var confCount = this.tumblingState.chain.Tip.Height - walletTx.BlockHeight;
+                    var confCount = this.tumblingState.Chain.Tip.Height - walletTx.BlockHeight;
 
                     if (confCount == null)
                         confCount = 0;

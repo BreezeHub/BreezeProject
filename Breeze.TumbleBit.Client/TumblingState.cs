@@ -1,4 +1,4 @@
-﻿using System;
+﻿    using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -17,28 +17,28 @@ namespace Breeze.TumbleBit.Client
         private const string StateFileName = "tumblebit_state.json";
 
         [JsonIgnore]
-        public ILogger logger;
+        public ILogger Logger;
 
         [JsonIgnore]
-        public ConcurrentChain chain;
+        public ConcurrentChain Chain;
 
         [JsonIgnore]
-        public WalletManager walletManager;
+        public WalletManager WalletManager;
 
         [JsonIgnore]
-        public WalletSyncManager walletSyncManager;
+        public WalletSyncManager WalletSyncManager;
 
         [JsonIgnore]
-        public IWatchOnlyWalletManager watchOnlyWalletManager;
+        public IWatchOnlyWalletManager WatchOnlyWalletManager;
 
         [JsonIgnore]
-        public WalletTransactionHandler walletTransactionHandler;
+        public WalletTransactionHandler WalletTransactionHandler;
 
         [JsonIgnore]
         public bool IsConnected { get; set; }
 
         // TODO: Does this need to be saved? Can be derived from network
-        public CoinType coinType;
+        public CoinType CoinType;
 
         // TODO: Remove or store the tumbler parameters for every used tumbler
         [JsonProperty("tumblerParameters")]
@@ -68,6 +68,9 @@ namespace Breeze.TumbleBit.Client
         [JsonIgnore]
         public string OriginWalletPassword { get; set; }
 
+        [JsonIgnore]
+        public IWalletFeePolicy WalletFeePolicy { get; set; }
+
         [JsonConstructor]
         public TumblingState()
         {
@@ -79,16 +82,18 @@ namespace Breeze.TumbleBit.Client
             IWatchOnlyWalletManager  watchOnlyWalletManager,
             Network network, 
             WalletTransactionHandler walletTransactionHandler,
-            WalletSyncManager walletSyncManager)
+            WalletSyncManager walletSyncManager,
+            IWalletFeePolicy walletFeePolicy)
         {
-            this.logger = loggerFactory.CreateLogger(this.GetType().FullName);
-            this.chain = chain;
-            this.walletManager = walletManager;
-            this.watchOnlyWalletManager = watchOnlyWalletManager;
-            this.coinType = (CoinType)network.Consensus.CoinType;
-            this.walletTransactionHandler = walletTransactionHandler;
-            this.walletSyncManager = walletSyncManager;
+            this.Logger = loggerFactory.CreateLogger(this.GetType().FullName);
+            this.Chain = chain;
+            this.WalletManager = walletManager;
+            this.WatchOnlyWalletManager = watchOnlyWalletManager;
+            this.CoinType = (CoinType)network.Consensus.CoinType;
+            this.WalletTransactionHandler = walletTransactionHandler;
+            this.WalletSyncManager = walletSyncManager;
             this.TumblerNetwork = network;
+            this.WalletFeePolicy = walletFeePolicy;
         }
 
         /// <inheritdoc />
