@@ -36,23 +36,15 @@ namespace Breeze.TumbleBit.Client.Services
         {
             return await Task.Run(() =>
             {
-                // TODO: Equivalent of addwitnessaddress rpc?
+                // ToDo: Implement SegWit to Breeze
+                // NTumbleBit uses SegWit
+                // Breeze does not yet
+                // https://github.com/BreezeHub/Breeze/issues/10
 
-                Wallet wallet = this.TumblingState.WalletManager.GetWallet(this.TumblingState.OriginWalletName);
-
-                HdAddress hdAddress = null;
-                BitcoinAddress address = null;
-
-                foreach (var account in wallet.GetAccountsByCoinType(this.TumblingState.CoinType))
-                {
-                    // Iterate through accounts until unused address is found
-                    hdAddress = account.GetFirstUnusedReceivingAddress();
-                    address = BitcoinAddress.Create(hdAddress.Address, wallet.Network);
-                    if (address != null)
-                        return address;
-                }
-
-                return null;
+                var accounts = TumblingState.OriginWallet.GetAccountsByCoinType((CoinType)TumblingState.OriginWallet.Network.Consensus.CoinType);
+                var account = accounts.First(); // In Breeze at this point only the first account is used
+                var addressString = account.GetFirstUnusedChangeAddress().Address;
+                return BitcoinAddress.Create(addressString);
             }).ConfigureAwait(false);
         }
 
@@ -113,6 +105,7 @@ namespace Breeze.TumbleBit.Client.Services
             }).ConfigureAwait(false);
         }
 
+        // This interface implementation method is only used by the Tumbler server
         public async Task<Transaction> ReceiveAsync(ScriptCoin escrowedCoin, TransactionSignature clientSignature, Key escrowKey, FeeRate feeRate)
         {
             var input = new ClientEscapeData()
