@@ -13,26 +13,27 @@ namespace Breeze.TumbleBit.Client
     {
         public static ExternalServices CreateUsingFullNode(IRepository repository, Tracker tracker, TumblingState tumblingState)
         {
-            FeeRate minimumRate = new FeeRate(MempoolValidator.MinRelayTxFee.FeePerK);
+            var minimumRate = new FeeRate(MempoolValidator.MinRelayTxFee.FeePerK);
+            var service = new ExternalServices();
 
-            ExternalServices service = new ExternalServices();
-                      
-            service.FeeService = new FullNodeFeeService()
-            {
-                MinimumFeeRate = minimumRate
-            };
-
-            // on regtest the estimatefee always fails
+            // On regtest the estimatefee always fails
             if (tumblingState.TumblerNetwork == Network.RegTest)
             {
-                service.FeeService = new FullNodeFeeService()
+                service.FeeService = new FullNodeFeeService(tumblingState.WalletFeePolicy)
                 {
                     MinimumFeeRate = minimumRate,
                     FallBackFeeRate = new FeeRate(Money.Satoshis(50), 1)
                 };
             }
+            else // On test and mainnet fee estimation should just fail, not fall back to fixed fee
+            {
+                service.FeeService = new FullNodeFeeService(tumblingState.WalletFeePolicy)
+                {
+                    MinimumFeeRate = minimumRate
+                };
+            }
 
-            FullNodeWalletCache cache = new FullNodeWalletCache(repository, tumblingState);
+            var cache = new FullNodeWalletCache(repository, tumblingState);
             service.WalletService = new FullNodeWalletService(tumblingState);
             service.BroadcastService = new FullNodeBroadcastService(cache, repository, tumblingState);
             service.BlockExplorerService = new FullNodeBlockExplorerService(cache, repository, tumblingState);

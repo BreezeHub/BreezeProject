@@ -39,6 +39,7 @@ namespace Breeze.TumbleBit.Client
         private readonly Signals signals;
         private readonly ConcurrentChain chain;
         private readonly Network network;
+        private readonly IWalletFeePolicy walletFeePolicy;
         public TumblingState tumblingState;
         private IDisposable blockReceiver;
         private TumblerClientRuntime runtime;
@@ -49,7 +50,17 @@ namespace Breeze.TumbleBit.Client
         public ClassicTumblerParameters TumblerParameters { get; private set; } = null;
         public string TumblerAddress { get; private set; } = null;
 
-        public TumbleBitManager(ILoggerFactory loggerFactory, NodeSettings nodeSettings, IWalletManager walletManager, IWatchOnlyWalletManager watchOnlyWalletManager, ConcurrentChain chain, Network network, Signals signals, IWalletTransactionHandler walletTransactionHandler, IWalletSyncManager walletSyncManager)
+        public TumbleBitManager(
+            ILoggerFactory loggerFactory,
+            NodeSettings nodeSettings,
+            IWalletManager walletManager,
+            IWatchOnlyWalletManager watchOnlyWalletManager,
+            ConcurrentChain chain,
+            Network network,
+            Signals signals,
+            IWalletTransactionHandler walletTransactionHandler,
+            IWalletSyncManager walletSyncManager,
+            IWalletFeePolicy walletFeePolicy)
         {
             this.walletManager = walletManager as WalletManager;
             this.watchOnlyWalletManager = watchOnlyWalletManager;
@@ -60,9 +71,18 @@ namespace Breeze.TumbleBit.Client
             this.network = network;
             this.loggerFactory = loggerFactory;
             this.logger = loggerFactory.CreateLogger(this.GetType().FullName);
+            this.walletFeePolicy = walletFeePolicy;
             this.TumblerAddress = nodeSettings.TumblerAddress;
 
-            this.tumblingState = new TumblingState(loggerFactory, this.chain, this.walletManager, this.watchOnlyWalletManager, this.network, this.walletTransactionHandler, this.walletSyncManager);
+            this.tumblingState = new TumblingState(
+                this.loggerFactory,
+                this.chain,
+                this.walletManager,
+                this.watchOnlyWalletManager,
+                this.network,
+                this.walletTransactionHandler,
+                this.walletSyncManager,
+                this.walletFeePolicy);
         }
 
         /// <inheritdoc />

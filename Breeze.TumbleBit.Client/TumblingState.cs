@@ -1,4 +1,4 @@
-﻿using System;
+﻿    using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -68,6 +68,9 @@ namespace Breeze.TumbleBit.Client
         [JsonIgnore]
         public string OriginWalletPassword { get; set; }
 
+        [JsonIgnore]
+        public IWalletFeePolicy WalletFeePolicy { get; set; }
+
         [JsonConstructor]
         public TumblingState()
         {
@@ -79,7 +82,8 @@ namespace Breeze.TumbleBit.Client
             IWatchOnlyWalletManager  watchOnlyWalletManager,
             Network network, 
             WalletTransactionHandler walletTransactionHandler,
-            WalletSyncManager walletSyncManager)
+            WalletSyncManager walletSyncManager,
+            IWalletFeePolicy walletFeePolicy)
         {
             this.Logger = loggerFactory.CreateLogger(this.GetType().FullName);
             this.Chain = chain;
@@ -89,6 +93,7 @@ namespace Breeze.TumbleBit.Client
             this.WalletTransactionHandler = walletTransactionHandler;
             this.WalletSyncManager = walletSyncManager;
             this.TumblerNetwork = network;
+            this.WalletFeePolicy = walletFeePolicy;
         }
 
         /// <inheritdoc />

@@ -5,54 +5,54 @@ using System.Threading.Tasks;
 using NBitcoin;
 using NTumbleBit.Services;
 using Stratis.Bitcoin.Features.MemoryPool;
+using Stratis.Bitcoin.Features.Wallet;
 
 namespace Breeze.TumbleBit.Client.Services
 {
     public class FullNodeFeeService : IFeeService
     {
-        public FeeRate FallBackFeeRate
+        public FeeRate FallBackFeeRate { get; set; }
+        public FeeRate MinimumFeeRate { get; set; }
+
+        private IWalletFeePolicy WalletFeePolicy { get; }
+
+        public FullNodeFeeService(IWalletFeePolicy walletFeePolicy)
         {
-            get; set;
-        }
-        public FeeRate MinimumFeeRate
-        {
-            get; set;
+            WalletFeePolicy = walletFeePolicy ?? throw new ArgumentException(nameof(walletFeePolicy));
         }
 
-        FeeRate _CachedValue;
-        DateTimeOffset _CachedValueTime;
-        TimeSpan CacheExpiration = TimeSpan.FromSeconds(60 * 5);
+        private FeeRate cachedValue;
+        private DateTimeOffset cachedValueTime;
+        private TimeSpan cacheExpiration = TimeSpan.FromSeconds(60 * 5);
         public async Task<FeeRate> GetFeeRateAsync()
         {
-            if (DateTimeOffset.UtcNow - _CachedValueTime > CacheExpiration)
+            if (DateTimeOffset.UtcNow - this.cachedValueTime > this.cacheExpiration)
             {
                 var rate = await FetchRateAsync();
-                _CachedValue = rate;
-                _CachedValueTime = DateTimeOffset.UtcNow;
+                this.cachedValue = rate;
+                this.cachedValueTime = DateTimeOffset.UtcNow;
                 return rate;
             }
             else
             {
-                return _CachedValue;
+                return this.cachedValue;
             }
         }
 
         private async Task<FeeRate> FetchRateAsync()
         {
-            decimal relayFee = MempoolValidator.MinRelayTxFee.FeePerK.ToUnit(MoneyUnit.BTC);
-            var minimumRate = new FeeRate(Money.Coins(relayFee * 2), 1000); //0.00002000 BTC/kB
-            var fallbackFeeRate = new FeeRate(Money.Satoshis(50), 1);       //0.00050000 BTC/kB
-
-            // TODO add real fee estimation 
-            //var rate = _RPCClient.TryEstimateFeeRate(1) ??
-            //           _RPCClient.TryEstimateFeeRate(2) ??
-            //           _RPCClient.TryEstimateFeeRate(3) ??
-            //           FallBackFeeRate;
-
-            //if (rate < MinimumFeeRate)
-            //    rate = MinimumFeeRa
-
-            return fallbackFeeRate;
+            return await Task.Run(() =>
+            {
+                var rate = WalletFeePolicy.GetFeeRate(1) ??
+                           WalletFeePolicy.GetFeeRate(2) ??
+                           WalletFeePolicy.GetFeeRate(3) ??
+                           FallBackFeeRate;
+                if (rate == null)
+                    throw new FeeRateUnavailableException("The fee rate is unavailable");
+                if (rate < MinimumFeeRate)
+                    rate = MinimumFeeRate;
+                return rate;
+            }).ConfigureAwait(false);
         }
     }
 }
