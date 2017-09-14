@@ -59,7 +59,8 @@ namespace Breeze.TumbleBit.Client.Services
                     WalletName = TumblingState.OriginWallet.Name
                 };
 
-                var context = new TransactionBuildContext(walletReference,
+                var context = new TransactionBuildContext(
+                    walletReference,
                     new[]
                     {
                     new Recipient { Amount = txOut.Value, ScriptPubKey = txOut.ScriptPubKey },
@@ -71,10 +72,7 @@ namespace Breeze.TumbleBit.Client.Services
                     Sign = true
                 };
 
-                var fundTransaction = TumblingState.WalletTransactionHandler.BuildTransaction(context);
-                TumblingState.WalletTransactionHandler.FundTransaction(context, fundTransaction);
-
-                return fundTransaction;
+                return TumblingState.WalletTransactionHandler.BuildTransaction(context);
             }).ConfigureAwait(false);
         }
 
