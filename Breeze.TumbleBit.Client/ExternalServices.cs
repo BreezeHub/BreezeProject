@@ -11,6 +11,12 @@ namespace Breeze.TumbleBit.Client
 {
     public class ExternalServices : IExternalServices
     {
+        public IFeeService FeeService { get; set; }
+        public IWalletService WalletService { get; set; }
+        public IBroadcastService BroadcastService { get; set; }
+        public IBlockExplorerService BlockExplorerService { get; set; }
+        public ITrustedBroadcastService TrustedBroadcastService { get; set; }
+
         public static ExternalServices CreateFromFullNode(IRepository repository, Tracker tracker, TumblingState tumblingState)
         {
             var minimumRate = new FeeRate(MempoolValidator.MinRelayTxFee.FeePerK);
@@ -33,37 +39,16 @@ namespace Breeze.TumbleBit.Client
                 };
             }
 
-            var cache = new FullNodeWalletCache(repository, tumblingState);
+            var cache = new FullNodeWalletCache(tumblingState);
             service.WalletService = new FullNodeWalletService(tumblingState);
             service.BroadcastService = new FullNodeBroadcastService(cache, repository, tumblingState);
-            service.BlockExplorerService = new FullNodeBlockExplorerService(cache, repository, tumblingState);
+            service.BlockExplorerService = new FullNodeBlockExplorerService(cache, tumblingState);
             service.TrustedBroadcastService = new FullNodeTrustedBroadcastService(service.BroadcastService, service.BlockExplorerService, repository, cache, tracker, tumblingState)
             {
                 // BlockExplorer will already track the addresses, since they used a shared bitcoind, no need of tracking again (this would overwrite labels)
                 TrackPreviousScriptPubKey = false
             };
             return service;
-        }
-
-        public IFeeService FeeService
-        {
-            get; set;
-        }
-        public IWalletService WalletService
-        {
-            get; set;
-        }
-        public IBroadcastService BroadcastService
-        {
-            get; set;
-        }
-        public IBlockExplorerService BlockExplorerService
-        {
-            get; set;
-        }
-        public ITrustedBroadcastService TrustedBroadcastService
-        {
-            get; set;
         }
     }
 }

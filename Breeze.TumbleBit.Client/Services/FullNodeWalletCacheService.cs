@@ -36,16 +36,14 @@ namespace Breeze.TumbleBit.Client.Services
     /// </summary>
     public class FullNodeWalletCache
     {
-        private readonly IRepository repo;
         private TumblingState tumblingState;
 
         MultiValueDictionary<Script, FullNodeWalletEntry> _TxByScriptId = new MultiValueDictionary<Script, FullNodeWalletEntry>();
         ConcurrentDictionary<uint256, FullNodeWalletEntry> _WalletEntries = new ConcurrentDictionary<uint256, FullNodeWalletEntry>();
         const int MaxConfirmations = 1400;
 
-        public FullNodeWalletCache(IRepository repository, TumblingState tumblingState)
+        public FullNodeWalletCache(TumblingState tumblingState)
         {
-            this.repo = repository ?? throw new ArgumentNullException(nameof(repository));
             this.tumblingState = tumblingState ?? throw new ArgumentNullException(nameof(tumblingState));
         }
 

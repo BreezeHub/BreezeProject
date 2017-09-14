@@ -18,13 +18,11 @@ namespace Breeze.TumbleBit.Client.Services
     public class FullNodeBlockExplorerService : IBlockExplorerService
     {
         FullNodeWalletCache _Cache;
-        IRepository _Repo;
         private TumblingState tumblingState;
 
-        public FullNodeBlockExplorerService(FullNodeWalletCache cache, IRepository repo, TumblingState tumblingState)
+        public FullNodeBlockExplorerService(FullNodeWalletCache cache, TumblingState tumblingState)
         {
             _Cache = cache ?? throw new ArgumentNullException(nameof(cache));
-            _Repo = repo ?? throw new ArgumentNullException(nameof(repo));
             this.tumblingState = tumblingState ?? throw new ArgumentNullException(nameof(tumblingState));
         }
 

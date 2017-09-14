@@ -36,7 +36,7 @@ namespace Breeze.TumbleBit.Client.Services
             
             _Repository = repository ?? throw new ArgumentNullException(nameof(repository));
             _Cache = cache;
-            _BlockExplorerService = new FullNodeBlockExplorerService(cache, repository, tumblingState);
+            _BlockExplorerService = new FullNodeBlockExplorerService(cache, tumblingState);
             this.tumblingState = tumblingState;
         }
 
