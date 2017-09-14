@@ -69,7 +69,7 @@ namespace Breeze.TumbleBit.Client.Services
             if (address != null && TrackPreviousScriptPubKey)
                 this.TumblingState.WatchOnlyWalletManager.WatchAddress(address.ScriptPubKey.GetDestinationAddress(this.TumblingState.TumblerNetwork).ToString());
             
-            var height = Cache.BlockCount;
+            var height = TumblingState.Chain.Height;
             var record = new Record();
             //3 days expiration after now or broadcast date
             var expirationBase = Math.Max(height, broadcast.BroadcastableHeight);
@@ -102,13 +102,13 @@ namespace Breeze.TumbleBit.Client.Services
         }
         public Transaction[] TryBroadcast(ref uint256[] knownBroadcasted)
         {
-            var height = Cache.BlockCount;
+            var height = TumblingState.Chain.Height;
 
             DateTimeOffset startTime = DateTimeOffset.UtcNow;
             int totalEntries = 0;
 
             HashSet<uint256> knownBroadcastedSet = new HashSet<uint256>(knownBroadcasted ?? new uint256[0]);
-            foreach (var confirmedTx in Cache.GetEntries().Where(e => e.Confirmations > 6).Select(t => t.TransactionId))
+            foreach (var confirmedTx in Cache.FindAllTransactionsAsync().Result.Where(e => e.Confirmations > 6).Select(t => t.Transaction.GetHash()))
             {
                 knownBroadcastedSet.Add(confirmedTx);
             }

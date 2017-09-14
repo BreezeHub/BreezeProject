@@ -28,7 +28,7 @@ namespace Breeze.TumbleBit.Client.Services
 
         public int GetCurrentHeight()
         {
-            return Cache.BlockCount;
+            return TumblingState.Chain.Height;
         }
 
         public uint256 WaitBlock(uint256 currentBlock, CancellationToken cancellation = default(CancellationToken))
@@ -40,7 +40,6 @@ namespace Breeze.TumbleBit.Client.Services
 
                 if (h != currentBlock)
                 {
-                    Cache.Refresh(h);
                     return h;
                 }
                 cancellation.WaitHandle.WaitOne(5000);
@@ -49,146 +48,25 @@ namespace Breeze.TumbleBit.Client.Services
 
         public async Task<ICollection<TransactionInformation>> GetTransactionsAsync(Script scriptPubKey, bool withProof)
         {
-            if (scriptPubKey == null)
-                throw new ArgumentNullException(nameof(scriptPubKey));
-
-
-            var results = Cache
-                                        .GetEntriesFromScript(scriptPubKey)
-                                        .Select(entry => new TransactionInformation()
-                                        {
-                                            Confirmations = entry.Confirmations,
-                                            Transaction = entry.Transaction
-                                        }).ToList();
+            var foundTransactions = new HashSet<TransactionInformation>();
+            foreach(var transaction in await Cache.FindAllTransactionsAsync().ConfigureAwait(false))
+            {
+                foreach(var output in transaction.Transaction.Outputs)
+                {
+                    if(output.ScriptPubKey.Hash == scriptPubKey.Hash)
+                    {
+                        foundTransactions.Add(transaction);
+                    }
+                }
+            }
 
             if (withProof)
             {
-                foreach (var tx in results.ToList())
-                {
-                    bool found = false;
-                    var completion = new TaskCompletionSource<MerkleBlock>();
-                    bool isRequester = true;
-                    var txid = tx.Transaction.GetHash();
-                    _GettingProof.AddOrUpdate(txid, completion, (k, o) =>
-                    {
-                        isRequester = false;
-                        completion = o;
-                        return o;
-                    });
-                    if (isRequester)
-                    {
-                        try
-                        {
-                            MerkleBlock proof = null;
-
-                            foreach (var account in this.TumblingState.OriginWallet.GetAccountsByCoinType(this.TumblingState.CoinType))
-                            {
-                                var txData = account.GetTransactionsById(tx.Transaction.GetHash());
-
-                                if (txData != null)
-                                {
-                                    // TODO: Is it possible for GetTransactionsById to return multiple results?
-                                    var trx = txData.First<Stratis.Bitcoin.Features.Wallet.TransactionData>();
-
-                                    Console.WriteLine("Transaction " + trx.Id + " confirmation status: " + trx.IsConfirmed());
-                                    Console.WriteLine("Transaction " + trx.Id + " block hash: " + trx.BlockHash);
-
-                                    // Transaction is not confirmed yet - do not yet have a Merkle proof for it as there is no block
-                                    if (trx.BlockHash == null)
-                                    {
-                                        completion.TrySetResult(null);
-                                        break;
-                                    }
-
-                                    found = true;
-
-                                    try
-                                    {
-                                        proof = new MerkleBlock()
-                                        {
-                                            Header = this.TumblingState.Chain.GetBlock(trx.BlockHash).Header,
-                                            PartialMerkleTree = trx.MerkleProof
-                                        };
-                                    }
-                                    catch (Exception e)
-                                    {
-                                        Console.WriteLine("Could not create Merkle block for transaction " + tx.Transaction.GetHash() + " in block " + trx.BlockHash);
-                                    }
-
-                                    tx.MerkleProof = proof;
-                                    completion.TrySetResult(proof);
-
-                                    break;
-                                }
-                            }
-
-                            // The transaction should not be in both wallets normally
-                            if (!found)
-                            {
-                                foreach (WatchedAddress addr in this.TumblingState.WatchOnlyWalletManager.GetWatchOnlyWallet().WatchedAddresses.Values)
-                                {
-                                    addr.Transactions.TryGetValue(tx.Transaction.GetHash().ToString(), out Stratis.Bitcoin.Features.WatchOnlyWallet.TransactionData woTx);
-
-                                    if (woTx != null)
-                                    {
-                                        Console.WriteLine("Watch-only transaction " + woTx.Id + " block hash: " + woTx.BlockHash);
-
-                                        if (woTx.BlockHash == null)
-                                        {
-                                            Console.WriteLine("Watch-only transaction is not confirmed yet - do not yet have a Merkle proof for it as there is no block");
-                                            completion.TrySetResult(null);
-                                            break;
-                                        }
-
-                                        if (woTx.MerkleProof == null)
-                                        {
-                                            Console.WriteLine("Watch-only transaction has no Merkle proof recorded");
-                                            completion.TrySetResult(null);
-                                            break;
-                                        }
-
-                                        found = true;
-
-                                        try
-                                        {
-                                            proof = new MerkleBlock()
-                                            {
-                                                Header = this.TumblingState.Chain.GetBlock(woTx.BlockHash).Header,
-                                                PartialMerkleTree = woTx.MerkleProof
-                                            };
-                                        }
-                                        catch (Exception e)
-                                        {
-                                            Console.WriteLine("Could not create Merkle block for transaction " + tx.Transaction.GetHash() + " in block " + woTx.BlockHash);
-                                        }
-
-                                        tx.MerkleProof = proof;
-                                        completion.TrySetResult(proof);
-
-                                        break;
-                                    }
-                                }
-                            }
-
-                            if (!found)
-                            {
-                                completion.TrySetResult(null);
-                                continue;
-                            }
-                        }
-                        catch (Exception ex) { completion.TrySetException(ex); }
-                        finally { _GettingProof.TryRemove(txid, out completion); }
-                    }
-
-                    var merkleBlock = await completion.Task.ConfigureAwait(false);
-                    if (merkleBlock == null)
-                        results.Remove(tx);
-                }
+                foundTransactions.RemoveWhere(x => x.Confirmations == 0 || x.MerkleProof == null);
             }
-            return results;
-        }
 
-        ConcurrentDictionary<uint256, TaskCompletionSource<MerkleBlock>> _GettingProof = new ConcurrentDictionary<uint256, TaskCompletionSource<MerkleBlock>>();
+            return foundTransactions.OrderBy(x => x.Confirmations).ToArray();
+        }
 
         private List<TransactionInformation> QueryWithListReceivedByAddress(bool withProof, BitcoinAddress address)
         {
@@ -265,7 +143,7 @@ namespace Breeze.TumbleBit.Client.Services
                 if (!resultsSet.Contains(obj.TransactionId))
                 {
                     var confirmations = obj.Confirmations;
-                    var tx = Cache.GetTransaction(obj.TransactionId);
+                    var tx = Cache.FindAllTransactionsAsync().Result.Where(x=>x.Transaction.GetHash() == obj.TransactionId)?.FirstOrDefault()?.Transaction;
 
                     if (tx == null || (!includeUnconf && confirmations == 0))
                         continue;
@@ -365,11 +243,6 @@ namespace Breeze.TumbleBit.Client.Services
 
                 // We don't really have the same error conditions available that the original code used to determine success
                 success = true;
-
-                if (success)
-                {
-                    Cache.ImportTransaction(transaction, GetBlockConfirmations(merkleProof.Header.GetHash()));
-                }
             }).ConfigureAwait(false);
 
             return success;
