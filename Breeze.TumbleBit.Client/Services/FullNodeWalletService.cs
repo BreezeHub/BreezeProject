@@ -48,14 +48,6 @@ namespace Breeze.TumbleBit.Client.Services
             }).ConfigureAwait(false);
         }
 
-        public Coin AsCoin(UnspentCoin c)
-        {
-            var coin = new Coin(c.OutPoint, new TxOut(c.Amount, c.ScriptPubKey));
-            if (c.RedeemScript != null)
-                coin = coin.ToScriptCoin(c.RedeemScript);
-            return coin;
-        }
-
         public async Task<Transaction> FundTransactionAsync(TxOut txOut, FeeRate feeRate)
         {
             return await Task.Run(() =>
