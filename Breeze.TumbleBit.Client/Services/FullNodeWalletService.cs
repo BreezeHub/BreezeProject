@@ -52,48 +52,29 @@ namespace Breeze.TumbleBit.Client.Services
         {
             return await Task.Run(() =>
             {
-                Transaction tx = new Transaction();
-                tx.Outputs.Add(txOut);
-
-                var spendable = this.TumblingState.WalletManager.GetSpendableTransactionsInWallet(this.TumblingState.OriginWalletName);
-
-                Dictionary<HdAccount, Money> accountBalances = new Dictionary<HdAccount, Money>();
-
-                // If multiple accounts are available find and choose the one with the most spendable funds
-                foreach (var spendableTx in spendable)
+                var walletReference = new WalletAccountReference()
                 {
-                    accountBalances[spendableTx.Account] = spendableTx.Transaction.SpendableAmount(false);
-                }
+                    // Currently on the first wallet account is used in Breeze
+                    AccountName = TumblingState.OriginWallet.GetAccountsByCoinType((CoinType)TumblingState.OriginWallet.Network.Consensus.CoinType).First().Name,
+                    WalletName = TumblingState.OriginWallet.Name
+                };
 
-                HdAccount highestBalance = null;
-                foreach (var accountKey in accountBalances.Keys)
+                var context = new TransactionBuildContext(walletReference,
+                    new[]
+                    {
+                    new Recipient { Amount = txOut.Value, ScriptPubKey = txOut.ScriptPubKey },
+                    }
+                    .ToList(), TumblingState.OriginWalletPassword)
                 {
-                    if (highestBalance == null)
-                    {
-                        highestBalance = accountKey;
-                        continue;
-                    }
+                    MinConfirmations = 0,
+                    OverrideFeeRate = feeRate,
+                    Sign = true
+                };
 
-                    if (accountBalances[accountKey] > accountBalances[highestBalance])
-                    {
-                        highestBalance = accountKey;
-                    }
-                }
+                var fundTransaction = TumblingState.WalletTransactionHandler.BuildTransaction(context);
+                TumblingState.WalletTransactionHandler.FundTransaction(context, fundTransaction);
 
-                WalletAccountReference accountRef = new WalletAccountReference(this.TumblingState.OriginWalletName, highestBalance.Name);
-
-                List<Recipient> recipients = new List<Recipient>();
-
-                var txBuildContext = new TransactionBuildContext(accountRef, recipients);
-                txBuildContext.WalletPassword = this.TumblingState.OriginWalletPassword;
-                txBuildContext.OverrideFeeRate = feeRate;
-                txBuildContext.Sign = true;
-                txBuildContext.MinConfirmations = 0;
-
-                // FundTransaction modifies tx directly
-                this.TumblingState.WalletTransactionHandler.FundTransaction(txBuildContext, tx);
-
-                return tx;
+                return fundTransaction;
             }).ConfigureAwait(false);
         }
 
