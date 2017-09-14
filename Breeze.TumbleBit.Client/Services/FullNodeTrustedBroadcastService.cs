@@ -66,26 +66,13 @@ namespace Breeze.TumbleBit.Client.Services
 
         public FullNodeTrustedBroadcastService(IBroadcastService innerBroadcast, IBlockExplorerService explorer, IRepository repository, FullNodeWalletCache cache, Tracker tracker, TumblingState tumblingState)
         {
-            if (innerBroadcast == null)
-                throw new ArgumentNullException(nameof(innerBroadcast));
-            if (repository == null)
-                throw new ArgumentNullException(nameof(repository));
-            if (explorer == null)
-                throw new ArgumentNullException(nameof(explorer));
-            if (tracker == null)
-                throw new ArgumentNullException(nameof(tracker));
-            if (cache == null)
-                throw new ArgumentNullException(nameof(cache));
-            if (tumblingState == null)
-                throw new ArgumentNullException(nameof(tumblingState));
-
-            _Repository = repository;
-            _Broadcaster = innerBroadcast;
+            _Repository = repository ?? throw new ArgumentNullException(nameof(repository));
+            _Broadcaster = innerBroadcast ?? throw new ArgumentNullException(nameof(innerBroadcast));
             TrackPreviousScriptPubKey = true;
-            _BlockExplorer = explorer;
-            _Tracker = tracker;
-            _Cache = cache;
-            this.tumblingState = tumblingState;
+            _BlockExplorer = explorer ?? throw new ArgumentNullException(nameof(explorer));
+            _Tracker = tracker ?? throw new ArgumentNullException(nameof(tracker));
+            _Cache = cache ?? throw new ArgumentNullException(nameof(cache));
+            this.tumblingState = tumblingState ?? throw new ArgumentNullException(nameof(tumblingState));
         }
 
         public bool TrackPreviousScriptPubKey
@@ -102,7 +89,7 @@ namespace Breeze.TumbleBit.Client.Services
 
             var address = broadcast.PreviousScriptPubKey?.GetDestinationAddress(this.tumblingState.TumblerNetwork);
             if (address != null && TrackPreviousScriptPubKey)
-                this.tumblingState.watchOnlyWalletManager.WatchAddress(address.ScriptPubKey.GetDestinationAddress(this.tumblingState.TumblerNetwork).ToString());
+                this.tumblingState.WatchOnlyWalletManager.WatchAddress(address.ScriptPubKey.GetDestinationAddress(this.tumblingState.TumblerNetwork).ToString());
             
             var height = _Cache.BlockCount;
             var record = new Record();

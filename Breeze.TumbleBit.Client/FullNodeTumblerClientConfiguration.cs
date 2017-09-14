@@ -19,8 +19,8 @@ namespace Breeze.TumbleBit.Client
         private TumblingState tumblingState;
         public FullNodeTumblerClientConfiguration(TumblingState tumblingState, bool onlyMonitor, bool connectionTest = false)
         {
-            this.tumblingState = tumblingState;
-            Network = tumblingState.TumblerNetwork;
+            this.tumblingState = tumblingState ?? throw new ArgumentNullException(nameof(tumblingState));
+            Network = tumblingState.TumblerNetwork ?? throw new ArgumentNullException(nameof(tumblingState.TumblerNetwork));
 
             if (!onlyMonitor || connectionTest)
             {
@@ -62,7 +62,7 @@ namespace Breeze.TumbleBit.Client
             Tracker = new Tracker(DBreezeRepository, Network);
 
             // Need to use our own ExternalServices implementations to remove RPC dependency
-            Services = ExternalServices.CreateUsingFullNode(DBreezeRepository, Tracker, this.tumblingState);
+            Services = ExternalServices.CreateFromFullNode(DBreezeRepository, Tracker, this.tumblingState);
         }
     }
 }

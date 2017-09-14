@@ -11,58 +11,44 @@ namespace Breeze.TumbleBit.Client
 {
     public class ExternalServices : IExternalServices
     {
-        public static ExternalServices CreateUsingFullNode(IRepository repository, Tracker tracker, TumblingState tumblingState)
+        public IFeeService FeeService { get; set; }
+        public IWalletService WalletService { get; set; }
+        public IBroadcastService BroadcastService { get; set; }
+        public IBlockExplorerService BlockExplorerService { get; set; }
+        public ITrustedBroadcastService TrustedBroadcastService { get; set; }
+
+        public static ExternalServices CreateFromFullNode(IRepository repository, Tracker tracker, TumblingState tumblingState)
         {
-            FeeRate minimumRate = new FeeRate(MempoolValidator.MinRelayTxFee.FeePerK);
+            var minimumRate = new FeeRate(MempoolValidator.MinRelayTxFee.FeePerK);
+            var service = new ExternalServices();
 
-            ExternalServices service = new ExternalServices();
-                      
-            service.FeeService = new FullNodeFeeService()
-            {
-                MinimumFeeRate = minimumRate
-            };
-
-            // on regtest the estimatefee always fails
+            // On regtest the estimatefee always fails
             if (tumblingState.TumblerNetwork == Network.RegTest)
             {
-                service.FeeService = new FullNodeFeeService()
+                service.FeeService = new FullNodeFeeService(tumblingState.WalletFeePolicy)
                 {
                     MinimumFeeRate = minimumRate,
                     FallBackFeeRate = new FeeRate(Money.Satoshis(50), 1)
                 };
             }
+            else // On test and mainnet fee estimation should just fail, not fall back to fixed fee
+            {
+                service.FeeService = new FullNodeFeeService(tumblingState.WalletFeePolicy)
+                {
+                    MinimumFeeRate = minimumRate
+                };
+            }
 
-            FullNodeWalletCache cache = new FullNodeWalletCache(repository, tumblingState);
+            var cache = new FullNodeWalletCache(tumblingState);
             service.WalletService = new FullNodeWalletService(tumblingState);
             service.BroadcastService = new FullNodeBroadcastService(cache, repository, tumblingState);
-            service.BlockExplorerService = new FullNodeBlockExplorerService(cache, repository, tumblingState);
+            service.BlockExplorerService = new FullNodeBlockExplorerService(cache, tumblingState);
             service.TrustedBroadcastService = new FullNodeTrustedBroadcastService(service.BroadcastService, service.BlockExplorerService, repository, cache, tracker, tumblingState)
             {
                 // BlockExplorer will already track the addresses, since they used a shared bitcoind, no need of tracking again (this would overwrite labels)
                 TrackPreviousScriptPubKey = false
             };
             return service;
-        }
-
-        public IFeeService FeeService
-        {
-            get; set;
-        }
-        public IWalletService WalletService
-        {
-            get; set;
-        }
-        public IBroadcastService BroadcastService
-        {
-            get; set;
-        }
-        public IBlockExplorerService BlockExplorerService
-        {
-            get; set;
-        }
-        public ITrustedBroadcastService TrustedBroadcastService
-        {
-            get; set;
         }
     }
 }

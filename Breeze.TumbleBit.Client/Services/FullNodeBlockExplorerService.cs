@@ -18,21 +18,12 @@ namespace Breeze.TumbleBit.Client.Services
     public class FullNodeBlockExplorerService : IBlockExplorerService
     {
         FullNodeWalletCache _Cache;
-        IRepository _Repo;
         private TumblingState tumblingState;
 
-        public FullNodeBlockExplorerService(FullNodeWalletCache cache, IRepository repo, TumblingState tumblingState)
+        public FullNodeBlockExplorerService(FullNodeWalletCache cache, TumblingState tumblingState)
         {
-            if (cache == null)
-                throw new ArgumentNullException("cache");
-            if (repo == null)
-                throw new ArgumentNullException("repo");
-            if (tumblingState == null)
-                throw new ArgumentNullException("tumblingState");
-
-            _Cache = cache;
-            _Repo = repo;
-            this.tumblingState = tumblingState;
+            _Cache = cache ?? throw new ArgumentNullException(nameof(cache));
+            this.tumblingState = tumblingState ?? throw new ArgumentNullException(nameof(tumblingState));
         }
 
         public int GetCurrentHeight()
@@ -45,7 +36,7 @@ namespace Breeze.TumbleBit.Client.Services
             while (true)
             {
                 cancellation.ThrowIfCancellationRequested();
-                var h = this.tumblingState.chain.Tip.Header.GetHash();
+                var h = this.tumblingState.Chain.Tip.Header.GetHash();
 
                 if (h != currentBlock)
                 {
@@ -90,7 +81,7 @@ namespace Breeze.TumbleBit.Client.Services
                         {
                             MerkleBlock proof = null;
 
-                            foreach (var account in this.tumblingState.OriginWallet.GetAccountsByCoinType(this.tumblingState.coinType))
+                            foreach (var account in this.tumblingState.OriginWallet.GetAccountsByCoinType(this.tumblingState.CoinType))
                             {
                                 var txData = account.GetTransactionsById(tx.Transaction.GetHash());
 
@@ -115,7 +106,7 @@ namespace Breeze.TumbleBit.Client.Services
                                     {
                                         proof = new MerkleBlock()
                                         {
-                                            Header = this.tumblingState.chain.GetBlock(trx.BlockHash).Header,
+                                            Header = this.tumblingState.Chain.GetBlock(trx.BlockHash).Header,
                                             PartialMerkleTree = trx.MerkleProof
                                         };
                                     }
@@ -134,7 +125,7 @@ namespace Breeze.TumbleBit.Client.Services
                             // The transaction should not be in both wallets normally
                             if (!found)
                             {
-                                foreach (WatchedAddress addr in this.tumblingState.watchOnlyWalletManager.GetWatchOnlyWallet().WatchedAddresses.Values)
+                                foreach (WatchedAddress addr in this.tumblingState.WatchOnlyWalletManager.GetWatchOnlyWallet().WatchedAddresses.Values)
                                 {
                                     addr.Transactions.TryGetValue(tx.Transaction.GetHash().ToString(), out Stratis.Bitcoin.Features.WatchOnlyWallet.TransactionData woTx);
 
@@ -162,7 +153,7 @@ namespace Breeze.TumbleBit.Client.Services
                                         {
                                             proof = new MerkleBlock()
                                             {
-                                                Header = this.tumblingState.chain.GetBlock(woTx.BlockHash).Header,
+                                                Header = this.tumblingState.Chain.GetBlock(woTx.BlockHash).Header,
                                                 PartialMerkleTree = woTx.MerkleProof
                                             };
                                         }
@@ -210,7 +201,7 @@ namespace Breeze.TumbleBit.Client.Services
             List<uint256> txIdList = new List<uint256>();
 
             // First examine watch-only wallet
-            var watchOnlyWallet = this.tumblingState.watchOnlyWalletManager.GetWatchOnlyWallet();
+            var watchOnlyWallet = this.tumblingState.WatchOnlyWalletManager.GetWatchOnlyWallet();
 
             // TODO: This seems highly inefficient, maybe we need a cache or quicker lookup mechanism
             foreach (var watchedAddressKeyValue in watchOnlyWallet.WatchedAddresses)
@@ -236,7 +227,7 @@ namespace Breeze.TumbleBit.Client.Services
 
             // Search transactions in regular wallet for matching address criteria
 
-            foreach (var walletTx in this.tumblingState.OriginWallet.GetAllTransactionsByCoinType(this.tumblingState.coinType))
+            foreach (var walletTx in this.tumblingState.OriginWallet.GetAllTransactionsByCoinType(this.tumblingState.CoinType))
             {
                 if (address == walletTx.ScriptPubKey.GetDestinationAddress(this.tumblingState.TumblerNetwork))
                 {
@@ -299,7 +290,7 @@ namespace Breeze.TumbleBit.Client.Services
         {
             try
             {
-                foreach (WatchedAddress addr in this.tumblingState.watchOnlyWalletManager.GetWatchOnlyWallet().WatchedAddresses.Values)
+                foreach (WatchedAddress addr in this.tumblingState.WatchOnlyWalletManager.GetWatchOnlyWallet().WatchedAddresses.Values)
                 {
                     addr.Transactions.TryGetValue(txId.ToString(), out Stratis.Bitcoin.Features.WatchOnlyWallet.TransactionData trans);
 
@@ -314,7 +305,7 @@ namespace Breeze.TumbleBit.Client.Services
                 }
                 
                 // Transaction was not in watch-only wallet
-                foreach (var walletTx in this.tumblingState.OriginWallet.GetAllTransactionsByCoinType(this.tumblingState.coinType))
+                foreach (var walletTx in this.tumblingState.OriginWallet.GetAllTransactionsByCoinType(this.tumblingState.CoinType))
                 {
                     if (walletTx.Id != txId)
                         continue;
@@ -336,7 +327,7 @@ namespace Breeze.TumbleBit.Client.Services
 
         public async Task TrackAsync(Script scriptPubkey)
         {
-            await Task.Run(() => this.tumblingState.watchOnlyWalletManager.WatchAddress(scriptPubkey.GetDestinationAddress(this.tumblingState.TumblerNetwork).ToString())).ConfigureAwait(false);
+            await Task.Run(() => this.tumblingState.WatchOnlyWalletManager.WatchAddress(scriptPubkey.GetDestinationAddress(this.tumblingState.TumblerNetwork).ToString())).ConfigureAwait(false);
         }
 
         public int GetBlockConfirmations(uint256 blockId)
@@ -344,12 +335,12 @@ namespace Breeze.TumbleBit.Client.Services
             if (blockId == null)
                 return 0;
 
-            ChainedBlock block = this.tumblingState.chain.GetBlock(blockId);
+            ChainedBlock block = this.tumblingState.Chain.GetBlock(blockId);
 
             if (block == null)
                 return 0;
 
-            int tipHeight = this.tumblingState.chain.Tip.Height;
+            int tipHeight = this.tumblingState.Chain.Tip.Height;
             int confirmations = tipHeight - block.Height + 1;
             int confCount = Math.Max(0, confirmations);
 
@@ -360,7 +351,7 @@ namespace Breeze.TumbleBit.Client.Services
         {
             bool success = false;
 
-            ChainedBlock chainBlock = this.tumblingState.chain.GetBlock(merkleProof.Header.GetHash());
+            ChainedBlock chainBlock = this.tumblingState.Chain.GetBlock(merkleProof.Header.GetHash());
 
             if (chainBlock == null)
                 return false;
@@ -368,7 +359,7 @@ namespace Breeze.TumbleBit.Client.Services
             await Task.Run(() =>
             {
                 // TODO: We cannot obtain the complete block to pass to ProcessTransaction. Is this going to be a problem?
-                this.tumblingState.walletManager.ProcessTransaction(transaction, chainBlock.Height, null);
+                this.tumblingState.WalletManager.ProcessTransaction(transaction, chainBlock.Height, null);
 
                 // TODO: Track via Watch Only wallet instead?
 
