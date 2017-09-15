@@ -9,6 +9,10 @@ namespace Stratis.Bitcoin.Features.WatchOnlyWallet
     /// </summary>
     public interface IWatchOnlyWalletManager : IDisposable
     {
+        void StoreTransaction(TransactionData transactionData);
+
+        void WatchScriptPubKey(Script scriptPubKey);
+
         /// <summary>
         /// Initializes this watch-only wallet manager.
         /// </summary>

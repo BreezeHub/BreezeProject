@@ -17,68 +17,46 @@ namespace Breeze.TumbleBit.Client.Services
     {
         public class Record
         {
-            public int Expiration
-            {
-                get; set;
-            }
-            public string Label
-            {
-                get;
-                set;
-            }
-
-            public NTumbleBit.Services.TransactionType TransactionType
-            {
-                get; set;
-            }
-
-            public int Cycle
-            {
-                get; set;
-            }
-
-            public TrustedBroadcastRequest Request
-            {
-                get; set;
-            }
-
-            public CorrelationId Correlation
-            {
-                get; set;
-            }
+            public int Expiration { get; set; }
+            public string Label { get; set; }
+            public NTumbleBit.Services.TransactionType TransactionType { get; set; }
+            public int Cycle { get; set; }
+            public TrustedBroadcastRequest Request { get; set; }
+            public CorrelationId Correlation { get; set; }
         }
 
         public class TxToRecord
         {
-            public uint256 RecordHash
-            {
-                get; set;
-            }
-            public Transaction Transaction
-            {
-                get; set;
-            }
+            public uint256 RecordHash { get; set; }
+            public Transaction Transaction { get; set; }
         }
 
-        private TumblingState tumblingState;
-        private Tracker _Tracker;
-        private IBroadcastService _Broadcaster;
+        private TumblingState TumblingState { get; }
+        private Tracker Tracker { get; }
+        private IBroadcastService Broadcaster { get; }
+        private FullNodeWalletCache Cache { get; }
 
-        public FullNodeTrustedBroadcastService(IBroadcastService innerBroadcast, IBlockExplorerService explorer, IRepository repository, FullNodeWalletCache cache, Tracker tracker, TumblingState tumblingState)
+        public IBlockExplorerService BlockExplorer { get; }
+        public IRepository Repository { get; }
+
+        public bool TrackPreviousScriptPubKey { get; set; }
+
+        public FullNodeTrustedBroadcastService(
+            IBroadcastService innerBroadcaster,
+            IBlockExplorerService explorer,
+            IRepository repository,
+            FullNodeWalletCache cache,
+            Tracker tracker,
+            TumblingState tumblingState)
         {
-            _Repository = repository ?? throw new ArgumentNullException(nameof(repository));
-            _Broadcaster = innerBroadcast ?? throw new ArgumentNullException(nameof(innerBroadcast));
+            Broadcaster = innerBroadcaster ?? throw new ArgumentNullException(nameof(innerBroadcaster));
+            BlockExplorer = explorer ?? throw new ArgumentNullException(nameof(explorer));
+            Repository = repository ?? throw new ArgumentNullException(nameof(repository));
+            Cache = cache ?? throw new ArgumentNullException(nameof(cache));
+            Tracker = tracker ?? throw new ArgumentNullException(nameof(tracker));
+            TumblingState = tumblingState ?? throw new ArgumentNullException(nameof(tumblingState));
             TrackPreviousScriptPubKey = true;
-            _BlockExplorer = explorer ?? throw new ArgumentNullException(nameof(explorer));
-            _Tracker = tracker ?? throw new ArgumentNullException(nameof(tracker));
-            _Cache = cache ?? throw new ArgumentNullException(nameof(cache));
-            this.tumblingState = tumblingState ?? throw new ArgumentNullException(nameof(tumblingState));
-        }
-
-        public bool TrackPreviousScriptPubKey
-        {
-            get; set;
-        }
+        }        
 
         public void Broadcast(int cycleStart, NTumbleBit.Services.TransactionType transactionType, CorrelationId correlation, TrustedBroadcastRequest broadcast)
         {
@@ -87,15 +65,15 @@ namespace Breeze.TumbleBit.Client.Services
             if (broadcast.Key != null && !broadcast.Transaction.Inputs.Any(i => i.PrevOut.IsNull))
                 throw new InvalidOperationException("One of the input should be null");
 
-            var address = broadcast.PreviousScriptPubKey?.GetDestinationAddress(this.tumblingState.TumblerNetwork);
+            var address = broadcast.PreviousScriptPubKey?.GetDestinationAddress(this.TumblingState.TumblerNetwork);
             if (address != null && TrackPreviousScriptPubKey)
-                this.tumblingState.WatchOnlyWalletManager.WatchAddress(address.ScriptPubKey.GetDestinationAddress(this.tumblingState.TumblerNetwork).ToString());
+                this.TumblingState.WatchOnlyWalletManager.WatchAddress(address.ScriptPubKey.GetDestinationAddress(this.TumblingState.TumblerNetwork).ToString());
             
-            var height = _Cache.BlockCount;
+            var height = TumblingState.Chain.Height;
             var record = new Record();
             //3 days expiration after now or broadcast date
             var expirationBase = Math.Max(height, broadcast.BroadcastableHeight);
-            record.Expiration = expirationBase + (int)(TimeSpan.FromDays(3).Ticks / this.tumblingState.TumblerNetwork.Consensus.PowTargetSpacing.Ticks);
+            record.Expiration = expirationBase + (int)(TimeSpan.FromDays(3).Ticks / this.TumblingState.TumblerNetwork.Consensus.PowTargetSpacing.Ticks);
 
             record.Request = broadcast;
             record.TransactionType = transactionType;
@@ -111,15 +89,6 @@ namespace Breeze.TumbleBit.Client.Services
             Repository.UpdateOrInsert("TrustedBroadcasts", broadcast.Request.Transaction.GetHash().ToString(), broadcast, (o, n) => n);
         }
 
-        private readonly IRepository _Repository;
-        public IRepository Repository
-        {
-            get
-            {
-                return _Repository;
-            }
-        }
-
         public Record[] GetRequests()
         {
             var requests = Repository.List<Record>("TrustedBroadcasts");
@@ -133,13 +102,13 @@ namespace Breeze.TumbleBit.Client.Services
         }
         public Transaction[] TryBroadcast(ref uint256[] knownBroadcasted)
         {
-            var height = _Cache.BlockCount;
+            var height = TumblingState.Chain.Height;
 
             DateTimeOffset startTime = DateTimeOffset.UtcNow;
             int totalEntries = 0;
 
             HashSet<uint256> knownBroadcastedSet = new HashSet<uint256>(knownBroadcasted ?? new uint256[0]);
-            foreach (var confirmedTx in _Cache.GetEntries().Where(e => e.Confirmations > 6).Select(t => t.TransactionId))
+            foreach (var confirmedTx in Cache.FindAllTransactionsAsync().Result.Where(e => e.Confirmations > 6).Select(t => t.Transaction.GetHash()))
             {
                 knownBroadcastedSet.Add(confirmedTx);
             }
@@ -154,13 +123,13 @@ namespace Breeze.TumbleBit.Client.Services
                 {
                     var transaction = broadcast.Request.Transaction;
                     var txHash = transaction.GetHash();
-                    _Tracker.TransactionCreated(broadcast.Cycle, broadcast.TransactionType, txHash, broadcast.Correlation);
+                    Tracker.TransactionCreated(broadcast.Cycle, broadcast.TransactionType, txHash, broadcast.Correlation);
                     RecordMaping(broadcast, transaction, txHash);
 
                     if (!knownBroadcastedSet.Contains(txHash)
                         && broadcast.Request.IsBroadcastableAt(height))
                     {
-                        broadcasting.Add(Tuple.Create(broadcast, transaction, _Broadcaster.BroadcastAsync(transaction)));
+                        broadcasting.Add(Tuple.Create(broadcast, transaction, Broadcaster.BroadcastAsync(transaction)));
                     }
                     knownBroadcastedSet.Add(txHash);
                 }
@@ -179,7 +148,7 @@ namespace Breeze.TumbleBit.Client.Services
                                 var txHash = transaction.GetHash();
                                 if (!cached)
                                 {
-                                    _Tracker.TransactionCreated(broadcast.Cycle, broadcast.TransactionType, txHash, broadcast.Correlation);
+                                    Tracker.TransactionCreated(broadcast.Cycle, broadcast.TransactionType, txHash, broadcast.Correlation);
                                     RecordMaping(broadcast, transaction, txHash);
                                     AddBroadcast(broadcast);
                                 }
@@ -187,7 +156,7 @@ namespace Breeze.TumbleBit.Client.Services
                                 if (!knownBroadcastedSet.Contains(txHash)
                                     && broadcast.Request.IsBroadcastableAt(height))
                                 {
-                                    broadcasting.Add(Tuple.Create(broadcast, transaction, _Broadcaster.BroadcastAsync(transaction)));
+                                    broadcasting.Add(Tuple.Create(broadcast, transaction, Broadcaster.BroadcastAsync(transaction)));
                                 }
                                 knownBroadcastedSet.Add(txHash);
                             }
@@ -240,17 +209,6 @@ namespace Breeze.TumbleBit.Client.Services
                 return null;
             record.Transaction = mapping.Transaction;
             return record;
-        }
-
-        private readonly IBlockExplorerService _BlockExplorer;
-        private readonly FullNodeWalletCache _Cache;
-
-        public IBlockExplorerService BlockExplorer
-        {
-            get
-            {
-                return _BlockExplorer;
-            }
         }
 
 

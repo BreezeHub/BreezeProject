@@ -30,9 +30,4 @@
     <ProjectReference Include="..\Alpha\Stratis.Bitcoin\Stratis.Bitcoin.csproj" />
     <ProjectReference Include="..\BreezeCommon\BreezeProtocol\NTumbleBit\NTumbleBit.csproj" />
   </ItemGroup>
-
- 
-  <ItemGroup>
-    <Folder Include="Services\" />
-  </ItemGroup>
 </Project>
