@@ -15,8 +15,8 @@ a, button {
 }
 button {
   &:disabled  {
-    background: $gray !important;
-    border-color:$gray !important;
+    background: #EFEFEF !important;
+    border-color: #EFEFEF !important;
     &:hover {cursor: not-allowed !important;}
   }
 }
