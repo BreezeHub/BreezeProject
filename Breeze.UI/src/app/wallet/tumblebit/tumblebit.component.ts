@@ -115,10 +115,12 @@ export class TumblebitComponent implements OnInit {
       .subscribe(
         response => {
           if (response.status >= 200 && response.status < 400) {
-            if (response.json() === "MonitorOnly" || response.json() === "Stopped") {
+            if (response.json().state === "OnlyMonitor") {
               this.tumbling = false;
-            } else if (response.json() === "Tumbling" || response.json() === "Started") {
+            } else if (response.json().state === "Tumbling") {
               this.tumbling = true;
+              this.destinationWalletName = response.json().destinationWallet;
+              this.getDestinationWalletBalance();
             }
           }
         },
