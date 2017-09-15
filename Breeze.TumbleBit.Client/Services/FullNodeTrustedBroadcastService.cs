@@ -10,27 +10,12 @@ using NTumbleBit;
 using NTumbleBit.Services;
 using Stratis.Bitcoin;
 using Stratis.Bitcoin.Features.WatchOnlyWallet;
+using static NTumbleBit.Services.RPC.RPCTrustedBroadcastService;
 
 namespace Breeze.TumbleBit.Client.Services
 {
     public class FullNodeTrustedBroadcastService : ITrustedBroadcastService
     {
-        public class Record
-        {
-            public int Expiration { get; set; }
-            public string Label { get; set; }
-            public NTumbleBit.Services.TransactionType TransactionType { get; set; }
-            public int Cycle { get; set; }
-            public TrustedBroadcastRequest Request { get; set; }
-            public CorrelationId Correlation { get; set; }
-        }
-
-        public class TxToRecord
-        {
-            public uint256 RecordHash { get; set; }
-            public Transaction Transaction { get; set; }
-        }
-
         private TumblingState TumblingState { get; }
         private Tracker Tracker { get; }
         private IBroadcastService Broadcaster { get; }
@@ -56,24 +41,24 @@ namespace Breeze.TumbleBit.Client.Services
             Tracker = tracker ?? throw new ArgumentNullException(nameof(tracker));
             TumblingState = tumblingState ?? throw new ArgumentNullException(nameof(tumblingState));
             TrackPreviousScriptPubKey = true;
-        }        
+        }
 
-        public void Broadcast(int cycleStart, NTumbleBit.Services.TransactionType transactionType, CorrelationId correlation, TrustedBroadcastRequest broadcast)
+        public void Broadcast(int cycleStart, TransactionType transactionType, CorrelationId correlation, TrustedBroadcastRequest broadcast)
         {
             if (broadcast == null)
                 throw new ArgumentNullException(nameof(broadcast));
             if (broadcast.Key != null && !broadcast.Transaction.Inputs.Any(i => i.PrevOut.IsNull))
                 throw new InvalidOperationException("One of the input should be null");
 
-            var address = broadcast.PreviousScriptPubKey?.GetDestinationAddress(this.TumblingState.TumblerNetwork);
+            var address = broadcast.PreviousScriptPubKey?.GetDestinationAddress(TumblingState.TumblerNetwork);
             if (address != null && TrackPreviousScriptPubKey)
-                this.TumblingState.WatchOnlyWalletManager.WatchAddress(address.ScriptPubKey.GetDestinationAddress(this.TumblingState.TumblerNetwork).ToString());
-            
+                TumblingState.WatchOnlyWalletManager.WatchAddress(address.ToString());
+
             var height = TumblingState.Chain.Height;
             var record = new Record();
             //3 days expiration after now or broadcast date
             var expirationBase = Math.Max(height, broadcast.BroadcastableHeight);
-            record.Expiration = expirationBase + (int)(TimeSpan.FromDays(3).Ticks / this.TumblingState.TumblerNetwork.Consensus.PowTargetSpacing.Ticks);
+            record.Expiration = expirationBase + (int)(TimeSpan.FromDays(3).Ticks / TumblingState.TumblerNetwork.Consensus.PowTargetSpacing.Ticks);
 
             record.Request = broadcast;
             record.TransactionType = transactionType;
@@ -83,9 +68,9 @@ namespace Breeze.TumbleBit.Client.Services
             AddBroadcast(record);
         }
 
+
         private void AddBroadcast(Record broadcast)
         {
-            Logs.Broadcasters.LogInformation($"Planning to broadcast {broadcast.TransactionType} of cycle {broadcast.Cycle} on block {broadcast.Request.BroadcastableHeight}");
             Repository.UpdateOrInsert("TrustedBroadcasts", broadcast.Request.Transaction.GetHash().ToString(), broadcast, (o, n) => n);
         }
 
@@ -123,8 +108,13 @@ namespace Breeze.TumbleBit.Client.Services
                 {
                     var transaction = broadcast.Request.Transaction;
                     var txHash = transaction.GetHash();
-                    Tracker.TransactionCreated(broadcast.Cycle, broadcast.TransactionType, txHash, broadcast.Correlation);
-                    RecordMaping(broadcast, transaction, txHash);
+                    if (!broadcast.Tracked)
+                    {
+                        broadcast.Tracked = true;
+                        Tracker.TransactionCreated(broadcast.Cycle, broadcast.TransactionType, txHash, broadcast.Correlation);
+                        RecordMaping(broadcast, transaction, txHash);
+                        AddBroadcast(broadcast);
+                    }
 
                     if (!knownBroadcastedSet.Contains(txHash)
                         && broadcast.Request.IsBroadcastableAt(height))
@@ -135,37 +125,36 @@ namespace Breeze.TumbleBit.Client.Services
                 }
                 else
                 {
-                    foreach (var tx in GetReceivedTransactions(broadcast.Request.PreviousScriptPubKey)
+                    foreach (var coin in GetReceivedTransactions(broadcast.Request.PreviousScriptPubKey)
                         //Currently broadcasting transaction might have received transactions for PreviousScriptPubKey
-                        .Concat(broadcasting.ToArray().Select(b => b.Item2)))
+                        .Concat(broadcasting.ToArray().Select(b => b.Item2))
+                        .SelectMany(tx => tx.Outputs.AsCoins())
+                        .Concat(broadcast.Request.KnownPrevious ?? new Coin[0])
+                        .Where(c => c.ScriptPubKey == broadcast.Request.PreviousScriptPubKey))
                     {
-                        foreach (var coin in tx.Outputs.AsCoins())
-                        {
-                            if (coin.ScriptPubKey == broadcast.Request.PreviousScriptPubKey)
-                            {
-                                bool cached;
-                                var transaction = broadcast.Request.ReSign(coin, out cached);
-                                var txHash = transaction.GetHash();
-                                if (!cached)
-                                {
-                                    Tracker.TransactionCreated(broadcast.Cycle, broadcast.TransactionType, txHash, broadcast.Correlation);
-                                    RecordMaping(broadcast, transaction, txHash);
-                                    AddBroadcast(broadcast);
-                                }
 
-                                if (!knownBroadcastedSet.Contains(txHash)
-                                    && broadcast.Request.IsBroadcastableAt(height))
-                                {
-                                    broadcasting.Add(Tuple.Create(broadcast, transaction, Broadcaster.BroadcastAsync(transaction)));
-                                }
-                                knownBroadcastedSet.Add(txHash);
-                            }
+                        var transaction = broadcast.Request.ReSign(coin, out bool cached);
+                        var txHash = transaction.GetHash();
+                        if (!cached || !broadcast.Tracked)
+                        {
+                            broadcast.Tracked = true;
+                            Tracker.TransactionCreated(broadcast.Cycle, broadcast.TransactionType, txHash, broadcast.Correlation);
+                            RecordMaping(broadcast, transaction, txHash);
+                            AddBroadcast(broadcast);
                         }
+
+                        if (!knownBroadcastedSet.Contains(txHash)
+                            && broadcast.Request.IsBroadcastableAt(height))
+                        {
+                            broadcasting.Add(Tuple.Create(broadcast, transaction, Broadcaster.BroadcastAsync(transaction)));
+                        }
+                        knownBroadcastedSet.Add(txHash);
                     }
                 }
 
-                var remove = height >= broadcast.Expiration;
-                if (remove)
+                var isExpired = height >= broadcast.Expiration;
+                var needTracking = broadcast.TransactionType == TransactionType.ClientRedeem;
+                if (isExpired && (!needTracking || broadcast.Tracked))
                     Repository.Delete<Record>("TrustedBroadcasts", broadcast.Request.Transaction.GetHash().ToString());
             }
 
@@ -204,13 +193,12 @@ namespace Breeze.TumbleBit.Client.Services
             var mapping = Repository.Get<TxToRecord>("TxToRecord", txId.ToString());
             if (mapping == null)
                 return null;
-            var record = Repository.Get<Record>("TrustedBroadcasts", mapping.RecordHash.ToString()).Request;
+            var record = Repository.Get<Record>("TrustedBroadcasts", mapping.RecordHash.ToString())?.Request;
             if (record == null)
                 return null;
             record.Transaction = mapping.Transaction;
             return record;
         }
-
 
         public Transaction[] GetReceivedTransactions(Script scriptPubKey)
         {
