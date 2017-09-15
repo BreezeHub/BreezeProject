@@ -34,6 +34,8 @@ namespace Breeze.TumbleBit.Client.Services
             TumblingState = tumblingState ?? throw new ArgumentNullException(nameof(tumblingState));
         }
 
+        public Dictionary<Transaction, MerkleBlock> AdditionalTransactions = new Dictionary<Transaction, MerkleBlock>();
+
         private Transaction GetTransactionOrNull(Stratis.Bitcoin.Features.Wallet.TransactionData transactionData)
         {
             try
@@ -159,6 +161,37 @@ namespace Breeze.TumbleBit.Client.Services
                 }
                 #endregion
 
+                try
+                {
+                    foreach (var txDict in AdditionalTransactions)
+                    {
+                        if (txDict.Key == null) continue;
+
+                        var confirmations = 0;
+                        MerkleBlock proof = txDict.Value;
+                        if (txDict.Value?.Header?.GetHash() != null)
+                        {
+                            var block = TumblingState.Chain?.GetBlock(txDict.Value.Header.GetHash());
+                            if (block != null)
+                            {
+                                confirmations = TumblingState.Chain.Height - block.Height + 1;
+                            }
+                        }
+
+                        var transactionInformation = new TransactionInformation
+                        {
+                            Transaction = txDict.Key,
+                            Confirmations = confirmations,
+                            MerkleProof = proof
+                        };
+
+                        allTransactions.Add(transactionInformation);
+                    }
+                }
+                catch
+                {
+                    // whatever i fucked up something, it's just a quick test
+                }
                 return allTransactions.OrderBy(x => x.Confirmations);
             }
             finally

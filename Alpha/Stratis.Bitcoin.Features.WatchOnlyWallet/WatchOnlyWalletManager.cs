@@ -14,6 +14,24 @@ namespace Stratis.Bitcoin.Features.WatchOnlyWallet
     /// </summary>
     public class WatchOnlyWalletManager : IWatchOnlyWalletManager
     {
+        public void WatchScriptPubKey(Script scriptPubKey)
+        {
+            if (this.Wallet.WatchedAddresses.ContainsKey(scriptPubKey.ToString()))
+            {
+                this.logger.LogDebug($"already watching script: {scriptPubKey}. coin: {this.coinType}");
+                return;
+            }
+
+            this.logger.LogDebug($"added script: {scriptPubKey} to the watch list. coin: {this.coinType}");
+            this.Wallet.WatchedAddresses.TryAdd(scriptPubKey.ToString(), new WatchedAddress
+            {
+                Script = scriptPubKey,
+                Address = scriptPubKey.Hash.ToString()
+            });
+
+            this.SaveWatchOnlyWallet();
+        }
+
         /// <summary>
         /// The name of the watch-only wallet as saved in the file system.
         /// </summary>
