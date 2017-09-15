@@ -9,6 +9,9 @@ Breeze daemon is the backend REST service, hosting a Bitcoin node upon which Bre
 git clone https://github.com/breezehub/Breeze
 cd Breeze
 
+#change to required branch
+git checkout tumblebit-alpha
+
 # Initialize dependencies
 git submodule update --init --recursive
 
@@ -19,7 +22,7 @@ dotnet build
 
 # Run a daemon Bitcoin SPV node on testnet with tumblebit
 cd src/Breeze.Daemon
-dotnet run light -testnet -tumblebit
+dotnet run light -testnet -tumblebit -ppuri=ctb://t4cqwqlvswcyyagg.onion?h=f2c96151dc6a76a906d683a20e40e1b8ac01e8b6
 ```
 
 To build the client:
