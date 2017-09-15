@@ -111,7 +111,14 @@ namespace Breeze.TumbleBit.Client.Services
         {
             await Task.Run(() =>
             {
-                Cache.AdditionalTransactions.Add(transaction, merkleProof);
+                TumblingState.WatchOnlyWalletManager.StoreTransaction(
+                    new Stratis.Bitcoin.Features.WatchOnlyWallet.TransactionData
+                    {
+                        BlockHash = merkleProof.Header.GetHash(),
+                        Hex = transaction.ToHex(),
+                        Id = transaction.GetHash(),
+                        MerkleProof = merkleProof.PartialMerkleTree
+                    });
             }).ConfigureAwait(false);
 
             return true;

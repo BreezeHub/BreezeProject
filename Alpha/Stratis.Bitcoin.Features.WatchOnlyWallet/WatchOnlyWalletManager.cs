@@ -14,6 +14,26 @@ namespace Stratis.Bitcoin.Features.WatchOnlyWallet
     /// </summary>
     public class WatchOnlyWalletManager : IWatchOnlyWalletManager
     {
+        public void StoreTransaction(TransactionData transactionData)
+        {
+            if (this.Wallet.WatchedTransactions.ContainsKey(transactionData.Id.ToString()))
+            {
+                this.logger.LogDebug($"already watching transaction: {transactionData.Id}. coin: {this.coinType}");
+                return;
+            }
+
+            this.logger.LogDebug($"added transaction: {transactionData.Id} to the watch list. coin: {this.coinType}");
+            this.Wallet.WatchedTransactions.TryAdd(transactionData.Id.ToString(), new TransactionData
+            {
+                BlockHash = transactionData.BlockHash,
+                Hex = transactionData.Hex,
+                Id = transactionData.Id,
+                MerkleProof = transactionData.MerkleProof
+            });
+
+            this.SaveWatchOnlyWallet();
+        }
+
         public void WatchScriptPubKey(Script scriptPubKey)
         {
             if (this.Wallet.WatchedAddresses.ContainsKey(scriptPubKey.ToString()))
