@@ -34,6 +34,8 @@ export class TumblebitComponent implements OnInit {
   private destinationTotalBalance: number;
   private destinationWalletBalanceSubscription: Subscription;
   private isConnected: Boolean = false;
+  private isSynced: Boolean = false;
+  private walletStatusSubscription: Subscription;
   private tumblerAddressCopied: boolean = false;
   private tumblerParameters: any;
   private estimate: number;
@@ -48,6 +50,7 @@ export class TumblebitComponent implements OnInit {
   private tumblerAddress: string = "Connecting...";
 
   ngOnInit() {
+    this.checkWalletStatus();
     this.connectToTumbler();
     this.checkTumblingStatus();
     this.getWalletFiles();
@@ -65,6 +68,10 @@ export class TumblebitComponent implements OnInit {
 
     if (this.tumbleStateSubscription) {
       this.tumbleStateSubscription.unsubscribe();
+    }
+
+    if (this.walletStatusSubscription) {
+      this.walletStatusSubscription.unsubscribe();
     }
   };
 
@@ -108,6 +115,37 @@ export class TumblebitComponent implements OnInit {
     'selectWallet': {
       'required': 'A destination address is required.',
     }
+  }
+
+  private checkWalletStatus() {
+    let walletInfo = new WalletInfo(this.globalService.getWalletName(), this.globalService.getCoinType())
+    this.walletStatusSubscription = this.apiService.getGeneralInfo(walletInfo)
+      .subscribe(
+        response =>  {
+          if (response.status >= 200 && response.status < 400) {
+            let generalWalletInfoResponse = response.json();
+            if (generalWalletInfoResponse.lastBlockSyncedHeight = generalWalletInfoResponse.chainTip) {
+              this.isSynced = true;
+            } else {
+              this.isSynced = false;
+            }
+          }
+        },
+        error => {
+          console.log(error);
+          if (error.status === 0) {
+            alert("Something went wrong while connecting to the API. Please restart the application.");
+          } else if (error.status >= 400) {
+            if (!error.json().errors[0]) {
+              console.log(error);
+            }
+            else {
+              alert(error.json().errors[0].description);
+            }
+          }
+        }
+      )
+    ;
   }
 
   private checkTumblingStatus() {

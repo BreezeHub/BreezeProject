@@ -20,7 +20,8 @@
                 <option *ngFor="let wallet of wallets" [value]="wallet">{{ wallet }}</option>
               </select>
             </div>
-            <button type="button" class="btn btn-lg btn-primary mt-4" (click)="tumbleClicked()" [disabled]="!isConnected && !tumbling">{{ tumbling ? "Stop" : "Start" }}</button>
+            <button type="button" class="btn btn-lg btn-primary mt-4" (click)="tumbleClicked()" [disabled]="(!isConnected && !tumbling) || !isSynced">{{ tumbling ? "Stop" : "Start" }}</button>
+            <p class="help mt-4" *ngIf="!isSynced">Please wait until the wallet is fully synced.</p>
           </form>
         </div>
         <!-- /left column-->
