@@ -34,25 +34,35 @@ namespace Stratis.Bitcoin.Features.LightWallet
             this.maxTxFee = new Money(0.1M, MoneyUnit.BTC);
         }
 
+        private int waitSeconds = 1;
         public Task Initialize()
         {
             IAsyncLoop task = this.asyncLoopFactory.Run(nameof(LightWalletFeePolicy), async token =>
-            {
-                HttpResponseMessage response = await this.httpClient.GetAsync(@"http://api.blockcypher.com/v1/btc/main", HttpCompletionOption.ResponseContentRead, token).ConfigureAwait(false);
+                {
+                    HttpResponseMessage response;
+                    try
+                    {
+                        response = await this.httpClient.GetAsync(@"http://api.blockcypher.com/v1/btc/main", HttpCompletionOption.ResponseContentRead, token).ConfigureAwait(false);
+                    }
+                    catch
+                    {
+                        await Task.Delay(TimeSpan.FromSeconds(waitSeconds), token).ContinueWith(t => { }).ConfigureAwait(false);
+                        waitSeconds = waitSeconds * 2;
+                        return;
+                    }
+                    var json = JObject.Parse(await response.Content.ReadAsStringAsync().ConfigureAwait(false));
+                    this.lowTxFeePerKb = new FeeRate(new Money((int)(json.Value<decimal>("low_fee_per_kb")), MoneyUnit.Satoshi));
+                    this.mediumTxFeePerKb = new FeeRate(new Money((int)(json.Value<decimal>("medium_fee_per_kb")), MoneyUnit.Satoshi));
+                    this.highTxFeePerKb = new FeeRate(new Money((int)(json.Value<decimal>("high_fee_per_kb")), MoneyUnit.Satoshi));
 
-                var json = JObject.Parse(await response.Content.ReadAsStringAsync().ConfigureAwait(false));
-                this.lowTxFeePerKb = new FeeRate(new Money((int)(json.Value<decimal>("low_fee_per_kb")), MoneyUnit.Satoshi));
-                this.mediumTxFeePerKb = new FeeRate(new Money((int)(json.Value<decimal>("medium_fee_per_kb")), MoneyUnit.Satoshi));
-                this.highTxFeePerKb = new FeeRate(new Money((int)(json.Value<decimal>("high_fee_per_kb")), MoneyUnit.Satoshi));
+                    if (token.IsCancellationRequested) return;
 
-                if (token.IsCancellationRequested) return;
-
-                var waitMinutes = new Random().Next(3, 10);
-                await Task.Delay(TimeSpan.FromMinutes(waitMinutes), token).ContinueWith(t => { }).ConfigureAwait(false);
-            },
-            this.nodeLifetime.ApplicationStopping,
-            repeatEvery: TimeSpans.Second,
-            startAfter: TimeSpans.Second);
+                    var waitMinutes = new Random().Next(3, 10);
+                    await Task.Delay(TimeSpan.FromMinutes(waitMinutes), token).ContinueWith(t => { }).ConfigureAwait(false);
+                },
+                this.nodeLifetime.ApplicationStopping,
+                repeatEvery: TimeSpans.Second,
+                startAfter: TimeSpans.Second);
 
             return task.RunningTask;
         }
