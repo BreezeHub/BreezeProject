@@ -9,23 +9,16 @@ using NTumbleBit;
 using NTumbleBit.Logging;
 using NTumbleBit.Services;
 using Stratis.Bitcoin;
+using static NTumbleBit.Services.RPC.RPCBroadcastService;
+using System.Net.Http;
+using Newtonsoft.Json.Linq;
+using System.Text;
+using System.Threading;
 
 namespace Breeze.TumbleBit.Client.Services
 {
     public class FullNodeBroadcastService : IBroadcastService
     {
-        public class Record
-        {
-            public int Expiration
-            {
-                get; set;
-            }
-            public Transaction Transaction
-            {
-                get; set;
-            }
-        }
-
         private FullNodeWalletCache Cache { get; }
         private TumblingState TumblingState { get; }
         private IRepository Repository { get; }
@@ -39,8 +32,6 @@ namespace Breeze.TumbleBit.Client.Services
             TumblingState = tumblingState ?? throw new ArgumentNullException(nameof(tumblingState));
             BlockExplorerService = new FullNodeBlockExplorerService(cache, tumblingState);
         }
-
-        
 
         public Record[] GetTransactions()
         {
@@ -100,46 +91,63 @@ namespace Breeze.TumbleBit.Client.Services
             return broadcasted.ToArray();
         }
 
+        private static readonly SemaphoreSlim SemBroadcast = new SemaphoreSlim(1,1);
+        private static readonly HttpClient httpClient = new HttpClient();
         private async Task<bool> TryBroadcastCoreAsync(Record tx, int currentHeight)
         {
-            return await Task.Run(() =>
+            bool remove = false;
+            try
             {
-                bool remove = false;
+                remove = currentHeight >= tx.Expiration;
+
+                //Happens when the caller does not know the previous input yet
+                if (tx.Transaction.Inputs.Count == 0 || tx.Transaction.Inputs[0].PrevOut.Hash == uint256.Zero)
+                    return false;
+
+                bool isFinal = tx.Transaction.IsFinal(DateTimeOffset.UtcNow, currentHeight + 1);
+                if (!isFinal || IsDoubleSpend(tx.Transaction))
+                    return false;                
+
+                await SemBroadcast.WaitAsync().ConfigureAwait(false);
                 try
                 {
-                    remove = currentHeight >= tx.Expiration;
-
-                    //Happens when the caller does not know the previous input yet
-                    if (tx.Transaction.Inputs.Count == 0 || tx.Transaction.Inputs[0].PrevOut.Hash == uint256.Zero)
-                        return false;
-
-                    bool isFinal = tx.Transaction.IsFinal(DateTimeOffset.UtcNow, currentHeight + 1);
-                    if (!isFinal || IsDoubleSpend(tx.Transaction))
-                        return false;
-
-                    try
+                    var post = "https://testnet-api.smartbit.com.au/v1/blockchain/pushtx";
+                    if (TumblingState.TumblerNetwork == Network.Main)
+                        post = "https://api.smartbit.com.au/v1/blockchain/pushtx";
+                    var content = new StringContent(new JObject(new JProperty("hex", tx.Transaction.ToHex())).ToString(), Encoding.UTF8,
+                        "application/json");
+                    var smartBitResponse = await httpClient.PostAsync(post, content).ConfigureAwait(false);
+                    var json = JObject.Parse(await smartBitResponse.Content.ReadAsStringAsync().ConfigureAwait(false));
+                    if (json.Value<bool>("success"))
                     {
-                        this.TumblingState.WalletManager.SendTransaction(tx.Transaction.ToHex());
-
+                        await Cache.ImportUnconfirmedTransaction(tx.Transaction).ConfigureAwait(false);
+                        foreach (var output in tx.Transaction.Outputs)
+                        {
+                            TumblingState.WatchOnlyWalletManager.WatchScriptPubKey(output.ScriptPubKey);
+                        }
                         Logs.Broadcasters.LogInformation($"Broadcasted {tx.Transaction.GetHash()}");
                         return true;
                     }
-                    catch (Exception ex)
+                    else
                     {
-                        Console.WriteLine("Error broadcasting transaction: " + ex);
-
-                        // TODO: As per original code, need to determine the error to decide whether to remove
-                        // TODO: For a light wallet there is currently insufficient information about broadcast failure & other nodes' mempool acceptance
                         remove = false;
-                    }
-                    return false;
+                    }                    
                 }
-                finally
+                catch (RPCException ex)
                 {
-                    if (remove)
-                        RemoveRecord(tx);
+                    if (ex.RPCResult == null || ex.RPCResult.Error == null)
+                    {
+                        return false;
+                    }
                 }
-            }).ConfigureAwait(false);
+                return false;
+            }
+            finally
+            {
+                SemBroadcast.Release();
+                if (remove)
+                    RemoveRecord(tx);
+            }
         }
 
         private bool IsDoubleSpend(Transaction tx)
@@ -150,7 +158,7 @@ namespace Breeze.TumbleBit.Client.Services
             {
                 if (entry.Confirmations > 0)
                 {
-                    var walletTransaction = allTransactions.Where(x=>x.Transaction.GetHash() == entry.Transaction.GetHash()).FirstOrDefault();
+                    var walletTransaction = allTransactions.Where(x => x.Transaction.GetHash() == entry.Transaction.GetHash()).FirstOrDefault();
                     if (walletTransaction != null)
                     {
                         foreach (var input in walletTransaction.Transaction.Inputs)
@@ -168,15 +176,16 @@ namespace Breeze.TumbleBit.Client.Services
 
         private void RemoveRecord(Record tx)
         {
-            Console.WriteLine("Removing transaction from broadcast: " + tx.Transaction.GetHash());
             Repository.Delete<Record>("Broadcasts", tx.Transaction.GetHash().ToString());
             Repository.UpdateOrInsert<Transaction>("CachedTransactions", tx.Transaction.GetHash().ToString(), tx.Transaction, (a, b) => a);
         }
 
         public Task<bool> BroadcastAsync(Transaction transaction)
         {
-            var record = new Record();
-            record.Transaction = transaction;
+            var record = new Record
+            {
+                Transaction = transaction
+            };
             var height = TumblingState.Chain.Height;
             //3 days expiration
             record.Expiration = height + (int)(TimeSpan.FromDays(3).Ticks / Network.Main.Consensus.PowTargetSpacing.Ticks);
