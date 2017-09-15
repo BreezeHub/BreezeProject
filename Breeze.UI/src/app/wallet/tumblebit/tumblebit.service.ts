@@ -41,7 +41,7 @@ export class TumblebitService {
 
   stopTumbling(): Observable<any> {
     return this.http
-      .get(this.tumblerClientUrl + 'stop')
+      .get(this.tumblerClientUrl + 'onlymonitor')
       .map((response: Response) => response);
   }
 
