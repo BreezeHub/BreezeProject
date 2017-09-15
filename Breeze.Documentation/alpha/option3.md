@@ -1,4 +1,13 @@
-## How to build Breeze Wallet
+## Compiling and running Breeze Wallet
+If you prefer to compile and run everything yourself, please follow these steps closely.
+
+## Install and run TOR
+To ensure greater privacy while running the Breeze Wallet we enforce running tor.<br/>
+Please have a look at our [guide](./tor.md) and follow its instructions for your operating system.<br/>
+Note that you will have to run TOR each time you want to start the wallet.
+
+## Compile and run the Daemon
+How to build and run Breeze Wallet
 
 To build breeze wallet with Breeze Privacy Protocol, you need to first build and run Breeze Daemon.
 
