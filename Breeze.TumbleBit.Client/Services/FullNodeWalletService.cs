@@ -18,107 +18,65 @@ namespace Breeze.TumbleBit.Client.Services
 {
     class ClientEscapeData
     {
-        public ScriptCoin EscrowedCoin
-        {
-            get;
-            set;
-        }
-        public TransactionSignature ClientSignature
-        {
-            get;
-            set;
-        }
-        public Key EscrowKey
-        {
-            get;
-            set;
-        }
+        public ScriptCoin EscrowedCoin { get; set; }
+        public TransactionSignature ClientSignature { get; set; }
+        public Key EscrowKey { get; set; }
     }
 
     public class FullNodeWalletService : IWalletService
     {
-        private TumblingState tumblingState;
+        private TumblingState TumblingState { get; }
 
         public FullNodeWalletService(TumblingState tumblingState)
         {
-            this.tumblingState = tumblingState;
+            TumblingState = tumblingState ?? throw new ArgumentNullException(nameof(tumblingState));
         }
 
         public async Task<IDestination> GenerateAddressAsync()
         {
-            // TODO: Equivalent of addwitnessaddress rpc?
-
-            Wallet wallet = this.tumblingState.WalletManager.GetWallet(this.tumblingState.OriginWalletName);
-
-            HdAddress hdAddress = null;
-            BitcoinAddress address = null;
-
-            foreach (var account in wallet.GetAccountsByCoinType(this.tumblingState.CoinType))
+            return await Task.Run(() =>
             {
-                // Iterate through accounts until unused address is found
-                hdAddress = account.GetFirstUnusedReceivingAddress();
-                address = BitcoinAddress.Create(hdAddress.Address, wallet.Network);
-                if (address != null)
-                    return address;
-            }
+                // ToDo: Implement SegWit to Breeze
+                // NTumbleBit uses SegWit
+                // Breeze does not yet
+                // https://github.com/BreezeHub/Breeze/issues/10
 
-            return null;
-        }
-
-        public Coin AsCoin(UnspentCoin c)
-        {
-            var coin = new Coin(c.OutPoint, new TxOut(c.Amount, c.ScriptPubKey));
-            if (c.RedeemScript != null)
-                coin = coin.ToScriptCoin(c.RedeemScript);
-            return coin;
+                var accounts = TumblingState.OriginWallet.GetAccountsByCoinType((CoinType)TumblingState.OriginWallet.Network.Consensus.CoinType);
+                var account = accounts.First(); // In Breeze at this point only the first account is used
+                var addressString = account.GetFirstUnusedChangeAddress().Address;
+                return BitcoinAddress.Create(addressString);
+            }).ConfigureAwait(false);
         }
 
         public async Task<Transaction> FundTransactionAsync(TxOut txOut, FeeRate feeRate)
         {
-            Transaction tx = new Transaction();
-            tx.Outputs.Add(txOut);
-            
-            var spendable = this.tumblingState.WalletManager.GetSpendableTransactionsInWallet(this.tumblingState.OriginWalletName);
-
-            Dictionary<HdAccount, Money> accountBalances = new Dictionary<HdAccount, Money>();
-
-            // If multiple accounts are available find and choose the one with the most spendable funds
-            foreach (var spendableTx in spendable)
+            return await Task.Run(() =>
             {
-                accountBalances[spendableTx.Account] = spendableTx.Transaction.SpendableAmount(false);
-            }
-
-            HdAccount highestBalance = null;
-            foreach (var accountKey in accountBalances.Keys)
-            {
-                if (highestBalance == null)
+                var walletReference = new WalletAccountReference()
                 {
-                    highestBalance = accountKey;
-                    continue;
-                }
+                    // Currently on the first wallet account is used in Breeze
+                    AccountName = TumblingState.OriginWallet.GetAccountsByCoinType((CoinType)TumblingState.OriginWallet.Network.Consensus.CoinType).First().Name,
+                    WalletName = TumblingState.OriginWallet.Name
+                };
 
-                if (accountBalances[accountKey] > accountBalances[highestBalance])
+                var context = new TransactionBuildContext(
+                    walletReference,
+                    new[]
+                    {
+                    new Recipient { Amount = txOut.Value, ScriptPubKey = txOut.ScriptPubKey },
+                    }
+                    .ToList(), TumblingState.OriginWalletPassword)
                 {
-                    highestBalance = accountKey;
-                }
-            }
+                    MinConfirmations = 0,
+                    OverrideFeeRate = feeRate,
+                    Sign = true
+                };
 
-            WalletAccountReference accountRef = new WalletAccountReference(this.tumblingState.OriginWalletName, highestBalance.Name);
-            
-            List<Recipient> recipients = new List<Recipient>();
-
-            var txBuildContext = new TransactionBuildContext(accountRef, recipients);
-            txBuildContext.WalletPassword = this.tumblingState.OriginWalletPassword;
-            txBuildContext.OverrideFeeRate = feeRate;
-            txBuildContext.Sign = true;
-            txBuildContext.MinConfirmations = 0;
-
-            // FundTransaction modifies tx directly
-            this.tumblingState.WalletTransactionHandler.FundTransaction(txBuildContext, tx);
-
-            return tx;
+                return TumblingState.WalletTransactionHandler.BuildTransaction(context);
+            }).ConfigureAwait(false);
         }
 
+        // This interface implementation method is only used by the Tumbler server
         public async Task<Transaction> ReceiveAsync(ScriptCoin escrowedCoin, TransactionSignature clientSignature, Key escrowKey, FeeRate feeRate)
         {
             var input = new ClientEscapeData()
@@ -161,7 +119,7 @@ namespace Breeze.TumbleBit.Client.Services
             );
             txin2.Witnessify();
 
-            this.tumblingState.WalletManager.SendTransaction(tx.ToHex());
+            this.TumblingState.WalletManager.SendTransaction(tx.ToHex());
 
             return tx;
         }
