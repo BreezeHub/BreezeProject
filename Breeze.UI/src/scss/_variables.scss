@@ -339,7 +339,7 @@ $transition-collapse:    height .35s ease !default;
 //
 // Customizes the `.table` component with basic values, each used across all table variations.
 
-$table-cell-padding:            .75rem !default;
+$table-cell-padding:            .5rem .75rem !default;
 $table-sm-cell-padding:         .3rem !default;
 
 $table-bg:                      transparent !default;
@@ -953,7 +953,7 @@ $close-text-shadow:           0 1px 0 $white !default;
 
 // Code
 
-$code-font-size:              92% !default;
+$code-font-size:              91.8% !default;
 $code-padding-x:              .4rem !default;
 $code-padding-y:              .2rem !default;
 $code-color:                  #bd4147 !default;
