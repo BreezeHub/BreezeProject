@@ -27,7 +27,7 @@ dotnet run light -testnet -tumblebit -ppuri=ctb://t4cqwqlvswcyyagg.onion?h=f2c96
 
 To build the client:
 
-Navigate to the Breeze UI in a terminal:
+Open a new terminal and navigate to the Breeze UI folder:
 ``` bash
 cd ./Breeze/Breeze.UI
 ```
