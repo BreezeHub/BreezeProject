@@ -72,7 +72,7 @@
     "css-loader": "^0.28.7",
     "cssnano": "^3.10.0",
     "electron": "^1.7.5",
-    "electron-packager": "^9.0.1",
+    "electron-packager": "^8.7.2",
     "electron-reload": "1.2.1",
     "exports-loader": "^0.6.4",
     "extract-zip": "1.6.5",
