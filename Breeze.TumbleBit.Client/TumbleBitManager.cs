@@ -40,12 +40,12 @@ namespace Breeze.TumbleBit.Client
         private readonly ConcurrentChain chain;
         private readonly Network network;
         private readonly IWalletFeePolicy walletFeePolicy;
-        public TumblingState tumblingState;
         private IDisposable blockReceiver;
         private TumblerClientRuntime runtime;
         private StateMachinesExecutor stateMachine;
         private BroadcasterJob broadcasterJob;
 
+        public TumblingState tumblingState { get; private set; }
         public TumbleState State { get; private set; } = TumbleState.OnlyMonitor;
         public ClassicTumblerParameters TumblerParameters { get; private set; } = null;
         public string TumblerAddress { get; private set; } = null;

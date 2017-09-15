@@ -108,8 +108,15 @@ namespace Breeze.TumbleBit.Controllers
         {
             try
             {
-                string result = this.tumbleBitManager.State.ToString();
-                return this.Json(result);
+                var parameterDictionary = new Dictionary<string, string>()
+                {
+                    ["tumbler"] = this.tumbleBitManager.TumblerAddress,
+                    ["state"] = this.tumbleBitManager.State.ToString(),
+                    ["originWallet"] = this.tumbleBitManager.tumblingState.OriginWalletName,
+                    ["destinationWallet"] = this.tumbleBitManager.tumblingState.DestinationWalletName
+                };
+
+                return this.Json(parameterDictionary);
             }
             catch (Exception e)
             {

@@ -42,5 +42,7 @@ namespace Breeze.TumbleBit.Client
         string TumblerAddress { get; }
 
         ClassicTumblerParameters TumblerParameters { get; }
+
+        TumblingState tumblingState { get; }
     }
 }
