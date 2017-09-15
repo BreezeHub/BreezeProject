@@ -65,9 +65,6 @@ namespace Breeze.TumbleBit.Client.Services
             await SemaphoreFindTx.WaitAsync().ConfigureAwait(false);
             try
             {
-                // temporary log, if you see it delete it
-                File.AppendAllText("FindAllTransactionsAsyncCallings.txt", DateTime.Now.ToString() + Environment.NewLine);
-
                 var allTransactions = new HashSet<TransactionInformation>();
 
                 #region AllWatchOnlyTransactions
