@@ -59,10 +59,10 @@ namespace Breeze.TumbleBit.Client.Services
             }
         }
 
-        private static readonly SemaphoreSlim SemaphoreFindTx = new SemaphoreSlim(1, 1);
+        private static readonly SemaphoreSlim SemFindTx = new SemaphoreSlim(1, 1);
         public async Task<IEnumerable<TransactionInformation>> FindAllTransactionsAsync()
         {
-            await SemaphoreFindTx.WaitAsync().ConfigureAwait(false);
+            await SemFindTx.WaitAsync().ConfigureAwait(false);
             try
             {
                 var allTransactions = new HashSet<TransactionInformation>();
@@ -195,11 +195,57 @@ namespace Breeze.TumbleBit.Client.Services
 
                     allTransactions.Add(transactionInformation);
                 }
+
+                await SemImpUncTxs.WaitAsync().ConfigureAwait(false);
+                try
+                {
+                    var toRemove = new HashSet<uint256>();
+                    foreach (var transaction in importedUnconfirmedTransactions)
+                    {
+                        if (allTransactions.Select(x => x.Transaction.GetHash()).Contains(transaction.Transaction.GetHash()))
+                        {
+                            toRemove.Add(transaction.Transaction.GetHash());
+                        }
+                        else
+                        {
+                            allTransactions.Add(transaction);
+                        }
+                    }
+                    foreach (var txid in toRemove)
+                    {
+                        importedUnconfirmedTransactions.RemoveWhere(x => x.Transaction.GetHash() == txid);
+                    }
+                }
+                finally
+                {
+                    SemImpUncTxs.Release();
+                }
+
                 return allTransactions.OrderBy(x => x.Confirmations);
             }
             finally
             {
-                SemaphoreFindTx.Release();
+                SemFindTx.Release();
+            }
+        }
+
+        private HashSet<TransactionInformation> importedUnconfirmedTransactions = new HashSet<TransactionInformation>();
+        private static readonly SemaphoreSlim SemImpUncTxs = new SemaphoreSlim(1, 1);
+        public async Task ImportUnconfirmedTransaction(Transaction transaction)
+        {
+            await SemImpUncTxs.WaitAsync().ConfigureAwait(false);
+            try
+            {
+                importedUnconfirmedTransactions.Add(new TransactionInformation
+                {
+                    Confirmations = 0,
+                    MerkleProof = null,
+                    Transaction = transaction
+                });
+            }
+            finally
+            {
+                SemImpUncTxs.Release();
             }
         }
     }

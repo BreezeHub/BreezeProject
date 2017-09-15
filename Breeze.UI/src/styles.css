@@ -17,8 +17,8 @@ a:hover, button:hover {
 }
 
 button:disabled {
-  background: #98A3B3 !important;
-  border-color: #98A3B3 !important;
+  background: #EFEFEF !important;
+  border-color: #EFEFEF !important;
 }
 
 button:disabled:hover {
@@ -854,7 +854,7 @@ input.cmn-toggle-round-flat:checked + label:after {
   background: white;
   border: 1px solid #DBDBDB;
   box-shadow: 0 2px 10px 0 rgba(80, 96, 120, 0.1);
-  margin-bottom: 2.75em;
+  margin-bottom: 2em;
 }
 
 #Tumblebit .table a {
@@ -1337,8 +1337,8 @@ table {
 }
 
 caption {
-  padding-top: 0.75rem;
-  padding-bottom: 0.75rem;
+  padding-top: 0.5rem 0.75rem;
+  padding-bottom: 0.5rem 0.75rem;
   color: #98A3B3;
   text-align: left;
   caption-side: bottom;
@@ -1584,7 +1584,7 @@ samp {
 
 code {
   padding: 0.2rem 0.4rem;
-  font-size: 92%;
+  font-size: 91%;
   color: #bd4147;
   background-color: #f7f7f9;
   border-radius: 0.25rem;
@@ -1599,7 +1599,7 @@ a > code {
 
 kbd {
   padding: 0.2rem 0.4rem;
-  font-size: 92%;
+  font-size: 91%;
   color: #fff;
   background-color: #878685;
   border-radius: 0.2rem;
@@ -1615,7 +1615,7 @@ pre {
   display: block;
   margin-top: 0;
   margin-bottom: 1rem;
-  font-size: 92%;
+  font-size: 91%;
   color: #878685;
 }
 
@@ -2737,7 +2737,7 @@ pre code {
 
 .table th,
 .table td {
-  padding: 0.75rem;
+  padding: 0.5rem 0.75rem;
   vertical-align: top;
 }
 

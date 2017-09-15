@@ -15,8 +15,8 @@ a, button {
 }
 button {
   &:disabled  {
-    background: $gray !important;
-    border-color:$gray !important;
+    background: #EFEFEF !important;
+    border-color: #EFEFEF !important;
     &:hover {cursor: not-allowed !important;}
   }
 }
@@ -535,7 +535,7 @@ $curve: cubic-bezier(0.650, 0.000, 0.450, 1.000);
     background: white;
     border: 1px solid $teal;
     box-shadow: 0 2px 10px 0 rgba(80,96,120,0.10);
-    margin-bottom: 2.75em;
+    margin-bottom: 2em;
 
     .total {
       td {font-weight: bold;}
