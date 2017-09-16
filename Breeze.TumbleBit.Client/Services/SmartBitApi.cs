@@ -23,7 +23,7 @@ namespace Breeze.TumbleBit.Client.Services
     }
     public class SmartBitApi
     {
-        private static readonly SemaphoreSlim Semaphore = new SemaphoreSlim(1, 1);
+        private static readonly SemaphoreSlim Sem = new SemaphoreSlim(3, 3);
         private static readonly HttpClient HttpClient = new HttpClient();
         private string BaseUrl => Network == Network.Main
             ? "https://api.smartbit.com.au/v1/"
@@ -48,7 +48,7 @@ namespace Breeze.TumbleBit.Client.Services
             var content = new StringContent(new JObject(new JProperty("hex", transaction.ToHex())).ToString(), Encoding.UTF8,
                 "application/json");
             HttpResponseMessage smartBitResponse = null;
-            await Semaphore.WaitAsync().ConfigureAwait(false);
+            await Sem.WaitAsync().ConfigureAwait(false);
             try
             {
                 smartBitResponse = await HttpClient.PostAsync(post, content).ConfigureAwait(false);
@@ -63,7 +63,7 @@ namespace Breeze.TumbleBit.Client.Services
             }
             finally
             {
-                Semaphore.Release();
+                Sem.SafeRelease();
             }
             if(smartBitResponse == null)
             {

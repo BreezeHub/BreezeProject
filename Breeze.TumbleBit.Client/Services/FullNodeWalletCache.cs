@@ -218,14 +218,14 @@ namespace Breeze.TumbleBit.Client.Services
                 }
                 finally
                 {
-                    SemImpUncTxs.Release();
+                    SemImpUncTxs.SafeRelease();
                 }
 
                 return allTransactions.OrderBy(x => x.Confirmations);
             }
             finally
             {
-                SemFindTx.Release();
+                SemFindTx.SafeRelease();
             }
         }
 
@@ -245,7 +245,7 @@ namespace Breeze.TumbleBit.Client.Services
             }
             finally
             {
-                SemImpUncTxs.Release();
+                SemImpUncTxs.SafeRelease();
             }
         }
     }
