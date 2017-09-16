@@ -91,8 +91,6 @@ namespace Breeze.TumbleBit.Client.Services
             return broadcasted.ToArray();
         }
 
-        private static readonly SemaphoreSlim SemBroadcast = new SemaphoreSlim(1,1);
-        private static readonly HttpClient httpClient = new HttpClient();
         private async Task<bool> TryBroadcastCoreAsync(Record tx, int currentHeight)
         {
             bool remove = false;
@@ -106,45 +104,28 @@ namespace Breeze.TumbleBit.Client.Services
 
                 bool isFinal = tx.Transaction.IsFinal(DateTimeOffset.UtcNow, currentHeight + 1);
                 if (!isFinal || IsDoubleSpend(tx.Transaction))
-                    return false;                
+                    return false;
 
-                await SemBroadcast.WaitAsync().ConfigureAwait(false);
-                try
+                var smartBitApi = new SmartBitApi(TumblingState.TumblerNetwork);
+                var result = await smartBitApi.PushTx(tx.Transaction).ConfigureAwait(false);
+                if (result.State == SmartBitResultState.Success)
                 {
-                    var post = "https://testnet-api.smartbit.com.au/v1/blockchain/pushtx";
-                    if (TumblingState.TumblerNetwork == Network.Main)
-                        post = "https://api.smartbit.com.au/v1/blockchain/pushtx";
-                    var content = new StringContent(new JObject(new JProperty("hex", tx.Transaction.ToHex())).ToString(), Encoding.UTF8,
-                        "application/json");
-                    var smartBitResponse = await httpClient.PostAsync(post, content).ConfigureAwait(false);
-                    var json = JObject.Parse(await smartBitResponse.Content.ReadAsStringAsync().ConfigureAwait(false));
-                    if (json.Value<bool>("success"))
+                    await Cache.ImportUnconfirmedTransaction(tx.Transaction).ConfigureAwait(false);
+                    foreach (var output in tx.Transaction.Outputs)
                     {
-                        await Cache.ImportUnconfirmedTransaction(tx.Transaction).ConfigureAwait(false);
-                        foreach (var output in tx.Transaction.Outputs)
-                        {
-                            TumblingState.WatchOnlyWalletManager.WatchScriptPubKey(output.ScriptPubKey);
-                        }
-                        Logs.Broadcasters.LogInformation($"Broadcasted {tx.Transaction.GetHash()}");
-                        return true;
+                        TumblingState.WatchOnlyWalletManager.WatchScriptPubKey(output.ScriptPubKey);
                     }
-                    else
-                    {
-                        remove = false;
-                    }                    
+                    Logs.Broadcasters.LogInformation($"Broadcasted {tx.Transaction.GetHash()}");
+                    return true;
                 }
-                catch (RPCException ex)
+                else if (result.State == SmartBitResultState.Failure)
                 {
-                    if (ex.RPCResult == null || ex.RPCResult.Error == null)
-                    {
-                        return false;
-                    }
+                    remove = false;
                 }
                 return false;
             }
             finally
             {
-                SemBroadcast.Release();
                 if (remove)
                     RemoveRecord(tx);
             }
