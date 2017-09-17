@@ -1,3 +1,5 @@
+this test is focused on achieving a test of a full cycle and not specifically just on the UI
+
 ## Compiling and running Breeze Wallet
 If you prefer to compile and run everything yourself, please follow these steps closely.
 
