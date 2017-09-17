@@ -19,6 +19,7 @@ export class PasswordConfirmationComponent implements OnInit {
     this.buildWalletPasswordForm();
   }
 
+  private startingTumble: Boolean = false;
   private walletPasswordForm: FormGroup;
 
   ngOnInit() {
@@ -61,6 +62,8 @@ export class PasswordConfirmationComponent implements OnInit {
   };
 
   private onConfirm() {
+    this.startingTumble = true;
+
     let tumbleRequest = new TumbleRequest(
       this.sourceWalletName,
       this.destinationWalletName,
@@ -78,6 +81,7 @@ export class PasswordConfirmationComponent implements OnInit {
         error => {
           console.error(error);
           if (error.status === 0) {
+            this.startingTumble = false;
             alert('Something went wrong while connecting to the TumbleBit Client. Please restart the application.');
           } else if (error.status >= 400) {
             if (!error.json().errors[0]) {
