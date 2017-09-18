@@ -27,7 +27,7 @@ export class TumblebitService {
 
   getTumblingState(): Observable<any> {
     return Observable
-      .interval(this.pollingInterval)
+      .interval(1000)
       .startWith(0)
       .switchMap(() => this.http.get(this.tumblerClientUrl + 'tumbling-state'))
       .map((response: Response) => response);
