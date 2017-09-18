@@ -95,6 +95,9 @@ $btn-secondary-border:           $gray-light !default;
         &.ON {
           -webkit-text-fill-color:: $brand-primary !important;
           fill: $brand-primary !important;
+          -webkit-animation: fadeinout 3s linear infinite;
+          animation: fadeinout 3s linear infinite;
+          opacity: 0;
         }
       }
       .help {
@@ -112,7 +115,20 @@ $btn-secondary-border:           $gray-light !default;
         }
       }
     }
+  }
+}
+// icon animation when TB is ON
+@-webkit-keyframes fadeinout {50% { opacity: 1; }}
+@keyframes fadeinout {50% { opacity: 1; }}
 
+// modal load TB text
+#modalPasswordConfirmation {
+  .help {
+    color: $gray;
+    font-size: .9em;
+    font-style: italic;
+    line-height: 1.3em;
+    font-weight: 200;
   }
 }
 
