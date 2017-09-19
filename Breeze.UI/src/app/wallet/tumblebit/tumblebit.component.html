@@ -8,7 +8,7 @@
           <div class="col-10 my-4 offset-1">
             <i *ngIf="!tumbling" class="icon-tumblebit my-4 OFF"></i>
             <i *ngIf="tumbling" class="icon-tumblebit my-4 ON"></i>
-            <p class="help mt-4">The Breeze Privacy Protocol takes one bitcoin at a time, anonymizes it, and transfers it to the destination wallet. It can take some time to transfer several coins.</p>
+            <p class="help mt-4">The Breeze Privacy Protocol takes an amount of Bitcoin at a time, shuffles and swaps it with other coins, then transfers it to your destination wallet.  It can take some time to transfer several coins.</p>
           </div>
           <form class="col-10 my-4 offset-1" [formGroup]="tumbleForm">
             <div class="row" *ngIf="!tumbling">
@@ -20,8 +20,11 @@
                 <option *ngFor="let wallet of wallets" [value]="wallet">{{ wallet }}</option>
               </select>
             </div>
-            <button type="button" class="btn btn-lg btn-primary mt-4" (click)="tumbleClicked()" [disabled]="(!isConnected && !tumbling) || !isSynced">{{ tumbling ? "Stop" : "Start" }}</button>
+            <button type="button" class="btn btn-lg btn-primary mt-4" (click)="startTumbling()" [disabled]="(!isConnected && !tumbling) || !isSynced" *ngIf="!tumbling">Start</button>
+            <button type="button" class="btn btn-lg btn-danger mt-4" (click)="stopTumbling()" [disabled]="(!isConnected && tumbling) || !isSynced" *ngIf="tumbling">Stop</button>
+            <!-- <button type="button" class="btn btn-lg btn-primary mt-4" (click)="tumbleClicked()" [disabled]="(!isConnected && !tumbling) || !isSynced">{{ tumbling ? "Stop" : "Start" }}</button> -->
             <p class="help mt-4" *ngIf="!isSynced">Please wait until the wallet is fully synced.</p>
+            <p class="help mt-4" *ngIf="!isConnected">Please wait until the wallet is connected.</p>
           </form>
         </div>
         <!-- /left column-->

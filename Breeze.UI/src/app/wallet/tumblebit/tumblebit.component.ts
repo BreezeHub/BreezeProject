@@ -217,15 +217,6 @@ export class TumblebitComponent implements OnInit {
     ;
   }
 
-  private tumbleClicked() {
-    this.checkTumblingStatus();
-    if (this.tumbling) {
-      this.stopTumbling();
-    } else {
-      this.startTumbling();
-    }
-  }
-
   private startTumbling() {
     if (!this.isConnected) {
       alert("Can't start tumbling when you're not connected to a server. Please try again later.")
