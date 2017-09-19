@@ -85,7 +85,7 @@ namespace Stratis.Bitcoin.Configuration
         public TextFileConfiguration ConfigReader { get; private set; }
 
         /// <summary>Full uri of the tumbler.</summary>
-        public string TumblerAddress { get; set; } = "ctb://7obtcd7mkosmxeuh.onion/?h=03c632023c4a8587845ad918b8e5f53f7bf18319";
+        public string TumblerAddress { get; set; } = "ctb://pmkdcyilefpi2aal.onion?h=aa4e984c5655a677716539acc8cbc0ce29331429";
 
         /// <summary>
         /// Initializes a new instance of the object.
