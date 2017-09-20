@@ -14,7 +14,9 @@
 
 This is the repository of the Breeze Wallet, the first full-block SPV bitcoin wallet using Angular and Electron at the front-end and C# with .NET Core in the back-end.
 
-At the moment, only bitcoin on testnet is supported but more is coming soon. 
+At the moment, only bitcoin on **testnet** is supported but more is coming soon. 
+
+For **testnet only**.
 
 ## How to build the Breeze Daemon
 
@@ -57,6 +59,9 @@ If you want the :sparkles: latest :sparkles: (unstable :bomb:) version of the Br
 |**OS X 10.11**| - | [download][13] |  continuous build - up to date with commits |
 |**OS X 10.12**| - | [download][14] |  continuous build - up to date with commits |
 
+This is early release, alpha software, is provided for experiment, testing and development purposes and should only be used on **testnet**.
+
+For **testnet** only.
 
 [7]: https://ci.appveyor.com/api/projects/breezehubadmin/breeze/artifacts/breeze_out/breeze-win7-x86-Release.zip?job=Environment%3A%20win_runtime%3Dwin7-x86%2C%20arch%3Dia32%2C%20plat%3Dwin32
 [8]: https://ci.appveyor.com/api/projects/breezehubadmin/breeze/artifacts/breeze_out/breeze-win7-x64-Release.zip?job=Environment%3A%20win_runtime%3Dwin7-x64%2C%20arch%3Dx64%2C%20plat%3Dwin32
