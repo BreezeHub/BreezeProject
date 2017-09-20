@@ -1,8 +1,8 @@
 # Running Breeze Wallet with Breeze Privacy Protocol (alpha)
 
-Use these steps to setup Breeze Wallet that includes the Breeze Privacy Protocol.
+Use these steps to setup Breeze Wallet, which includes the Breeze Privacy Protocol.
 
-This is early release, alpha software, is provided for experiment, testing and development purposes and should only be used on **testnet**.
+This is early release, alpha software, and is provided for experimental, testing and development purposes. It should only be used on **testnet**.
 
 For **testnet** only.
 
@@ -12,7 +12,7 @@ For **testnet** only.
 
 #### Install and Run Tor
 
-Follow these instructions to [Install and Run Tor](https://github.com/BreezeHub/Breeze/blob/tumblebit-alpha/Breeze.Documentation/alpha/tor.md#windows) on windows.
+Follow these instructions to [Install and Run Tor](https://github.com/BreezeHub/Breeze/blob/tumblebit-alpha/Breeze.Documentation/alpha/tor.md#windows) on Windows.
 
 #### Install Breeze Wallet with Breeze Privacy Protocol for Windows
 
