@@ -16,7 +16,7 @@ Follow these instructions to [Install and Run Tor](https://github.com/BreezeHub/
 
 #### Install Breeze Wallet with Breeze Privacy Protocol for Windows
 
-Next download the alpha version of breeze wallet and unzip it to a location of your choosing.  You can download Breeze Wallet [here](https://github.com/BreezeHub/Breeze/releases) for both Windows 7 and Windows 10.
+Next download the alpha version of breeze wallet and unzip it to a location of your choosing.  You can download Breeze Wallet [here](https://github.com/BreezeHub/Breeze/tree/tumblebit-alpha#ci-build) for both Windows 7 and Windows 10.
 
 ## Mac OSX
 
