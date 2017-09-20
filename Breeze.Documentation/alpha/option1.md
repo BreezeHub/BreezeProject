@@ -30,5 +30,11 @@ Follow these instructions to [Install and Run Tor](https://github.com/BreezeHub/
 
 Next download the alpha version of breeze wallet and unzip it to a location of your choosing.  You can download Breeze Wallet [here](https://github.com/BreezeHub/Breeze/tree/tumblebit-alpha#ci-build) for both OSX 10.11 and OS X 10.12.
 
+## Ubuntu
+
+An install package is not available for Ubuntu.  Please follow install instructions [here](https://github.com/BreezeHub/Breeze/blob/tumblebit-alpha/Breeze.Documentation/alpha/option3.md).
+
+
+
 Enjoy and please give us [feedback](https://stratisplatform.slack.com/messages/C5F5GGLC8/), [contribute](https://github.com/BreezeHub) and join us on the [slack](https://stratisplatform.slack.com/messages/C5F5GGLC8/).
 
