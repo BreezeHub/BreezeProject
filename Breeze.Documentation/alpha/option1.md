@@ -26,6 +26,8 @@ Next download the alpha version of breeze wallet and unzip it to a location of y
 
 Follow these instructions to [Install and Run Tor](https://github.com/BreezeHub/Breeze/blob/tumblebit-alpha/Breeze.Documentation/alpha/tor.md#macos) on MacOSX.
 
+Another, more detailed, document for installing on MacOS can be found [here](https://github.com/BreezeHub/Breeze/wiki/Installation-Breeze-on-Mac-OS-X).  Enjoy!
+
 #### Install Breeze Wallet with Breeze Privacy Protocol for Windows
 
 Next download the alpha version of breeze wallet and unzip it to a location of your choosing.  You can download Breeze Wallet [here](https://github.com/BreezeHub/Breeze/tree/tumblebit-alpha#ci-build) for both OSX 10.11 and OS X 10.12.
