@@ -12,7 +12,7 @@ For **testnet** only.
 
 #### Install and Run Tor
 
-Follow these instructions to [Install and Run Tor](https://github.com/BreezeHub/Breeze/blob/tumblebit-alpha/Breeze.Documentation/alpha/tor.md#Windows) on windows.
+Follow these instructions to [Install and Run Tor](https://github.com/BreezeHub/Breeze/blob/tumblebit-alpha/Breeze.Documentation/alpha/tor.md#windows) on windows.
 
 #### Install Breeze Wallet with Breeze Privacy Protocol for Windows
 
@@ -24,7 +24,7 @@ Next download the alpha version of breeze wallet and unzip it to a location of y
 
 #### Install and Run Tor
 
-Follow these instructions to [Install and Run Tor](https://github.com/BreezeHub/Breeze/blob/tumblebit-alpha/Breeze.Documentation/alpha/tor.md#macOS) on MacOSX.
+Follow these instructions to [Install and Run Tor](https://github.com/BreezeHub/Breeze/blob/tumblebit-alpha/Breeze.Documentation/alpha/tor.md#macos) on MacOSX.
 
 #### Install Breeze Wallet with Breeze Privacy Protocol for Windows
 
