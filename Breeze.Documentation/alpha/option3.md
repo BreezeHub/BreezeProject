@@ -1,6 +1,10 @@
 ## Compiling and running Breeze Wallet
 If you prefer to compile and run everything yourself, please follow these steps closely.
 
+This is early release, alpha software, is provided for experiment, testing and development purposes and should only be used on **testnet**.
+ 
+For **testnet** only.
+
 ## Install and run TOR
 To ensure greater privacy while running the Breeze Wallet we enforce running tor.<br/>
 Please have a look at our [guide](./tor.md) and follow its instructions for your operating system.<br/>
