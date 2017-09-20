@@ -1,39 +1,34 @@
 # Running Breeze Wallet with Breeze Privacy Protocol (alpha)
 
-Use these steps to setup Breeze Wallet that includes the Privacy Protocol.
+Use these steps to setup Breeze Wallet that includes the Breeze Privacy Protocol.
+
+This is early release, alpha software, is provided for experiment, testing and development purposes and should only be used on **testnet**.
+
+For **testnet** only.
+
+## Windows
 
 ### Prerequisites
-Breeze wallet is dependent on [node](https://nodejs.org/) and [dotnetcore](https://www.microsoft.com/net/core).  Please install these frameworks on your system before proceeding.
 
-The Privacy Protocol requires Tor. In the Windows version Tor is configured automatically.  If you already have tor running you should instead use [option three](https://github.com/BreezeHub/Breeze/blob/tumblebit-alpha/Breeze.Documentation/alpha/option3.md) and setup Tor yourself.
+#### Install and Run Tor
 
-* [Node download](https://nodejs.org/en/download/)
-* [.Net Core download](https://www.microsoft.com/net/core)
+Follow these instructions to [Install and Run Tor](https://github.com/BreezeHub/Breeze/blob/tumblebit-alpha/Breeze.Documentation/alpha/tor.md#Windows) on windows.
 
-Next download the alpha version of breeze wallet and unzip it to a location of your choosing.
+#### Install Breeze Wallet with Breeze Privacy Protocol for Windows
 
-[release matrix here]
+Next download the alpha version of breeze wallet and unzip it to a location of your choosing.  You can download Breeze Wallet [here](https://github.com/BreezeHub/Breeze/tree/tumblebit-alpha#ci-build) for both Windows 7 and Windows 10.
 
-Issue the following command inside the Breeze Alpha folder:
+## Mac OSX
 
-```run```
+### Prerequisites
 
-This process will start up Tor, start a background window and the Breeze Wallet.  The background window communicates progress information. This info will be integrated into the Privacy user interface in the near future.
+#### Install and Run Tor
 
-Mac OSX
+Follow these instructions to [Install and Run Tor](https://github.com/BreezeHub/Breeze/blob/tumblebit-alpha/Breeze.Documentation/alpha/tor.md#macOS) on MacOSX.
 
-Mac users need to install Tor prior to running the alpha.  It can be installed via Homebrew.
+#### Install Breeze Wallet with Breeze Privacy Protocol for Windows
 
-``` 
-//usr//bin//ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)
-brew install tor 
-```
-
-Navigate to your tor folder and issue this command to start Tor:
-
-```
-tor -controlport 9051 -cookieauthentication 1
-```
+Next download the alpha version of breeze wallet and unzip it to a location of your choosing.  You can download Breeze Wallet [here](https://github.com/BreezeHub/Breeze/tree/tumblebit-alpha#ci-build) for both OSX 10.11 and OS X 10.12.
 
 Enjoy and please give us [feedback](https://stratisplatform.slack.com/messages/C5F5GGLC8/), [contribute](https://github.com/BreezeHub) and join us on the [slack](https://stratisplatform.slack.com/messages/C5F5GGLC8/).
 
