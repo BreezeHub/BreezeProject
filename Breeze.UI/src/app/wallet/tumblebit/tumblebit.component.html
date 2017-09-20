@@ -21,7 +21,7 @@
               </select>
             </div>
             <button type="button" class="btn btn-lg btn-primary mt-4" (click)="startTumbling()" [disabled]="(!isConnected && !tumbling) || !isSynced" *ngIf="!tumbling">Start</button>
-            <button type="button" class="btn btn-lg btn-danger mt-4" (click)="stopTumbling()" [disabled]="(!isConnected && tumbling) || !isSynced" *ngIf="tumbling">Stop</button>
+            <button type="button" class="btn btn-danger mt-2" (click)="stopTumbling()" [disabled]="(!isConnected && tumbling) || !isSynced" *ngIf="tumbling">Stop</button>
             <!-- <button type="button" class="btn btn-lg btn-primary mt-4" (click)="tumbleClicked()" [disabled]="(!isConnected && !tumbling) || !isSynced">{{ tumbling ? "Stop" : "Start" }}</button> -->
             <p class="help mt-4" *ngIf="!isSynced">Please wait until the wallet is fully synced.</p>
             <p class="help mt-4" *ngIf="!isConnected">Please wait until the wallet is connected.</p>
