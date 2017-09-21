@@ -3,7 +3,8 @@
 Use these steps to setup Breeze Wallet, which includes the Breeze Privacy Protocol.<br>
 **If you ran the previous version of our wallet, please follow [these steps](./remove_previous_alpha.md) to make sure the daemon doesn't crash on start up.**
 
-This is early release, alpha software, and is provided for experimental, testing and development purposes. It should only be used on **testnet**. <br>
+This is early release, alpha software, and is provided for experimental, testing and development purposes. It should only be used on **testnet**.
+
 For **testnet** only.
 
 If you have any issues or feedback, please [file an issue on github](https://github.com/breezehub/breeze/issues).
@@ -45,7 +46,7 @@ Next download the alpha version of breeze wallet.
 If you've set up a test wallet before, you can restore it using your mnemonic and password. <br>
 Make sure to set a creation date before the date the wallet was created.
 
-Another, more detailed, document for installing on MacOS can be found [here](https://github.com/BreezeHub/Breeze/wiki/Installation-Breeze-on-Mac-OS-X).  Enjoy!
+Another, more detailed, document for installing on MacOS can be found [here](https://github.com/BreezeHub/Breeze/wiki/Installing-Breeze-on-Mac-OS-X).  Enjoy!
 
 
 ## Ubuntu
