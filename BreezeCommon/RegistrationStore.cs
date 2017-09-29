@@ -4,6 +4,8 @@ using System.IO;
 using System.Text;
 
 using Newtonsoft.Json;
+using System.Runtime.InteropServices;
+using NBitcoin;
 
 namespace BreezeCommon
 {
@@ -16,7 +18,13 @@ namespace BreezeCommon
             StorePath = storePath;
         }
 
-	    public string Name { get; } = "RegistrationStore";
+        public RegistrationStore(Network network)
+        {
+            StorePath = GetRegistrationStoreFilePath(network);
+        }
+
+        public string Name { get; } = "RegistrationStore";
+        public string StoreFileName { get; } = "registrationHistory.json";
 
         public bool Add(RegistrationRecord regRecord)
         {
@@ -132,6 +140,23 @@ namespace BreezeCommon
 			}
 
             return registrations;
+        }
+
+        private string GetRegistrationStoreFilePath(Network network)
+        {
+            string defaultFolderPath;
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                defaultFolderPath = $@"{Environment.GetEnvironmentVariable("AppData")}\StratisNode";
+            }
+            else
+            {
+                defaultFolderPath = $"{Environment.GetEnvironmentVariable("HOME")}/.stratisnode";
+            }
+
+            // create the directory if it doesn't exist
+            Directory.CreateDirectory(defaultFolderPath);
+            return Path.Combine(defaultFolderPath, network.Name, StoreFileName);
         }
     }
 }

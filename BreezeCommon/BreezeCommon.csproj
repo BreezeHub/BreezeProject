@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp1.1</TargetFramework>
+    <TargetFramework>netstandard1.6</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
@@ -10,7 +10,5 @@
 
   <ItemGroup>
     <ProjectReference Include="..\BreezeProtocol\NTumbleBit\NTumbleBit.csproj" />
-    <ProjectReference Include="..\BreezeProtocol\NTumbleBit.ClassicTumbler.Client.CLI\NTumbleBit.ClassicTumbler.Client.CLI.csproj" />
-    <ProjectReference Include="..\BreezeProtocol\NTumbleBit.ClassicTumbler.Server.CLI\NTumbleBit.ClassicTumbler.Server.CLI.csproj" />
   </ItemGroup>
 </Project>
