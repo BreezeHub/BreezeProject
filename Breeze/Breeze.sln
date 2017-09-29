@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26730.3
+VisualStudioVersion = 15.0.26430.16
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "global", "global", "{2FF3130A-E8F3-4E0B-8733-B34C4A19910C}"
 	ProjectSection(SolutionItems) = preProject
@@ -39,6 +39,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stratis.Bitcoin.Features.Wallet", "..\Alpha\Stratis.Bitcoin.Features.Wallet\Stratis.Bitcoin.Features.Wallet.csproj", "{EB8A3D3E-0996-4D2C-961C-6069B1D64397}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stratis.Bitcoin.Features.Miner", "..\Alpha\Stratis.Bitcoin.Features.Miner\Stratis.Bitcoin.Features.Miner.csproj", "{03E469D3-6903-414D-9F1A-710CD690DB37}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BreezeCommon", "..\BreezeCommon\BreezeCommon\BreezeCommon.csproj", "{EC98038C-102E-46B9-A925-A72EC5D25993}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -98,6 +100,10 @@ Global
 		{03E469D3-6903-414D-9F1A-710CD690DB37}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{03E469D3-6903-414D-9F1A-710CD690DB37}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{03E469D3-6903-414D-9F1A-710CD690DB37}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EC98038C-102E-46B9-A925-A72EC5D25993}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EC98038C-102E-46B9-A925-A72EC5D25993}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EC98038C-102E-46B9-A925-A72EC5D25993}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EC98038C-102E-46B9-A925-A72EC5D25993}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

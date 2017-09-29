@@ -11,10 +11,12 @@ using NTumbleBit.ClassicTumbler.Client;
 using Stratis.Bitcoin.Configuration;
 using Stratis.Bitcoin.Features.BlockStore;
 using Stratis.Bitcoin.Features.MemoryPool;
+using Stratis.Bitcoin.Features.Miner;
 using Stratis.Bitcoin.Features.Wallet;
 using Stratis.Bitcoin.Features.WatchOnlyWallet;
 using Stratis.Bitcoin.Signals;
 using NTumbleBit.Services;
+using BreezeCommon;
 
 namespace Breeze.TumbleBit.Client
 {
@@ -49,6 +51,7 @@ namespace Breeze.TumbleBit.Client
         public TumbleState State { get; private set; } = TumbleState.OnlyMonitor;
         public ClassicTumblerParameters TumblerParameters { get; private set; } = null;
         public string TumblerAddress { get; private set; } = null;
+        public RegistrationStore registrationStore { get; private set; }
 
         public TumbleBitManager(
             ILoggerFactory loggerFactory,
@@ -73,6 +76,8 @@ namespace Breeze.TumbleBit.Client
             this.logger = loggerFactory.CreateLogger(this.GetType().FullName);
             this.walletFeePolicy = walletFeePolicy;
             this.TumblerAddress = nodeSettings.TumblerAddress;
+
+            this.registrationStore = new RegistrationStore(network);
 
             this.tumblingState = new TumblingState(
                 this.loggerFactory,
@@ -189,7 +194,22 @@ namespace Breeze.TumbleBit.Client
             // Update the block height in the tumbling state
             this.tumblingState.LastBlockReceivedHeight = height;
 
-            // TODO: Update the state of the tumbling session in this new block
+            // Check for any server registration transactions
+            if (block.Transactions != null)
+            {
+                foreach (Transaction tx in block.Transactions)
+                {
+                    // Check if the transaction has the Breeze registration marker output
+                    if (tx.Outputs[0].ScriptPubKey.ToHex().ToLower() == "6a1a425245455a455f524547495354524154494f4e5f4d41524b4552")
+                    {
+                        RegistrationToken registrationToken = new RegistrationToken();
+                        registrationToken.ParseTransaction(tx, this.network);
+                        RegistrationRecord registrationRecord = new RegistrationRecord(DateTime.Now, Guid.NewGuid(), tx.GetHash().ToString(), tx.ToHex(), registrationToken);
+                        this.registrationStore.Add(registrationRecord);
+                    }
+                }
+            }
+            
             // TODO: Does anything else need to be done here? Transaction housekeeping is done in the wallet features
         }
 
