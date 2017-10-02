@@ -12,6 +12,7 @@ using Stratis.Bitcoin.Configuration;
 using Stratis.Bitcoin.Configuration.Logging;
 using Stratis.Bitcoin.Features.BlockStore;
 using Stratis.Bitcoin.Features.Consensus;
+using Stratis.MasterNode.Features.InterNodeComms;
 using Stratis.Bitcoin.Features.LightWallet;
 using Stratis.Bitcoin.Features.MemoryPool;
 using Stratis.Bitcoin.Features.Miner;
@@ -85,6 +86,7 @@ namespace Breeze.Daemon
                         .UseWatchOnlyWallet()
                         .UseBlockNotification()
                         .UseTransactionNotification()
+                        .UseInterNodeCommunication()
                         .UseApi();
 
                     //currently tumblebit is bitcoin only

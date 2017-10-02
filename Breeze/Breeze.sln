@@ -42,6 +42,12 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stratis.Bitcoin.Features.Mi
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BreezeCommon", "..\BreezeCommon\BreezeCommon\BreezeCommon.csproj", "{EC98038C-102E-46B9-A925-A72EC5D25993}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stratis.Bitcoin.Features.InterNodeComms", "..\Alpha\Stratis.MasterNode.Features.InterNodeComms\Stratis.Bitcoin.Features.InterNodeComms.csproj", "{B4457C87-477C-464A-AB97-5AEF7BE54AB2}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NBitcoin", "..\NStratis\NBitcoin\NBitcoin.csproj", "{009C3B74-FAB9-4FD8-8FEA-15D73A528E53}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HashLib", "..\NStratis\Hashing\HashLib\HashLib.csproj", "{6E493CCC-F9AB-4A76-B1EB-B1F71EA060CD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -104,6 +110,18 @@ Global
 		{EC98038C-102E-46B9-A925-A72EC5D25993}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EC98038C-102E-46B9-A925-A72EC5D25993}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EC98038C-102E-46B9-A925-A72EC5D25993}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B4457C87-477C-464A-AB97-5AEF7BE54AB2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B4457C87-477C-464A-AB97-5AEF7BE54AB2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B4457C87-477C-464A-AB97-5AEF7BE54AB2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B4457C87-477C-464A-AB97-5AEF7BE54AB2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{009C3B74-FAB9-4FD8-8FEA-15D73A528E53}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{009C3B74-FAB9-4FD8-8FEA-15D73A528E53}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{009C3B74-FAB9-4FD8-8FEA-15D73A528E53}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{009C3B74-FAB9-4FD8-8FEA-15D73A528E53}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6E493CCC-F9AB-4A76-B1EB-B1F71EA060CD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6E493CCC-F9AB-4A76-B1EB-B1F71EA060CD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6E493CCC-F9AB-4A76-B1EB-B1F71EA060CD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6E493CCC-F9AB-4A76-B1EB-B1F71EA060CD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -119,6 +137,7 @@ Global
 		{476DF034-0E35-4043-8591-4BE44ED256E2} = {2A35265F-9E1C-4C10-A87A-3DACA675CC06}
 		{EB8A3D3E-0996-4D2C-961C-6069B1D64397} = {2A35265F-9E1C-4C10-A87A-3DACA675CC06}
 		{03E469D3-6903-414D-9F1A-710CD690DB37} = {2A35265F-9E1C-4C10-A87A-3DACA675CC06}
+		{B4457C87-477C-464A-AB97-5AEF7BE54AB2} = {2A35265F-9E1C-4C10-A87A-3DACA675CC06}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {2429359B-A981-4C96-81BF-21C6234E4715}

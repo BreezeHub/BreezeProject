@@ -204,7 +204,8 @@ namespace Breeze.TumbleBit.Client
                     {
                         RegistrationToken registrationToken = new RegistrationToken();
                         registrationToken.ParseTransaction(tx, this.network);
-                        RegistrationRecord registrationRecord = new RegistrationRecord(DateTime.Now, Guid.NewGuid(), tx.GetHash().ToString(), tx.ToHex(), registrationToken);
+                        MerkleBlock merkleBlock = new MerkleBlock(block, new uint256[] { tx.GetHash() });
+                        RegistrationRecord registrationRecord = new RegistrationRecord(DateTime.Now, Guid.NewGuid(), tx.GetHash().ToString(), tx.ToHex(), registrationToken, merkleBlock);
                         this.registrationStore.Add(registrationRecord);
                     }
                 }
