@@ -43,7 +43,8 @@ namespace Stratis.MasterNode.Features.InterNodeComms
 					.FeatureServices(services =>
 					{
 						services.AddSingleton<RegistrationStore>();
-					});
+                        services.AddSingleton<Network>();
+                });
 			});
 			return fullNodeBuilder;
 		}
