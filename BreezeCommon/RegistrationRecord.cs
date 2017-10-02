@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 
 using Newtonsoft.Json;
+using NBitcoin;
 
 namespace BreezeCommon
 {
@@ -14,13 +15,17 @@ namespace BreezeCommon
         public string RecordTxHex { get; set; }
         public RegistrationToken Record { get; set; }
 
-        public RegistrationRecord(DateTime recordTimeStamp, Guid recordGuid, string recordTxId, string recordTxHex, RegistrationToken record)
+        [JsonProperty("recordTxProof", NullValueHandling = NullValueHandling.Ignore)]
+        public MerkleBlock RecordTxProof { get; set; }
+
+        public RegistrationRecord(DateTime recordTimeStamp, Guid recordGuid, string recordTxId, string recordTxHex, RegistrationToken record, MerkleBlock recordTxProof)
         {
             RecordTimestamp = recordTimeStamp;
             RecordGuid = recordGuid;
             RecordTxId = recordTxId;
             RecordTxHex = recordTxHex;
             Record = record;
+            RecordTxProof = recordTxProof;
 		}
     }
 }
