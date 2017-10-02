@@ -6,6 +6,7 @@ using System.Text;
 using Newtonsoft.Json;
 using System.Runtime.InteropServices;
 using NBitcoin;
+using NBitcoin.Protocol;
 
 namespace BreezeCommon
 {
@@ -47,6 +48,20 @@ namespace BreezeCommon
             return true;
         }
 
+        public void AddCapsule(RegistrationCapsule capsule, Network network)
+        {
+            RegistrationToken token = new RegistrationToken();
+            token.ParseTransaction(capsule.RegistrationTransaction, network);
+            RegistrationRecord record = new RegistrationRecord(DateTime.Now,
+                Guid.NewGuid(),
+                capsule.RegistrationTransaction.GetHash().ToString(),
+                capsule.RegistrationTransaction.ToHex(),
+                token,
+                capsule.RegistrationTransactionProof);
+
+            Add(record);
+        }
+
 		public List<RegistrationRecord> GetByServerId(string serverId)
         {
             List<RegistrationRecord> registrations = GetRecordsOrCreateFile();
@@ -68,7 +83,20 @@ namespace BreezeCommon
 			return GetRecordsOrCreateFile();
         }
 
-		public RegistrationRecord GetByGuid(Guid guid)
+        public List<RegistrationCapsule> GetAllAsCapsules()
+        {
+            List<RegistrationCapsule> capsuleList = new List<RegistrationCapsule>();
+
+            foreach (RegistrationRecord record in GetRecordsOrCreateFile())
+            {
+                RegistrationCapsule tempCapsule = new RegistrationCapsule(record.RecordTxProof, Transaction.Parse(record.RecordTxHex));
+                capsuleList.Add(tempCapsule);
+            }
+
+            return capsuleList;
+        }
+
+        public RegistrationRecord GetByGuid(Guid guid)
 		{
             List<RegistrationRecord> registrations = GetRecordsOrCreateFile();
 
@@ -154,7 +182,7 @@ namespace BreezeCommon
                 defaultFolderPath = $"{Environment.GetEnvironmentVariable("HOME")}/.stratisnode";
             }
 
-            // create the directory if it doesn't exist
+            // Create the directory if it doesn't exist
             Directory.CreateDirectory(defaultFolderPath);
             return Path.Combine(defaultFolderPath, network.Name, StoreFileName);
         }
