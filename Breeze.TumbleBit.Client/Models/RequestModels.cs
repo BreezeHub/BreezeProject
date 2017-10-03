@@ -37,4 +37,16 @@ namespace Breeze.TumbleBit.Models
         [Required(ErrorMessage = "The password of the origin wallet is required.")]
         public string OriginWalletPassword { get; set; }
     }
+
+    /// <summary>
+    /// Object used to perform a dummy registration.
+    /// </summary>
+    public class DummyRegistrationRequest : RequestModel
+    {
+        [Required(ErrorMessage = "A wallet name is required.")]
+        public string OriginWallet { get; set; }
+
+        [Required(ErrorMessage = "A wallet password is required.")]
+        public string OriginWalletPassword { get; set; }
+    }
 }

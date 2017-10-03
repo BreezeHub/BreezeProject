@@ -17,6 +17,8 @@ using Stratis.Bitcoin.Features.WatchOnlyWallet;
 using Stratis.Bitcoin.Signals;
 using NTumbleBit.Services;
 using BreezeCommon;
+using System.Collections.Generic;
+using System.Text;
 
 namespace Breeze.TumbleBit.Client
 {
@@ -88,6 +90,109 @@ namespace Breeze.TumbleBit.Client
                 this.walletTransactionHandler,
                 this.walletSyncManager,
                 this.walletFeePolicy);
+        }
+
+        public async Task DummyRegistration(string originWalletName, string originWalletPassword)
+        {
+            var token = new List<byte>();
+
+            // Server ID
+            token.AddRange(Encoding.ASCII.GetBytes("".PadRight(34)));
+
+            // IPv4 address
+            token.Add(0x00); token.Add(0x00); token.Add(0x00); token.Add(0x00);
+
+            // IPv6 address
+            token.Add(0x00); token.Add(0x00); token.Add(0x00); token.Add(0x00);
+            token.Add(0x00); token.Add(0x00); token.Add(0x00); token.Add(0x00);
+            token.Add(0x00); token.Add(0x00); token.Add(0x00); token.Add(0x00);
+            token.Add(0x00); token.Add(0x00); token.Add(0x00); token.Add(0x00);
+
+            // Onion address
+            token.Add(0x00); token.Add(0x00); token.Add(0x00); token.Add(0x00);
+            token.Add(0x00); token.Add(0x00); token.Add(0x00); token.Add(0x00);
+            token.Add(0x00); token.Add(0x00); token.Add(0x00); token.Add(0x00);
+            token.Add(0x00); token.Add(0x00); token.Add(0x00); token.Add(0x00);
+
+            // Port number
+            byte[] portNumber = BitConverter.GetBytes(37123);
+            token.Add(portNumber[0]);
+            token.Add(portNumber[1]);
+
+            // RSA sig length
+            byte[] rsaLength = BitConverter.GetBytes(256);
+            token.Add(rsaLength[0]);
+            token.Add(rsaLength[1]);
+
+            // RSA signature
+            byte[] rsaSig = new byte[256];
+            token.AddRange(rsaSig);
+
+            // ECDSA sig length
+            byte[] ecdsaLength = BitConverter.GetBytes(128);
+            token.Add(ecdsaLength[0]);
+            token.Add(ecdsaLength[1]);
+
+            // ECDSA signature
+            byte[] ecdsaSig = new byte[128];
+            token.AddRange(ecdsaSig);
+
+            // Finally add protocol byte and computed length to beginning of header
+            byte[] protocolVersionByte = BitConverter.GetBytes(254);
+            byte[] headerLength = BitConverter.GetBytes(token.Count);
+
+            token.Insert(0, protocolVersionByte[0]);
+            token.Insert(1, headerLength[0]);
+            token.Insert(2, headerLength[1]);
+
+            Money outputValue = new Money(0.0001m, MoneyUnit.BTC);
+
+            Transaction sendTx = new Transaction();
+
+            // Recognisable string used to tag the transaction within the blockchain
+            byte[] bytes = Encoding.UTF8.GetBytes("BREEZE_REGISTRATION_MARKER");
+            sendTx.Outputs.Add(new TxOut()
+            {
+                Value = outputValue,
+                ScriptPubKey = TxNullDataTemplate.Instance.GenerateScriptPubKey(bytes)
+            });
+
+            // Add each data-encoding PubKey as a TxOut
+            foreach (PubKey pubKey in BlockChainDataConversions.BytesToPubKeys(token.ToArray()))
+            {
+                TxOut destTxOut = new TxOut()
+                {
+                    Value = outputValue,
+                    ScriptPubKey = pubKey.ScriptPubKey
+                };
+
+                sendTx.Outputs.Add(destTxOut);
+            }
+
+            HdAccount highestAcc = null;
+            foreach (HdAccount account in this.walletManager.GetAccounts(originWalletName))
+            {
+                if (highestAcc == null)
+                {
+                    highestAcc = account;
+                }
+
+                if (account.GetSpendableAmount().ConfirmedAmount > highestAcc.GetSpendableAmount().ConfirmedAmount)
+                {
+                    highestAcc = account;
+                }
+            }
+
+            WalletAccountReference accountRef = new WalletAccountReference(originWalletName, highestAcc.Name);
+            List<Recipient> recipients = new List<Recipient>();
+            TransactionBuildContext txBuildContext = new TransactionBuildContext(accountRef, recipients);
+            txBuildContext.WalletPassword = originWalletPassword;
+            //txBuildContext.OverrideFeeRate = feeRate;
+            txBuildContext.Sign = true;
+            txBuildContext.MinConfirmations = 0;
+
+            this.walletTransactionHandler.FundTransaction(txBuildContext, sendTx);
+            this.walletManager.SendTransaction(sendTx.ToHex());
         }
 
         /// <inheritdoc />

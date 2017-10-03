@@ -189,5 +189,13 @@ namespace Breeze.TumbleBit.Controllers
                 return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
             }
         }
+
+        [Route("dummy-registration")]
+        [HttpGet]
+        public IActionResult DummyRegistration([FromQuery] DummyRegistrationRequest request)
+        {
+            this.tumbleBitManager.DummyRegistration(request.OriginWallet, request.OriginWalletPassword);
+            return this.Ok();
+        }
     }
 }

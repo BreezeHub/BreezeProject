@@ -34,6 +34,8 @@ namespace Breeze.TumbleBit.Client
         /// <param name="block">The block.</param>
         void ProcessBlock(int height, Block block);
 
+        Task DummyRegistration(string originWalletName, string originWalletPassword);
+
         /// <summary>
         /// The state of the tumbler
         /// </summary>
