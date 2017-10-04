@@ -197,5 +197,13 @@ namespace Breeze.TumbleBit.Controllers
             this.tumbleBitManager.DummyRegistration(request.OriginWallet, request.OriginWalletPassword);
             return this.Ok();
         }
+
+        [Route("block-generate")]
+        [HttpPost]
+        public IActionResult BlockGenerate([FromQuery] BlockGenerateRequest request)
+        {
+            this.tumbleBitManager.BlockGenerate(request.NumberOfBlocks);
+            return this.Ok();
+        }
     }
 }

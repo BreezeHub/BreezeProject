@@ -48,6 +48,7 @@ namespace Breeze.TumbleBit.Client
         private TumblerClientRuntime runtime;
         private StateMachinesExecutor stateMachine;
         private BroadcasterJob broadcasterJob;
+        private PowMining powMining;
 
         public TumblingState tumblingState { get; private set; }
         public TumbleState State { get; private set; } = TumbleState.OnlyMonitor;
@@ -65,7 +66,8 @@ namespace Breeze.TumbleBit.Client
             Signals signals,
             IWalletTransactionHandler walletTransactionHandler,
             IWalletSyncManager walletSyncManager,
-            IWalletFeePolicy walletFeePolicy)
+            IWalletFeePolicy walletFeePolicy,
+            PowMining powMining)
         {
             this.walletManager = walletManager as WalletManager;
             this.watchOnlyWalletManager = watchOnlyWalletManager;
@@ -77,6 +79,7 @@ namespace Breeze.TumbleBit.Client
             this.loggerFactory = loggerFactory;
             this.logger = loggerFactory.CreateLogger(this.GetType().FullName);
             this.walletFeePolicy = walletFeePolicy;
+            this.powMining = powMining;
             this.TumblerAddress = nodeSettings.TumblerAddress;
 
             this.registrationStore = new RegistrationStore(network);
@@ -90,6 +93,21 @@ namespace Breeze.TumbleBit.Client
                 this.walletTransactionHandler,
                 this.walletSyncManager,
                 this.walletFeePolicy);
+        }
+
+        public async Task BlockGenerate(int numberOfBlocks)
+        {
+            var wallet = this.tumblingState.WalletManager;
+            var w = wallet.GetWalletsNames().FirstOrDefault();
+            if (w == null)
+                throw new Exception("No wallet found");
+            var acc = wallet.GetAccounts(w).FirstOrDefault();
+            var account = new WalletAccountReference(w, acc.Name);
+            var address = wallet.GetUnusedAddress(account);
+
+            //var mining = this.FullNode.NodeService<PowMining>();
+
+            var result = this.powMining.GenerateBlocks(new ReserveScript(address.Pubkey), (ulong)numberOfBlocks, int.MaxValue);
         }
 
         public async Task DummyRegistration(string originWalletName, string originWalletPassword)
@@ -192,7 +210,16 @@ namespace Breeze.TumbleBit.Client
             txBuildContext.MinConfirmations = 0;
 
             this.walletTransactionHandler.FundTransaction(txBuildContext, sendTx);
-            this.walletManager.SendTransaction(sendTx.ToHex());
+            var bcResult = this.walletManager.SendTransaction(sendTx.ToHex());
+
+            if (bcResult)
+            {
+                Console.WriteLine("Broadcasting transaction: " + sendTx.GetHash());
+            }
+            else
+            {
+                Console.WriteLine("Failed broadcasting transaction: " + sendTx.GetHash());
+            }
         }
 
         /// <inheritdoc />

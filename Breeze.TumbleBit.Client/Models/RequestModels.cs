@@ -49,4 +49,13 @@ namespace Breeze.TumbleBit.Models
         [Required(ErrorMessage = "A wallet password is required.")]
         public string OriginWalletPassword { get; set; }
     }
+
+    /// <summary>
+    /// Object used to perform a regtest block generation.
+    /// </summary>
+    public class BlockGenerateRequest : RequestModel
+    {
+        [Required(ErrorMessage = "Number of blocks to generate is required")]
+        public int NumberOfBlocks { get; set; }
+    }
 }

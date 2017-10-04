@@ -17,6 +17,7 @@ using Stratis.Bitcoin.Features.LightWallet;
 using Stratis.Bitcoin.Features.MemoryPool;
 using Stratis.Bitcoin.Features.Miner;
 using Stratis.Bitcoin.Features.Notifications;
+using Stratis.Bitcoin.Features.RPC;
 using Stratis.Bitcoin.Features.Wallet;
 using Stratis.Bitcoin.Features.WatchOnlyWallet;
 using Stratis.Bitcoin.Utilities;
@@ -119,8 +120,37 @@ namespace Breeze.Daemon
                         .UseConsensus()
                         .UseBlockStore()
                         .UseMempool()
+                        .UseBlockNotification()
+                        .UseTransactionNotification()
                         .UseWallet()
+                        .UseWatchOnlyWallet()
+                        .UseInterNodeCommunication()
+                        .AddMining()
+                        .AddRPC()
                         .UseApi();
+
+                    //currently tumblebit is bitcoin only
+                    if (args.Contains("-tumblebit"))
+                    {
+                        Logs.Configure(new FuncLoggerFactory(i => new DualLogger(i, (a, b) => true, false)));
+
+                        //start NTumbleBit logging to the console
+                        //and switch the full node to log level: 
+                        //error only
+                        SetupTumbleBitConsoleLogs(nodeSettings);
+
+                        //add logging to NLog
+                        SetupTumbleBitNLogs(nodeSettings);
+
+                        var tumblerAddress = args.GetValueOf("-ppuri");
+                        if (tumblerAddress != null)
+                            nodeSettings.TumblerAddress = tumblerAddress;
+
+
+                        //we no longer pass the cbt uri in on the command line
+                        //we always get it from the config. 
+                        fullNodeBuilder.UseTumbleBit();
+                    }
                 }
             }
 
@@ -139,7 +169,7 @@ namespace Breeze.Daemon
                 {"System", Microsoft.Extensions.Logging.LogLevel.Warning},
                 {"Microsoft", Microsoft.Extensions.Logging.LogLevel.Warning},
                 {"Microsoft.AspNetCore", Microsoft.Extensions.Logging.LogLevel.Error},
-                {"Stratis.Bitcoin", Microsoft.Extensions.Logging.LogLevel.Error},
+                {"Stratis.Bitcoin", Microsoft.Extensions.Logging.LogLevel.Information},
                 {"Breeze.TumbleBit.Client", Microsoft.Extensions.Logging.LogLevel.Information}
             };
             ConsoleLoggerSettings settings = nodeSettings.LoggerFactory.GetConsoleSettings();
