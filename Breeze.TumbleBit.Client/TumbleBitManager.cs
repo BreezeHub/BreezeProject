@@ -44,7 +44,6 @@ namespace Breeze.TumbleBit.Client
         private readonly ConcurrentChain chain;
         private readonly Network network;
         private readonly IWalletFeePolicy walletFeePolicy;
-        private IDisposable blockReceiver;
         private TumblerClientRuntime runtime;
         private StateMachinesExecutor stateMachine;
         private BroadcasterJob broadcasterJob;
@@ -201,11 +200,13 @@ namespace Breeze.TumbleBit.Client
                 }
             }
 
+            // This fee rate is primarily for regtest, testnet and mainnet have actual estimators that work
+            FeeRate feeRate = new FeeRate(new Money(10000, MoneyUnit.Satoshi));
             WalletAccountReference accountRef = new WalletAccountReference(originWalletName, highestAcc.Name);
             List<Recipient> recipients = new List<Recipient>();
             TransactionBuildContext txBuildContext = new TransactionBuildContext(accountRef, recipients);
             txBuildContext.WalletPassword = originWalletPassword;
-            //txBuildContext.OverrideFeeRate = feeRate;
+            txBuildContext.OverrideFeeRate = feeRate;
             txBuildContext.Sign = true;
             txBuildContext.MinConfirmations = 0;
 
@@ -296,9 +297,6 @@ namespace Breeze.TumbleBit.Client
             this.broadcasterJob = this.runtime.CreateBroadcasterJob();
             this.broadcasterJob.Start();
 
-            // Subscribe to receive new block notifications
-            // TODO: Is this the right BlockObserver or should the one used by the Wallet feature be used?
-            this.blockReceiver = this.signals.SubscribeForBlocks(new BlockObserver(this.chain, this));
             // run tumbling mode
             this.stateMachine = new StateMachinesExecutor(this.runtime);
             this.stateMachine.Start();
@@ -321,8 +319,6 @@ namespace Breeze.TumbleBit.Client
         /// <inheritdoc />
         public void ProcessBlock(int height, Block block)
         {
-            this.logger.LogDebug($"Received block with height {height} during tumbling session.");
-
             // Update the block height in the tumbling state
             this.tumblingState.LastBlockReceivedHeight = height;
 
@@ -363,8 +359,6 @@ namespace Breeze.TumbleBit.Client
 
         public void Dispose()
         {
-            this.blockReceiver?.Dispose();
-
             if (this.broadcasterJob != null && this.broadcasterJob.Started)
             {
                 this.broadcasterJob.Stop();

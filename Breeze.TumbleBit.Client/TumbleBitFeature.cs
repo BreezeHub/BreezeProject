@@ -15,27 +15,43 @@ using Stratis.Bitcoin.Configuration;
 using Stratis.Bitcoin.Connection;
 using Stratis.Bitcoin.Features.BlockStore;
 using Stratis.Bitcoin.Utilities;
+using Stratis.Bitcoin.Signals;
 using Stratis.Bitcoin.Features.Wallet;
 using Stratis.Bitcoin.Features.LightWallet;
+using NBitcoin;
 
 namespace Breeze.TumbleBit
 {
     public class TumbleBitFeature : FullNodeFeature
     {
         private readonly ITumbleBitManager tumbleBitManager;
+        private readonly ConcurrentChain chain;
+        private readonly Signals signals;
 
-        public TumbleBitFeature(ITumbleBitManager tumbleBitManager)
+        private IDisposable blockSubscriberdDisposable;
+        //private IDisposable transactionSubscriberdDisposable;
+
+        public TumbleBitFeature(ITumbleBitManager tumbleBitManager, ConcurrentChain chain, Signals signals)
         {
             this.tumbleBitManager = tumbleBitManager;
+            this.chain = chain;
+            this.signals = signals;
         }
 
         public override void Start()
         {
+            // subscribe to receiving blocks and transactions
+            this.blockSubscriberdDisposable = this.signals.SubscribeForBlocks(new BlockObserver(this.chain, this.tumbleBitManager));
+            //this.transactionSubscriberdDisposable = this.signals.SubscribeForTransactions(new TransactionObserver(this.tumbleBitManager));
+
             this.tumbleBitManager.Initialize();
         }
 
         public override void Stop()
         {
+            this.blockSubscriberdDisposable.Dispose();
+            //this.transactionSubscriberdDisposable.Dispose();
+
             this.tumbleBitManager?.Dispose();
         }
     }
