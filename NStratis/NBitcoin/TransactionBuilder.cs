@@ -431,7 +431,7 @@ namespace NBitcoin
 				Builders.Add(SetChange);
 			}
 
-			IMoney SetChange(TransactionBuildingContext ctx)
+			public IMoney SetChange(TransactionBuildingContext ctx)
 			{
 				var changeAmount = (Money)ctx.ChangeAmount;
 				if(changeAmount.Satoshi == 0)
@@ -496,6 +496,30 @@ namespace NBitcoin
 			StandardTransactionPolicy = new StandardTransactionPolicy();
 			DustPrevention = true;
 			InitExtensions();
+		}
+
+		public void MoveChangeToEnd()
+		{
+			foreach (BuilderGroup group in this._BuilderGroups)
+			{
+				Func<TransactionBuildingContext, IMoney> setChangeDelegate = group.SetChange;
+				int changeIndex = -1;
+				for (int i = 0; i < group.Builders.Count; i++)
+				{
+					if (group.Builders[i] == setChangeDelegate)
+					{
+						changeIndex = i;
+						break;
+					}
+				}
+
+				if (changeIndex != -1)
+				{
+					Builder setChange = group.Builders[changeIndex];
+					group.Builders.RemoveAt(changeIndex);
+					group.Builders.Add(setChange);
+				}
+			}
 		}
 
 		private void InitExtensions()

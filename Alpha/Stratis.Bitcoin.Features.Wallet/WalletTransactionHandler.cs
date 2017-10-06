@@ -89,6 +89,8 @@ namespace Stratis.Bitcoin.Features.Wallet
             this.FindChangeAddress(context);
             this.AddFee(context);
 
+            context.TransactionBuilder.MoveChangeToEnd();
+
             // build transaction
             context.Transaction = context.TransactionBuilder.BuildTransaction(context.Sign);
 
