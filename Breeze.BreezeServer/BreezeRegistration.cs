@@ -100,7 +100,7 @@ namespace Breeze.BreezeServer
                 Environment.Exit(0);
             }
 
-            var registrationToken = new RegistrationToken(255, config.TumblerEcdsaKeyAddress, config.Ipv4Address, config.Ipv6Address, config.OnionAddress, config.Port);
+            var registrationToken = new RegistrationToken(254, config.TumblerEcdsaKeyAddress, config.Ipv4Address, config.Ipv6Address, config.OnionAddress, "", config.Port);
             byte[] msgBytes = registrationToken.GetRegistrationTokenBytes(config.TumblerRsaKeyFile, privateKeyEcdsa);
 
             // Create the registration transaction using the bytes generated above
@@ -120,7 +120,8 @@ namespace Breeze.BreezeServer
                                                                       Guid.NewGuid(),
                                                                       txToSend.GetHash().ToString(),
                                                                       txToSend.ToHex(),
-                                                                      registrationToken);
+                                                                      registrationToken,
+                                                                      null);
 
                 regStore.Add(regRecord);
 
