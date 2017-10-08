@@ -22,17 +22,17 @@ namespace BreezeCommon
         The registration token consists of a single transaction broadcast on the network of choice (e.g. Bitcoin's
         mainnet/testnet, or the Stratis mainnet/testnet). This transaction has any number of funding inputs, as normal.
         It has precisely one nulldata output marking the entire transaction as a Breeze TumbleBit registration.
-        There can be an optional change return output at the end of the entire output list.
+        There can be an optional change return output, which if present MUST be at the end of the entire output list.
         
-        The remainder of the transaction outputs are of near-dust value. Each output encodes 20 bytes of token data
-        into an address with a valid checksum. The contents and format of the encoded data is described below.
+        The remainder of the transaction outputs are of near-dust value. Each output encodes 64 bytes of token data
+        into a public key script. The contents and format of the encoded data is described below.
 
         The presumption is that the transaction outputs are not reordered by the broadcasting node.
 
         - OP_RETURN transaction output
         -> 26 bytes - Literal string: BREEZE_REGISTRATION_MARKER
 
-        - Encoded address transaction outputs
+        - Encoded public key transaction outputs
         -> 1 byte - Protocol version byte (255 = test registration to be ignored by mainnet wallets)
         -> 2 bytes - Length of registration header
         -> 34 bytes - Server ID of the tumbler (base58 representation of the collateral address, right padded with spaces)
@@ -44,6 +44,7 @@ namespace BreezeCommon
         -> n bytes - RSA signature proving ownership of the Breeze TumbleBit server's private key (to prevent spoofing)
         -> 2 bytes - ECDSA signature length
         -> n bytes - ECDSA signature proving ownership of the Breeze TumbleBit server's private key
+        -> 40 bytes - Hash of the tumbler server's configuration file
         <...>
         -> Protocol does not preclude additional data being appended in future without breaking compatibility
 
@@ -70,7 +71,9 @@ namespace BreezeCommon
 		public byte[] RsaSignature { get; set; }
 		public byte[] EcdsaSignature { get; set; }
 
-		public RegistrationToken(int protocolVersion, string serverId, IPAddress ipv4Addr, IPAddress ipv6Addr, string onionAddress, int port)
+        public string ConfigurationHash { get; set; }
+
+        public RegistrationToken(int protocolVersion, string serverId, IPAddress ipv4Addr, IPAddress ipv6Addr, string onionAddress, string configurationHash, int port)
 		{
 			ProtocolVersion = protocolVersion;
             ServerId = serverId;
@@ -78,6 +81,7 @@ namespace BreezeCommon
 			Ipv6Addr = ipv6Addr;
 			OnionAddress = onionAddress;
 			Port = port;
+            ConfigurationHash = configurationHash;
 		}
 
 		public RegistrationToken()
@@ -150,8 +154,11 @@ namespace BreezeCommon
 			token.Add(ecdsaLength[1]);
 			token.AddRange(EcdsaSignature);
 
-			// Finally add protocol byte and computed length to beginning of header
-			byte[] protocolVersionByte = BitConverter.GetBytes(ProtocolVersion);
+            // Server configuration hash
+            token.AddRange(Encoding.ASCII.GetBytes(ConfigurationHash));
+
+            // Finally add protocol byte and computed length to beginning of header
+            byte[] protocolVersionByte = BitConverter.GetBytes(ProtocolVersion);
 			byte[] headerLength = BitConverter.GetBytes(token.Count);
 
 			token.Insert(0, protocolVersionByte[0]);
@@ -309,8 +316,12 @@ namespace BreezeCommon
 			EcdsaSignature = GetSubArray(bitstream, position, ecdsaLength);
 			position += ecdsaLength;
 
-			// TODO: Validate signatures
-		}
+            byte[] configurationHashTemp = GetSubArray(bitstream, position, 40);
+            ConfigurationHash = Encoding.ASCII.GetString(configurationHashTemp);
+            position += 40;
+
+            // TODO: Validate signatures
+        }
 
 		private byte[] GetSubArray(byte[] data, int index, int length)
 		{

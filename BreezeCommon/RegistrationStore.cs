@@ -161,7 +161,6 @@ namespace BreezeCommon
 		{
 			lock (RegistrationStore.lock_object)
 			{
-
 				List<RegistrationRecord> registrations = new List<RegistrationRecord>();
 
 				try
