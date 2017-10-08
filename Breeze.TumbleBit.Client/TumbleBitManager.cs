@@ -8,6 +8,7 @@ using NBitcoin;
 using NTumbleBit.ClassicTumbler;
 using NTumbleBit.ClassicTumbler.CLI;
 using NTumbleBit.ClassicTumbler.Client;
+using Stratis.Bitcoin.Builder;
 using Stratis.Bitcoin.Configuration;
 using Stratis.Bitcoin.Features.BlockStore;
 using Stratis.Bitcoin.Features.MemoryPool;
@@ -22,6 +23,18 @@ using System.Text;
 
 namespace Breeze.TumbleBit.Client
 {
+    /*
+    public class PowMiningFactory
+    {
+        public PowMining GetPowMining(NodeSettings nodeSettings)
+        {
+            if (nodeSettings.)
+
+            return null;
+        }
+    }
+    */
+
     /// <summary>
     /// An implementation of a tumbler manager.
     /// </summary>
@@ -34,6 +47,10 @@ namespace Breeze.TumbleBit.Client
             OnlyMonitor
         }
 
+        private const int MINIMUM_MASTERNODE_COUNT = 1;
+
+        private static Random random = new Random();
+
         private ILoggerFactory loggerFactory;
         private readonly WalletManager walletManager;
         private readonly IWatchOnlyWalletManager watchOnlyWalletManager;
@@ -43,6 +60,7 @@ namespace Breeze.TumbleBit.Client
         private readonly Signals signals;
         private readonly ConcurrentChain chain;
         private readonly Network network;
+        private readonly NodeSettings nodeSettings;
         private readonly IWalletFeePolicy walletFeePolicy;
         private TumblerClientRuntime runtime;
         private StateMachinesExecutor stateMachine;
@@ -75,12 +93,12 @@ namespace Breeze.TumbleBit.Client
             this.chain = chain;
             this.signals = signals;
             this.network = network;
+            this.nodeSettings = nodeSettings;
             this.loggerFactory = loggerFactory;
             this.logger = loggerFactory.CreateLogger(this.GetType().FullName);
             this.walletFeePolicy = walletFeePolicy;
             this.powMining = powMining;
             this.TumblerAddress = nodeSettings.TumblerAddress;
-
             this.registrationStore = new RegistrationStore(network);
 
             this.tumblingState = new TumblingState(
@@ -106,7 +124,7 @@ namespace Breeze.TumbleBit.Client
 
             //var mining = this.FullNode.NodeService<PowMining>();
 
-            var result = this.powMining.GenerateBlocks(new ReserveScript(address.Pubkey), (ulong)numberOfBlocks, int.MaxValue);
+            this.powMining.GenerateBlocks(new ReserveScript(address.Pubkey), (ulong)numberOfBlocks, int.MaxValue);
         }
 
         public async Task DummyRegistration(string originWalletName, string originWalletPassword)
@@ -153,6 +171,9 @@ namespace Breeze.TumbleBit.Client
             // ECDSA signature
             byte[] ecdsaSig = new byte[128];
             token.AddRange(ecdsaSig);
+
+            // Configuration hash
+            token.AddRange(Encoding.ASCII.GetBytes("aa4e984c5655a677716539acc8cbc0ce29331429"));
 
             // Finally add protocol byte and computed length to beginning of header
             byte[] protocolVersionByte = BitConverter.GetBytes(254);
@@ -226,6 +247,23 @@ namespace Breeze.TumbleBit.Client
         /// <inheritdoc />
         public async Task<ClassicTumblerParameters> ConnectToTumblerAsync()
         {
+            /// If the -ppuri command line option wasn't used to bypass the registration store lookup
+            if (this.TumblerAddress == null)
+            {
+                List<RegistrationRecord> registrations = this.registrationStore.GetAll();
+
+                if (registrations.Count < MINIMUM_MASTERNODE_COUNT)
+                {
+                    Console.WriteLine("Not enough masternode registrations downloaded yet");
+                    return null;
+                }
+
+                RegistrationRecord record = registrations[random.Next(registrations.Count)];
+                RegistrationToken registrationToken = record.Record;
+                
+                this.TumblerAddress = "ctb://" + record.Record.OnionAddress + ".onion?h=" + record.Record.ConfigurationHash;
+            }
+
             this.tumblingState.TumblerUri = new Uri(this.TumblerAddress);
             var config = new FullNodeTumblerClientConfiguration(this.tumblingState, onlyMonitor: false, connectionTest: true);
             TumblerClientRuntime rt = null;
@@ -233,6 +271,11 @@ namespace Breeze.TumbleBit.Client
             {
                 rt = await TumblerClientRuntime.FromConfigurationAsync(config, connectionTest:true).ConfigureAwait(false);
                 return rt.TumblerParameters;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Error obtaining tumbler parameters: " + e);
+                return null;
             }
             finally
             {

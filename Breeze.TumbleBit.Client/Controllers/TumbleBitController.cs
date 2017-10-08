@@ -48,6 +48,9 @@ namespace Breeze.TumbleBit.Controllers
             {
                 var tumblerParameters = await this.tumbleBitManager.ConnectToTumblerAsync().ConfigureAwait(false);
 
+                if (tumblerParameters == null)
+                    return ErrorHelpers.BuildErrorResponse(HttpStatusCode.InternalServerError, "Unable to connect", "Unable to connect");
+
                 var periods = tumblerParameters.CycleGenerator.FirstCycle.GetPeriods();
                 var lengthBlocks = periods.Total.End - periods.Total.Start;
                 var cycleLengthSeconds = lengthBlocks * 10 * 60;
