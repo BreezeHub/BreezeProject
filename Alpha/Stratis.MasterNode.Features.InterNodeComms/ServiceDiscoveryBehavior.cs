@@ -17,10 +17,10 @@ namespace Stratis.MasterNode.Features.InterNodeComms
     public class ServiceDiscoveryBehavior : NodeBehavior
     {
         private Timer BroadcastTimer = null;
-	    private IReadOnlyList<DiscoveryCapsule> capsules;
+	    private IReadOnlyList<RegistrationCapsule> capsules;
         private RegistrationStore store;
 
-		public ServiceDiscoveryBehavior(IReadOnlyList<DiscoveryCapsule> capsules, RegistrationStore store)
+		public ServiceDiscoveryBehavior(IReadOnlyList<RegistrationCapsule> capsules, RegistrationStore store)
 		{
 			this.capsules = capsules;
             this.store = store;
@@ -28,7 +28,7 @@ namespace Stratis.MasterNode.Features.InterNodeComms
 
         public override object Clone()
         {
-            return new ServiceDiscoveryBehavior(new List<DiscoveryCapsule>(this.capsules), this.store);
+            return new ServiceDiscoveryBehavior(new List<RegistrationCapsule>(this.capsules), this.store);
         }
 
         protected override void AttachCore()
@@ -50,38 +50,67 @@ namespace Stratis.MasterNode.Features.InterNodeComms
         {
             if (message.Message.Payload is ServiceDiscoveryPayload)
             {
-	            var serviceDiscovery = (ServiceDiscoveryPayload) message.Message.Payload;
-	            if (serviceDiscovery.ServiceName != "tumblebit") return;
+                var serviceDiscovery = (ServiceDiscoveryPayload)message.Message.Payload;
+                if (serviceDiscovery.ServiceName != "tumblebit") return;
 
-	            //get list
-				var incomingList = new List<DiscoveryCapsule>(serviceDiscovery.Capsules);
+                //get list
+                var incomingList = new List<RegistrationCapsule>(serviceDiscovery.Capsules);
 
-	            //if we are synced ...
-	            if (AreEquivalent(this.capsules, incomingList))
-	            {
-                    //...merge back to the store here
+                //if we are synced ...
+                if (AreEquivalent(this.capsules, incomingList))
+                {
+                    return;
+                }
 
-                    Dictionary<string, bool> recordIds = new Dictionary<string, bool>();
+                //...if not, merge back to the store here
 
-                    foreach (RegistrationRecord record in this.store.GetAll())
+                // TODO: As an optimisation, these dictionaries should be member variables so they are reused between messages received
+                Dictionary<string, bool> recordIds = new Dictionary<string, bool>();
+                Dictionary<string, bool> capsuleIds = new Dictionary<string, bool>();
+
+                // Get list of currently known capsules (maybe some aren't in the store yet)
+                foreach (RegistrationCapsule capsule in this.capsules)
+                {
+                    capsuleIds[capsule.RegistrationTransaction.GetHash().ToString()] = true;
+                }
+
+                // Get list of records currently in the store
+                foreach (RegistrationRecord record in this.store.GetAll())
+                {
+                    recordIds[record.RecordTxId] = true;
+
+                    if (!capsuleIds.ContainsKey(record.RecordTxId))
                     {
-                        recordIds[record.RecordTxId] = true;
+                        // TODO: Make capsule out of record and add to capsule list
+                    }
+                }
+
+                // Check if any in synced list are missing from the store & capsule list and add them
+
+                foreach (RegistrationCapsule capsule in incomingList)
+                {
+                    if (!recordIds.ContainsKey(capsule.RegistrationTransaction.GetHash().ToString()))
+                    {
+                        this.store.AddCapsule(capsule, node.Network);
+                        recordIds[capsule.RegistrationTransaction.GetHash().ToString()] = true;
                     }
 
-                    // Check if any in synced list are missing from the store and add them
-                    foreach (RegistrationCapsule capsule in this.capsules)
+                    if (!capsuleIds.ContainsKey(capsule.RegistrationTransaction.GetHash().ToString()))
                     {
-                        if (!recordIds.ContainsKey(capsule.RegistrationTransaction.GetHash().ToString()))
-                        {
-                            this.store.AddCapsule(capsule, node.Network);
-                        }
+                        // TODO: Can't do this, this.capsules is read only
+                        this.capsules.Append(capsule);
+                        capsuleIds[capsule.RegistrationTransaction.GetHash().ToString()] = true;
                     }
+                }
 
-		            return;
-	            }
-
-				//we are differnet - so update
-	            this.capsules = Merge(this.capsules, incomingList);
+                foreach (RegistrationCapsule capsule in this.capsules)
+                {
+                    if (!recordIds.ContainsKey(capsule.RegistrationTransaction.GetHash().ToString()))
+                    {
+                        this.store.AddCapsule(capsule, node.Network);
+                        recordIds[capsule.RegistrationTransaction.GetHash().ToString()] = true;
+                    }
+                }
             }
         }
 
@@ -97,7 +126,7 @@ namespace Stratis.MasterNode.Features.InterNodeComms
             {
                 if (this.AttachedNode.State == NodeState.HandShaked)
                 {
-                    this.AttachedNode.SendMessageAsync(new ServiceDiscoveryPayload("tumblebit", new List<DiscoveryCapsule>(this.capsules).ToArray()));
+                    this.AttachedNode.SendMessageAsync(new ServiceDiscoveryPayload("tumblebit", new List<RegistrationCapsule>(this.capsules).ToArray()));
                 }
             }
         }
@@ -108,14 +137,14 @@ namespace Stratis.MasterNode.Features.InterNodeComms
             this.AttachedNode.MessageReceived -= this.AttachedNode_MessageReceived;
         }
 
-	    internal static bool AreEquivalent(IReadOnlyList<DiscoveryCapsule> list1, IReadOnlyList<DiscoveryCapsule> list2)
+	    internal static bool AreEquivalent(IReadOnlyList<RegistrationCapsule> list1, IReadOnlyList<RegistrationCapsule> list2)
 	    {
 		    var listOne = list1.ToImmutableSortedSet();
 		    var listTwo = list2.ToImmutableSortedSet();
 		    return listOne.SequenceEqual(listTwo);
 	    }
 
-	    internal static IReadOnlyList<DiscoveryCapsule> Merge(IReadOnlyList<DiscoveryCapsule> list1, IReadOnlyList<DiscoveryCapsule> list2)
+	    internal static IReadOnlyList<RegistrationCapsule> Merge(IReadOnlyList<RegistrationCapsule> list1, IReadOnlyList<RegistrationCapsule> list2)
 	    {
 		    return list1.Union(list2).ToArray();
 	    }

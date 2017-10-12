@@ -28,7 +28,7 @@ namespace Stratis.MasterNode.Features.InterNodeComms
 		public override void Start()
 		{
 			NodeConnectionParameters connectionParameters = this.connectionManager.Parameters;
-			connectionParameters.TemplateBehaviors.Add(new ServiceDiscoveryBehavior(new List<DiscoveryCapsule>(this.registrationStore.GetAllAsCapsules()), this.registrationStore));
+			connectionParameters.TemplateBehaviors.Add(new ServiceDiscoveryBehavior(new List<RegistrationCapsule>(this.registrationStore.GetAllAsCapsules()), this.registrationStore));
 		}
 	}
     
