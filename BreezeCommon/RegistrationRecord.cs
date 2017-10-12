@@ -9,16 +9,17 @@ namespace BreezeCommon
 {
     public class RegistrationRecord
     {
-		public DateTime RecordTimestamp { get; set; }
+        public DateTime RecordTimestamp { get; set; }
         public Guid RecordGuid { get; set; }
         public string RecordTxId { get; set; }
         public string RecordTxHex { get; set; }
         public RegistrationToken Record { get; set; }
 
-        [JsonProperty("recordTxProof", NullValueHandling = NullValueHandling.Ignore)]
-        public MerkleBlock RecordTxProof { get; set; }
+        //[JsonProperty("recordTxProof", NullValueHandling = NullValueHandling.Ignore)]
+        [JsonIgnore]
+        public PartialMerkleTree RecordTxProof { get; set; }
 
-        public RegistrationRecord(DateTime recordTimeStamp, Guid recordGuid, string recordTxId, string recordTxHex, RegistrationToken record, MerkleBlock recordTxProof)
+        public RegistrationRecord(DateTime recordTimeStamp, Guid recordGuid, string recordTxId, string recordTxHex, RegistrationToken record, PartialMerkleTree recordTxProof)
         {
             RecordTimestamp = recordTimeStamp;
             RecordGuid = recordGuid;
@@ -26,6 +27,6 @@ namespace BreezeCommon
             RecordTxHex = recordTxHex;
             Record = record;
             RecordTxProof = recordTxProof;
-		}
+        }
     }
 }
