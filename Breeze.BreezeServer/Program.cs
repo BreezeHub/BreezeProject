@@ -41,7 +41,7 @@ namespace Breeze.BreezeServer
 			logger.LogInformation("{Time} Checking node registration", DateTime.Now);
 
             BreezeRegistration registration = new BreezeRegistration();
-            /*
+
             if (!registration.CheckBreezeRegistration(config, regStorePath)) {
 				logger.LogInformation("{Time} Creating or updating node registration", DateTime.Now);
                 var regTx = registration.PerformBreezeRegistration(config, regStorePath);
@@ -56,7 +56,7 @@ namespace Breeze.BreezeServer
 			else {
 				logger.LogInformation("{Time} Node registration has already been performed", DateTime.Now);
 			}
-            */
+
 			logger.LogInformation("{Time} Starting Tumblebit server", DateTime.Now);
 
 			var tumbler = serviceProvider.GetService<ITumblerService>();
