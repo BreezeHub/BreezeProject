@@ -126,7 +126,8 @@ namespace Breeze.BreezeServer
                 var bitcoinNetwork = "MainNet";
                 if (IsTestNet)
                 {
-                    bitcoinNetwork = "TestNet";
+                    //bitcoinNetwork = "TestNet";
+                    bitcoinNetwork = "RegTest";
                 }
 
                 // Create directory for key files if it does not already exist

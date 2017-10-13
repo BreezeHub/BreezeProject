@@ -18,11 +18,19 @@ namespace Breeze.BreezeServer
     {
         public bool CheckBreezeRegistration(BreezeConfiguration config, string regStorePath)
         {
+            /*
 			Network network = Network.StratisMain;
 			if (config.IsTestNet)
 			{
                 network = Network.StratisTest;
 			}
+            */
+
+            Network network = Network.Main;
+            if (config.IsTestNet)
+            {
+                network = Network.RegTest;
+            }
 
             // In order to determine if the registration sequence has been performed
             // before, and to see if a previous performance is still valid, interrogate
@@ -78,11 +86,19 @@ namespace Breeze.BreezeServer
 
         public Transaction PerformBreezeRegistration(BreezeConfiguration config, string regStorePath)
         {
+            /*
 			Network network = Network.StratisMain;
 			if (config.IsTestNet)
 			{
 				network = Network.StratisTest;
 			}
+            */
+
+            Network network = Network.Main;
+            if (config.IsTestNet)
+            {
+                network = Network.RegTest;
+            }
 
             RPCHelper stratisHelper = null;
             RPCClient stratisRpc = null;
