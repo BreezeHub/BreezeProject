@@ -54,8 +54,7 @@ namespace Breeze.TumbleBit.Client
 
             OnlyMonitor = onlyMonitor;
             Logs.Configuration.LogInformation("Network: " + Network);
-
-            DataDir = DefaultDataDirectory.GetDefaultDirectory(Path.Combine("StratisNode", "bitcoin", "TumbleBit"), tumblingState.TumblerNetwork);
+            DataDir = Path.Combine(this.tumblingState.NodeSettings.DataDir, "TumbleBit");
             Logs.Configuration.LogInformation("Data directory set to " + DataDir);
 
             DBreezeRepository = new DBreezeRepository(Path.Combine(DataDir, "db2"));

@@ -1,12 +1,5 @@
 using System.Threading.Tasks;
-using Breeze.TumbleBit.Models;
-using NBitcoin;
-using NTumbleBit;
 using NTumbleBit.ClassicTumbler;
-using NTumbleBit.PuzzlePromise;
-using NTumbleBit.PuzzleSolver;
-using PuzzlePromise = NTumbleBit.PuzzlePromise;
-using PuzzleSolver = NTumbleBit.PuzzleSolver;
 
 namespace Breeze.TumbleBit.Client
 {

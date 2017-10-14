@@ -6,6 +6,7 @@ using NBitcoin;
 using NBitcoin.Protocol;
 using Stratis.Bitcoin.Builder;
 using Stratis.Bitcoin.Builder.Feature;
+using Stratis.Bitcoin.Configuration;
 using Stratis.Bitcoin.Connection;
 using Stratis.Bitcoin.Utilities;
 using BreezeCommon;
@@ -16,13 +17,18 @@ namespace Stratis.MasterNode.Features.InterNodeComms
 	{
 		private readonly IConnectionManager connectionManager;
 		private readonly INodeLifetime nodeLifetime;
+        private NodeSettings nodeSettings;
 		private RegistrationStore registrationStore;
 
-        public InterNodeCommunicationFeature(IConnectionManager connectionManager, INodeLifetime nodeLifetime, RegistrationStore registrationStore)
+        public InterNodeCommunicationFeature(IConnectionManager connectionManager, INodeLifetime nodeLifetime, NodeSettings nodeSettings, RegistrationStore registrationStore)
 		{
 			this.connectionManager = connectionManager;
 			this.nodeLifetime = nodeLifetime;
+            this.nodeSettings = nodeSettings;
 			this.registrationStore = registrationStore;
+
+            // Force registration store to be kept in same folder as other node data
+            this.registrationStore.SetStorePath(this.nodeSettings.DataDir);
 		}
 
 		public override void Start()

@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using NBitcoin;
 using Newtonsoft.Json;
 using NTumbleBit.ClassicTumbler;
+using Stratis.Bitcoin.Configuration;
 using Stratis.Bitcoin.Features.Wallet;
 using Stratis.Bitcoin.Features.WatchOnlyWallet;
 
@@ -71,6 +72,9 @@ namespace Breeze.TumbleBit.Client
         [JsonIgnore]
         public IWalletFeePolicy WalletFeePolicy { get; set; }
 
+        [JsonIgnore]
+        public NodeSettings NodeSettings { get; set; }
+
         [JsonConstructor]
         public TumblingState()
         {
@@ -83,7 +87,8 @@ namespace Breeze.TumbleBit.Client
             Network network, 
             WalletTransactionHandler walletTransactionHandler,
             WalletSyncManager walletSyncManager,
-            IWalletFeePolicy walletFeePolicy)
+            IWalletFeePolicy walletFeePolicy,
+            NodeSettings nodeSettings)
         {
             this.Logger = loggerFactory.CreateLogger(this.GetType().FullName);
             this.Chain = chain;
@@ -94,6 +99,7 @@ namespace Breeze.TumbleBit.Client
             this.WalletSyncManager = walletSyncManager;
             this.TumblerNetwork = network;
             this.WalletFeePolicy = walletFeePolicy;
+            this.NodeSettings = nodeSettings;
         }
 
         /// <inheritdoc />
@@ -112,7 +118,7 @@ namespace Breeze.TumbleBit.Client
             }
 
             // load the file from the local system
-            var savedState = JsonConvert.DeserializeObject<TumblingState>(File.ReadAllText(stateFilePath));
+            TumblingState savedState = JsonConvert.DeserializeObject<TumblingState>(File.ReadAllText(stateFilePath));
             
             this.OriginWalletName = savedState.OriginWalletName;
             this.DestinationWalletName = savedState.DestinationWalletName;
@@ -125,7 +131,7 @@ namespace Breeze.TumbleBit.Client
         /// <inheritdoc />
         public void Delete()
         {
-            var stateFilePath = GetStateFilePath();
+            string stateFilePath = GetStateFilePath();
             File.Delete(stateFilePath);
         }
         
@@ -133,21 +139,9 @@ namespace Breeze.TumbleBit.Client
         /// Gets the file path of the file containing the state of the tumbling execution.
         /// </summary>
         /// <returns></returns>
-        private static string GetStateFilePath()
+        private string GetStateFilePath()
         {
-            string defaultFolderPath;
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                defaultFolderPath = $@"{Environment.GetEnvironmentVariable("AppData")}\Breeze\TumbleBit";
-            }
-            else
-            {
-                defaultFolderPath = $"{Environment.GetEnvironmentVariable("HOME")}/.breeze/TumbleBit";
-            }
-
-            // create the directory if it doesn't exist
-            Directory.CreateDirectory(defaultFolderPath);
-            return Path.Combine(defaultFolderPath, StateFileName);
+            return Path.Combine(this.NodeSettings.DataDir, StateFileName);
         }
     }
 }

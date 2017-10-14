@@ -99,7 +99,7 @@ namespace Breeze.TumbleBit.Client
             this.walletFeePolicy = walletFeePolicy;
             this.powMining = powMining;
             this.TumblerAddress = nodeSettings.TumblerAddress;
-            this.registrationStore = new RegistrationStore(network);
+            this.registrationStore = new RegistrationStore(this.nodeSettings.DataDir);
 
             this.tumblingState = new TumblingState(
                 this.loggerFactory,
@@ -109,7 +109,8 @@ namespace Breeze.TumbleBit.Client
                 this.network,
                 this.walletTransactionHandler,
                 this.walletSyncManager,
-                this.walletFeePolicy);
+                this.walletFeePolicy,
+                this.nodeSettings);
         }
 
         public async Task BlockGenerate(int numberOfBlocks)

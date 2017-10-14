@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging;
 using NBitcoin.Protocol;
 using NBitcoin.Protocol.Behaviors;
 using BreezeCommon;
+using NBitcoin;
 
 namespace Stratis.MasterNode.Features.InterNodeComms
 {
@@ -17,10 +18,10 @@ namespace Stratis.MasterNode.Features.InterNodeComms
     public class ServiceDiscoveryBehavior : NodeBehavior
     {
         private Timer BroadcastTimer = null;
-	    private IReadOnlyList<RegistrationCapsule> capsules;
+	    private List<RegistrationCapsule> capsules;
         private RegistrationStore store;
 
-		public ServiceDiscoveryBehavior(IReadOnlyList<RegistrationCapsule> capsules, RegistrationStore store)
+		public ServiceDiscoveryBehavior(List<RegistrationCapsule> capsules, RegistrationStore store)
 		{
 			this.capsules = capsules;
             this.store = store;
@@ -81,7 +82,8 @@ namespace Stratis.MasterNode.Features.InterNodeComms
 
                     if (!capsuleIds.ContainsKey(record.RecordTxId))
                     {
-                        // TODO: Make capsule out of record and add to capsule list
+                        // Make capsule out of record and add to capsule list
+                        this.capsules.Add(new RegistrationCapsule(record.RecordTxProof, Transaction.Parse(record.RecordTxHex)));
                     }
                 }
 
@@ -97,7 +99,6 @@ namespace Stratis.MasterNode.Features.InterNodeComms
 
                     if (!capsuleIds.ContainsKey(capsule.RegistrationTransaction.GetHash().ToString()))
                     {
-                        // TODO: Can't do this, this.capsules is read only
                         this.capsules.Append(capsule);
                         capsuleIds[capsule.RegistrationTransaction.GetHash().ToString()] = true;
                     }
@@ -137,16 +138,16 @@ namespace Stratis.MasterNode.Features.InterNodeComms
             this.AttachedNode.MessageReceived -= this.AttachedNode_MessageReceived;
         }
 
-	    internal static bool AreEquivalent(IReadOnlyList<RegistrationCapsule> list1, IReadOnlyList<RegistrationCapsule> list2)
+	    internal static bool AreEquivalent(List<RegistrationCapsule> list1, List<RegistrationCapsule> list2)
 	    {
 		    var listOne = list1.ToImmutableSortedSet();
 		    var listTwo = list2.ToImmutableSortedSet();
 		    return listOne.SequenceEqual(listTwo);
 	    }
 
-	    internal static IReadOnlyList<RegistrationCapsule> Merge(IReadOnlyList<RegistrationCapsule> list1, IReadOnlyList<RegistrationCapsule> list2)
-	    {
-		    return list1.Union(list2).ToArray();
-	    }
+	    //internal static List<RegistrationCapsule> Merge(List<RegistrationCapsule> list1, List<RegistrationCapsule> list2)
+	    //{
+		//    return list1.Union(list2).ToArray();
+	    //}
     }
 }
