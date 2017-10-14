@@ -12,19 +12,28 @@ namespace BreezeCommon
 {
 	public class RegistrationStore : IRegistrationStore
 	{
-		string StorePath;
-
+		private string StorePath;
 		private static object lock_object = new object();
+
+        public RegistrationStore()
+        {
+        }
 
 		public RegistrationStore(string storePath)
 		{
 			StorePath = storePath;
+            // TODO: Get the parent folder of the file path
+            //Directory.CreateDirectory(StorePath);
 		}
 
-		public RegistrationStore(Network network)
-		{
-			StorePath = GetRegistrationStoreFilePath(network);
-		}
+        public void SetStorePath(string storePath)
+        {
+            // May not be able to inject the necessary path information directly,
+            // so this is a helper function to set the path independently after
+            // instantiation
+            Directory.CreateDirectory(storePath);
+            StorePath = Path.Combine(storePath, StoreFileName);
+        }
 
 		public string Name { get; } = "RegistrationStore";
 		public string StoreFileName { get; } = "registrationHistory.json";
@@ -178,23 +187,6 @@ namespace BreezeCommon
 				}
 				return registrations;
 			}
-		}
-
-		private string GetRegistrationStoreFilePath(Network network)
-		{
-			string defaultFolderPath;
-			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-			{
-				defaultFolderPath = $@"{Environment.GetEnvironmentVariable("AppData")}\StratisNode";
-			}
-			else
-			{
-				defaultFolderPath = $"{Environment.GetEnvironmentVariable("HOME")}/.stratisnode";
-			}
-
-			// Create the directory if it doesn't exist
-			Directory.CreateDirectory(defaultFolderPath);
-			return Path.Combine(defaultFolderPath, network.Name, StoreFileName);
 		}
 	}
 }
