@@ -20,6 +20,7 @@ using NTumbleBit.Services;
 using BreezeCommon;
 using System.Collections.Generic;
 using System.Text;
+using Stratis.Bitcoin;
 
 namespace Breeze.TumbleBit.Client
 {
@@ -62,10 +63,10 @@ namespace Breeze.TumbleBit.Client
         private readonly Network network;
         private readonly NodeSettings nodeSettings;
         private readonly IWalletFeePolicy walletFeePolicy;
+        private FullNode fullNode;
         private TumblerClientRuntime runtime;
         private StateMachinesExecutor stateMachine;
         private BroadcasterJob broadcasterJob;
-        private PowMining powMining;
 
         public TumblingState tumblingState { get; private set; }
         public TumbleState State { get; private set; } = TumbleState.OnlyMonitor;
@@ -84,7 +85,7 @@ namespace Breeze.TumbleBit.Client
             IWalletTransactionHandler walletTransactionHandler,
             IWalletSyncManager walletSyncManager,
             IWalletFeePolicy walletFeePolicy,
-            PowMining powMining)
+            FullNode fullNode)
         {
             this.walletManager = walletManager as WalletManager;
             this.watchOnlyWalletManager = watchOnlyWalletManager;
@@ -97,7 +98,7 @@ namespace Breeze.TumbleBit.Client
             this.loggerFactory = loggerFactory;
             this.logger = loggerFactory.CreateLogger(this.GetType().FullName);
             this.walletFeePolicy = walletFeePolicy;
-            this.powMining = powMining;
+            this.fullNode = fullNode;
             this.TumblerAddress = nodeSettings.TumblerAddress;
             this.registrationStore = new RegistrationStore(this.nodeSettings.DataDir);
 
@@ -113,7 +114,7 @@ namespace Breeze.TumbleBit.Client
                 this.nodeSettings);
         }
 
-        public async Task BlockGenerate(int numberOfBlocks)
+        public async Task<bool> BlockGenerate(int numberOfBlocks)
         {
             var wallet = this.tumblingState.WalletManager;
             var w = wallet.GetWalletsNames().FirstOrDefault();
@@ -123,9 +124,28 @@ namespace Breeze.TumbleBit.Client
             var account = new WalletAccountReference(w, acc.Name);
             var address = wallet.GetUnusedAddress(account);
 
-            //var mining = this.FullNode.NodeService<PowMining>();
+            try
+            {
+                PowMining powMining = this.fullNode.NodeService<PowMining>();
 
-            this.powMining.GenerateBlocks(new ReserveScript(address.Pubkey), (ulong)numberOfBlocks, int.MaxValue);
+                if (this.network == Network.Main || this.network == Network.TestNet || this.network == Network.RegTest)
+                {
+                    // Bitcoin PoW
+                    powMining.GenerateBlocks(new ReserveScript(address.Pubkey), (ulong)numberOfBlocks, int.MaxValue);
+                }
+
+                if (this.network == Network.StratisMain || this.network == Network.StratisTest) // || this.network == Network.StratisRegTest
+                {
+                    // Stratis PoW
+                    powMining.GenerateBlocks(new ReserveScript { reserveSfullNodecript = address.ScriptPubKey }, (ulong)numberOfBlocks, int.MaxValue);
+                }
+
+                return true;
+            }
+            catch (Exception e)
+            {
+                return false;
+            }
         }
 
         public async Task DummyRegistration(string originWalletName, string originWalletPassword)
@@ -374,11 +394,18 @@ namespace Breeze.TumbleBit.Client
                     // Check if the transaction has the Breeze registration marker output
                     if (tx.Outputs[0].ScriptPubKey.ToHex().ToLower() == "6a1a425245455a455f524547495354524154494f4e5f4d41524b4552")
                     {
-                        RegistrationToken registrationToken = new RegistrationToken();
-                        registrationToken.ParseTransaction(tx, this.network);
-                        MerkleBlock merkleBlock = new MerkleBlock(block, new uint256[] { tx.GetHash() });
-                        RegistrationRecord registrationRecord = new RegistrationRecord(DateTime.Now, Guid.NewGuid(), tx.GetHash().ToString(), tx.ToHex(), registrationToken, merkleBlock.PartialMerkleTree);
-                        this.registrationStore.Add(registrationRecord);
+                        try
+                        {
+                            RegistrationToken registrationToken = new RegistrationToken();
+                            registrationToken.ParseTransaction(tx, this.network);
+                            MerkleBlock merkleBlock = new MerkleBlock(block, new uint256[] { tx.GetHash() });
+                            RegistrationRecord registrationRecord = new RegistrationRecord(DateTime.Now, Guid.NewGuid(), tx.GetHash().ToString(), tx.ToHex(), registrationToken, merkleBlock.PartialMerkleTree);
+                            this.registrationStore.Add(registrationRecord);
+                        }
+                        catch (Exception e)
+                        {
+                            this.logger.LogDebug("Failed to parse registration transaction: " + tx.GetHash());
+                        }
                     }
                 }
             }

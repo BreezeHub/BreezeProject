@@ -106,22 +106,32 @@ namespace Breeze.TumbleBit.Client.Services
                 if (!isFinal || IsDoubleSpend(tx.Transaction))
                     return false;
 
-                var smartBitApi = new SmartBitApi(TumblingState.TumblerNetwork);
-                var result = await smartBitApi.PushTx(tx.Transaction).ConfigureAwait(false);
-                if (result.State == SmartBitResultState.Success)
+                if (this.TumblingState.TumblerNetwork != Network.RegTest) // || this.TumblingState.TumblerNetwork == Network.StratisRegTest
                 {
-                    await Cache.ImportUnconfirmedTransaction(tx.Transaction).ConfigureAwait(false);
-                    foreach (var output in tx.Transaction.Outputs)
+                    var smartBitApi = new SmartBitApi(TumblingState.TumblerNetwork);
+                    var result = await smartBitApi.PushTx(tx.Transaction).ConfigureAwait(false);
+                    if (result.State == SmartBitResultState.Success)
                     {
-                        TumblingState.WatchOnlyWalletManager.WatchScriptPubKey(output.ScriptPubKey);
+                        await Cache.ImportUnconfirmedTransaction(tx.Transaction).ConfigureAwait(false);
+                        foreach (var output in tx.Transaction.Outputs)
+                        {
+                            TumblingState.WatchOnlyWalletManager.WatchScriptPubKey(output.ScriptPubKey);
+                        }
+                        Logs.Broadcasters.LogInformation($"Broadcasted {tx.Transaction.GetHash()}");
+                        return true;
                     }
-                    Logs.Broadcasters.LogInformation($"Broadcasted {tx.Transaction.GetHash()}");
-                    return true;
+                    else if (result.State == SmartBitResultState.Failure)
+                    {
+                        remove = false;
+                    }
                 }
-                else if (result.State == SmartBitResultState.Failure)
+                else
                 {
-                    remove = false;
+                    // TODO: On the regtest networks we have to rely on peer nodes to broadcast the transaction
+                    var result = this.TumblingState.WalletManager.SendTransaction(tx.Transaction.ToHex().ToString());
+                    Logs.Broadcasters.LogDebug("Result of regtest transaction broadcast: " + result);
                 }
+
                 return false;
             }
             finally

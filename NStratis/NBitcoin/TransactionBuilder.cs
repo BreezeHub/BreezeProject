@@ -171,6 +171,30 @@ namespace NBitcoin
 	/// </summary>
 	public class TransactionBuilder
 	{
+		public void MoveChangeToEnd()
+		{
+			foreach (BuilderGroup group in this._BuilderGroups)
+			{
+				Func<TransactionBuildingContext, IMoney> setChangeDelegate = group.SetChange;
+				int changeIndex = -1;
+				for (int i = 0; i < group.Builders.Count; i++)
+				{
+					if (group.Builders[i] == setChangeDelegate)
+					{
+						changeIndex = i;
+						break;
+					}
+				}
+
+				if (changeIndex != -1)
+				{
+					Builder setChange = group.Builders[changeIndex];
+					group.Builders.RemoveAt(changeIndex);
+					group.Builders.Add(setChange);
+				}
+			}
+		}
+
 		internal class TransactionBuilderSigner : ISigner
 		{
 			ICoin coin;
@@ -496,30 +520,6 @@ namespace NBitcoin
 			StandardTransactionPolicy = new StandardTransactionPolicy();
 			DustPrevention = true;
 			InitExtensions();
-		}
-
-		public void MoveChangeToEnd()
-		{
-			foreach (BuilderGroup group in this._BuilderGroups)
-			{
-				Func<TransactionBuildingContext, IMoney> setChangeDelegate = group.SetChange;
-				int changeIndex = -1;
-				for (int i = 0; i < group.Builders.Count; i++)
-				{
-					if (group.Builders[i] == setChangeDelegate)
-					{
-						changeIndex = i;
-						break;
-					}
-				}
-
-				if (changeIndex != -1)
-				{
-					Builder setChange = group.Builders[changeIndex];
-					group.Builders.RemoveAt(changeIndex);
-					group.Builders.Add(setChange);
-				}
-			}
 		}
 
 		private void InitExtensions()

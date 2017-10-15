@@ -144,10 +144,5 @@ namespace Stratis.MasterNode.Features.InterNodeComms
 		    var listTwo = list2.ToImmutableSortedSet();
 		    return listOne.SequenceEqual(listTwo);
 	    }
-
-	    //internal static List<RegistrationCapsule> Merge(List<RegistrationCapsule> list1, List<RegistrationCapsule> list2)
-	    //{
-		//    return list1.Union(list2).ToArray();
-	    //}
     }
 }

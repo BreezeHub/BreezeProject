@@ -203,10 +203,18 @@ namespace Breeze.TumbleBit.Controllers
 
         [Route("block-generate")]
         [HttpPost]
-        public IActionResult BlockGenerate([FromQuery] BlockGenerateRequest request)
+        public async Task<IActionResult> BlockGenerate([FromQuery] BlockGenerateRequest request)
         {
-            this.tumbleBitManager.BlockGenerate(request.NumberOfBlocks);
-            return this.Ok();
+            bool result = await this.tumbleBitManager.BlockGenerate(request.NumberOfBlocks);
+
+            if (result)
+            {
+                return this.Ok();
+            }
+            else
+            {
+                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.InternalServerError, "Unable to generate block", "Unable to generate block");
+            }
         }
     }
 }

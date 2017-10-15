@@ -34,7 +34,7 @@ namespace Breeze.TumbleBit.Client
         /// <param name="block">The block.</param>
         void ProcessBlock(int height, Block block);
 
-        Task BlockGenerate(int numberOfBlocks);
+        Task<bool> BlockGenerate(int numberOfBlocks);
         Task DummyRegistration(string originWalletName, string originWalletPassword);
 
         /// <summary>
