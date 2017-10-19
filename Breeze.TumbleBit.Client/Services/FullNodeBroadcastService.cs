@@ -106,7 +106,7 @@ namespace Breeze.TumbleBit.Client.Services
                 if (!isFinal || IsDoubleSpend(tx.Transaction))
                     return false;
 
-                if (this.TumblingState.TumblerNetwork != Network.RegTest) // || this.TumblingState.TumblerNetwork == Network.StratisRegTest
+                if (this.TumblingState.TumblerNetwork != Network.RegTest || this.TumblingState.TumblerNetwork == Network.StratisRegTest)
                 {
                     var smartBitApi = new SmartBitApi(TumblingState.TumblerNetwork);
                     var result = await smartBitApi.PushTx(tx.Transaction).ConfigureAwait(false);

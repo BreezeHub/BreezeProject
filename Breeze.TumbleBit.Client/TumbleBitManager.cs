@@ -99,7 +99,6 @@ namespace Breeze.TumbleBit.Client
             this.logger = loggerFactory.CreateLogger(this.GetType().FullName);
             this.walletFeePolicy = walletFeePolicy;
             this.fullNode = fullNode;
-            this.TumblerAddress = nodeSettings.TumblerAddress;
             this.registrationStore = new RegistrationStore(this.nodeSettings.DataDir);
 
             this.tumblingState = new TumblingState(
@@ -134,7 +133,7 @@ namespace Breeze.TumbleBit.Client
                     powMining.GenerateBlocks(new ReserveScript(address.Pubkey), (ulong)numberOfBlocks, int.MaxValue);
                 }
 
-                if (this.network == Network.StratisMain || this.network == Network.StratisTest) // || this.network == Network.StratisRegTest
+                if (this.network == Network.StratisMain || this.network == Network.StratisTest || this.network == Network.StratisRegTest)
                 {
                     // Stratis PoW
                     powMining.GenerateBlocks(new ReserveScript { reserveSfullNodecript = address.ScriptPubKey }, (ulong)numberOfBlocks, int.MaxValue);

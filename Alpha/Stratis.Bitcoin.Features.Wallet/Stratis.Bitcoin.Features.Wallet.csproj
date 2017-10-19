@@ -25,6 +25,7 @@
     <None Remove="Stratis.Bitcoin.Features.Wallet\**" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="DBreeze" Version="1.84.0" />
     <PackageReference Include="Microsoft.CodeAnalysis.Scripting" Version="2.3.1" />
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="1.1.2" />
     <PackageReference Include="NLog" Version="5.0.0-beta09" />
@@ -47,8 +48,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\NStratis\NBitcoin\NBitcoin.csproj" />
     <ProjectReference Include="..\Stratis.Bitcoin.Features.BlockStore\Stratis.Bitcoin.Features.BlockStore.csproj" />
     <ProjectReference Include="..\Stratis.Bitcoin.Features.MemoryPool\Stratis.Bitcoin.Features.MemoryPool.csproj" />
+    <ProjectReference Include="..\Stratis.Bitcoin.Features.RPC\Stratis.Bitcoin.Features.RPC.csproj" />
     <ProjectReference Include="..\Stratis.Bitcoin\Stratis.Bitcoin.csproj" />
   </ItemGroup>
 

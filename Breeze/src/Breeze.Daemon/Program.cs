@@ -48,36 +48,14 @@ namespace Breeze.Daemon
                     return;
 
                 var network = args.Contains("-testnet") ? Network.StratisTest : Network.StratisMain;
+
+                if (args.Contains("-regtest"))
+                    network = Network.StratisRegTest;
+
                 if (args.Contains("-testnet"))
                     args = args.Append("-addnode=13.64.76.48").ToArray(); // TODO: fix this temp hack 
                 var nodeSettings = NodeSettings.FromArguments(args, "stratis", network, ProtocolVersion.ALT_PROTOCOL_VERSION);
                 nodeSettings.ApiUri = new Uri(string.IsNullOrEmpty(apiUri) ? DefaultStratisUri : apiUri);
-
-                if (args.Contains("light"))
-                {
-                    fullNodeBuilder = new FullNodeBuilder()
-                        .UseNodeSettings(nodeSettings)
-                        .UseLightWallet()
-                        .UseBlockNotification()
-                        .UseTransactionNotification()
-                        .UseApi();
-                }
-                else
-                {
-                    fullNodeBuilder = new FullNodeBuilder()
-                        .UseNodeSettings(nodeSettings)
-                        .UseStratisConsensus()
-                        .UseBlockStore()
-                        .UseMempool()
-                        .UseWallet()
-                        .AddPowPosMining()
-                        .UseApi();
-                }
-            }
-            else
-            {
-                NodeSettings nodeSettings = NodeSettings.FromArguments(args);
-                nodeSettings.ApiUri = new Uri(string.IsNullOrEmpty(apiUri) ? DefaultBitcoinUri : apiUri);
 
                 if (args.Contains("light"))
                 {
@@ -103,9 +81,9 @@ namespace Breeze.Daemon
                         //add logging to NLog
                         SetupTumbleBitNLogs(nodeSettings);
 
-                        var tumblerAddress = args.GetValueOf("-ppuri");
-                        if (tumblerAddress != null)
-                            nodeSettings.TumblerAddress = tumblerAddress;
+                        //var tumblerAddress = args.GetValueOf("-ppuri");
+                        //if (tumblerAddress != null)
+                        //    nodeSettings.TumblerAddress = tumblerAddress;
 
 
                         //we no longer pass the cbt uri in on the command line
@@ -142,9 +120,89 @@ namespace Breeze.Daemon
                         //add logging to NLog
                         SetupTumbleBitNLogs(nodeSettings);
 
-                        var tumblerAddress = args.GetValueOf("-ppuri");
-                        if (tumblerAddress != null)
-                            nodeSettings.TumblerAddress = tumblerAddress;
+                        // TODO: Put this back in
+                        //var tumblerAddress = args.GetValueOf("-ppuri");
+                        //if (tumblerAddress != null)
+                        //    nodeSettings.TumblerAddress = tumblerAddress;
+
+
+                        //we no longer pass the cbt uri in on the command line
+                        //we always get it from the config. 
+                        fullNodeBuilder.UseTumbleBit();
+                    }
+                }
+            }
+            else
+            {
+                NodeSettings nodeSettings = NodeSettings.FromArguments(args);
+                nodeSettings.ApiUri = new Uri(string.IsNullOrEmpty(apiUri) ? DefaultBitcoinUri : apiUri);
+
+                if (args.Contains("light"))
+                {
+                    fullNodeBuilder = new FullNodeBuilder()
+                        .UseNodeSettings(nodeSettings)
+                        .UseLightWallet()
+                        .UseWatchOnlyWallet()
+                        .UseBlockNotification()
+                        .UseTransactionNotification()
+                        .UseInterNodeCommunication()
+                        .UseApi();
+
+                    //currently tumblebit is bitcoin only
+                    if (args.Contains("-tumblebit"))
+                    {
+                        Logs.Configure(new FuncLoggerFactory(i => new DualLogger(i, (a, b) => true, false)));
+
+                        //start NTumbleBit logging to the console
+                        //and switch the full node to log level: 
+                        //error only
+                        SetupTumbleBitConsoleLogs(nodeSettings);
+
+                        //add logging to NLog
+                        SetupTumbleBitNLogs(nodeSettings);
+
+                        //var tumblerAddress = args.GetValueOf("-ppuri");
+                        //if (tumblerAddress != null)
+                        //    nodeSettings.TumblerAddress = tumblerAddress;
+
+
+                        //we no longer pass the cbt uri in on the command line
+                        //we always get it from the config. 
+                        fullNodeBuilder.UseTumbleBit();
+                    }
+                }
+                else
+                {
+                    fullNodeBuilder = new FullNodeBuilder()
+                        .UseNodeSettings(nodeSettings)
+                        .UseConsensus()
+                        .UseBlockStore()
+                        .UseMempool()
+                        .UseBlockNotification()
+                        .UseTransactionNotification()
+                        .UseWallet()
+                        .UseWatchOnlyWallet()
+                        .UseInterNodeCommunication()
+                        .AddMining()
+                        .AddRPC()
+                        .UseApi();
+
+                    //currently tumblebit is bitcoin only
+                    if (args.Contains("-tumblebit"))
+                    {
+                        Logs.Configure(new FuncLoggerFactory(i => new DualLogger(i, (a, b) => true, false)));
+
+                        //start NTumbleBit logging to the console
+                        //and switch the full node to log level: 
+                        //error only
+                        SetupTumbleBitConsoleLogs(nodeSettings);
+
+                        //add logging to NLog
+                        SetupTumbleBitNLogs(nodeSettings);
+
+                        //var tumblerAddress = args.GetValueOf("-ppuri");
+                        //if (tumblerAddress != null)
+                        //    nodeSettings.TumblerAddress = tumblerAddress;
 
 
                         //we no longer pass the cbt uri in on the command line

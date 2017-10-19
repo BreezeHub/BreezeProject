@@ -89,8 +89,6 @@ namespace Stratis.Bitcoin.Features.Wallet
             this.FindChangeAddress(context);
             this.AddFee(context);
 
-            context.TransactionBuilder.MoveChangeToEnd();
-
             // build transaction
             context.Transaction = context.TransactionBuilder.BuildTransaction(context.Sign);
 
@@ -135,7 +133,6 @@ namespace Stratis.Bitcoin.Features.Wallet
                     if (newTransactionOutput.ScriptPubKey == context.ChangeAddress.ScriptPubKey)
                     {
                         transaction.Outputs.Insert(index, newTransactionOutput);
-                        // TODO: Force change to be the last output for now. Need this to be a context setting ideally
                     }
 
                     index++;

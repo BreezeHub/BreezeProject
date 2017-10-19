@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Security;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using NBitcoin;
@@ -13,7 +14,6 @@ using Stratis.Bitcoin.Features.MemoryPool;
 using Stratis.Bitcoin.Utilities;
 using Stratis.Bitcoin.Utilities.FileStorage;
 using Transaction = NBitcoin.Transaction;
-using System.Threading;
 
 [assembly: InternalsVisibleTo("Stratis.Bitcoin.Features.Wallet.Tests")]
 namespace Stratis.Bitcoin.Features.Wallet
@@ -172,7 +172,17 @@ namespace Stratis.Bitcoin.Features.Wallet
 
             // load the file from the local system
             Wallet wallet = this.fileStorage.LoadByFileName($"{name}.{WalletFileExtension}");
-            
+
+            // Check the password
+            try
+            {
+                Key.Parse(wallet.EncryptedSeed, password, wallet.Network);
+            }
+            catch (Exception ex)
+            {
+                throw new SecurityException(ex.Message);
+            }
+
             this.Load(wallet);
             return wallet;
         }
@@ -409,51 +419,42 @@ namespace Stratis.Bitcoin.Features.Wallet
 
             return account.GetSpendableTransactions(this.chain.Tip.Height, confirmations);
         }
-
-        private static readonly SemaphoreSlim SemaphoreSendTransaction = new SemaphoreSlim(1, 1);
+        
         /// <inheritdoc />
         public bool SendTransaction(string transactionHex)
         {
-            SemaphoreSendTransaction.Wait();
-            try
+            Guard.NotEmpty(transactionHex, nameof(transactionHex));
+
+            // TODO move this to a behavior to a dedicated interface
+            // parse transaction
+            Transaction transaction = Transaction.Parse(transactionHex);
+
+            // replace this we a dedicated WalletBroadcast interface
+            // in a fullnode implementation this will validate with the 
+            // mempool and broadcast, in a lightnode this will push to 
+            // the wallet and then broadcast (we might add some basic validation
+            if (this.mempoolValidator == null)
             {
-                Guard.NotEmpty(transactionHex, nameof(transactionHex));
-
-                // TODO move this to a behavior to a dedicated interface
-                // parse transaction
-                Transaction transaction = Transaction.Parse(transactionHex);
-
-                // replace this we a dedicated WalletBroadcast interface
-                // in a fullnode implementation this will validate with the 
-                // mempool and broadcast, in a lightnode this will push to 
-                // the wallet and then broadcast (we might add some basic validation
-                if (this.mempoolValidator == null)
-                {
-                    this.ProcessTransaction(transaction);
-                }
-                else
-                {
-                    var state = new MempoolValidationState(false);
-                    if (!this.mempoolValidator.AcceptToMemoryPool(state, transaction).GetAwaiter().GetResult())
-                        return false;
-                    this.ProcessTransaction(transaction);
-                }
-
-                // broadcast to peers
-                TxPayload payload = new TxPayload(transaction);
-                foreach (var node in this.connectionManager.ConnectedNodes)
-                {
-                    node.SendMessage(payload);
-                }
-
-                // we might want to create a behaviour that tracks how many times
-                // the broadcast trasnactions was sent back to us by other peers
-                return true;
+                this.ProcessTransaction(transaction);
             }
-            finally
+            else
             {
-                SemaphoreSendTransaction.Release();
+                var state = new MempoolValidationState(false);
+                if (!this.mempoolValidator.AcceptToMemoryPool(state, transaction).GetAwaiter().GetResult())
+                    return false;
+                this.ProcessTransaction(transaction);
             }
+
+            // broadcast to peers
+            TxPayload payload = new TxPayload(transaction);
+            foreach (var node in this.connectionManager.ConnectedNodes)
+            {
+                node.SendMessage(payload);
+            }
+
+            // we might want to create a behaviour that tracks how many times
+            // the broadcast trasnactions was sent back to us by other peers
+            return true;
         }
 
         /// <inheritdoc />
