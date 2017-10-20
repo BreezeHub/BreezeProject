@@ -24,18 +24,6 @@ using Stratis.Bitcoin;
 
 namespace Breeze.TumbleBit.Client
 {
-    /*
-    public class PowMiningFactory
-    {
-        public PowMining GetPowMining(NodeSettings nodeSettings)
-        {
-            if (nodeSettings.)
-
-            return null;
-        }
-    }
-    */
-
     /// <summary>
     /// An implementation of a tumbler manager.
     /// </summary>

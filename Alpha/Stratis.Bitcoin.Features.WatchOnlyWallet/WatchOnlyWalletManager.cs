@@ -14,6 +14,24 @@ namespace Stratis.Bitcoin.Features.WatchOnlyWallet
     /// </summary>
     public class WatchOnlyWalletManager : IWatchOnlyWalletManager
     {
+        public void WatchScriptPubKey(Script scriptPubKey)
+        {
+            if (this.Wallet.WatchedAddresses.ContainsKey(scriptPubKey.ToString()))
+            {
+                this.logger.LogDebug($"already watching script: {scriptPubKey}. coin: {this.coinType}");
+                return;
+            }
+
+            this.logger.LogDebug($"added script: {scriptPubKey} to the watch list. coin: {this.coinType}");
+            this.Wallet.WatchedAddresses.TryAdd(scriptPubKey.ToString(), new WatchedAddress
+            {
+                Script = scriptPubKey,
+                Address = scriptPubKey.Hash.ToString()
+            });
+
+            this.SaveWatchOnlyWallet();
+        }
+
         public void StoreTransaction(TransactionData transactionData)
         {
             if (this.Wallet.WatchedTransactions.ContainsKey(transactionData.Id.ToString()))
@@ -29,24 +47,6 @@ namespace Stratis.Bitcoin.Features.WatchOnlyWallet
                 Hex = transactionData.Hex,
                 Id = transactionData.Id,
                 MerkleProof = transactionData.MerkleProof
-            });
-
-            this.SaveWatchOnlyWallet();
-        }
-
-        public void WatchScriptPubKey(Script scriptPubKey)
-        {
-            if (this.Wallet.WatchedAddresses.ContainsKey(scriptPubKey.ToString()))
-            {
-                this.logger.LogDebug($"already watching script: {scriptPubKey}. coin: {this.coinType}");
-                return;
-            }
-
-            this.logger.LogDebug($"added script: {scriptPubKey} to the watch list. coin: {this.coinType}");
-            this.Wallet.WatchedAddresses.TryAdd(scriptPubKey.ToString(), new WatchedAddress
-            {
-                Script = scriptPubKey,
-                Address = scriptPubKey.Hash.ToString()
             });
 
             this.SaveWatchOnlyWallet();

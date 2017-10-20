@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Security;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using NBitcoin;
@@ -419,42 +420,51 @@ namespace Stratis.Bitcoin.Features.Wallet
 
             return account.GetSpendableTransactions(this.chain.Tip.Height, confirmations);
         }
-        
+
+        private static readonly SemaphoreSlim SemaphoreSendTransaction = new SemaphoreSlim(1, 1);
         /// <inheritdoc />
         public bool SendTransaction(string transactionHex)
         {
-            Guard.NotEmpty(transactionHex, nameof(transactionHex));
-
-            // TODO move this to a behavior to a dedicated interface
-            // parse transaction
-            Transaction transaction = Transaction.Parse(transactionHex);
-
-            // replace this we a dedicated WalletBroadcast interface
-            // in a fullnode implementation this will validate with the 
-            // mempool and broadcast, in a lightnode this will push to 
-            // the wallet and then broadcast (we might add some basic validation
-            if (this.mempoolValidator == null)
+            SemaphoreSendTransaction.Wait();
+            try
             {
-                this.ProcessTransaction(transaction);
-            }
-            else
-            {
-                var state = new MempoolValidationState(false);
-                if (!this.mempoolValidator.AcceptToMemoryPool(state, transaction).GetAwaiter().GetResult())
-                    return false;
-                this.ProcessTransaction(transaction);
-            }
+                Guard.NotEmpty(transactionHex, nameof(transactionHex));
 
-            // broadcast to peers
-            TxPayload payload = new TxPayload(transaction);
-            foreach (var node in this.connectionManager.ConnectedNodes)
-            {
-                node.SendMessage(payload);
-            }
+                // TODO move this to a behavior to a dedicated interface
+                // parse transaction
+                Transaction transaction = Transaction.Parse(transactionHex);
 
-            // we might want to create a behaviour that tracks how many times
-            // the broadcast trasnactions was sent back to us by other peers
-            return true;
+                // replace this we a dedicated WalletBroadcast interface
+                // in a fullnode implementation this will validate with the 
+                // mempool and broadcast, in a lightnode this will push to 
+                // the wallet and then broadcast (we might add some basic validation
+                if (this.mempoolValidator == null)
+                {
+                    this.ProcessTransaction(transaction);
+                }
+                else
+                {
+                    var state = new MempoolValidationState(false);
+                    if (!this.mempoolValidator.AcceptToMemoryPool(state, transaction).GetAwaiter().GetResult())
+                        return false;
+                    this.ProcessTransaction(transaction);
+                }
+
+                // broadcast to peers
+                TxPayload payload = new TxPayload(transaction);
+                foreach (var node in this.connectionManager.ConnectedNodes)
+                {
+                    node.SendMessage(payload);
+                }
+
+                // we might want to create a behaviour that tracks how many times
+                // the broadcast trasnactions was sent back to us by other peers
+                return true;
+            }
+            finally
+            {
+                SemaphoreSendTransaction.Release();
+            }
         }
 
         /// <inheritdoc />
