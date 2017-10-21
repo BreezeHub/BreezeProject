@@ -23,6 +23,7 @@
     <ProjectReference Include="..\..\..\Alpha\Stratis.Bitcoin.Features.RPC\Stratis.Bitcoin.Features.RPC.csproj" />
     <ProjectReference Include="..\..\..\Alpha\Stratis.Bitcoin\Stratis.Bitcoin.csproj" />
     <ProjectReference Include="..\..\..\Alpha\Stratis.MasterNode.Features.InterNodeComms\Stratis.Bitcoin.Features.InterNodeComms.csproj" />
+    <ProjectReference Include="..\..\..\Breeze.Registration\Breeze.Registration.csproj" />
     <ProjectReference Include="..\..\..\BreezeCommon\BreezeProtocol\NTumbleBit\NTumbleBit.csproj" />
     <ProjectReference Include="..\..\..\Breeze.TumbleBit.Client\Breeze.TumbleBit.Client.csproj" />
   </ItemGroup>

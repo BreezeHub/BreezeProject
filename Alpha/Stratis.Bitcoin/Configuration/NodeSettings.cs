@@ -93,6 +93,9 @@ namespace Stratis.Bitcoin.Configuration
         /// <summary>Minimum relay transcation fee for network.</summary>
         public FeeRate MinRelayTxFeeRate { get; set; }
 
+        /// <summary>Need to override the default location when this node is the one interrogating the store rather than writing to it</summary>
+        public string RegistrationStoreDir { get; set; }
+
         public TextFileConfiguration ConfigReader { get; private set; }
 
         /// <summary>
@@ -149,6 +152,7 @@ namespace Stratis.Bitcoin.Configuration
             nodeSettings.ProtocolVersion = protocolVersion;
             nodeSettings.ConfigurationFile = args.GetValueOf("-conf")?.NormalizeDirectorySeparator();
             nodeSettings.DataDir = args.GetValueOf("-datadir")?.NormalizeDirectorySeparator();
+            nodeSettings.RegistrationStoreDir = args.GetValueOf("-storedir")?.NormalizeDirectorySeparator();
 
             // If the configuration file is relative then assume it is relative to the data folder and combine the paths
             if (nodeSettings.DataDir != null && nodeSettings.ConfigurationFile != null)

@@ -92,7 +92,13 @@ namespace Breeze.TumbleBit.Client
             this.walletFeePolicy = walletFeePolicy;
             this.broadcasterManager = broadcasterManager;
             this.fullNode = fullNode;
-            this.registrationStore = new RegistrationStore(this.nodeSettings.DataDir);
+
+            if (this.nodeSettings.RegistrationStoreDir != null)
+                this.registrationStore = new RegistrationStore(this.nodeSettings.RegistrationStoreDir);
+            else
+            {
+                this.registrationStore = new RegistrationStore(this.nodeSettings.DataDir);
+            }
 
             this.tumblingState = new TumblingState(
                 this.loggerFactory,
@@ -254,6 +260,10 @@ namespace Breeze.TumbleBit.Client
             {
                 this.logger.LogDebug("Broadcasted transaction: " + sendTx.GetHash());
             }
+            else if (bcResult == Stratis.Bitcoin.Broadcasting.Success.No)
+            {
+                this.logger.LogDebug("Could not propagate transaction: " + sendTx.GetHash());
+            }
             else if (bcResult == Stratis.Bitcoin.Broadcasting.Success.DontKnow)
             {
                 // wait for propagation
@@ -388,39 +398,6 @@ namespace Breeze.TumbleBit.Client
                 await this.stateMachine.Stop().ConfigureAwait(false);
             }
             this.State = TumbleState.OnlyMonitor;
-        }
-
-        /// <inheritdoc />
-        public void ProcessBlock(int height, Block block)
-        {
-            // Update the block height in the tumbling state
-            this.tumblingState.LastBlockReceivedHeight = height;
-
-            // Check for any server registration transactions
-            if (block.Transactions != null)
-            {
-                foreach (Transaction tx in block.Transactions)
-                {
-                    // Check if the transaction has the Breeze registration marker output
-                    if (tx.Outputs[0].ScriptPubKey.ToHex().ToLower() == "6a1a425245455a455f524547495354524154494f4e5f4d41524b4552")
-                    {
-                        try
-                        {
-                            RegistrationToken registrationToken = new RegistrationToken();
-                            registrationToken.ParseTransaction(tx, this.network);
-                            MerkleBlock merkleBlock = new MerkleBlock(block, new uint256[] { tx.GetHash() });
-                            RegistrationRecord registrationRecord = new RegistrationRecord(DateTime.Now, Guid.NewGuid(), tx.GetHash().ToString(), tx.ToHex(), registrationToken, merkleBlock.PartialMerkleTree);
-                            this.registrationStore.Add(registrationRecord);
-                        }
-                        catch (Exception e)
-                        {
-                            this.logger.LogDebug("Failed to parse registration transaction: " + tx.GetHash());
-                        }
-                    }
-                }
-            }
-            
-            // TODO: Does anything else need to be done here? Transaction housekeeping is done in the wallet features
         }
 
         public async Task Initialize()

@@ -123,6 +123,7 @@ namespace Stratis.Bitcoin.Features.RPC.Controllers
         /// </summary>
         /// <returns>A JSON result that lists the RPC methods.</returns>
         [Route("listmethods")]
+        [HttpPost]
         public IActionResult ListMethods()
         {
             try

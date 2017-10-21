@@ -1,4 +1,5 @@
 ﻿using Breeze.TumbleBit;
+using Breeze.Registration;
 using Microsoft.Extensions.Logging.Console;
 using NBitcoin;
 using NBitcoin.Protocol;
@@ -38,7 +39,7 @@ namespace Breeze.Daemon
         {
             IFullNodeBuilder fullNodeBuilder = null;
 
-            // get the api uri 
+            // Get the API URI
             var apiUri = ""; // args.GetValueOf("apiuri");
 
             if (args.Contains("stratis"))
@@ -64,8 +65,13 @@ namespace Breeze.Daemon
                         .UseWatchOnlyWallet()
                         .UseBlockNotification()
                         .UseTransactionNotification()
-                        .UseInterNodeCommunication()
                         .UseApi();
+
+                    if (args.Contains("registration"))
+                    {
+                        fullNodeBuilder.UseInterNodeCommunication();
+                        fullNodeBuilder.UseRegistration();
+                    }
 
                     //currently tumblebit is bitcoin only
                     if (args.Contains("-tumblebit"))
@@ -101,10 +107,15 @@ namespace Breeze.Daemon
                         .UseTransactionNotification()
                         .UseWallet()
                         .UseWatchOnlyWallet()
-                        .UseInterNodeCommunication()
                         .AddMining()
                         .AddRPC()
                         .UseApi();
+
+                    if (args.Contains("registration"))
+                    {
+                        fullNodeBuilder.UseInterNodeCommunication();
+                        fullNodeBuilder.UseRegistration();
+                    }
 
                     //currently tumblebit is bitcoin only
                     if (args.Contains("-tumblebit"))
@@ -123,8 +134,7 @@ namespace Breeze.Daemon
                         //var tumblerAddress = args.GetValueOf("-ppuri");
                         //if (tumblerAddress != null)
                         //    nodeSettings.TumblerAddress = tumblerAddress;
-
-
+                        
                         //we no longer pass the cbt uri in on the command line
                         //we always get it from the config. 
                         fullNodeBuilder.UseTumbleBit();
@@ -144,8 +154,13 @@ namespace Breeze.Daemon
                         .UseWatchOnlyWallet()
                         .UseBlockNotification()
                         .UseTransactionNotification()
-                        .UseInterNodeCommunication()
                         .UseApi();
+
+                    if (args.Contains("registration"))
+                    {
+                        fullNodeBuilder.UseInterNodeCommunication();
+                        fullNodeBuilder.UseRegistration();
+                    }
 
                     //currently tumblebit is bitcoin only
                     if (args.Contains("-tumblebit"))
@@ -163,7 +178,6 @@ namespace Breeze.Daemon
                         //var tumblerAddress = args.GetValueOf("-ppuri");
                         //if (tumblerAddress != null)
                         //    nodeSettings.TumblerAddress = tumblerAddress;
-
 
                         //we no longer pass the cbt uri in on the command line
                         //we always get it from the config. 
@@ -181,10 +195,15 @@ namespace Breeze.Daemon
                         .UseTransactionNotification()
                         .UseWallet()
                         .UseWatchOnlyWallet()
-                        .UseInterNodeCommunication()
                         .AddMining()
                         .AddRPC()
                         .UseApi();
+
+                    if (args.Contains("registration"))
+                    {
+                        fullNodeBuilder.UseInterNodeCommunication();
+                        fullNodeBuilder.UseRegistration();
+                    }
 
                     //currently tumblebit is bitcoin only
                     if (args.Contains("-tumblebit"))
@@ -202,7 +221,6 @@ namespace Breeze.Daemon
                         //var tumblerAddress = args.GetValueOf("-ppuri");
                         //if (tumblerAddress != null)
                         //    nodeSettings.TumblerAddress = tumblerAddress;
-
 
                         //we no longer pass the cbt uri in on the command line
                         //we always get it from the config. 
@@ -226,7 +244,7 @@ namespace Breeze.Daemon
                 {"System", Microsoft.Extensions.Logging.LogLevel.Warning},
                 {"Microsoft", Microsoft.Extensions.Logging.LogLevel.Warning},
                 {"Microsoft.AspNetCore", Microsoft.Extensions.Logging.LogLevel.Error},
-                {"Stratis.Bitcoin", Microsoft.Extensions.Logging.LogLevel.Information},
+                {"Stratis.Bitcoin", Microsoft.Extensions.Logging.LogLevel.Debug},
                 {"Breeze.TumbleBit.Client", Microsoft.Extensions.Logging.LogLevel.Debug}
             };
             ConsoleLoggerSettings settings = nodeSettings.LoggerFactory.GetConsoleSettings();

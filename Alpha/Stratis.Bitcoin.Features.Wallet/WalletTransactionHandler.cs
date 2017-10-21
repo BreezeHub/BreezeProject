@@ -58,10 +58,13 @@ namespace Stratis.Bitcoin.Features.Wallet
             this.FindChangeAddress(context);
             this.AddFee(context);
 
-            if(context.Shuffle)
-            {
-                context.TransactionBuilder.Shuffle();
-            }
+            // TODO: Add a MoveChangeToEnd context setting
+            //if(context.Shuffle)
+            //{
+            //    context.TransactionBuilder.Shuffle();
+            //}
+
+            context.TransactionBuilder.MoveChangeToEnd();
 
             // build transaction
             context.Transaction = context.TransactionBuilder.BuildTransaction(context.Sign);

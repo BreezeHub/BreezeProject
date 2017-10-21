@@ -27,13 +27,6 @@ namespace Breeze.TumbleBit.Client
 
         Task Initialize();
 
-        /// <summary>
-        /// Processes a block received from the network.
-        /// </summary>
-        /// <param name="height">The height of the block in the blockchain.</param>
-        /// <param name="block">The block.</param>
-        void ProcessBlock(int height, Block block);
-
         Task<bool> BlockGenerate(int numberOfBlocks);
         Task DummyRegistration(string originWalletName, string originWalletPassword);
 

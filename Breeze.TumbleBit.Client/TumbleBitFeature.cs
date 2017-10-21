@@ -40,10 +40,6 @@ namespace Breeze.TumbleBit
 
         public override void Start()
         {
-            // subscribe to receiving blocks and transactions
-            this.blockSubscriberdDisposable = this.signals.SubscribeForBlocks(new BlockObserver(this.chain, this.tumbleBitManager));
-            //this.transactionSubscriberdDisposable = this.signals.SubscribeForTransactions(new TransactionObserver(this.tumbleBitManager));
-
             this.tumbleBitManager.Initialize();
         }
 
