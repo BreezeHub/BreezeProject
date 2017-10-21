@@ -19,9 +19,6 @@ namespace Stratis.Bitcoin.Features.Consensus.CoinViews
         /// <summary>Database key under which the block hash of the coin view's current tip is stored.</summary>
         private static readonly byte[] blockHashKey = new byte[0];
 
-        /// TODO: Can we removed this? It is not used anywhere.
-        private static readonly UnspentOutputs[] noOutputs = new UnspentOutputs[0];
-
         /// <summary>Instance logger.</summary>
         private readonly ILogger logger;
 
@@ -70,7 +67,7 @@ namespace Stratis.Bitcoin.Features.Consensus.CoinViews
         /// <summary>
         /// Initializes the database tables used by the coinview.
         /// </summary>
-        public Task Initialize()
+        public Task InitializeAsync()
         {
             this.logger.LogTrace("()");
 
@@ -104,7 +101,7 @@ namespace Stratis.Bitcoin.Features.Consensus.CoinViews
                 this.logger.LogTrace("({0}.{1}:{2})", nameof(txIds), nameof(txIds.Length), txIds?.Length);
 
                 FetchCoinsResponse res = null;
-                using (StopWatch.Instance.Start(o => this.PerformanceCounter.AddQueryTime(o)))
+                using (new StopwatchDisposable(o => this.PerformanceCounter.AddQueryTime(o)))
                 {
                     uint256 blockHash = this.GetCurrentHash();
                     UnspentOutputs[] result = new UnspentOutputs[txIds.Length];
@@ -158,7 +155,7 @@ namespace Stratis.Bitcoin.Features.Consensus.CoinViews
 
                 RewindData rewindData = originalOutputs == null ? null : new RewindData(oldBlockHash);
                 int insertedEntities = 0;
-                using (new StopWatch().Start(o => this.PerformanceCounter.AddInsertTime(o)))
+                using (new StopwatchDisposable(o => this.PerformanceCounter.AddInsertTime(o)))
                 {
                     uint256 current = this.GetCurrentHash();
                     if (current != oldBlockHash)
@@ -245,7 +242,6 @@ namespace Stratis.Bitcoin.Features.Consensus.CoinViews
             {
                 this.logger.LogTrace("()");
 
-                // TODO: Why the result of this.GetRewindIndex() is not reused in the else branch - i.e. why do we call SelectBackward again there to get that very same number?
                 if (this.GetRewindIndex() == -1)
                 {
                     this.session.Transaction.RemoveAllKeys("Coins", true);
@@ -285,7 +281,7 @@ namespace Stratis.Bitcoin.Features.Consensus.CoinViews
         /// Persists unsaved POS blocks information to the database.
         /// </summary>
         /// <param name="stakeEntries">List of POS block information to be examined and persists if unsaved.</param>
-        public Task PutStake(IEnumerable<StakeItem> stakeEntries)
+        public Task PutStakeAsync(IEnumerable<StakeItem> stakeEntries)
         {
             return this.session.Execute(() =>
             {
@@ -318,7 +314,7 @@ namespace Stratis.Bitcoin.Features.Consensus.CoinViews
         /// Retrieves POS blocks information from the database.
         /// </summary>
         /// <param name="blocklist">List of partially initialized POS block information that is to be fully initialized with the values from the database.</param>
-        public Task GetStake(IEnumerable<StakeItem> blocklist)
+        public Task GetStakeAsync(IEnumerable<StakeItem> blocklist)
         {
             return this.session.Execute(() =>
             {
@@ -337,7 +333,7 @@ namespace Stratis.Bitcoin.Features.Consensus.CoinViews
         }
 
         /// TODO: Do we need this method? 
-        public Task DeleteStake(uint256 blockid, BlockStake blockStake)
+        public Task DeleteStakeAsync(uint256 blockid, BlockStake blockStake)
         {
             // TODO: Implement delete stake on rewind.
             throw new NotImplementedException();

@@ -119,7 +119,32 @@ namespace Breeze.TumbleBit.Client.Services
             );
             txin2.Witnessify();
 
-            this.TumblingState.WalletManager.SendTransaction(tx.ToHex());
+            //LogDebug("Trying to broadcast transaction: " + tx.GetHash());
+
+            var bcResult = await this.TumblingState.BroadcasterManager.TryBroadcastAsync(tx).ConfigureAwait(false);
+            if (bcResult == Stratis.Bitcoin.Broadcasting.Success.Yes)
+            {
+                //LogDebug("Broadcasted transaction: " + tx.GetHash());
+            }
+            else if (bcResult == Stratis.Bitcoin.Broadcasting.Success.DontKnow)
+            {
+                // wait for propagation
+                var waited = TimeSpan.Zero;
+                var period = TimeSpan.FromSeconds(1);
+                while (TimeSpan.FromSeconds(21) > waited)
+                {
+                    // if broadcasts doesn't contain then success
+                    var transactionEntry = this.TumblingState.BroadcasterManager.GetTransaction(tx.GetHash());
+                    if (transactionEntry != null && transactionEntry.State == Stratis.Bitcoin.Broadcasting.State.Propagated)
+                    {
+                        //LogDebug("Propagated transaction: " + tx.GetHash());
+                    }
+                    await Task.Delay(period).ConfigureAwait(false);
+                    waited += period;
+                }
+            }
+
+            //LogDebug("Uncertain if transaction was propagated: " + tx.GetHash());
 
             return tx;
         }

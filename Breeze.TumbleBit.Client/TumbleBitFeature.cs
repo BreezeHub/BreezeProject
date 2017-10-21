@@ -81,7 +81,7 @@ namespace Breeze.TumbleBit
 
                         services.AddSingleton<ITumbleBitManager, TumbleBitManager>();
                         services.AddSingleton<TumbleBitController>();
-                        services.AddSingleton<IWalletFeePolicy, LightWalletFeePolicy>();
+                        //services.AddSingleton<IWalletFeePolicy, LightWalletFeePolicy>();
                     });
             });
 

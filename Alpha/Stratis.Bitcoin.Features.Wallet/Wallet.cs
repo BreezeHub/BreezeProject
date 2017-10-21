@@ -1,11 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using NBitcoin;
+﻿using NBitcoin;
 using NBitcoin.JsonConverters;
 using Newtonsoft.Json;
 using Stratis.Bitcoin.Features.Wallet.JsonConverters;
 using Stratis.Bitcoin.Utilities;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Stratis.Bitcoin.Features.Wallet
 {
@@ -206,9 +206,9 @@ namespace Stratis.Bitcoin.Features.Wallet
         /// <returns>A collection of spendable outputs.</returns>
         public List<UnspentOutputReference> GetAllSpendableTransactions(CoinType coinType, int currentChainHeight, int confirmations = 0)
         {
-            var accounts = this.GetAccountsByCoinType(coinType);
+            IEnumerable<HdAccount> accounts = this.GetAccountsByCoinType(coinType);
 
-            var walletAccounts = new List<UnspentOutputReference>();
+            List<UnspentOutputReference> walletAccounts = new List<UnspentOutputReference>();
             foreach (var account in accounts)
             {
                 walletAccounts.AddRange(account.GetSpendableTransactions(currentChainHeight, confirmations));
@@ -610,17 +610,25 @@ namespace Stratis.Bitcoin.Features.Wallet
             List<UnspentOutputReference> unspentOutputs = new List<UnspentOutputReference>();
             foreach (var address in this.GetCombinedAddresses())
             {
-                var unspentTransactions = address.UnspentTransactions()
-                    .Where(a => currentChainHeight - (a.BlockHeight ?? currentChainHeight) >= confirmations).ToList();
+                // A block that is at the tip has 1 confirmation.
+                // When calculating the confirmations the tip must be advanced by one.
 
-                foreach (var transactionData in unspentTransactions)
+                int countFrom = currentChainHeight + 1;
+                foreach (TransactionData transactionData in address.UnspentTransactions())
                 {
-                    unspentOutputs.Add(new UnspentOutputReference
+                    int? confirmationCount = 0;
+                    if (transactionData.BlockHeight != null)
+                        confirmationCount = countFrom >= transactionData.BlockHeight ? countFrom - transactionData.BlockHeight : 0;
+
+                    if (confirmationCount >= confirmations)
                     {
-                        Account = this,
-                        Address = address,
-                        Transaction = transactionData
-                    });
+                        unspentOutputs.Add(new UnspentOutputReference
+                        {
+                            Account = this,
+                            Address = address,
+                            Transaction = transactionData
+                        });
+                    }
                 }
             }
 

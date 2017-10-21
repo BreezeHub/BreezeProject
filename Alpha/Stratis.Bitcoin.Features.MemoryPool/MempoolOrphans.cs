@@ -82,7 +82,7 @@ namespace Stratis.Bitcoin.Features.MemoryPool
         /// <param name="mempoolSettings">Settings from the memory pool.</param>
         /// <param name="loggerFactory">Factory for creating instance logger for this object.</param>
         public MempoolOrphans(
-            MempoolAsyncLock mempoolLock, 
+            MempoolSchedulerLock mempoolLock, 
             TxMempool memPool, 
             ConcurrentChain chain, 
             Signals.Signals signals, 
@@ -111,7 +111,7 @@ namespace Stratis.Bitcoin.Features.MemoryPool
         }
 
         /// <summary>A lock for managing asynchronous access to memory pool.</summary>
-        public MempoolAsyncLock MempoolLock { get; }
+        public MempoolSchedulerLock MempoolLock { get; }
 
         /// <summary>Memory pool validator for validating transactions.</summary>
         public IMempoolValidator Validator { get; } // public for testing
@@ -358,7 +358,7 @@ namespace Stratis.Bitcoin.Features.MemoryPool
                 // 100 orphans, each of which is at most 99,999 bytes big is
                 // at most 10 megabytes of orphans and somewhat more byprev index (in the worst case):
                 int sz = MempoolValidator.GetTransactionWeight(tx, this.Validator.ConsensusOptions);
-                if (sz >= this.consensusValidator.ConsensusOptions.MAX_STANDARD_TX_WEIGHT)
+                if (sz >= this.consensusValidator.ConsensusOptions.MaxStandardTxWeight)
                 {
                     this.mempoolLogger.LogInformation($"ignoring large orphan tx (size: {sz}, hash: {hash})");
                     return false;

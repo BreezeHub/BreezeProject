@@ -1,6 +1,8 @@
-﻿using Breeze.TumbleBit.Client;
+﻿using System;
 using NBitcoin;
 using Stratis.Bitcoin.Signals;
+using Stratis.Bitcoin.Utilities;
+using Breeze.TumbleBit.Client;
 
 namespace Breeze.TumbleBit
 {
@@ -16,6 +18,12 @@ namespace Breeze.TumbleBit
         {
             this.chain = chain;
             this.tumbleBitManager = tumbleBitManager;
+        }
+
+        protected override void OnErrorCore(Exception error)
+        {
+            Guard.NotNull(error, nameof(error));
+            // Nothing to do.
         }
 
         /// <summary>

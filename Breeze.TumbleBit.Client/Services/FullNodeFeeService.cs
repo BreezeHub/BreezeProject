@@ -6,6 +6,7 @@ using NBitcoin;
 using NTumbleBit.Services;
 using Stratis.Bitcoin.Features.MemoryPool;
 using Stratis.Bitcoin.Features.Wallet;
+using Stratis.Bitcoin.Features.Wallet.Interfaces;
 
 namespace Breeze.TumbleBit.Client.Services
 {

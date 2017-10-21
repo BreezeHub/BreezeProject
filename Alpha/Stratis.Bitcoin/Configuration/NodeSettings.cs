@@ -6,6 +6,7 @@ using NLog.Extensions.Logging;
 using Stratis.Bitcoin.Configuration.Logging;
 using Stratis.Bitcoin.Configuration.Settings;
 using Stratis.Bitcoin.Utilities;
+using Stratis.Bitcoin.Utilities.Extensions;
 using System;
 using System.IO;
 using System.Linq;
@@ -83,6 +84,15 @@ namespace Stratis.Bitcoin.Configuration
         /// <summary>URI to node's API interface.</summary>
         public Uri ApiUri { get; set; }
 
+        /// <summary>Minimum transaction fee for network.</summary>
+        public FeeRate MinTxFeeRate { get; set; }
+
+        /// <summary>Fall back transaction fee for network.</summary>
+        public FeeRate FallbackTxFeeRate { get; set; }
+
+        /// <summary>Minimum relay transcation fee for network.</summary>
+        public FeeRate MinRelayTxFeeRate { get; set; }
+
         public TextFileConfiguration ConfigReader { get; private set; }
 
         /// <summary>
@@ -93,7 +103,7 @@ namespace Stratis.Bitcoin.Configuration
         {
             this.ConnectionManager = new ConnectionManagerSettings();
             this.Log = new LogSettings();
-            this.LoggerFactory = new LoggerFactory();
+            this.LoggerFactory = new ExtendedLoggerFactory();
         }
 
         /// <summary>
@@ -195,8 +205,15 @@ namespace Stratis.Bitcoin.Configuration
 
             nodeSettings.RequireStandard = config.GetOrDefault("acceptnonstdtxn", !(nodeSettings.RegTest || nodeSettings.Testnet));
             nodeSettings.MaxTipAge = config.GetOrDefault("maxtipage", DefaultMaxTipAge);
-            nodeSettings.ApiUri = config.GetOrDefault("apiuri", new Uri("http://localhost:5000"));
+            nodeSettings.ApiUri = config.GetOrDefault("apiuri", new Uri("http://localhost:37220"));
 
+            nodeSettings.Logger.LogDebug("Network: IsTest='{0}', IsBitcoin='{1}'", nodeSettings.Network.IsTest(), nodeSettings.Network.IsBitcoin());
+            nodeSettings.MinTxFeeRate = new FeeRate(config.GetOrDefault("mintxfee", nodeSettings.Network.MinTxFee));
+            nodeSettings.Logger.LogDebug("MinTxFeeRate set to {0}.", nodeSettings.MinTxFeeRate);
+            nodeSettings.FallbackTxFeeRate = new FeeRate(config.GetOrDefault("fallbackfee", nodeSettings.Network.FallbackFee));
+            nodeSettings.Logger.LogDebug("FallbackTxFeeRate set to {0}.", nodeSettings.FallbackTxFeeRate);
+            nodeSettings.MinRelayTxFeeRate = new FeeRate(config.GetOrDefault("minrelaytxfee", nodeSettings.Network.MinRelayTxFee));
+            nodeSettings.Logger.LogDebug("MinRelayTxFeeRate set to {0}.", nodeSettings.MinRelayTxFeeRate);
 
             try
             {

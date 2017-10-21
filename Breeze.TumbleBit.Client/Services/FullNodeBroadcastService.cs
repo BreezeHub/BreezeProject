@@ -127,9 +127,34 @@ namespace Breeze.TumbleBit.Client.Services
                 }
                 else
                 {
-                    // TODO: On the regtest networks we have to rely on peer nodes to broadcast the transaction
-                    var result = this.TumblingState.WalletManager.SendTransaction(tx.Transaction.ToHex().ToString());
-                    Logs.Broadcasters.LogDebug("Result of regtest transaction broadcast: " + result);
+                    // On the regtest networks we have to rely on peer nodes to broadcast the transaction
+
+                    //LogDebug("Trying to broadcast transaction: " + tx.GetHash());
+
+                    var bcResult = await this.TumblingState.BroadcasterManager.TryBroadcastAsync(tx.Transaction).ConfigureAwait(false);
+                    if (bcResult == Stratis.Bitcoin.Broadcasting.Success.Yes)
+                    {
+                        //LogDebug("Broadcasted transaction: " + tx.GetHash());
+                    }
+                    else if (bcResult == Stratis.Bitcoin.Broadcasting.Success.DontKnow)
+                    {
+                        // wait for propagation
+                        var waited = TimeSpan.Zero;
+                        var period = TimeSpan.FromSeconds(1);
+                        while (TimeSpan.FromSeconds(21) > waited)
+                        {
+                            // if broadcasts doesn't contain then success
+                            var transactionEntry = this.TumblingState.BroadcasterManager.GetTransaction(tx.Transaction.GetHash());
+                            if (transactionEntry != null && transactionEntry.State == Stratis.Bitcoin.Broadcasting.State.Propagated)
+                            {
+                                //LogDebug("Propagated transaction: " + tx.GetHash());
+                            }
+                            await Task.Delay(period).ConfigureAwait(false);
+                            waited += period;
+                        }
+                    }
+
+                    //LogDebug("Uncertain if transaction was propagated: " + tx.GetHash());
                 }
 
                 return false;

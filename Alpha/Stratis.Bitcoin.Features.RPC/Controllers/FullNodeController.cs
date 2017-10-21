@@ -12,12 +12,13 @@ using Stratis.Bitcoin.Features.RPC.Models;
 using Stratis.Bitcoin.Interfaces;
 using Stratis.Bitcoin.Utilities;
 using Microsoft.Extensions.Logging;
-using Stratis.Bitcoin.Features.Consensus.CoinViews;
+using Stratis.Bitcoin.Utilities.Extensions;
 
 namespace Stratis.Bitcoin.Features.RPC.Controllers
 {
     public class FullNodeController : FeatureController
     {
+        /// <summary>Instance logger.</summary>
         private readonly ILogger logger;
 
         public FullNodeController(
@@ -99,7 +100,7 @@ namespace Stratis.Bitcoin.Features.RPC.Controllers
             {
                 unspentOutputs = await this.FullNode.NodeService<IGetUnspentTransaction>()?.GetUnspentTransactionAsync(trxid);
             }
-            
+
             if(unspentOutputs == null)
             {
                 return null;
@@ -118,7 +119,7 @@ namespace Stratis.Bitcoin.Features.RPC.Controllers
         [ActionName("getinfo")]
         public GetInfoModel GetInfo()
         {
-            var model = new GetInfoModel()
+            var model = new GetInfoModel
             {
                 version = this.FullNode?.Version.ToUint() ?? 0,
                 protocolversion = (uint)(this.Settings?.ProtocolVersion ?? NodeSettings.SupportedProtocolVersion),
@@ -128,7 +129,7 @@ namespace Stratis.Bitcoin.Features.RPC.Controllers
                 proxy = string.Empty,
                 difficulty = this.GetNetworkDifficulty()?.Difficulty ?? 0,
                 testnet = this.Network.IsTest(),
-                relayfee = MempoolValidator.MinRelayTxFee.FeePerK.ToUnit(MoneyUnit.BTC),
+                relayfee = this.Settings.MinRelayTxFeeRate.FeePerK.ToUnit(MoneyUnit.BTC),
                 errors = string.Empty,
 
                 //TODO: Wallet related infos: walletversion, balance, keypoololdest, keypoolsize, unlocked_until, paytxfee
@@ -159,7 +160,7 @@ namespace Stratis.Bitcoin.Features.RPC.Controllers
 
             if (!isJsonFormat)
             {
-                this.logger.LogError("Binary serialization is not supported for RPC {0}", nameof(GetBlockHeader));
+                this.logger.LogError("Binary serialization is not supported for RPC '{0}'.", nameof(GetBlockHeader));
                 throw new NotImplementedException();
             }
 

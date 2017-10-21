@@ -12,6 +12,7 @@ using Stratis.Bitcoin.Features.Wallet;
 using Stratis.Bitcoin.Features.Wallet.Models;
 using Stratis.Bitcoin.Utilities;
 using Stratis.Bitcoin.Utilities.JsonErrors;
+using Stratis.Bitcoin.Features.Wallet.Interfaces;
 
 namespace Breeze.TumbleBit.Controllers
 {

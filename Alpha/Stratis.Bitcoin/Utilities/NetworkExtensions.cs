@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using NBitcoin;
+﻿using NBitcoin;
 
 namespace Stratis.Bitcoin.Utilities
 {
@@ -21,6 +18,16 @@ namespace Stratis.Bitcoin.Utilities
         public static bool IsTest(this Network network)
         {
             return network.Name.ToLowerInvariant().Contains("test");
+        }
+
+        /// <summary>
+        /// Determines whether this network is a bitcoin network.
+        /// </summary>
+        /// <param name="network">The network.</param>
+        /// <returns><c>true</c> if the specified network is bitcoin, <c>false</c> otherwise.</returns>
+        public static bool IsBitcoin(this Network network)
+        {
+           return !network.Name.ToLowerInvariant().Contains("stratis");
         }
     }
 }

@@ -26,7 +26,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using Target = NBitcoin.Target;
 
 namespace Breeze.Daemon
 {
@@ -40,7 +39,7 @@ namespace Breeze.Daemon
             IFullNodeBuilder fullNodeBuilder = null;
 
             // get the api uri 
-            var apiUri = args.GetValueOf("apiuri");
+            var apiUri = ""; // args.GetValueOf("apiuri");
 
             if (args.Contains("stratis"))
             {
@@ -228,7 +227,7 @@ namespace Breeze.Daemon
                 {"Microsoft", Microsoft.Extensions.Logging.LogLevel.Warning},
                 {"Microsoft.AspNetCore", Microsoft.Extensions.Logging.LogLevel.Error},
                 {"Stratis.Bitcoin", Microsoft.Extensions.Logging.LogLevel.Information},
-                {"Breeze.TumbleBit.Client", Microsoft.Extensions.Logging.LogLevel.Information}
+                {"Breeze.TumbleBit.Client", Microsoft.Extensions.Logging.LogLevel.Debug}
             };
             ConsoleLoggerSettings settings = nodeSettings.LoggerFactory.GetConsoleSettings();
             settings.Switches = switches;

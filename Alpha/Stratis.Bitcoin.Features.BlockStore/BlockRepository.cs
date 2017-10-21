@@ -1,15 +1,15 @@
-﻿namespace Stratis.Bitcoin.Features.BlockStore
-{
-    using DBreeze.Utils;
-    using Microsoft.Extensions.Logging;
-    using NBitcoin;
-    using Stratis.Bitcoin.Configuration;
-    using Stratis.Bitcoin.Utilities;
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
+﻿using DBreeze.Utils;
+using Microsoft.Extensions.Logging;
+using NBitcoin;
+using Stratis.Bitcoin.Configuration;
+using Stratis.Bitcoin.Utilities;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
+namespace Stratis.Bitcoin.Features.BlockStore
+{
     public interface IBlockRepository : IDisposable
     {
         Task Initialize();
@@ -35,15 +35,15 @@
         protected readonly Network network;
 
         protected static readonly byte[] BlockHashKey = new byte[0];
-        protected HashSet<string> tableNames = new HashSet<string>() { "Block", "Transaction", "Common" };
+        protected HashSet<string> tableNames = new HashSet<string> { "Block", "Transaction", "Common" };
         protected static readonly byte[] TxIndexKey = new byte[1];
 
         public uint256 BlockHash { get; private set; }
         public BlockStoreRepositoryPerformanceCounter PerformanceCounter { get; }
         public bool TxIndex { get; private set; }
-        
+
         /// <summary>Represents the last block stored to disk.</summary>
-        public ChainedBlock HighestPersistedBlock { get; internal set;}
+        public ChainedBlock HighestPersistedBlock { get; internal set; }
 
         public BlockRepository(Network network, DataFolder dataFolder, ILoggerFactory loggerFactory)
             : this(network, dataFolder.BlockPath, loggerFactory)
@@ -256,7 +256,7 @@
             Guard.NotNull(blocks, nameof(blocks));
 
             // dbreeze is faster if sort ascending by key in memory before insert
-            // however we need to find how byte arrays are sorted in dbreeze this link can help 
+            // however we need to find how byte arrays are sorted in dbreeze this link can help
             // https://docs.google.com/document/pub?id=1IFkXoX3Tc2zHNAQN9EmGSXZGbabMrWmpmVxFsLxLsw
 
             Task res = this.session.Execute(() =>

@@ -21,6 +21,8 @@ using BreezeCommon;
 using System.Collections.Generic;
 using System.Text;
 using Stratis.Bitcoin;
+using Stratis.Bitcoin.Features.Wallet.Interfaces;
+using Stratis.Bitcoin.Interfaces;
 
 namespace Breeze.TumbleBit.Client
 {
@@ -51,6 +53,7 @@ namespace Breeze.TumbleBit.Client
         private readonly Network network;
         private readonly NodeSettings nodeSettings;
         private readonly IWalletFeePolicy walletFeePolicy;
+        private IBroadcasterManager broadcasterManager;
         private FullNode fullNode;
         private TumblerClientRuntime runtime;
         private StateMachinesExecutor stateMachine;
@@ -73,6 +76,7 @@ namespace Breeze.TumbleBit.Client
             IWalletTransactionHandler walletTransactionHandler,
             IWalletSyncManager walletSyncManager,
             IWalletFeePolicy walletFeePolicy,
+            IBroadcasterManager broadcasterManager,
             FullNode fullNode)
         {
             this.walletManager = walletManager as WalletManager;
@@ -86,6 +90,7 @@ namespace Breeze.TumbleBit.Client
             this.loggerFactory = loggerFactory;
             this.logger = loggerFactory.CreateLogger(this.GetType().FullName);
             this.walletFeePolicy = walletFeePolicy;
+            this.broadcasterManager = broadcasterManager;
             this.fullNode = fullNode;
             this.registrationStore = new RegistrationStore(this.nodeSettings.DataDir);
 
@@ -98,7 +103,8 @@ namespace Breeze.TumbleBit.Client
                 this.walletTransactionHandler,
                 this.walletSyncManager,
                 this.walletFeePolicy,
-                this.nodeSettings);
+                this.nodeSettings,
+                this.broadcasterManager);
         }
 
         public async Task<bool> BlockGenerate(int numberOfBlocks)
@@ -240,16 +246,33 @@ namespace Breeze.TumbleBit.Client
             txBuildContext.MinConfirmations = 0;
 
             this.walletTransactionHandler.FundTransaction(txBuildContext, sendTx);
-            var bcResult = this.walletManager.SendTransaction(sendTx.ToHex());
 
-            if (bcResult)
+            this.logger.LogDebug("Trying to broadcast transaction: " + sendTx.GetHash());
+
+            var bcResult = await this.broadcasterManager.TryBroadcastAsync(sendTx).ConfigureAwait(false);
+            if (bcResult == Stratis.Bitcoin.Broadcasting.Success.Yes)
             {
-                Console.WriteLine("Broadcasting transaction: " + sendTx.GetHash());
+                this.logger.LogDebug("Broadcasted transaction: " + sendTx.GetHash());
             }
-            else
+            else if (bcResult == Stratis.Bitcoin.Broadcasting.Success.DontKnow)
             {
-                Console.WriteLine("Failed broadcasting transaction: " + sendTx.GetHash());
+                // wait for propagation
+                var waited = TimeSpan.Zero;
+                var period = TimeSpan.FromSeconds(1);
+                while (TimeSpan.FromSeconds(21) > waited)
+                {
+                    // if broadcasts doesn't contain then success
+                    var transactionEntry = this.broadcasterManager.GetTransaction(sendTx.GetHash());
+                    if (transactionEntry != null && transactionEntry.State == Stratis.Bitcoin.Broadcasting.State.Propagated)
+                    {
+                        this.logger.LogDebug("Propagated transaction: " + sendTx.GetHash());
+                    }
+                    await Task.Delay(period).ConfigureAwait(false);
+                    waited += period;
+                }
             }
+
+            this.logger.LogDebug("Uncertain if transaction was propagated: " + sendTx.GetHash());
         }
 
         /// <inheritdoc />
