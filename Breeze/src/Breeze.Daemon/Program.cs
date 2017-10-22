@@ -80,9 +80,14 @@ namespace Breeze.Daemon
             else
             {
                 fullNodeBuilder = new FullNodeBuilder()
-                    .UseNodeSettings(nodeSettings)
-                    .UseConsensus()
-                    .UseBlockStore()
+                    .UseNodeSettings(nodeSettings);
+
+                if (args.Contains("stratis"))
+                    fullNodeBuilder.UseStratisConsensus();
+                else
+                    fullNodeBuilder.UseConsensus();
+
+                fullNodeBuilder.UseBlockStore()
                     .UseMempool()
                     .UseBlockNotification()
                     .UseTransactionNotification()
