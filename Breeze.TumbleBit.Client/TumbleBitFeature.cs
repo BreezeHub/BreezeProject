@@ -27,10 +27,7 @@ namespace Breeze.TumbleBit
         private readonly ITumbleBitManager tumbleBitManager;
         private readonly ConcurrentChain chain;
         private readonly Signals signals;
-
-        private IDisposable blockSubscriberdDisposable;
-        //private IDisposable transactionSubscriberdDisposable;
-
+        
         public TumbleBitFeature(ITumbleBitManager tumbleBitManager, ConcurrentChain chain, Signals signals)
         {
             this.tumbleBitManager = tumbleBitManager;
@@ -45,9 +42,6 @@ namespace Breeze.TumbleBit
 
         public override void Stop()
         {
-            this.blockSubscriberdDisposable.Dispose();
-            //this.transactionSubscriberdDisposable.Dispose();
-
             this.tumbleBitManager?.Dispose();
         }
     }

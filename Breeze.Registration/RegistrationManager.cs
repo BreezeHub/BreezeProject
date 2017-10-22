@@ -20,10 +20,6 @@ namespace Breeze.Registration
             this.registrationStore = registrationStore;
             this.network = network;
             Console.WriteLine("Initialized RegistrationFeature");
-            foreach (var item in this.registrationStore.GetAll())
-            {
-                Console.WriteLine(item.RecordTxHex);
-            }
         }
 
         /// <inheritdoc />

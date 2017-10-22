@@ -5,7 +5,6 @@ using NBitcoin;
 using NTumbleBit;
 using NTumbleBit.Services;
 using Stratis.Bitcoin;
-using Stratis.Bitcoin.Features.MemoryPool;
 
 namespace Breeze.TumbleBit.Client
 {
@@ -19,8 +18,7 @@ namespace Breeze.TumbleBit.Client
 
         public static ExternalServices CreateFromFullNode(IRepository repository, Tracker tracker, TumblingState tumblingState)
         {
-            // TODO: This needs to be FeePerK
-            var minimumRate = new FeeRate(tumblingState.NodeSettings.Network.MinRelayTxFee);
+            var minimumRate = tumblingState.NodeSettings.MinRelayTxFeeRate;
             var service = new ExternalServices();
 
             // On regtest the estimatefee always fails

@@ -54,12 +54,20 @@ namespace Breeze.Registration
 
 		public override void Start()
 		{
-
-            // Subscribe to receive blocks and transactions
-            this.blockSubscriberdDisposable = this.signals.SubscribeForBlocks(new RegistrationBlockObserver(this.chain, this.registrationManager));
-            //this.transactionSubscriberdDisposable = this.signals.SubscribeForTransactions(new TransactionObserver(this.registrationManager));
+            if (!this.isBitcoin)
+            {
+                // Only need to subscribe to receive blocks and transactions on the Stratis network
+                this.blockSubscriberdDisposable = this.signals.SubscribeForBlocks(new RegistrationBlockObserver(this.chain, this.registrationManager));
+                //this.transactionSubscriberdDisposable = this.signals.SubscribeForTransactions(new TransactionObserver(this.registrationManager));
+            }
 
             this.registrationManager.Initialize(this.registrationStore, this.isBitcoin, this.network);
+        }
+
+        public override void Stop()
+        {
+            this.blockSubscriberdDisposable.Dispose();
+            //this.transactionSubscriberdDisposable.Dispose();
         }
     }
     
