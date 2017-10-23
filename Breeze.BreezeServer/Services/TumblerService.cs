@@ -16,7 +16,10 @@ namespace Breeze.BreezeServer
 {
     public class TumblerService : ITumblerService
     {
-        public void StartTumbler(bool testnet)
+        public TumblerConfiguration config { get; set; }
+        public TumblerRuntime runtime { get; set; }
+        
+        public void StartTumbler(bool testnet, bool getConfigOnly)
         {
             string[] args;
 			
@@ -24,7 +27,7 @@ namespace Breeze.BreezeServer
 				// TODO: Tumbler is locked to testnet for testing
 				args = new string[] {"-testnet"};
 			else
-				args = new string[] {"-regtest"};
+				args = new string[] {"-testnet"};
 
             var argsConf = new TextFileConfiguration(args);
             var debug = argsConf.GetOrDefault<bool>("debug", false);
@@ -32,13 +35,21 @@ namespace Breeze.BreezeServer
             ConsoleLoggerProcessor loggerProcessor = new ConsoleLoggerProcessor();
             Logs.Configure(new FuncLoggerFactory(i => new CustomerConsoleLogger(i, Logs.SupportDebug(debug), false, loggerProcessor)));
 
+            if (getConfigOnly)
+            {
+                config = new TumblerConfiguration();
+                config.LoadArgs(args);                
+                runtime = TumblerRuntime.FromConfiguration(config, new AcceptAllClientInteraction());
+                return;
+            }
+            
             using (var interactive = new Interactive())
             {
-                var config = new TumblerConfiguration();
+                config = new TumblerConfiguration();
                 config.LoadArgs(args);
                 try
                 {
-                    var runtime = TumblerRuntime.FromConfiguration(config, new TextWriterClientInteraction(Console.Out, Console.In));
+                    runtime = TumblerRuntime.FromConfiguration(config, new TextWriterClientInteraction(Console.Out, Console.In));
                     interactive.Runtime = new ServerInteractiveRuntime(runtime);
                     StoppableWebHost host = null;
                     if (!config.OnlyMonitor)

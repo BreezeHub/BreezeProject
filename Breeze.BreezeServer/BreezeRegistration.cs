@@ -11,12 +11,13 @@ using NBitcoin.DataEncoders;
 using NBitcoin.RPC;
 
 using BreezeCommon;
+using NTumbleBit;
 
 namespace Breeze.BreezeServer
 {
     public class BreezeRegistration
     {
-        public bool CheckBreezeRegistration(BreezeConfiguration config, string regStorePath)
+        public bool CheckBreezeRegistration(BreezeConfiguration config, string regStorePath, string configurationHash, string onionAddress, RsaKey tumblerKey)
         {
             /*
 			Network network = Network.StratisMain;
@@ -59,7 +60,16 @@ namespace Breeze.BreezeServer
 
             // Check if the stored record matches the current configuration
 
-            RegistrationToken registrationToken = mostRecent.Record;
+            RegistrationToken registrationToken;
+            try
+            {
+                registrationToken = mostRecent.Record;
+            }
+            catch (NullReferenceException e)
+            {
+                Console.WriteLine(e);
+                return false;
+            }
 
             if (!config.Ipv4Address.Equals(registrationToken.Ipv4Addr))
                 return false;
@@ -73,32 +83,38 @@ namespace Breeze.BreezeServer
             if (config.Ipv6Address != null && !config.Ipv6Address.Equals(registrationToken.Ipv6Addr))
                 return false;
 
-            if (config.OnionAddress != registrationToken.OnionAddress)
+            if (onionAddress != registrationToken.OnionAddress)
                 return false;
               
             if (config.Port != registrationToken.Port)
                 return false;
+
+            // This verifies that the tumbler parameters are unchanged
+            if (configurationHash != registrationToken.ConfigurationHash)
+                return false;
             
             // TODO: Check if transaction is actually confirmed on the blockchain?
 
+            // TODO: Check that own signature is correct for at least the tumbler RSA key?
+            
             return true;
         }
 
-        public Transaction PerformBreezeRegistration(BreezeConfiguration config, string regStorePath)
+        public Transaction PerformBreezeRegistration(BreezeConfiguration config, string regStorePath, string configurationHash, string onionAddress, RsaKey tumblerKey)
         {
-            /*
+            ///*
 			Network network = Network.StratisMain;
 			if (config.IsTestNet)
 			{
 				network = Network.StratisTest;
 			}
-            */
+            //*/
 
-            Network network = Network.Main;
+            /*Network network = Network.Main;
             if (config.IsTestNet)
             {
                 network = Network.RegTest;
-            }
+            }*/
 
             RPCHelper stratisHelper = null;
             RPCClient stratisRpc = null;
@@ -111,13 +127,13 @@ namespace Breeze.BreezeServer
             }
             catch (Exception e) {
                 Console.WriteLine("ERROR: Unable to retrieve private key to fund registration transaction");
-				Console.WriteLine("Is the wallet unlocked?");
+				Console.WriteLine("Is the wallet unlocked & RPC enabled?");
                 Console.WriteLine(e);
                 Environment.Exit(0);
             }
 
-            var registrationToken = new RegistrationToken(254, config.TumblerEcdsaKeyAddress, config.Ipv4Address, config.Ipv6Address, config.OnionAddress, "", config.Port);
-            byte[] msgBytes = registrationToken.GetRegistrationTokenBytes(config.TumblerRsaKeyFile, privateKeyEcdsa);
+            RegistrationToken registrationToken = new RegistrationToken(254, config.TumblerEcdsaKeyAddress, config.Ipv4Address, config.Ipv6Address, onionAddress, configurationHash, config.Port);
+            byte[] msgBytes = registrationToken.GetRegistrationTokenBytes(tumblerKey, privateKeyEcdsa);
 
             // Create the registration transaction using the bytes generated above
             Transaction rawTx = CreateBreezeRegistrationTx(network, msgBytes, config.TxOutputValueSetting);
