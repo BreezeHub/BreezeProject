@@ -6,6 +6,7 @@ using System.Text;
 
 using NBitcoin;
 using Newtonsoft.Json;
+using NTumbleBit;
 
 namespace BreezeCommon
 {
@@ -89,7 +90,7 @@ namespace BreezeCommon
 			// Constructor for when a token is being reconstituted from blockchain data
 		}
 
-		public byte[] GetRegistrationTokenBytes(string rsaKeyPath, BitcoinSecret privateKeyEcdsa)
+		public byte[] GetRegistrationTokenBytes(RsaKey rsaKey, BitcoinSecret privateKeyEcdsa)
 		{
 			var token = new List<byte>();
 
@@ -134,7 +135,7 @@ namespace BreezeCommon
 			token.Add(portNumber[0]);
 			token.Add(portNumber[1]);
 
-            CryptoUtils cryptoUtils = new CryptoUtils(rsaKeyPath, privateKeyEcdsa);
+            CryptoUtils cryptoUtils = new CryptoUtils(rsaKey, privateKeyEcdsa);
 
 			// Sign header (excluding preliminary length marker bytes) with RSA
 			RsaSignature = cryptoUtils.SignDataRSA(token.ToArray());

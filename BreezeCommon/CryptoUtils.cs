@@ -14,9 +14,9 @@ namespace BreezeCommon
 		NTumbleBit.RsaKey TumblerRsaKey;
 		BitcoinSecret EcdsaKey;
 
-		public CryptoUtils(string rsaKeyPath, BitcoinSecret privateKeyEcdsa)
+		public CryptoUtils(RsaKey rsaKey, BitcoinSecret privateKeyEcdsa)
 		{
-			TumblerRsaKey = new NTumbleBit.RsaKey(File.ReadAllBytes(rsaKeyPath));
+			TumblerRsaKey = rsaKey;
 			EcdsaKey = privateKeyEcdsa;
 		}
 
