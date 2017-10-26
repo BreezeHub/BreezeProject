@@ -118,7 +118,7 @@ export class TumblebitComponent implements OnInit {
   }
 
   private checkWalletStatus() {
-    let walletInfo = new WalletInfo(this.globalService.getWalletName(), this.globalService.getCoinType())
+    let walletInfo = new WalletInfo(this.globalService.getWalletName())
     this.walletStatusSubscription = this.apiService.getGeneralInfo(walletInfo)
       .subscribe(
         response =>  {
@@ -254,7 +254,7 @@ export class TumblebitComponent implements OnInit {
 
   // TODO: move into a shared service
   private getWalletBalance() {
-    let walletInfo = new WalletInfo(this.globalService.getWalletName(), this.globalService.getCoinType())
+    let walletInfo = new WalletInfo(this.globalService.getWalletName())
     this.walletBalanceSubscription = this.apiService.getWalletBalance(walletInfo)
       .subscribe(
         response =>  {
