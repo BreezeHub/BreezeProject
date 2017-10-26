@@ -167,7 +167,7 @@ function startStratisApi() {
       apiPath = path.resolve(__dirname, 'assets\\daemon\\Stratis.BreezeD.exe');
   }
 
-  stratisProcess = spawnStratis(apiPath, ['stratis', '-testnet', '-tumblebit'], {
+  stratisProcess = spawnStratis(apiPath, ['stratis', '-testnet'], {
       detached: true
   });
 
