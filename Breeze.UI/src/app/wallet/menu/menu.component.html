@@ -6,10 +6,10 @@
           <a class="nav-link" routerLink="dashboard" [routerLinkActive]="['is-active']">Dashboard</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" routerLink="privacy" [routerLinkActive]="['is-active']">Privacy</a>
-        </li>
-        <li class="nav-item">
           <a class="nav-link" routerLink="history" [routerLinkActive]="['is-active']">History</a>
+        </li>
+        <li class="nav-item" *ngIf="bitcoin">
+          <a class="nav-link" routerLink="privacy" [routerLinkActive]="['is-active']">Privacy</a>
         </li>
       </ul>
       <!-- /ul-->

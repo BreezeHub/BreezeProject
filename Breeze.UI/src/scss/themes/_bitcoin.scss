@@ -95,9 +95,6 @@ $btn-secondary-border:           $gray-light !default;
         &.ON {
           -webkit-text-fill-color:: $brand-primary !important;
           fill: $brand-primary !important;
-          -webkit-animation: fadeinout 3s linear infinite;
-          animation: fadeinout 3s linear infinite;
-          opacity: 0;
         }
       }
       .help {
