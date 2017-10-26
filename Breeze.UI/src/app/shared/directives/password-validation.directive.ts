@@ -10,10 +10,12 @@ export class PasswordValidationDirective {
   static MatchPassword(AC: AbstractControl) {
     let password = AC.get('walletPassword').value;
     let confirmPassword = AC.get('walletPasswordConfirmation').value;
-    if(password != confirmPassword) {
-      AC.get('walletPasswordConfirmation').setErrors( { walletPasswordConfirmation: true } )
+
+    if(confirmPassword !== password) {
+      AC.get('walletPasswordConfirmation').setErrors({ walletPasswordConfirmation: true });
     } else {
-      return null
+      AC.get('walletPasswordConfirmation').setErrors(null);
+      return null;
     }
   }
 }

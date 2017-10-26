@@ -12,7 +12,7 @@ export class TumblebitService {
   // TumbleBit.Client.CLI tool
   constructor(private http: Http) { };
 
-  private tumblerClientUrl = 'http://localhost:5000/api/TumbleBit/';
+  private tumblerClientUrl = 'http://localhost:37220/api/TumbleBit/';
   private headers = new Headers({ 'Content-Type': 'application/json' });
 
   private pollingInterval = 3000;

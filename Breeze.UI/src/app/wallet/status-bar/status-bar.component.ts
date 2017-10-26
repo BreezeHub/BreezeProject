@@ -1,11 +1,13 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 
-import { ApiService } from '../../shared/services/api.service';
-import { GlobalService } from '../../shared/services/global.service';
-import { WalletInfo } from '../../shared/classes/wallet-info';
-
 import { Observable } from 'rxjs/Rx';
 import { Subscription } from 'rxjs/Subscription';
+
+import { ApiService } from '../../shared/services/api.service';
+import { GlobalService } from '../../shared/services/global.service';
+import { ModalService } from '../../shared/services/modal.service';
+
+import { WalletInfo } from '../../shared/classes/wallet-info';
 
 @Component({
   selector: 'status-bar',
@@ -15,14 +17,14 @@ import { Subscription } from 'rxjs/Subscription';
 export class StatusBarComponent implements OnInit {
 
   private generalWalletInfoSubscription: Subscription;
-  private lastBlockSyncedHeight: number;
-  private chainTip: number;
+  public lastBlockSyncedHeight: number;
+  public chainTip: number;
   private isChainSynced: boolean;
-  private connectedNodes: number = 0;
+  public connectedNodes: number = 0;
   private percentSyncedNumber: number = 0;
-  private percentSynced: string;
+  public percentSynced: string;
 
-  constructor(private apiService: ApiService, private globalService: GlobalService) { }
+  constructor(private apiService: ApiService, private globalService: GlobalService, private genericModalService: ModalService) { }
 
   ngOnInit() {
     this.startSubscriptions();
@@ -32,8 +34,8 @@ export class StatusBarComponent implements OnInit {
     this.cancelSubscriptions();
   }
 
-  getGeneralWalletInfo() {
-    let walletInfo = new WalletInfo(this.globalService.getWalletName(), this.globalService.getCoinType())
+  private getGeneralWalletInfo() {
+    let walletInfo = new WalletInfo(this.globalService.getWalletName())
     this.generalWalletInfoSubscription = this.apiService.getGeneralInfo(walletInfo)
       .subscribe(
         response =>  {
@@ -60,14 +62,15 @@ export class StatusBarComponent implements OnInit {
         error => {
           console.log(error);
           if (error.status === 0) {
-            alert("Something went wrong while connecting to the API. Please restart the application.");
+            this.cancelSubscriptions();
+            this.genericModalService.openModal(null, null);
           } else if (error.status >= 400) {
             if (!error.json().errors[0]) {
               console.log(error);
             }
             else {
               if (error.json().errors[0].description) {
-                alert(error.json().errors[0].description);
+                this.genericModalService.openModal(null, error.json().errors[0].message);
               } else {
                 this.cancelSubscriptions();
                 this.startSubscriptions();

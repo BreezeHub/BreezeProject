@@ -9,8 +9,7 @@ import { TumblebitComponent } from './tumblebit/tumblebit.component';
 import { DashboardComponent } from './dashboard/dashboard.component';
 
 const routes: Routes = [
-  { path: '', redirectTo: 'wallet', pathMatch: 'full' },
-  { path: 'wallet', component: WalletComponent,
+  { path: '', component: WalletComponent,
     children: [
       { path: '', redirectTo:'dashboard', pathMatch:'full' },
       { path: 'dashboard', component: DashboardComponent},
@@ -18,6 +17,13 @@ const routes: Routes = [
       { path: 'history', component: HistoryComponent}
     ]
   },
+  { path: 'stratis-wallet', component: WalletComponent,
+  children: [
+    { path: '', redirectTo:'dashboard', pathMatch:'full' },
+    { path: 'dashboard', component: DashboardComponent},
+    { path: 'history', component: HistoryComponent}
+  ]
+}
 ];
 
 @NgModule({

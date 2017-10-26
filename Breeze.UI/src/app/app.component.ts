@@ -19,11 +19,15 @@ export class AppComponent implements OnInit {
   constructor(private router: Router, private apiService: ApiService, private titleService: Title) {}
   private errorMessage: any;
   private responseMessage: any;
-  private loading: boolean = true;
+  public loading: boolean = true;
 
   ngOnInit() {
     this.setTitle();
-    this.apiService.getWalletFiles().retryWhen(errors => errors.delay(2000)).subscribe(() => this.startApp());
+    this.apiService.getWalletFiles().retryWhen(errors => errors.delay(2000)).subscribe(() => this.checkStratisDaemon());
+  }
+
+  private checkStratisDaemon() {
+    this.apiService.getStratisWalletFiles().retryWhen(errors => errors.delay(2000)).subscribe(() => this.startApp());
   }
 
   private startApp() {

@@ -4,6 +4,7 @@
 const app = electron.app;
 // Module to create native browser window.
 const BrowserWindow = electron.BrowserWindow;
+const nativeImage = require('electron').nativeImage
 
 const path = require('path');
 const url = require('url');
@@ -28,6 +29,12 @@ require('electron-context-menu')({
 let mainWindow = null;
 
 function createWindow() {
+  let applicationIcon
+  if (serve) {
+    applicationIcon = nativeImage.createFromPath("./src/assets/images/breeze-logo.png")
+  } else {
+    applicationIcon = nativeImage.createFromPath(path.join(__dirname + '/assets/images/breeze-logo.png'))
+  }
 
   // Create the browser window.
   mainWindow = new BrowserWindow({
@@ -36,9 +43,12 @@ function createWindow() {
     frame: true,
     minWidth: 1200,
     minHeight: 650,
-    icon: __dirname + "/assets/images/breeze-logo.png",
     title: "Breeze Wallet"
   });
+
+  if (os.platform() === "win32"){
+    mainWindow.setIcon(applicationIcon);
+  }
 
    // and load the index.html of the app.
   mainWindow.loadURL(url.format({
@@ -61,22 +71,8 @@ function createWindow() {
 
   // Emitted when the window is going to close.
   mainWindow.on('close', function () {
-    if (process.platform !== 'darwin' && !serve) {
-      var http = require('http');
-      const options = {
-        hostname: 'localhost',
-        port: 5000,
-        path: '/api/node/shutdown',
-        method: 'POST'
-      };
-
-      const req = http.request(options, (res) => {});
-      req.write('');
-      req.end();
-      }
-    }
-  );
-}
+  })
+};
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
@@ -86,7 +82,8 @@ app.on('ready', function () {
     console.log("Breeze UI was started in development mode. This requires the user to be running the Breeze Daemon himself.")
   }
   else {
-    startApi();
+    startBitcoinApi();
+    startStratisApi();
   }
   createTray();
   createWindow();
@@ -95,12 +92,16 @@ app.on('ready', function () {
   }
 });
 
+app.on('before-quit', function () {
+  closeBitcoinApi(),
+  closeStratisApi();
+});
+
 // Quit when all windows are closed.
 app.on('window-all-closed', function () {
   // On OS X it is common for applications and their menu bar
   // to stay active until the user quits explicitly with Cmd + Q
   if (process.platform !== 'darwin') {
-    //apiProcess.kill();
     app.quit();
   }
 });
@@ -113,27 +114,75 @@ app.on('activate', function () {
   }
 });
 
-function startApi() {
-  var apiProcess;
-  const exec = require('child_process').exec;
+function closeBitcoinApi() {
+  // if (process.platform !== 'darwin' && !serve) {
+    if (!serve) {
+    var http1 = require('http');
+    const options1 = {
+      hostname: 'localhost',
+      port: 37220,
+      path: '/api/node/shutdown',
+      method: 'POST'
+  };
 
-  //Start Breeze Daemon
-  let apiPath = path.join(__dirname, '".//assets//daemon//Breeze.Daemon"');
+  const req = http1.request(options1, (res) => {});
+  req.write('');
+  req.end();
+  }
+};
+
+function closeStratisApi() {
+  // if (process.platform !== 'darwin' && !serve) {
+    if (process.platform !== 'darwin' && !serve) {
+    var http2 = require('http');
+    const options2 = {
+      hostname: 'localhost',
+      port: 37221,
+      path: '/api/node/shutdown',
+      method: 'POST'
+    };
+
+  const req = http2.request(options2, (res) => {});
+  req.write('');
+  req.end();
+  }
+};
+
+function startBitcoinApi() {
+  var bitcoinProcess;
+  const spawnBitcoin = require('child_process').spawn;
+
+  //Start Breeze Bitcoin Daemon
+  let apiPath = path.resolve(__dirname, 'assets//daemon//Stratis.BreezeD');
   if (os.platform() === 'win32') {
-      apiPath = path.join(__dirname, '".\\assets\\daemon\\Breeze.Daemon.exe"');
+      apiPath = path.resolve(__dirname, 'assets\\daemon\\Stratis.BreezeD.exe');
   }
 
-  apiProcess = exec('"' + apiPath + '" light -testnet -tumblebit', {
+  bitcoinProcess = spawnBitcoin(apiPath, ['-testnet', '-tumblebit'], {
       detached: true
-  }, (error, stdout, stderr) => {
-      if (error) {
-          writeLogError(`exec error: ${error}`);
-          return;
-      }
-      if (serve) {
-        writeLog(`stdout: ${stdout}`);
-        writeLog(`stderr: ${stderr}`);
-      }
+  });
+
+  bitcoinProcess.stdout.on('data', (data) => {
+    writeLog(`Bitcoin: ${data}`);
+  });
+}
+
+function startStratisApi() {
+  var stratisProcess;
+  const spawnStratis = require('child_process').spawn;
+
+  //Start Breeze Stratis Daemon
+  let apiPath = path.resolve(__dirname, 'assets//daemon//Stratis.BreezeD');
+  if (os.platform() === 'win32') {
+      apiPath = path.resolve(__dirname, 'assets\\daemon\\Stratis.BreezeD.exe');
+  }
+
+  stratisProcess = spawnStratis(apiPath, ['stratis', '-testnet'], {
+      detached: true
+  });
+
+  stratisProcess.stdout.on('data', (data) => {
+    writeLog(`Stratis: ${data}`);
   });
 }
 
@@ -142,45 +191,47 @@ function createTray() {
   const Menu = electron.Menu;
   const Tray = electron.Tray;
 
-  let appIcon = null;
-
-var iconPath
-if (os.platform() === 'win32') {
+  let trayIcon;
   if (serve) {
-    iconPath = '.\\src\\assets\\images\\breeze-logo-tray.ico';
+    trayIcon = nativeImage.createFromPath('./src/assets/images/breeze-logo-tray.png');
   } else {
-    iconPath = path.join(__dirname + '\\assets\\images\\breeze-logo-tray.png');
+    trayIcon = nativeImage.createFromPath(path.join(__dirname + '/assets/images/breeze-logo-tray.png'));
   }
 
-} else {
-  if (serve) {
-    iconPath = './src/assets/images/breeze-logo-tray.png';
-  } else {
-    iconPath = path.join(__dirname + '//assets//images//breeze-logo-tray.png');
-  }
-}
-
-  appIcon = new Tray(iconPath);
-  const contextMenu = Menu.buildFromTemplate([{
-    label: 'Hide/Show',
-    click: function () {
-      mainWindow.isVisible() ? mainWindow.hide() : mainWindow.show();
+  let systemTray = new Tray(trayIcon);
+  const contextMenu = Menu.buildFromTemplate([
+    {
+      label: 'Hide/Show',
+      click: function() {
+        mainWindow.isVisible() ? mainWindow.hide() : mainWindow.show();
+      }
+    },
+    {
+      label: 'Exit',
+      click: function() {
+        app.quit();
+      }
     }
-  }]);
-  appIcon.setToolTip('Breeze Wallet');
-  appIcon.setContextMenu(contextMenu);
+  ]);
+  systemTray.setToolTip('Breeze Wallet');
+  systemTray.setContextMenu(contextMenu);
+  systemTray.on('click', function() {
+    if (!mainWindow.isVisible()) {
+      mainWindow.show();
+    }
+
+    if (!mainWindow.isFocused()) {
+      mainWindow.focus();
+    }
+  });
 
   app.on('window-all-closed', function () {
-    if (appIcon) appIcon.destroy();
+    if (systemTray) systemTray.destroy();
   });
 };
 
 function writeLog(msg) {
   console.log(msg);
-};
-
-function writeLogError(msg) {
-  console.error(msg);
 };
 
 function createMenu() {

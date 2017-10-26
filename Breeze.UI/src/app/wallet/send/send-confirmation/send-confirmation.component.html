@@ -1,4 +1,3 @@
-
 <div id="modalCheck" tabindex="-1" role="dialog" aria-labelledby="modal_check" aria-hidden="true">
   <div class="modal-dialog modalBg" role="document">
     <div>
@@ -18,8 +17,7 @@
             </ul>
             <ul class="list-inline row">
               <li class="list-inline-item col blockLabel">Amount</li>
-              <!-- <li class="list-inline-item col-9 blockText"><strong class="text-danger">-{{ transaction.amount }}</strong> <small class="text-uppercase ml-2">TBTC</small></li> -->
-              <li class="list-inline-item col-9 blockText text-danger">-{{ transaction.amount | number:'1.8-8' }} TBTC</li>
+              <li class="list-inline-item col-9 blockText text-danger">-{{ transaction.amount | number:'1.8-8' }} {{ coinUnit }}</li>
             </ul>
             <ul class="list-inline row">
               <li class="list-inline-item col blockLabel">Destination</li>

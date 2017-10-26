@@ -12,13 +12,10 @@
 
 # Breeze
 
+__Warning: This is an experimental build. At the moment, only bitcoin on testnet is supported but more is coming soon. Use at your own risk.__
 This is the repository of the Breeze Wallet, the first full-block SPV bitcoin wallet using Angular and Electron at the front-end and C# with .NET Core in the back-end.
 
-At the moment, only bitcoin on **testnet** is supported but more is coming soon. 
-
-For **testnet only**.
-
-## How to build the Breeze Daemon
+## Daemon Build
 
 Breeze daemon is the backend REST service, hosting a Bitcoin node upon which Breeze UI depends:
 
@@ -30,17 +27,20 @@ cd Breeze
 # Initialize dependencies
 git submodule update --init --recursive
 
-# Go in Breeze's solution folder
-cd Breeze
-dotnet restore
+# Go in the Breeze deamon folder
+cd StratisBitcoinFullNode/Stratis.BreezeD
 dotnet build
 
-# Run a daemon Bitcoin SPV node on testnet
-cd src/Breeze.Daemon
-dotnet run light -testnet
+# Run the Bitcoin and Stratis full-SPV daemons on testnet in separate terminals
+dotnet run -testnet
+dotnet run stratis -testnet
 ```
 
-CI build
+## UI Build
+
+[Read more...](https://github.com/stratisproject/Breeze/blob/master/Breeze.UI/README.md)
+
+## CI Build
 -----------
 
 We use [AppVeyor](https://www.appveyor.com/) for Windows CI builds and [Travis CI](https://travis-ci.org/) (coming soon) for our Linux and MacOS ones.
@@ -54,10 +54,8 @@ If you want the :sparkles: latest :sparkles: (unstable :bomb:) version of the Br
 |:---|----------------:|------------------:|------------------:|
 |**Windows 7**| [download][7] | [download][8] | continuous build - up to date with commits |
 |**Windows 10**| [download][9] | [download][10] | continuous build - up to date with commits | 
-|**Ubuntu 14.04**| - | coming soon | manual build |
-|**Ubuntu 16.04**| - | coming soon | manual build |
-|**OS X 10.11**| - | [download][13] |  continuous build - up to date with commits |
-|**OS X 10.12**| - | [download][14] |  continuous build - up to date with commits |
+|**Ubuntu 14.04**| - | [download][11] | continuous build - up to date with commits |
+|**OS X 10.12**| - | [download][12] |  continuous build - up to date with commits |
 
 This is early release, alpha software, is provided for experiment, testing and development purposes and should only be used on **testnet**.
 
