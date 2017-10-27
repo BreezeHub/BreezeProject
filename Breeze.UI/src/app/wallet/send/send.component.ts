@@ -39,7 +39,7 @@ export class SendComponent implements OnInit {
   private buildSendForm(): void {
     this.sendForm = this.fb.group({
       "address": ["", Validators.required],
-      //"amount": ["", Validators.compose([Validators.required, Validators.pattern(/^[0-9]+(\.[0-9]{0,8})?$/)])],
+      // "amount": ["", Validators.compose([Validators.required, Validators.pattern(/^[0-9]+(\.[0-9]{0,8})?$/)])],
       "amount": ["", Validators.compose([Validators.required, Validators.pattern(/^([0-9]+)?(\.[0-9]{0,8})?$/)])],
       "fee": ["medium", Validators.required],
       "password": ["", Validators.required]
