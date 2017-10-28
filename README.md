@@ -55,7 +55,7 @@ If you want the :sparkles: latest :sparkles: (unstable :bomb:) version of the Br
 |**Windows 7**| [download][7] | [download][8] | continuous build - up to date with commits |
 |**Windows 10**| [download][9] | [download][10] | continuous build - up to date with commits | 
 |**Ubuntu 14.04**| - | [download][11] | continuous build - up to date with commits |
-|**OS X 10.12**| - | [download][12] |  continuous build - up to date with commits |
+|**OS X 10.12**| - | [download][14] |  continuous build - up to date with commits |
 
 This is early release, alpha software, is provided for experiment, testing and development purposes and should only be used on **testnet**.
 
