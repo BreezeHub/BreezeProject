@@ -19,7 +19,7 @@ export class PasswordConfirmationComponent implements OnInit {
     this.buildWalletPasswordForm();
   }
 
-  private startingTumble: Boolean = false;
+  public startingTumble: Boolean = false;
   private walletPasswordForm: FormGroup;
 
   ngOnInit() {

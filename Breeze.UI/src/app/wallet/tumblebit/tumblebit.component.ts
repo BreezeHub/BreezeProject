@@ -24,30 +24,30 @@ export class TumblebitComponent implements OnInit {
   constructor(private apiService: ApiService, private tumblebitService: TumblebitService, private globalService: GlobalService, private modalService: NgbModal, private fb: FormBuilder) {
     this.buildTumbleForm();
   }
-  private confirmedBalance: number;
-  private unconfirmedBalance: number;
-  private totalBalance: number;
+  public confirmedBalance: number;
+  public unconfirmedBalance: number;
+  public totalBalance: number;
   private walletBalanceSubscription: Subscription;
-  private destinationWalletName: string;
-  private destinationConfirmedBalance: number;
-  private destinationUnconfirmedBalance: number;
-  private destinationTotalBalance: number;
-  private destinationWalletBalanceSubscription: Subscription;
-  private isConnected: Boolean = false;
-  private isSynced: Boolean = false;
+  public destinationWalletName: string;
+  public destinationConfirmedBalance: number;
+  public destinationUnconfirmedBalance: number;
+  public destinationTotalBalance: number;
+  public destinationWalletBalanceSubscription: Subscription;
+  public isConnected: Boolean = false;
+  public isSynced: Boolean = false;
   private walletStatusSubscription: Subscription;
-  private tumblerAddressCopied: boolean = false;
-  private tumblerParameters: any;
-  private estimate: number;
-  private fee: number;
-  private denomination: number;
+  public tumblerAddressCopied: boolean = false;
+  public tumblerParameters: any;
+  public estimate: number;
+  public fee: number;
+  public denomination: number;
   private tumbleStatus: any;
   private tumbleStateSubscription: Subscription;
-  private tumbleForm: FormGroup;
-  private tumbling: Boolean = false;
+  public tumbleForm: FormGroup;
+  public tumbling: Boolean = false;
   private connectForm: FormGroup;
-  private wallets: [string];
-  private tumblerAddress: string = "Connecting...";
+  public wallets: [string];
+  public tumblerAddress: string = "Connecting...";
 
   ngOnInit() {
     this.checkWalletStatus();
