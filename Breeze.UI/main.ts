@@ -153,12 +153,12 @@ function startBitcoinApi() {
   const spawnBitcoin = require('child_process').spawn;
 
   //Start Breeze Bitcoin Daemon
-  let apiPath = path.resolve(__dirname, 'assets//daemon//Stratis.BreezeD');
+  let apiPath = path.resolve(__dirname, 'assets//daemon//Breeze.Daemon');
   if (os.platform() === 'win32') {
-      apiPath = path.resolve(__dirname, 'assets\\daemon\\Stratis.BreezeD.exe');
+      apiPath = path.resolve(__dirname, 'assets\\daemon\\Breeze.Daemon.exe');
   }
 
-  bitcoinProcess = spawnBitcoin(apiPath, ['-testnet', '-tumblebit'], {
+  bitcoinProcess = spawnBitcoin(apiPath, ['light', '-testnet', '-tumblebit'], {
       detached: true
   });
 
@@ -172,12 +172,12 @@ function startStratisApi() {
   const spawnStratis = require('child_process').spawn;
 
   //Start Breeze Stratis Daemon
-  let apiPath = path.resolve(__dirname, 'assets//daemon//Stratis.BreezeD');
+  let apiPath = path.resolve(__dirname, 'assets//daemon//Breeze.Daemon');
   if (os.platform() === 'win32') {
-      apiPath = path.resolve(__dirname, 'assets\\daemon\\Stratis.BreezeD.exe');
+      apiPath = path.resolve(__dirname, 'assets\\daemon\\Breeze.Daemon.exe');
   }
 
-  stratisProcess = spawnStratis(apiPath, ['stratis', '-testnet'], {
+  stratisProcess = spawnStratis(apiPath, ['stratis', 'light', '-testnet'], {
       detached: true
   });
 
