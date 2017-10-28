@@ -3,7 +3,7 @@
 # you can use {branch} name in version format too
 # version: 1.0.{build}-{branch}
 
-version: 0.1.0.{build}
+version: 0.2.0.{build}
 pull_requests:
   do_not_increment_build_number: true
 
@@ -11,7 +11,6 @@ pull_requests:
 branches:
   # whitelist
   only:
-    - master
     - tumblebit-alpha
 
 #---------------------------------#
@@ -85,7 +84,7 @@ before_build:
 build_script:
 - ps: |
       Write-Host "$env:log_prefix running 'dotnet build'" -foregroundcolor "magenta"
-      cd $env:APPVEYOR_BUILD_FOLDER/StratisBitcoinFullNode/Stratis.BreezeD
+      cd $env:APPVEYOR_BUILD_FOLDER/Breeze/src/Breeze.Daemon
       dotnet restore -v m
       dotnet build -c $env:configuration -r $env:win_runtime -v m 
 
