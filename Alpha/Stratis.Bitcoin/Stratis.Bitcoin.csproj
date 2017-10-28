@@ -42,6 +42,10 @@
   <ItemGroup>
     <ProjectReference Include="..\..\NStratis\NBitcoin\NBitcoin.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\StratisBitcoinFullNode\NStratis\Hashing\HashLib\HashLib.csproj" />
+    <ProjectReference Include="..\..\StratisBitcoinFullNode\NStratis\NBitcoin\NBitcoin.csproj" />
+  </ItemGroup>
 
   <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <OutputType>Library</OutputType>
