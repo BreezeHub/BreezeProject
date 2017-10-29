@@ -10,11 +10,12 @@
     <PackageReference Include="xunit.runner.visualstudio" Version="2.2.0" />
     <PackageReference Include="MSTest.TestAdapter" Version="1.1.18" />
     <PackageReference Include="MSTest.TestFramework" Version="1.1.18" />
-    <PackageReference Include="NStratis" Version="4.0.0.32" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\BreezeCommon\BreezeCommon.csproj" />
+    <ProjectReference Include="..\..\NStratis\NBitcoin\NBitcoin.csproj" />
+    <ProjectReference Include="..\..\NStratis\Hashing\HashLib\HashLib.csproj" />
   </ItemGroup>
 
   <ItemGroup>
