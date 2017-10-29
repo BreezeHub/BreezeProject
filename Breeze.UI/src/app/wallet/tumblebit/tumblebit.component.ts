@@ -48,6 +48,7 @@ export class TumblebitComponent implements OnInit {
   private connectForm: FormGroup;
   public wallets: [string];
   public tumblerAddress: string = "Connecting...";
+  public hasRegistrations: Boolean = false;
 
   ngOnInit() {
     this.checkWalletStatus();
@@ -125,14 +126,8 @@ export class TumblebitComponent implements OnInit {
             let generalWalletInfoResponse = response.json();
             if (generalWalletInfoResponse.lastBlockSyncedHeight = generalWalletInfoResponse.chainTip) {
               this.isSynced = true;
-              if (!this.isConnected) {
-                this.connectToTumbler();
-              }
             } else {
               this.isSynced = false;
-              if (this.tumbleStateSubscription) {
-                this.tumbleStateSubscription.unsubscribe();
-              }
             }
           }
         },
@@ -158,6 +153,16 @@ export class TumblebitComponent implements OnInit {
       .subscribe(
         response => {
           if (response.status >= 200 && response.status < 400) {
+            if (response.json().registrations >= response.json().minRegistrations) {
+              this.hasRegistrations = true;
+            } else {
+              this.hasRegistrations = false;
+            }
+
+            if (!this.isConnected && this.hasRegistrations && this.isSynced) {
+              this.connectToTumbler();
+            }
+
             if (response.json().state === "OnlyMonitor") {
               this.tumbling = false;
             } else if (response.json().state === "Tumbling") {
