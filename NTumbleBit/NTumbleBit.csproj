@@ -23,8 +23,8 @@
     <PackageReference Include="TCPServer" Version="1.0.12" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\StratisBitcoinFullNode\NStratis\Hashing\HashLib\HashLib.csproj" />
-    <ProjectReference Include="..\..\..\StratisBitcoinFullNode\NStratis\NBitcoin\NBitcoin.csproj" />
+    <ProjectReference Include="..\..\..\NStratis\Hashing\HashLib\HashLib.csproj" />
+    <ProjectReference Include="..\..\..\NStratis\NBitcoin\NBitcoin.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Compile Update="Properties\Resources.Designer.cs">
