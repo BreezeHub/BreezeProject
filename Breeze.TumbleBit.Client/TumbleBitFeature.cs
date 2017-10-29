@@ -20,14 +20,17 @@ using Stratis.Bitcoin.Features.Wallet;
 using Stratis.Bitcoin.Features.LightWallet;
 using NBitcoin;
 
-namespace Breeze.TumbleBit
+namespace Breeze.TumbleBit.Client
 {
     public class TumbleBitFeature : FullNodeFeature
     {
         private readonly ITumbleBitManager tumbleBitManager;
         private readonly ConcurrentChain chain;
         private readonly Signals signals;
-        
+
+        private IDisposable blockSubscriberdDisposable;
+        //private IDisposable transactionSubscriberdDisposable;
+
         public TumbleBitFeature(ITumbleBitManager tumbleBitManager, ConcurrentChain chain, Signals signals)
         {
             this.tumbleBitManager = tumbleBitManager;
@@ -38,10 +41,16 @@ namespace Breeze.TumbleBit
         public override void Start()
         {
             this.tumbleBitManager.Initialize();
+
+            this.blockSubscriberdDisposable = this.signals.SubscribeForBlocks(new TumbleBitBlockObserver(this.chain, this.tumbleBitManager));
+            //this.transactionSubscriberdDisposable = this.signals.SubscribeForTransactions(new TumbleBitBlockObserver(this.tumbleBitManager));
         }
 
         public override void Stop()
         {
+            this.blockSubscriberdDisposable?.Dispose();
+            //this.transactionSubscriberdDisposable?.Dispose();
+
             this.tumbleBitManager?.Dispose();
         }
     }
