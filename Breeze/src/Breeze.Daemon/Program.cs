@@ -100,7 +100,7 @@ namespace Breeze.Daemon
 
             if (args.Contains("registration"))
             {
-                fullNodeBuilder.UseInterNodeCommunication();
+                //fullNodeBuilder.UseInterNodeCommunication();
                 fullNodeBuilder.UseRegistration();
             }
 
@@ -137,12 +137,13 @@ namespace Breeze.Daemon
             //switch Stratis.Bitcoin to Error level only so it does not flood the console
             var switches = new Dictionary<string, Microsoft.Extensions.Logging.LogLevel>()
             {
-                {"Default", Microsoft.Extensions.Logging.LogLevel.Information},
+                {"Default", Microsoft.Extensions.Logging.LogLevel.Error},
                 {"System", Microsoft.Extensions.Logging.LogLevel.Warning},
                 {"Microsoft", Microsoft.Extensions.Logging.LogLevel.Warning},
                 {"Microsoft.AspNetCore", Microsoft.Extensions.Logging.LogLevel.Error},
-                {"Stratis.Bitcoin", Microsoft.Extensions.Logging.LogLevel.Debug},
-                {"Breeze.TumbleBit.Client", Microsoft.Extensions.Logging.LogLevel.Debug}
+                {"Stratis.Bitcoin", Microsoft.Extensions.Logging.LogLevel.Error},
+                {"Breeze.TumbleBit.Client", Microsoft.Extensions.Logging.LogLevel.Debug},
+                {"Breeze.Registration", Microsoft.Extensions.Logging.LogLevel.Debug}
             };
             ConsoleLoggerSettings settings = nodeSettings.LoggerFactory.GetConsoleSettings();
             settings.Switches = switches;

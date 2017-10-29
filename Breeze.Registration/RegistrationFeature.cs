@@ -11,16 +11,20 @@ using Stratis.Bitcoin.Features.Notifications;
 using Stratis.Bitcoin.Utilities;
 using BreezeCommon;
 using Stratis.Bitcoin.Signals;
+using Stratis.Bitcoin.Features.WatchOnlyWallet;
 
 namespace Breeze.Registration
 {
 	public class RegistrationFeature : FullNodeFeature
 	{
+        private ILogger logger;
         private NodeSettings nodeSettings;
 		private RegistrationStore registrationStore;
         private readonly ConcurrentChain chain;
         private readonly Signals signals;
+        private IWatchOnlyWalletManager watchOnlyWalletManager;
 
+        private ILoggerFactory loggerFactory;
         private readonly IRegistrationManager registrationManager;
         private IDisposable blockSubscriberdDisposable;
         //private IDisposable transactionSubscriberdDisposable;
@@ -28,14 +32,17 @@ namespace Breeze.Registration
         private bool isBitcoin;
         private Network network;
 
-        public RegistrationFeature(NodeSettings nodeSettings, RegistrationManager registrationManager, RegistrationStore registrationStore, ConcurrentChain chain, Signals signals)
+        public RegistrationFeature(ILoggerFactory loggerFactory, NodeSettings nodeSettings, RegistrationManager registrationManager, RegistrationStore registrationStore, ConcurrentChain chain, Signals signals, IWatchOnlyWalletManager watchOnlyWalletManager)
 		{
+            this.loggerFactory = loggerFactory;
+            this.logger = loggerFactory.CreateLogger(this.GetType().FullName);
             this.nodeSettings = nodeSettings;
             this.registrationManager = registrationManager;
 			this.registrationStore = registrationStore;
             this.chain = chain;
             this.signals = signals;
             this.network = nodeSettings.Network;
+            this.watchOnlyWalletManager = watchOnlyWalletManager;
 
             if (nodeSettings.Network == Network.Main || nodeSettings.Network == Network.TestNet || nodeSettings.Network == Network.RegTest)
             {
@@ -61,13 +68,13 @@ namespace Breeze.Registration
                 //this.transactionSubscriberdDisposable = this.signals.SubscribeForTransactions(new TransactionObserver(this.registrationManager));
             }
 
-            this.registrationManager.Initialize(this.registrationStore, this.isBitcoin, this.network);
+            this.registrationManager.Initialize(this.loggerFactory, this.registrationStore, this.isBitcoin, this.network, this.watchOnlyWalletManager);
         }
 
         public override void Stop()
         {
-            this.blockSubscriberdDisposable.Dispose();
-            //this.transactionSubscriberdDisposable.Dispose();
+            this.blockSubscriberdDisposable?.Dispose();
+            //this.transactionSubscriberdDisposable?.Dispose();
         }
     }
     
