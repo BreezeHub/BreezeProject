@@ -30,6 +30,7 @@
     <ProjectReference Include="..\Alpha\Stratis.Bitcoin\Stratis.Bitcoin.csproj" />
     <ProjectReference Include="..\BreezeCommon\BreezeCommon\BreezeCommon.csproj" />
     <ProjectReference Include="..\BreezeCommon\BreezeProtocol\NTumbleBit\NTumbleBit.csproj" />
+    <ProjectReference Include="..\NStratis\Hashing\HashLib\HashLib.csproj" />
     <ProjectReference Include="..\NStratis\NBitcoin\NBitcoin.csproj" />
   </ItemGroup>
 </Project>
