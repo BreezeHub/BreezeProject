@@ -13,6 +13,7 @@ namespace Breeze.Registration
         public Money MASTERNODE_COLLATERAL_THRESHOLD = new Money(250000, MoneyUnit.BTC);
         public int MAX_PROTOCOL_VERSION = 253;
         public int MIN_PROTOCOL_VERSION = 0;
+        public int WINDOW_PERIOD_BLOCK_COUNT = 30;
 
         private ILoggerFactory loggerFactory;
         private RegistrationStore registrationStore;
@@ -157,12 +158,12 @@ namespace Breeze.Registration
                             }
                         }
 
-                        this.logger.LogDebug("Collateral balance for server " + record.Record.ServerId + " is " + serverCollateralBalance.ToString());
+                        this.logger.LogDebug("Collateral balance for server " + record.Record.ServerId + " is " + serverCollateralBalance.ToString() + ", original registration height " + record.BlockReceived + " current height " + height);
 
-                        if (serverCollateralBalance < MASTERNODE_COLLATERAL_THRESHOLD)
+                        if ((serverCollateralBalance < MASTERNODE_COLLATERAL_THRESHOLD) && ((height - record.BlockReceived) > WINDOW_PERIOD_BLOCK_COUNT))
                         {
                             // Remove server registrations
-                            //this.logger.LogDebug("Deleting stored registrations for server: " + record.Record.ServerId);
+                            this.logger.LogDebug("Insufficient collateral within window period for server: " + record.Record.ServerId);
                             //this.registrationStore.DeleteAllForServer(record.Record.ServerId);
 
                             // TODO: Remove unneeded transactions from the watch-only wallet?
