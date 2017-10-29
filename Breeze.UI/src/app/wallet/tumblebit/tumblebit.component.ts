@@ -9,6 +9,7 @@ import { WalletInfo } from '../../shared/classes/wallet-info';
 import { TumblebitService } from './tumblebit.service';
 import { TumblerConnectionRequest } from './classes/tumbler-connection-request';
 import { TumbleRequest } from './classes/tumble-request';
+import { ModalService } from '../../shared/services/modal.service';
 
 import { Observable } from 'rxjs/Rx';
 import { Subscription } from 'rxjs/Subscription';
@@ -21,7 +22,7 @@ import { Subscription } from 'rxjs/Subscription';
 })
 
 export class TumblebitComponent implements OnInit {
-  constructor(private apiService: ApiService, private tumblebitService: TumblebitService, private globalService: GlobalService, private modalService: NgbModal, private fb: FormBuilder) {
+  constructor(private apiService: ApiService, private tumblebitService: TumblebitService, private globalService: GlobalService, private modalService: NgbModal, private genericModalService: ModalService, private fb: FormBuilder) {
     this.buildTumbleForm();
   }
   public confirmedBalance: number;
@@ -134,13 +135,13 @@ export class TumblebitComponent implements OnInit {
         error => {
           console.log(error);
           if (error.status === 0) {
-            alert("Something went wrong while connecting to the API. Please restart the application.");
+            this.genericModalService.openModal(null, null);
           } else if (error.status >= 400) {
             if (!error.json().errors[0]) {
               console.log(error);
             }
             else {
-              alert(error.json().errors[0].description);
+              this.genericModalService.openModal(null, error.json().errors[0].message);
             }
           }
         }
@@ -175,13 +176,13 @@ export class TumblebitComponent implements OnInit {
         error => {
           console.error(error);
           if (error.status === 0) {
-            alert('Something went wrong while connecting to the TumbleBit Client. Please restart the application.');
+            this.genericModalService.openModal(null, 'Something went wrong while connecting to the TumbleBit Client. Please restart the application.');
           } else if (error.status >= 400) {
             if (!error.json().errors[0]) {
               console.error(error);
             }
             else {
-              alert(error.json().errors[0].message);
+              this.genericModalService.openModal(null, error.json().errors[0].message);
             }
           }
         }
@@ -213,13 +214,13 @@ export class TumblebitComponent implements OnInit {
           console.error(error);
           this.isConnected = false;
           if (error.status === 0) {
-            alert('Something went wrong while connecting to the TumbleBit Client. Please restart the application.');
+            this.genericModalService.openModal(null, 'Something went wrong while connecting to the TumbleBit Client. Please restart the application.');
           } else if (error.status >= 400) {
             if (!error.json().errors[0]) {
               console.error(error);
             }
             else {
-              alert(error.json().errors[0].message);
+              this.genericModalService.openModal(null, error.json().errors[0].message);
             }
           }
         }
@@ -229,7 +230,7 @@ export class TumblebitComponent implements OnInit {
 
   private startTumbling() {
     if (!this.isConnected) {
-      alert("Can't start tumbling when you're not connected to a server. Please try again later.")
+      this.genericModalService.openModal(null, "Can't start tumbling when you're not connected to a server. Please try again later.");
     } else {
       const modalRef = this.modalService.open(PasswordConfirmationComponent);
       modalRef.componentInstance.sourceWalletName = this.globalService.getWalletName();
@@ -248,13 +249,13 @@ export class TumblebitComponent implements OnInit {
         error => {
           console.error(error);
           if (error.status === 0) {
-            alert('Something went wrong while connecting to the TumbleBit Client. Please restart the application.');
+            this.genericModalService.openModal(null, 'Something went wrong while connecting to the TumbleBit Client. Please restart the application.');
           } else if (error.status >= 400) {
             if (!error.json().errors[0]) {
               console.error(error);
             }
             else {
-              alert(error.json().errors[0].message);
+              this.genericModalService.openModal(null, error.json().errors[0].message);
             }
           }
         }
@@ -278,13 +279,13 @@ export class TumblebitComponent implements OnInit {
         error => {
           console.log(error);
           if (error.status === 0) {
-            alert('Something went wrong while connecting to the API. Make sure your address is correct and try again.');
+            this.genericModalService.openModal(null, null);
           } else if (error.status >= 400) {
             if (!error.json().errors[0]) {
               console.log(error);
             }
             else {
-              alert(error.json().errors[0].description);
+              this.genericModalService.openModal(null, error.json().errors[0].message);
             }
           }
         }
@@ -309,13 +310,13 @@ export class TumblebitComponent implements OnInit {
         error => {
           console.log(error);
           if (error.status === 0) {
-            alert('Something went wrong while connecting to the API. Make sure your address is correct and try again.');
+            this.genericModalService.openModal(null, null);
           } else if (error.status >= 400) {
             if (!error.json().errors[0]) {
               console.log(error);
             }
             else {
-              alert(error.json().errors[0].description);
+              this.genericModalService.openModal(null, error.json().errors[0].message);
             }
           }
         }
@@ -341,13 +342,13 @@ export class TumblebitComponent implements OnInit {
         },
         error => {
           if (error.status === 0) {
-            alert("Something went wrong while connecting to the API. Please restart the application.");
+            this.genericModalService.openModal(null, null);
           } else if (error.status >= 400) {
             if (!error.json().errors[0]) {
               console.log(error);
             }
             else {
-              alert(error.json().errors[0].message);
+              this.genericModalService.openModal(null, error.json().errors[0].message);
             }
           }
         },
