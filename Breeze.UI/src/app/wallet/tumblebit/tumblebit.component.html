@@ -25,7 +25,7 @@
             <!-- <button type="button" class="btn btn-lg btn-primary mt-4" (click)="tumbleClicked()" [disabled]="(!isConnected && !tumbling) || !isSynced">{{ tumbling ? "Stop" : "Start" }}</button> -->
             <p class="help mt-4" *ngIf="!isSynced">Please wait until the wallet is fully synced.</p>
             <p class="help mt-4" *ngIf="!isConnected">Please wait until the wallet is connected.</p>
-            <p class="help mt-4" *ngIf="!hasRegistrations">Please wait until the wallet has enough masternode registrations.</p>
+            <p class="help mt-4" *ngIf="!hasRegistrations">Not enough masternodes registered to start the Breeze Privacy Protocol. Please wait.</p>
           </form>
         </div>
         <!-- /left column-->
