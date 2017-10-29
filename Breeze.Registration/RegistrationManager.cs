@@ -11,6 +11,8 @@ namespace Breeze.Registration
     public class RegistrationManager : IRegistrationManager
     {
         public Money MASTERNODE_COLLATERAL_THRESHOLD = new Money(250000, MoneyUnit.BTC);
+        public int MAX_PROTOCOL_VERSION = 253;
+        public int MIN_PROTOCOL_VERSION = 0;
 
         private ILoggerFactory loggerFactory;
         private RegistrationStore registrationStore;
@@ -53,8 +55,17 @@ namespace Breeze.Registration
                             RegistrationToken registrationToken = new RegistrationToken();
                             registrationToken.ParseTransaction(tx, this.network);
                             MerkleBlock merkleBlock = new MerkleBlock(block, new uint256[] { tx.GetHash() });
-                            RegistrationRecord registrationRecord = new RegistrationRecord(DateTime.Now, Guid.NewGuid(), tx.GetHash().ToString(), tx.ToHex(), registrationToken, merkleBlock.PartialMerkleTree);
-                            this.registrationStore.Add(registrationRecord);
+                            RegistrationRecord registrationRecord = new RegistrationRecord(DateTime.Now, Guid.NewGuid(), tx.GetHash().ToString(), tx.ToHex(), registrationToken, merkleBlock.PartialMerkleTree, height);
+
+                            // Ignore protocol versions outside the accepted bounds
+                            if (registrationRecord.Record.ProtocolVersion < MIN_PROTOCOL_VERSION)
+                                continue;
+
+                            if (registrationRecord.Record.ProtocolVersion > MAX_PROTOCOL_VERSION)
+                                continue;
+
+                            // If there were other registrations for this server previously, remove them and add the new one
+                            this.registrationStore.AddWithReplace(registrationRecord);
 
                             this.logger.LogDebug("Registration transaction for server collateral address: " + registrationRecord.Record.ServerId);
                             this.logger.LogDebug("Server Onion address: " + registrationRecord.Record.OnionAddress);
@@ -64,7 +75,7 @@ namespace Breeze.Registration
                         }
                         catch (Exception e)
                         {
-                            this.logger.LogDebug("Failed to parse registration transaction: " + tx.GetHash());
+                            this.logger.LogDebug("Failed to parse registration transaction " + tx.GetHash() + ", exception: " + e);
                         }
                     }
                 }

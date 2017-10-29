@@ -302,7 +302,7 @@ namespace Breeze.TumbleBit.Client
 
                 if (registrations.Count < MINIMUM_MASTERNODE_COUNT)
                 {
-                    Console.WriteLine("Not enough masternode registrations downloaded yet");
+                    this.logger.LogDebug("Not enough masternode registrations downloaded yet: " + registrations.Count);
                     return null;
                 }
 
@@ -322,7 +322,7 @@ namespace Breeze.TumbleBit.Client
             }
             catch (Exception e)
             {
-                Console.WriteLine("Error obtaining tumbler parameters: " + e);
+                this.logger.LogDebug("Error obtaining tumbler parameters: " + e);
                 return null;
             }
             finally
@@ -334,15 +334,21 @@ namespace Breeze.TumbleBit.Client
         /// <inheritdoc />
         public async Task TumbleAsync(string originWalletName, string destinationWalletName, string originWalletPassword)
         {
-            // make sure it won't start new tumbling round
+            // Make sure it won't start new tumbling round if already started
             if (this.State == TumbleState.Tumbling)
             {
+                this.logger.LogDebug("Tumbler is already running");
                 throw new Exception("Tumbling is already running");
             }
 
             this.tumblingState.TumblerUri = new Uri(this.TumblerAddress);
 
-            // TODO: Check if in IBD
+            // Check if in initial block download
+            if (!this.chain.IsDownloaded())
+            {
+                this.logger.LogDebug("Chain is still being downloaded: " + this.chain.Tip.ToString());
+                throw new Exception("Chain is still being downloaded");
+            }
 
             Wallet destinationWallet = this.walletManager.GetWallet(destinationWalletName);
             Wallet originWallet = this.walletManager.GetWallet(originWalletName);
