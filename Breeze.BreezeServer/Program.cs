@@ -42,7 +42,7 @@ namespace Breeze.BreezeServer
 			var preTumblerConfig = serviceProvider.GetService<ITumblerService>();
 			preTumblerConfig.StartTumbler(config.IsTestNet, true);
 
-			string configurationHash = preTumblerConfig.config.ClassicTumblerParameters.GetHash().ToString();
+			string configurationHash = preTumblerConfig.runtime.ClassicTumblerParameters.GetHash().ToString();
 			string onionAddress = preTumblerConfig.runtime.TorUri.Host.Substring(0, 16);
 			NTumbleBit.RsaKey tumblerKey = preTumblerConfig.runtime.TumblerKey;
 			
@@ -61,7 +61,7 @@ namespace Breeze.BreezeServer
 
             if (!registration.CheckBreezeRegistration(config, regStorePath, configurationHash, onionAddress, tumblerKey)) {
 				logger.LogInformation("{Time} Creating or updating node registration", DateTime.Now);
-                var regTx = registration.PerformBreezeRegistration(config, regStorePath, configurationHash, onionAddress, tumblerKey);
+	            var regTx = registration.PerformBreezeRegistration(config, regStorePath, configurationHash, onionAddress, tumblerKey);
 				if (regTx != null) {
 					logger.LogInformation("{Time} Submitted transaction {TxId} via RPC for broadcast", DateTime.Now, regTx.GetHash().ToString());
 				}
