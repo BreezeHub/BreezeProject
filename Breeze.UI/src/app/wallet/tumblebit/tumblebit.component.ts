@@ -51,7 +51,6 @@ export class TumblebitComponent implements OnInit {
 
   ngOnInit() {
     this.checkWalletStatus();
-    this.connectToTumbler();
     this.checkTumblingStatus();
     this.getWalletFiles();
     this.getWalletBalance();
@@ -126,8 +125,14 @@ export class TumblebitComponent implements OnInit {
             let generalWalletInfoResponse = response.json();
             if (generalWalletInfoResponse.lastBlockSyncedHeight = generalWalletInfoResponse.chainTip) {
               this.isSynced = true;
+              if (!this.isConnected) {
+                this.connectToTumbler();
+              }
             } else {
               this.isSynced = false;
+              if (this.tumbleStateSubscription) {
+                this.tumbleStateSubscription.unsubscribe();
+              }
             }
           }
         },
