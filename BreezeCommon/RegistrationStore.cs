@@ -62,7 +62,33 @@ namespace BreezeCommon
 			}
 		}
 
-		public void AddCapsule(RegistrationCapsule capsule, Network network)
+        /// <summary>
+        /// Checks if the server ID in the supplied record already exists in the store,
+        /// and removes all other records before adding.
+        /// </summary>
+        /// <param name="regRecord"></param>
+        /// <returns></returns>
+        public bool AddWithReplace(RegistrationRecord regRecord)
+        {
+            foreach (RegistrationRecord record in GetByServerId(regRecord.Record.ServerId))
+            {
+                Delete(record.RecordGuid);
+            }
+
+            lock (RegistrationStore.lock_object)
+            {
+                List<RegistrationRecord> registrations = GetRecordsOrCreateFile();
+
+                registrations.Add(regRecord);
+
+                string regJson = JsonConvert.SerializeObject(registrations);
+                File.WriteAllText(StorePath, regJson);
+
+                return true;
+            }
+        }
+
+        public void AddCapsule(RegistrationCapsule capsule, Network network)
 		{
 			RegistrationToken token = new RegistrationToken();
 			token.ParseTransaction(capsule.RegistrationTransaction, network);
