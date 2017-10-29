@@ -117,7 +117,9 @@ namespace Breeze.TumbleBit.Controllers
                     ["tumbler"] = this.tumbleBitManager.TumblerAddress,
                     ["state"] = this.tumbleBitManager.State.ToString(),
                     ["originWallet"] = this.tumbleBitManager.tumblingState.OriginWalletName,
-                    ["destinationWallet"] = this.tumbleBitManager.tumblingState.DestinationWalletName
+                    ["destinationWallet"] = this.tumbleBitManager.tumblingState.DestinationWalletName,
+                    ["registrations"] = this.tumbleBitManager.RegistrationCount().ToString(),
+                    ["minRegistrations"] = "1"
                 };
 
                 return this.Json(parameterDictionary);
