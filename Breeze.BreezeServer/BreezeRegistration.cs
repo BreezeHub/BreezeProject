@@ -17,22 +17,11 @@ namespace Breeze.BreezeServer
 {
     public class BreezeRegistration
     {
+        // 254 = potentially nonsensical data from internal tests. 253 will be the public testnet version
+        private int PROTOCOL_VERSION_TO_USE = 253;
+
         public bool CheckBreezeRegistration(BreezeConfiguration config, string regStorePath, string configurationHash, string onionAddress, RsaKey tumblerKey)
         {
-            /*
-			Network network = Network.StratisMain;
-			if (config.IsTestNet)
-			{
-                network = Network.StratisTest;
-			}
-            */
-
-            Network network = Network.Main;
-            if (config.IsTestNet)
-            {
-                network = Network.RegTest;
-            }
-
             // In order to determine if the registration sequence has been performed
             // before, and to see if a previous performance is still valid, interrogate
             // the database to see if any transactions have been recorded.
@@ -102,19 +91,11 @@ namespace Breeze.BreezeServer
 
         public Transaction PerformBreezeRegistration(BreezeConfiguration config, string regStorePath, string configurationHash, string onionAddress, RsaKey tumblerKey)
         {
-            ///*
 			Network network = Network.StratisMain;
 			if (config.IsTestNet)
 			{
 				network = Network.StratisTest;
 			}
-            //*/
-
-            /*Network network = Network.Main;
-            if (config.IsTestNet)
-            {
-                network = Network.RegTest;
-            }*/
 
             RPCHelper stratisHelper = null;
             RPCClient stratisRpc = null;
@@ -132,7 +113,7 @@ namespace Breeze.BreezeServer
                 Environment.Exit(0);
             }
 
-            RegistrationToken registrationToken = new RegistrationToken(254, config.TumblerEcdsaKeyAddress, config.Ipv4Address, config.Ipv6Address, onionAddress, configurationHash, config.Port);
+            RegistrationToken registrationToken = new RegistrationToken(PROTOCOL_VERSION_TO_USE, config.TumblerEcdsaKeyAddress, config.Ipv4Address, config.Ipv6Address, onionAddress, configurationHash, config.Port);
             byte[] msgBytes = registrationToken.GetRegistrationTokenBytes(tumblerKey, privateKeyEcdsa);
 
             // Create the registration transaction using the bytes generated above
