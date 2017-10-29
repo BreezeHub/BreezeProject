@@ -146,7 +146,7 @@ namespace Breeze.TumbleBit.Client
         /// Gets the file path of the file containing the state of the tumbling execution.
         /// </summary>
         /// <returns></returns>
-        private string GetStateFilePath()
+        public string GetStateFilePath()
         {
             return Path.Combine(this.NodeSettings.DataDir, StateFileName);
         }

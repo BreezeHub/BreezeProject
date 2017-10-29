@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using Breeze.TumbleBit;
+using Breeze.TumbleBit.Client;
 using Breeze.Registration;
 using Microsoft.Extensions.Logging.Console;
 using NBitcoin;

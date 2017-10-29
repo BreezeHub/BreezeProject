@@ -23,6 +23,7 @@ using System.Text;
 using Stratis.Bitcoin;
 using Stratis.Bitcoin.Features.Wallet.Interfaces;
 using Stratis.Bitcoin.Interfaces;
+using System.IO;
 
 namespace Breeze.TumbleBit.Client
 {
@@ -111,6 +112,12 @@ namespace Breeze.TumbleBit.Client
                 this.walletFeePolicy,
                 this.nodeSettings,
                 this.broadcasterManager);
+
+            // Load saved state e.g. previously selected server
+            if (File.Exists(this.tumblingState.GetStateFilePath()))
+            {
+                this.tumblingState.LoadStateFromMemory();
+            }
         }
 
         public async Task<bool> BlockGenerate(int numberOfBlocks)
@@ -413,6 +420,13 @@ namespace Breeze.TumbleBit.Client
                 this.broadcasterJob = this.runtime.CreateBroadcasterJob();
                 this.broadcasterJob.Start();
             }
+        }
+
+        /// <inheritdoc />
+        public void ProcessBlock(int height, Block block)
+        {
+            this.tumblingState.LastBlockReceivedHeight = height;
+            this.tumblingState.Save();
         }
 
         public void Dispose()

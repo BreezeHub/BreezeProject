@@ -40,5 +40,12 @@ namespace Breeze.TumbleBit.Client
         ClassicTumblerParameters TumblerParameters { get; }
 
         TumblingState tumblingState { get; }
+
+        /// <summary>
+        /// Processes a block received from the network.
+        /// </summary>
+        /// <param name="height">The height of the block in the blockchain.</param>
+        /// <param name="block">The block.</param>
+        void ProcessBlock(int height, Block block);
     }
 }
