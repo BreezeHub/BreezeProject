@@ -27,6 +27,8 @@ namespace Breeze.TumbleBit.Client
 
         Task Initialize();
 
+        int RegistrationCount();
+        
         Task<bool> BlockGenerate(int numberOfBlocks);
         Task DummyRegistration(string originWalletName, string originWalletPassword);
 

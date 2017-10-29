@@ -400,6 +400,11 @@ namespace Breeze.TumbleBit.Client
             this.State = TumbleState.OnlyMonitor;
         }
 
+        public int RegistrationCount()
+        {
+            return this.registrationStore.GetAll().Count;
+        }
+        
         public async Task Initialize()
         {
             // Start broadcasterJob (onlymonitor mode)
