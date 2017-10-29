@@ -166,7 +166,24 @@ namespace BreezeCommon
 			return true;
 		}
 
-		private List<RegistrationRecord> GetRecordsOrCreateFile()
+        public bool DeleteAllForServer(string serverId)
+        {
+            try
+            {
+                foreach (RegistrationRecord record in this.GetByServerId(serverId))
+                {
+                    this.Delete(record.RecordGuid);
+                }
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        private List<RegistrationRecord> GetRecordsOrCreateFile()
 		{
 			lock (RegistrationStore.lock_object)
 			{
