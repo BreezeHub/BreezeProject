@@ -10,10 +10,12 @@
 [6]: https://travis-ci.org/BreezeHub/Breeze
 
 
-# Breeze
+# Breeze Wallet with Breeze Privacy Protocol
 
 __Warning: This is an experimental build. At the moment, only bitcoin on testnet is supported but more is coming soon. Use at your own risk.__
 This is the repository of the Breeze Wallet, the first full-block SPV bitcoin wallet using Angular and Electron at the front-end and C# with .NET Core in the back-end.
+
+This version includes a feature where the Wallet automatically connects to a live Masternode running the Breeze Privacy Protocol.  This is achieved by using the blockchain enabled Masternode Advertisement and Client Discovery Protocol. 
 
 ## Daemon Build
 
