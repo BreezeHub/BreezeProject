@@ -143,6 +143,7 @@ namespace Breeze.Daemon
                 {"Breeze.TumbleBit.Client", Microsoft.Extensions.Logging.LogLevel.Debug},
                 {"Breeze.Registration", Microsoft.Extensions.Logging.LogLevel.Debug}
             };
+            
             ConsoleLoggerSettings settings = nodeSettings.LoggerFactory.GetConsoleSettings();
             settings.Switches = switches;
             settings.Reload();
