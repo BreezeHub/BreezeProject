@@ -273,7 +273,7 @@ dotnet run -testnet
 ```
 
 ##### Configuring `breeze.conf`
-Now we're ready to set up `breeze.conf`. Edit the contents to look something like this.  The minimum config to get a working version is shown:
+Now we're ready to set up `breeze.conf`. Edit the contents to look something like this.  The minimum config to get a working version with a Masternodes configuration is shown:
 
 ```
 # ~/.breezeserver/breeze.conf
@@ -288,9 +288,9 @@ rpc.user=stratisuser
 rpc.password=stratispassword
 
 #use the default post 26174
-rpc.url=http://127.0.0.1:26174
+#rpc.url=http://127.0.0.1:26174
 
-breeze.ipv4=127.0.0.1
+#breeze.ipv4=127.0.0.1
 #breeze.ipv6=2001:0db8:85a3:0000:0000:8a2e:0370:7334
 #breeze.onion=0123456789ABCDEF
 #breeze.port=37123
@@ -299,7 +299,7 @@ breeze.ipv4=127.0.0.1
 #breeze.regtxfeevalue=10000
 #breeze.regtxoutputvalue=1000
 
-tumbler.url=http://127.0.0.1:37123/api/v1/
+#tumbler.url=http://127.0.0.1:37123/api/v1/
 
 # reference the key file we just generated
 #tumbler.rsakeyfile=/home/dan/.breezeserver/Tumbler.pem
