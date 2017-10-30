@@ -9,11 +9,16 @@
 [5]: https://travis-ci.org/BreezeHub/BreezeServer.svg?branch=master
 [6]: https://travis-ci.org/BreezeHub/BreezeServer
 
-# BreezeServer
+# Stratis Masternodes Alpha Release
 
-BreezeServer is a service host for our implementation of [TumbleBit](http://tumblebit.cash) in .NET Core. It is an trustless bitcoin-compatible anonymous payments protocol.
+This readme contains infomation for setting up a Stratis Masternode. The technology solves the problem of providing useful services on the network where MasterNodes host and advertise their services on the blockchain while client applications use the blockchain to discover and connect to those services.
 
-## The BreezeServer Alpha Release
+This delivers a robust. trustless, decentralized advertisement and discovery mechanism that is resistant to manipulation or censorship.
+Our first such service, the Breeze Privacy Protocol, is available as a MasterNode service today with more exciting MasterNode services coming soon.
+
+The Masternode is configured to host for our implementation of [TumbleBit](http://tumblebit.cash) in .NET Core. It is an trustless bitcoin-compatible anonymous payments protocol.
+
+## The Masternodesa Alpha Release
 This release includes the following:
 
 ###### Node Advertisment Protocol
