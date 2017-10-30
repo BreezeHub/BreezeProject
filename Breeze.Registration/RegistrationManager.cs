@@ -150,7 +150,8 @@ namespace Breeze.Registration
                             // Check if the outputs contain the watched address
                             foreach (var output in transaction.Transaction.Outputs)
                             {
-                                if (output.ScriptPubKey.GetScriptAddress(this.network).ToString() == record.Record.ServerId)
+                                //if (output.ScriptPubKey.GetScriptAddress(this.network).ToString() == record.Record.ServerId)
+                                if (output.ScriptPubKey == scriptToCheck)
                                 {
                                     // Output = funds are being paid into the address in question
                                     serverCollateralBalance += output.Value;
