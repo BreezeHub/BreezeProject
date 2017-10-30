@@ -112,10 +112,10 @@ namespace Breeze.BreezeServer
                     OnionAddress = null;
                 }
 
-                if (Ipv4Address == null && Ipv6Address == null && OnionAddress == null)
-                {
-                    throw new Exception("ERROR: No valid IP/onion addresses in configuration");
-                }
+                //if (Ipv4Address == null && Ipv6Address == null && OnionAddress == null)
+                //{
+                //    throw new Exception("ERROR: No valid IP/onion addresses in configuration");
+                //}
 
                 Port = configFile.GetOrDefault<int>("breeze.port", 37123);
 
@@ -126,8 +126,7 @@ namespace Breeze.BreezeServer
                 var bitcoinNetwork = "MainNet";
                 if (IsTestNet)
                 {
-                    //bitcoinNetwork = "TestNet";
-                    bitcoinNetwork = "RegTest";
+                    bitcoinNetwork = "TestNet";
                 }
 
                 // Create directory for key files if it does not already exist
