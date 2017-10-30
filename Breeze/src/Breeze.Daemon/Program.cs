@@ -104,25 +104,23 @@ namespace Breeze.Daemon
                 fullNodeBuilder.UseRegistration();
             }
 
+            // Need this to happen for both TB and non-TB daemon
+            Logs.Configure(new FuncLoggerFactory(i => new DualLogger(i, (a, b) => true, false)));
+
+            //start NTumbleBit logging to the console
+            SetupTumbleBitConsoleLogs(nodeSettings);
+
+            //add logging to NLog
+            SetupTumbleBitNLogs(nodeSettings);
+
             //currently tumblebit is bitcoin only
             if (args.Contains("-tumblebit"))
             {
-                Logs.Configure(new FuncLoggerFactory(i => new DualLogger(i, (a, b) => true, false)));
-
-                //start NTumbleBit logging to the console
-                //and switch the full node to log level: 
-                //error only
-                SetupTumbleBitConsoleLogs(nodeSettings);
-
-                //add logging to NLog
-                SetupTumbleBitNLogs(nodeSettings);
-
                 //var tumblerAddress = args.GetValueOf("-ppuri");
                 //if (tumblerAddress != null)
                 //    nodeSettings.TumblerAddress = tumblerAddress;
 
                 //we no longer pass the cbt uri in on the command line
-                //we always get it from the config. 
                 fullNodeBuilder.UseTumbleBit();
             }
 
@@ -165,7 +163,7 @@ namespace Breeze.Daemon
             tbTarget.Layout = "[${longdate:universalTime=true} ${threadid}${mdlc:item=id}] ${level:uppercase=true}: ${callsite} ${message}";
             tbTarget.Encoding = Encoding.UTF8;
 
-            var ruleTb = new LoggingRule("*", NLog.LogLevel.Info, tbTarget);
+            var ruleTb = new LoggingRule("*", NLog.LogLevel.Debug, tbTarget);
             config.LoggingRules.Add(ruleTb);
 
             config.AddTarget(tbTarget);
