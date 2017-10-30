@@ -160,12 +160,18 @@ namespace Breeze.Registration
 
                         this.logger.LogDebug("Collateral balance for server " + record.Record.ServerId + " is " + serverCollateralBalance.ToString() + ", original registration height " + record.BlockReceived + " current height " + height);
 
+                        // Ignore collateral requirements for protocol version 252, just in case
                         if ((serverCollateralBalance < MASTERNODE_COLLATERAL_THRESHOLD) && ((height - record.BlockReceived) > WINDOW_PERIOD_BLOCK_COUNT))
                         {
                             // Remove server registrations
                             this.logger.LogDebug("Insufficient collateral within window period for server: " + record.Record.ServerId);
-                            //this.registrationStore.DeleteAllForServer(record.Record.ServerId);
 
+                            if (record.Record.ProtocolVersion != 252)
+                            {
+                                this.logger.LogDebug("Deleting registration records for server: " + record.Record.ServerId);
+                                this.registrationStore.DeleteAllForServer(record.Record.ServerId);
+                            }
+                            
                             // TODO: Remove unneeded transactions from the watch-only wallet?
 
                             // TODO: Need to make the TumbleBitFeature change its server address if this is the address it was using

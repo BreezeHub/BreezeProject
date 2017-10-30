@@ -310,8 +310,30 @@ namespace Breeze.TumbleBit.Client
                     return null;
                 }
 
-                RegistrationRecord record = registrations[random.Next(registrations.Count)];
-                RegistrationToken registrationToken = record.Record;
+                RegistrationRecord record = null;
+                RegistrationToken registrationToken = null;
+                bool validRegistrationFound = false;
+                
+                // TODO: Search the registration store more robustly
+                for (int i = 1; i < 10; i++)
+                {
+                    record = registrations[random.Next(registrations.Count)];
+                    registrationToken = record.Record;
+
+                    // Implicitly, the registration feature will have deleted the registration if the collateral
+                    // requirement was not met within 30 blocks
+                    if ((this.walletManager.LastBlockHeight() - record.BlockReceived) >= 32)
+                    {
+                        validRegistrationFound = true;
+                        break;
+                    }
+                }
+                
+                if (!validRegistrationFound)
+                {
+                    this.logger.LogDebug("Did not find a valid registration");
+                    return null;
+                }
                 
                 this.TumblerAddress = "ctb://" + record.Record.OnionAddress + ".onion?h=" + record.Record.ConfigurationHash;
             }
