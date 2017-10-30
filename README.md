@@ -24,16 +24,19 @@ Breeze daemon is the backend REST service, hosting a Bitcoin node upon which Bre
 git clone https://github.com/breezehub/Breeze
 cd Breeze
 
+# Switch branch
+git checkout tumblebit-alpha
+
 # Initialize dependencies
 git submodule update --init --recursive
 
 # Go in the Breeze deamon folder
-cd StratisBitcoinFullNode/Stratis.BreezeD
+cd Breeze/src/Breeze.Daemon
 dotnet build
 
 # Run the Bitcoin and Stratis full-SPV daemons on testnet in separate terminals
-dotnet run -testnet
-dotnet run stratis -testnet
+dotnet run registration -testnet -tumblebit -storedir=C:\Users\<username>\AppData\Roaming\StratisNode\stratis\StratisTest\registrationHistory.json
+dotnet run stratis registration -testnet -addnode=13.64.76.48 -addnode=51.141.51.129 -addnode=98.229.142.125
 ```
 
 ## UI Build
