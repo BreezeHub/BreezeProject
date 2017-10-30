@@ -39,6 +39,10 @@ This release includes the following:
 
 As this is alpha software, the tumbler is currently configured to only operate on the Bitcoin testnet. This is to prevent loss of funds in the event of errors. Once the tumbler is sufficiently stable, a Bitcoin mainnet version will be released.
 
+###### Collateral Requirement
+
+After the server starts up & the registration is performed, you will need to move STRAT into the address specified in the breeze.conf file `tumbler.ecdsakeyaddress` field (see below).  This must be performed within X blocks after the registration transaction is broadcast (where X may vary from time to time).
+
 ## How to Run
 
 #### Prerequisites:
@@ -312,6 +316,7 @@ tumbler.ecdsakeyaddress=<stratisd wallet address>
 
 Run the server again with `dotnet run -testnet` within `<path-to-BreezeServer>/Breeze.BreezeServer`, and keep it running.
 
+After the server starts up & the registration is performed, move the required STRAT collateral into the address specified in `tumbler.ecdsakeyaddress`.  This must be performed within 30 blocks after the registration transaction is broadcast where the number of blocks may vary by network and from time to time.
 
 #### Configuring NTumbleBit to RPC bitcoind
 
@@ -368,4 +373,4 @@ The output of this command is our `tumbler.ecdsakeyaddress` for our conf file.
 
 ##### Client
 
-After starting the server, the address of the tumbler will be printed to console. This address can be copied for use in the client.
+After starting the server, the address of the tumbler will be printed to console. This address is the address automatically picked up by client software during the Client Discovery Protocol phase.
