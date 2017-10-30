@@ -18,7 +18,7 @@ Our first such service, the Breeze Privacy Protocol, is available as a MasterNod
 
 The Masternode is configured to host for our implementation of [TumbleBit](http://tumblebit.cash) in .NET Core. It is an trustless bitcoin-compatible anonymous payments protocol.
 
-## The Masternodes Alpha Release
+## Masternodes Alpha Release
 This release includes the following:
 
 ###### Node Advertisment Protocol
