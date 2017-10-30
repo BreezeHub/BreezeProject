@@ -114,10 +114,14 @@ namespace Breeze.TumbleBit.Client
                 this.broadcasterManager);
 
             // Load saved state e.g. previously selected server
-            if (File.Exists(this.tumblingState.GetStateFilePath()))
-            {
-                this.tumblingState.LoadStateFromMemory();
-            }
+	        if (File.Exists(this.tumblingState.GetStateFilePath()))
+	        {
+		        this.tumblingState.LoadStateFromMemory();
+	        }
+	        else
+	        {
+		        this.tumblingState.Save();
+	        }
         }
 
         public async Task<bool> BlockGenerate(int numberOfBlocks)
