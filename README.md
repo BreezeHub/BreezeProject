@@ -35,7 +35,7 @@ cd Breeze/src/Breeze.Daemon
 dotnet build
 
 # Run the Bitcoin and Stratis full-SPV daemons on testnet in separate terminals
-dotnet run registration -testnet -tumblebit -storedir=C:\Users\carlt\AppData\ Roaming\StratisNode\stratis\StratisTest\registrationHistory.json
+dotnet run registration -testnet -tumblebit -storedir=C:\Users\<username>\AppData\Roaming\StratisNode\stratis\StratisTest\registrationHistory.json
 dotnet run stratis registration -testnet -addnode=13.64.76.48 -addnode=51.141.51.129 -addnode=98.229.142.125
 ```
 
