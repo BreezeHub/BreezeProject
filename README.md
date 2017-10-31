@@ -299,7 +299,7 @@ rpc.password=stratispassword
 #use the default post 26174
 #rpc.url=http://127.0.0.1:26174
 
-#breeze.ipv4=127.0.0.1
+breeze.ipv4=127.0.0.1
 #breeze.ipv6=2001:0db8:85a3:0000:0000:8a2e:0370:7334
 #breeze.onion=0123456789ABCDEF
 #breeze.port=37123
