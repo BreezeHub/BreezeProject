@@ -236,6 +236,8 @@ namespace NTumbleBit.ClassicTumbler.CLI
 						Console.WriteLine("Invalid cycle");
 						return;
 					}
+
+					var stateMachineExecutor = Services.OfType<StateMachinesExecutor>().FirstOrDefault();
 					var state = Services.OfType<StateMachinesExecutor>().Select(e => e.GetPaymentStateMachineState(cycle)).FirstOrDefault();
 
 					var records = Runtime.Tracker.GetRecords(options.CycleId.Value);
@@ -258,6 +260,9 @@ namespace NTumbleBit.ClassicTumbler.CLI
 						if(state != null)
 						{
 							Console.WriteLine("Status: " + state.Status);
+
+							var machine = new PaymentStateMachine(stateMachineExecutor.Runtime, state);
+							Console.WriteLine("Should stay connnected: " + machine.ShouldStayConnected());
 							hasData = true;
 						}
 						Console.WriteLine("Phases:");
@@ -387,7 +392,7 @@ namespace NTumbleBit.ClassicTumbler.CLI
 				{
 					tx = Runtime.Services.BroadcastService.GetKnownTransaction(txId);
 				}
-				var txInfo = Runtime.Services.BlockExplorerService.GetTransaction(txId);
+				var txInfo = Runtime.Services.BlockExplorerService.GetTransaction(txId, false);
 				if(tx == null)
 					tx = txInfo?.Transaction;
 				if(txInfo != null)

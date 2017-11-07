@@ -22,9 +22,7 @@ namespace NTumbleBit.ClassicTumbler.Server
 	{
 		public ActionResultException(IActionResult result)
 		{
-			if(result == null)
-				throw new ArgumentNullException(nameof(result));
-			_Result = result;
+            _Result = result ?? throw new ArgumentNullException(nameof(result));
 		}
 
 		private readonly IActionResult _Result;
@@ -38,6 +36,23 @@ namespace NTumbleBit.ClassicTumbler.Server
 	}
 	public static class Extensions
 	{
+		//So IDispose on the CustomThreadPool get called
+		class ThreadPoolWrapper : IDisposable
+		{
+			public ThreadPoolWrapper()
+			{
+				ThreadPool = new CustomThreadPool(30, "MainController Processor");
+			}
+			public CustomThreadPool ThreadPool
+			{
+				get; set;
+			}
+
+			public void Dispose()
+			{
+				ThreadPool.Dispose();
+			}
+		}
 		public static ActionResultException AsException(this IActionResult actionResult)
 		{
 			return new ActionResultException(actionResult);
@@ -50,6 +65,8 @@ namespace NTumbleBit.ClassicTumbler.Server
 				 {
 					 return runtime;
 				 });
+				services.AddSingleton<ThreadPoolWrapper>();
+				services.AddSingleton<CustomThreadPool>(s => s.GetRequiredService<ThreadPoolWrapper>().ThreadPool);
 			});
 			builder.UseTCPServer(new ServerOptions(runtime.LocalEndpoint)
 			{

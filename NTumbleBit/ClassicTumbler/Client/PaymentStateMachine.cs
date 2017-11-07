@@ -1,25 +1,21 @@
-﻿using NTumbleBit.ClassicTumbler;
-using NTumbleBit;
-using NTumbleBit.PuzzleSolver;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using Microsoft.Extensions.Logging;
 using NBitcoin;
-using NTumbleBit.PuzzlePromise;
-using Microsoft.Extensions.Logging;
-using NTumbleBit.Logging;
-using NTumbleBit.Services;
-using Microsoft.Extensions.Logging.Abstractions;
 using NTumbleBit.ClassicTumbler.Server.Models;
+using NTumbleBit.Logging;
+using NTumbleBit.PuzzlePromise;
+using NTumbleBit.PuzzleSolver;
+using NTumbleBit.Services;
+using System;
+using System.Linq;
 
 namespace NTumbleBit.ClassicTumbler.Client
 {
-	public enum PaymentStateMachineStatus
+    public enum PaymentStateMachineStatus
 	{
 		New,
 		Registered,
 		ClientChannelBroadcasted,
+		TumblerVoucherSigning,
 		TumblerVoucherObtained,
 
 		//TODO Remove later, keep so it does not crash testers
@@ -32,7 +28,8 @@ namespace NTumbleBit.ClassicTumbler.Client
 		TumblerChannelCreating,
 		TumblerChannelCreated,
 		TumblerChannelSecured,
-		Wasted
+		ProcessingPayment,
+		Wasted,
 	}
 	public class PaymentStateMachine
 	{
@@ -43,9 +40,7 @@ namespace NTumbleBit.ClassicTumbler.Client
 		public PaymentStateMachine(
 			TumblerClientRuntime runtime)
 		{
-			if(runtime == null)
-				throw new ArgumentNullException("runtime");
-			Runtime = runtime;
+            Runtime = runtime ?? throw new ArgumentNullException(nameof(runtime));
 		}
 
 
@@ -184,7 +179,7 @@ namespace NTumbleBit.ClassicTumbler.Client
 			CyclePhase phase;
 			if(ClientChannelNegotiation == null)
 			{
-				cycle = Parameters.CycleGenerator.GetRegistratingCycle(height);
+				cycle = Parameters.CycleGenerator.GetRegisteringCycle(height);
 				phase = CyclePhase.Registration;
 			}
 			else
@@ -211,6 +206,7 @@ namespace NTumbleBit.ClassicTumbler.Client
 			Logs.Client.LogInformation($"Cycle {cycle.Start} ({Status})");
 			Logs.Client.LogInformation($"{cycle.ToString(height)} in phase {phase} ({blocksLeft} more blocks)");
 			var previousState = Status;
+
 			TumblerClient bob = null, alice = null;
 			try
 			{
@@ -221,7 +217,7 @@ namespace NTumbleBit.ClassicTumbler.Client
 				switch(phase)
 				{
 					case CyclePhase.Registration:
-						if(ClientChannelNegotiation == null)
+						if(Status == PaymentStateMachineStatus.New)
 						{
 							bob = Runtime.CreateTumblerClient(cycle.Start, Identity.Bob);
 							//Client asks for voucher
@@ -238,11 +234,10 @@ namespace NTumbleBit.ClassicTumbler.Client
 						}
 						break;
 					case CyclePhase.ClientChannelEstablishment:
-						if(ClientChannelNegotiation.Status == TumblerClientSessionStates.WaitingTumblerClientTransactionKey)
+						if(Status == PaymentStateMachineStatus.Registered)
 						{
 							alice = Runtime.CreateTumblerClient(cycle.Start, Identity.Alice);
 							var key = alice.RequestTumblerEscrowKey();
-							NeedSave = true;
 							ClientChannelNegotiation.ReceiveTumblerEscrowKey(key.PubKey, key.KeyIndex);
 							//Client create the escrow
 							var escrowTxOut = ClientChannelNegotiation.BuildClientEscrowTxOut();
@@ -258,7 +253,7 @@ namespace NTumbleBit.ClassicTumbler.Client
 								Logs.Client.LogInformation($"Not enough funds in the wallet to tumble. Missing about {ex.Missing}. Denomination is {Parameters.Denomination}.");
 								break;
 							}
-
+							NeedSave = true;
 							var redeemDestination = Services.WalletService.GenerateAddressAsync().GetAwaiter().GetResult().ScriptPubKey;
 							var channelId = new uint160(RandomUtils.GetBytes(20));
 							SolverClientSession = ClientChannelNegotiation.SetClientSignedTransaction(channelId, clientEscrowTx, redeemDestination);
@@ -279,10 +274,9 @@ namespace NTumbleBit.ClassicTumbler.Client
 							Services.BroadcastService.BroadcastAsync(clientEscrowTx).GetAwaiter().GetResult();
 
 							Services.TrustedBroadcastService.Broadcast(cycle.Start, TransactionType.ClientRedeem, correlation, redeemTx);
-
 							Status = PaymentStateMachineStatus.ClientChannelBroadcasted;
 						}
-						else if(ClientChannelNegotiation.Status == TumblerClientSessionStates.WaitingSolvedVoucher)
+						else if(Status == PaymentStateMachineStatus.ClientChannelBroadcasted)
 						{
 							alice = Runtime.CreateTumblerClient(cycle.Start, Identity.Alice);
 							TransactionInformation clientTx = GetTransactionInformation(SolverClientSession.EscrowedCoin, true);
@@ -291,7 +285,7 @@ namespace NTumbleBit.ClassicTumbler.Client
 							{
 								Logs.Client.LogInformation($"Client escrow reached {cycle.SafetyPeriodDuration} confirmations");
 								//Client asks the public key of the Tumbler and sends its own
-								var voucher = alice.SignVoucher(new SignVoucherRequest
+								alice.BeginSignVoucher(new SignVoucherRequest
 								{
 									MerkleProof = clientTx.MerkleProof,
 									Transaction = clientTx.Transaction,
@@ -302,16 +296,26 @@ namespace NTumbleBit.ClassicTumbler.Client
 									ChannelId = SolverClientSession.Id
 								});
 								NeedSave = true;
+								Status = PaymentStateMachineStatus.TumblerVoucherSigning;
+							}
+						}
+						else if(Status == PaymentStateMachineStatus.TumblerVoucherSigning)
+						{
+							alice = Runtime.CreateTumblerClient(cycle.Start, Identity.Alice);
+							var voucher = alice.EndSignVoucher(SolverClientSession.Id);
+							if(voucher != null)
+							{
 								ClientChannelNegotiation.CheckVoucherSolution(voucher);
+								NeedSave = true;
 								Status = PaymentStateMachineStatus.TumblerVoucherObtained;
 							}
 						}
 						break;
 					case CyclePhase.TumblerChannelEstablishment:
 
-						bob = Runtime.CreateTumblerClient(cycle.Start, Identity.Bob);
 						if(Status == PaymentStateMachineStatus.TumblerVoucherObtained)
 						{
+							bob = Runtime.CreateTumblerClient(cycle.Start, Identity.Bob);
 							Logs.Client.LogInformation("Begin ask to open the channel...");
 							//Client asks the Tumbler to make a channel
 							var bobEscrowInformation = ClientChannelNegotiation.GetOpenChannelRequest();
@@ -336,6 +340,7 @@ namespace NTumbleBit.ClassicTumbler.Client
 						}
 						else if(Status == PaymentStateMachineStatus.TumblerChannelCreating)
 						{
+							bob = Runtime.CreateTumblerClient(cycle.Start, Identity.Bob);
 							var tumblerEscrow = bob.EndOpenChannel(cycle.Start, ClientChannelNegotiation.GetInternalState().ChannelId);
 							if(tumblerEscrow == null)
 							{
@@ -346,7 +351,7 @@ namespace NTumbleBit.ClassicTumbler.Client
 
 							if(tumblerEscrow.OutputIndex >= tumblerEscrow.Transaction.Outputs.Count)
 							{
-								Logs.Client.LogError("Tumbler escrow ouptut out-of-bound");
+								Logs.Client.LogError("Tumbler escrow output out-of-bound");
 								Status = PaymentStateMachineStatus.Wasted;
 								break;
 							}
@@ -391,81 +396,94 @@ namespace NTumbleBit.ClassicTumbler.Client
 						{
 							CheckTumblerChannelSecured(cycle);
 						}
+						//No "else if" intended
 						if(Status == PaymentStateMachineStatus.TumblerChannelSecured)
 						{
-							TransactionInformation tumblerTx = GetTransactionInformation(PromiseClientSession.EscrowedCoin, false);
-							if(SolverClientSession.Status == SolverClientStates.WaitingGeneratePuzzles)
+							alice = Runtime.CreateTumblerClient(cycle.Start, Identity.Alice);
+							Logs.Client.LogDebug("Starting the puzzle solver protocol...");
+							var puzzles = SolverClientSession.GeneratePuzzles();
+							alice.BeginSolvePuzzles(SolverClientSession.Id, puzzles);
+							NeedSave = true;
+							Status = PaymentStateMachineStatus.ProcessingPayment;
+						}
+						else if(Status == PaymentStateMachineStatus.ProcessingPayment)
+						{
+							feeRate = GetFeeRate();
+							alice = Runtime.CreateTumblerClient(cycle.Start, Identity.Alice);
+							var commitments = alice.EndSolvePuzzles(SolverClientSession.Id);
+							NeedSave = true;
+							if(commitments == null)
 							{
-								feeRate = GetFeeRate();
-								alice = Runtime.CreateTumblerClient(cycle.Start, Identity.Alice);
-								Logs.Client.LogDebug("Starting the puzzle solver protocol...");
-								var puzzles = SolverClientSession.GeneratePuzzles();
-								var commmitments = alice.SolvePuzzles(SolverClientSession.Id, puzzles);
-								NeedSave = true;
-								var revelation2 = SolverClientSession.Reveal(commmitments);
-								var solutionKeys = alice.CheckRevelation(SolverClientSession.Id, revelation2);
-								var blindFactors = SolverClientSession.GetBlindFactors(solutionKeys);
-								var offerInformation = alice.CheckBlindFactors(SolverClientSession.Id, blindFactors);
+								Logs.Client.LogDebug("Still solving puzzles...");
+								break;
+							}
+							var revelation2 = SolverClientSession.Reveal(commitments);
+							var solutionKeys = alice.CheckRevelation(SolverClientSession.Id, revelation2);
+							var blindFactors = SolverClientSession.GetBlindFactors(solutionKeys);
+							var offerInformation = alice.CheckBlindFactors(SolverClientSession.Id, blindFactors);
 
-								var offerSignature = SolverClientSession.SignOffer(offerInformation);
+							var offerSignature = SolverClientSession.SignOffer(offerInformation);
 
-								var offerRedeem = SolverClientSession.CreateOfferRedeemTransaction(feeRate);
-								Logs.Client.LogDebug("Puzzle solver protocol ended...");
+							var offerRedeem = SolverClientSession.CreateOfferRedeemTransaction(feeRate);
+							Logs.Client.LogDebug("Puzzle solver protocol ended...");
 
-								//May need to find solution in the fulfillment transaction
-								Services.BlockExplorerService.TrackAsync(offerRedeem.PreviousScriptPubKey).GetAwaiter().GetResult();
-								Tracker.AddressCreated(cycle.Start, TransactionType.ClientOfferRedeem, SolverClientSession.GetInternalState().RedeemDestination, correlation);
-								Services.TrustedBroadcastService.Broadcast(cycle.Start, TransactionType.ClientOfferRedeem, correlation, offerRedeem);
-								try
+							//May need to find solution in the fulfillment transaction
+							Services.BlockExplorerService.TrackAsync(offerRedeem.PreviousScriptPubKey).GetAwaiter().GetResult();
+							Tracker.AddressCreated(cycle.Start, TransactionType.ClientOfferRedeem, SolverClientSession.GetInternalState().RedeemDestination, correlation);
+							Services.TrustedBroadcastService.Broadcast(cycle.Start, TransactionType.ClientOfferRedeem, correlation, offerRedeem);
+							try
+							{
+								solutionKeys = alice.FulfillOffer(SolverClientSession.Id, offerSignature);
+								SolverClientSession.CheckSolutions(solutionKeys);
+								var tumblingSolution = SolverClientSession.GetSolution();
+								var transaction = PromiseClientSession.GetSignedTransaction(tumblingSolution);
+								Logs.Client.LogDebug("Got puzzle solution cooperatively from the tumbler");
+								Status = PaymentStateMachineStatus.PuzzleSolutionObtained;
+								Services.TrustedBroadcastService.Broadcast(cycle.Start, TransactionType.TumblerCashout, correlation, new TrustedBroadcastRequest()
 								{
-									solutionKeys = alice.FulfillOffer(SolverClientSession.Id, offerSignature);
-									SolverClientSession.CheckSolutions(solutionKeys);
-									var tumblingSolution = SolverClientSession.GetSolution();
-									var transaction = PromiseClientSession.GetSignedTransaction(tumblingSolution);
-									Logs.Client.LogDebug("Got puzzle solution cooperatively from the tumbler");
-									Status = PaymentStateMachineStatus.PuzzleSolutionObtained;
-									Services.TrustedBroadcastService.Broadcast(cycle.Start, TransactionType.TumblerCashout, correlation, new TrustedBroadcastRequest()
+									BroadcastAt = cycle.GetPeriods().ClientCashout.Start,
+									Transaction = transaction
+								});
+								if(Cooperative)
+								{
+									try
 									{
-										BroadcastAt = cycle.GetPeriods().ClientCashout.Start,
-										Transaction = transaction
-									});
-									if(Cooperative)
-									{
-										var signature = SolverClientSession.SignEscape();
 										// No need to await for it, it is a just nice for the tumbler (we don't want the underlying socks connection cut before the escape key is sent)
+										var signature = SolverClientSession.SignEscape();
 										alice.GiveEscapeKeyAsync(SolverClientSession.Id, signature).GetAwaiter().GetResult();
-										Logs.Client.LogInformation("Gave escape signature to the tumbler");
 									}
-								}
-								catch(Exception ex)
-								{
-									Status = PaymentStateMachineStatus.UncooperativeTumbler;
-									Logs.Client.LogWarning("The tumbler did not gave puzzle solution cooperatively");
-									Logs.Client.LogWarning(ex.ToString());
+									catch(Exception ex) { Logs.Client.LogDebug(new EventId(), ex, "Exception while giving the escape key"); }
+									Logs.Client.LogInformation("Gave escape signature to the tumbler");
 								}
 							}
+							catch(Exception ex)
+							{
+								Status = PaymentStateMachineStatus.UncooperativeTumbler;
+								Logs.Client.LogWarning("The tumbler did not gave puzzle solution cooperatively");
+								Logs.Client.LogWarning(ex.ToString());
+							}
 						}
+
 						break;
 					case CyclePhase.ClientCashoutPhase:
-						if(SolverClientSession != null)
+
+						//If the tumbler is uncooperative, he published solutions on the blockchain
+						if(Status == PaymentStateMachineStatus.UncooperativeTumbler)
 						{
-							//If the tumbler is uncooperative, he published solutions on the blockchain
-							if(SolverClientSession.Status == SolverClientStates.WaitingPuzzleSolutions)
+							var transactions = Services.BlockExplorerService.GetTransactionsAsync(SolverClientSession.GetInternalState().OfferCoin.ScriptPubKey, false).GetAwaiter().GetResult();
+							if(transactions.Count != 0)
 							{
-								var transactions = Services.BlockExplorerService.GetTransactionsAsync(SolverClientSession.GetInternalState().OfferCoin.ScriptPubKey, false).GetAwaiter().GetResult();
-								if(transactions.Count != 0)
-								{
-									SolverClientSession.CheckSolutions(transactions.Select(t => t.Transaction).ToArray());
-									Logs.Client.LogInformation("Puzzle solution recovered from tumbler's fulfill transaction");
-									NeedSave = true;
-									Status = PaymentStateMachineStatus.PuzzleSolutionObtained;
-									var tumblingSolution = SolverClientSession.GetSolution();
-									var transaction = PromiseClientSession.GetSignedTransaction(tumblingSolution);
-									Tracker.TransactionCreated(cycle.Start, TransactionType.TumblerCashout, transaction.GetHash(), correlation);
-									Services.BroadcastService.BroadcastAsync(transaction).GetAwaiter().GetResult();
-								}
+								SolverClientSession.CheckSolutions(transactions.Select(t => t.Transaction).ToArray());
+								Logs.Client.LogInformation("Puzzle solution recovered from tumbler's fulfill transaction");
+								NeedSave = true;
+								Status = PaymentStateMachineStatus.PuzzleSolutionObtained;
+								var tumblingSolution = SolverClientSession.GetSolution();
+								var transaction = PromiseClientSession.GetSignedTransaction(tumblingSolution);
+								Tracker.TransactionCreated(cycle.Start, TransactionType.TumblerCashout, transaction.GetHash(), correlation);
+								Services.BroadcastService.BroadcastAsync(transaction).GetAwaiter().GetResult();
 							}
 						}
+
 						break;
 				}
 			}
@@ -492,6 +510,47 @@ namespace NTumbleBit.ClassicTumbler.Client
 				if(bob != null)
 					bob.Dispose();
 			}
+		}
+
+
+		public bool ShouldStayConnected()
+		{
+			if(ClientChannelNegotiation == null)
+				return false;
+
+			var cycle = ClientChannelNegotiation.GetCycle();
+
+			if(
+				// You get the solution of the puzzle
+				Status == PaymentStateMachineStatus.PuzzleSolutionObtained &&
+				// But have not yet cashed out
+				!IsConfirmed(cycle, TransactionType.TumblerCashout))
+			{
+				return true;
+			}
+
+			if(
+				// You do not have the solution
+				Status == PaymentStateMachineStatus.UncooperativeTumbler &&
+				// But have not yet redeemed or cashed out
+				!(IsConfirmed(cycle, TransactionType.ClientRedeem) || IsConfirmed(cycle, TransactionType.ClientOfferRedeem) || IsConfirmed(cycle, TransactionType.TumblerCashout)))
+			{
+				return true;
+			}
+			return false;
+		}
+
+		private bool IsConfirmed(CycleParameters cycle, TransactionType transactionType)
+		{
+			foreach(var tx in Tracker.GetRecords(cycle.Start).Where(t => t.RecordType == RecordType.Transaction && t.TransactionType == transactionType))
+			{
+				var txInfo = Services.BlockExplorerService.GetTransaction(tx.TransactionId, true);
+				if(txInfo != null && txInfo.Confirmations >= cycle.SafetyPeriodDuration)
+				{
+					return true;
+				}
+			}
+			return false;
 		}
 
 		private void CheckTumblerChannelSecured(CycleParameters cycle)
@@ -525,6 +584,15 @@ namespace NTumbleBit.ClassicTumbler.Client
 			var tx = Services.BlockExplorerService
 				.GetTransactionsAsync(coin.TxOut.ScriptPubKey, withProof).GetAwaiter().GetResult()
 				.FirstOrDefault(t => t.Transaction.Outputs.AsCoins().Any(c => c.Outpoint == coin.Outpoint));
+			if(tx == null)
+			{
+				//In case of reorg, it is possible the transaction is not returned by the wallet anymore.
+				//In such case, this will look also in mempool/coinview and try to import the transaction
+				tx = Services.BlockExplorerService.GetTransaction(coin.Outpoint.Hash, true);
+				if(tx?.MerkleProof != null)
+					//No await intended
+					Services.BlockExplorerService.TrackPrunedTransactionAsync(tx.Transaction, tx.MerkleProof);
+			}
 			return tx;
 		}
 

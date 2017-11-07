@@ -17,15 +17,9 @@ namespace NTumbleBit.Services.RPC
 		RPCBatch<bool> _RPCBatch;
 		public RPCBlockExplorerService(RPCClient client, RPCWalletCache cache, IRepository repo)
 		{
-			if(client == null)
-				throw new ArgumentNullException(nameof(client));
-			if(repo == null)
-				throw new ArgumentNullException("repo");
-			if(cache == null)
-				throw new ArgumentNullException("cache");
-			_RPCClient = client;
-			_Repo = repo;
-			_Cache = cache;
+            _RPCClient = client ?? throw new ArgumentNullException(nameof(client));
+			_Repo = repo ?? throw new ArgumentNullException("repo");
+			_Cache = cache ?? throw new ArgumentNullException("cache");
 			_RPCBatch = new RPCBatch<bool>(client);
 		}
 
@@ -144,7 +138,7 @@ namespace NTumbleBit.Services.RPC
 				//May have duplicates
 				if(!resultsSet.Contains(txId))
 				{
-					var tx = GetTransaction(txId);
+					var tx = GetTransaction(txId, false);
 					if(tx == null || (withProof && tx.Confirmations == 0))
 						continue;
 					resultsSet.Add(txId);
@@ -185,8 +179,10 @@ namespace NTumbleBit.Services.RPC
 			return results;
 		}
 
-		public TransactionInformation GetTransaction(uint256 txId)
+		public TransactionInformation GetTransaction(uint256 txId, bool withProof)
 		{
+			if(txId == null)
+				throw new ArgumentNullException(nameof(txId));
 			try
 			{
 				//check in the wallet tx
@@ -202,10 +198,24 @@ namespace NTumbleBit.Services.RPC
 				var confirmations = result.Result["confirmations"];
 				var confCount = confirmations == null ? 0 : Math.Max(0, (int)confirmations);
 
+				MerkleBlock proof = null;
+				if(withProof)
+				{
+					if(confCount == 0)
+						return null;
+
+					var result1 = RPCClient.SendCommandNoThrows("gettxoutproof", new JArray(tx.GetHash().ToString()));
+					if(result1 == null || result1.Error != null)
+						return null;
+					proof = new MerkleBlock();
+					proof.ReadWrite(Encoders.Hex.DecodeData(result1.ResultString));
+				}
+
 				return new TransactionInformation
 				{
 					Confirmations = confCount,
-					Transaction = tx
+					Transaction = tx,
+					MerkleProof = proof
 				};
 			}
 			catch(RPCException) { return null; }

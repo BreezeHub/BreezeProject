@@ -34,6 +34,15 @@ namespace NTumbleBit.ClassicTumbler.Server
 				o.InputFormatters.Add(new BitcoinInputFormatter());
 				o.OutputFormatters.Add(new BitcoinOutputFormatter());
 			});
+
+			services.AddLogging(o =>
+			{
+				o.AddFilter("Microsoft.AspNetCore.Hosting.Internal.WebHost", LogLevel.Error);
+				o.AddFilter("Microsoft.AspNetCore.Mvc", LogLevel.Error);
+				o.AddFilter("Microsoft.AspNetCore.Server.Kestrel", LogLevel.Error);
+				o.AddFilter("TCPServer", LogLevel.Error);
+				o.AddConsole();
+			});
 		}
 
 		// This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -45,6 +54,7 @@ namespace NTumbleBit.ClassicTumbler.Server
 			{
 				return async (ctx) =>
 				{
+					DateTimeOffset before = DateTimeOffset.UtcNow;
 					try
 					{
 						await req(ctx);
@@ -52,29 +62,33 @@ namespace NTumbleBit.ClassicTumbler.Server
 					catch(Exception ex)
 					{
 						Logs.Tumbler.LogCritical(new EventId(), ex, "Unhandled exception thrown by the Tumbler Service");
-						var webEx = ex as WebException;
-						if(webEx != null)
+                        if (ex is WebException webEx)
+                        {
+                            try
+                            {
+                                var httpResp = ((HttpWebResponse)webEx.Response);
+                                var reader = new StreamReader(httpResp.GetResponseStream(), Encoding.UTF8);
+                                Logs.Tumbler.LogCritical($"Web Exception {(int)httpResp.StatusCode} {reader.ReadToEnd()}");
+                            }
+                            catch { }
+                        }
+                        throw;
+					}
+					finally
+					{
+						var timeSpent = DateTimeOffset.UtcNow - before;
+						var timeSpentStr = $"{timeSpent.TotalSeconds.ToString("0.00")} seconds spent on {ctx.Request.Path}";
+						if(timeSpent > TimeSpan.FromMinutes(1.0))
 						{
-							try
-							{
-								var httpResp = ((HttpWebResponse)webEx.Response);
-								var reader = new StreamReader(httpResp.GetResponseStream(), Encoding.UTF8);
-								Logs.Tumbler.LogCritical($"Web Exception {(int)httpResp.StatusCode} {reader.ReadToEnd()}");
-							}
-							catch { }
+							Logs.Tumbler.LogCritical("Overload detected: " + timeSpentStr);
 						}
-						throw;
+						else
+						{
+							Logs.Tumbler.LogDebug(timeSpentStr);
+						}
 					}
 				};
 			});
-			var logging = new FilterLoggerSettings();
-			logging.Add("Microsoft.AspNetCore.Hosting.Internal.WebHost", LogLevel.Error);
-			logging.Add("Microsoft.AspNetCore.Mvc", LogLevel.Error);
-			logging.Add("Microsoft.AspNetCore.Server.Kestrel", LogLevel.Error);
-			logging.Add("TCPServer", LogLevel.Error);
-			loggerFactory
-				.WithFilter(logging)
-				.AddConsole();
 
 			app.UseMvc();
 
@@ -86,6 +100,7 @@ namespace NTumbleBit.ClassicTumbler.Server
 			var options = GetMVCOptions(serviceProvider);
 			Serializer.RegisterFrontConverters(options.SerializerSettings, config.Network);
 		}
+		
 
 		public IConfiguration Configuration
 		{
