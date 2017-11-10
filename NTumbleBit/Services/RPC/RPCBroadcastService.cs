@@ -25,12 +25,8 @@ namespace NTumbleBit.Services.RPC
 		RPCWalletCache _Cache;
 		public RPCBroadcastService(RPCClient rpc, RPCWalletCache cache, IRepository repository)
 		{
-			if(rpc == null)
-				throw new ArgumentNullException(nameof(rpc));
-			if(repository == null)
-				throw new ArgumentNullException(nameof(repository));
-			_RPCClient = rpc;
-			_Repository = repository;
+            _RPCClient = rpc ?? throw new ArgumentNullException(nameof(rpc));
+			_Repository = repository ?? throw new ArgumentNullException(nameof(repository));
 			_Cache = cache;
 			_BlockExplorerService = new RPCBlockExplorerService(rpc, cache, repository);
 			_RPCBatch = new RPCBatch<bool>(_RPCClient);
@@ -136,7 +132,7 @@ namespace NTumbleBit.Services.RPC
 			Logs.Broadcasters.LogInformation($"Broadcasted {broadcasted.Count} transaction(s), monitoring {totalEntries} entries in {(long)(DateTimeOffset.UtcNow - startTime).TotalSeconds} seconds");
 			return broadcasted.ToArray();
 		}
-		
+
 		private async Task<bool> TryBroadcastCoreAsync(Record tx, int currentHeight)
 		{
 			bool remove = false;
@@ -196,11 +192,14 @@ namespace NTumbleBit.Services.RPC
 				if(entry.Confirmations > 0)
 				{
 					var walletTransaction = _Cache.GetTransaction(entry.TransactionId);
-					foreach(var input in walletTransaction.Inputs)
+					if(walletTransaction != null)
 					{
-						if(spentInputs.Contains(input.PrevOut))
+						foreach(var input in walletTransaction.Inputs)
 						{
-							return true;
+							if(spentInputs.Contains(input.PrevOut))
+							{
+								return true;
+							}
 						}
 					}
 				}

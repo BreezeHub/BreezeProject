@@ -13,9 +13,7 @@ namespace NTumbleBit
 		Func<IWebHost> _HostBuilder;
 		public StoppableWebHost(Func<IWebHost> builder)
 		{
-			if(builder == null)
-				throw new ArgumentNullException("builder");
-			_HostBuilder = builder;
+            _HostBuilder = builder ?? throw new ArgumentNullException("builder");
 		}
 		public override string Name => "tumbler";
 
@@ -27,7 +25,7 @@ namespace NTumbleBit
 				try
 				{
 					host = _HostBuilder();
-					host.Run(cancellationToken);
+					host.RunAsync(cancellationToken).GetAwaiter().GetResult();
 				}
 				catch(Exception ex)
 				{

@@ -15,9 +15,7 @@ namespace NTumbleBit.ClassicTumbler.Client
 		public StateMachinesExecutor(
 			TumblerClientRuntime runtime)
 		{
-			if(runtime == null)
-				throw new ArgumentNullException("runtime");
-			Runtime = runtime;
+            Runtime = runtime ?? throw new ArgumentNullException("runtime");
 			_ParametersHash = Runtime.TumblerParameters.GetHash();
 		}
 
@@ -49,7 +47,7 @@ namespace NTumbleBit.ClassicTumbler.Client
 						lastBlock = Runtime.Services.BlockExplorerService.WaitBlock(lastBlock, cancellationToken);
 						var height = Runtime.Services.BlockExplorerService.GetCurrentHeight();
 						Logs.Client.LogInformation("New Block: " + height);
-						var cycle = Runtime.TumblerParameters.CycleGenerator.GetRegistratingCycle(height);
+						var cycle = Runtime.TumblerParameters.CycleGenerator.GetRegisteringCycle(height);
 						if(lastCycle != cycle.Start)
 						{
 							lastCycle = cycle.Start;
