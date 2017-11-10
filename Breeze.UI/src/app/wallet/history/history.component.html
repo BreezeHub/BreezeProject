@@ -1,0 +1,53 @@
+<section id="breeze">
+  <!-- CONTENT -->
+  <section id="content" class="bitcoin">
+    <!-- JUMBOTRON-->
+    <!--<div class="jumbotron jumbotron-fluid">
+      <div class="container">
+        <div class="row">
+          <div class="col d-flex justify-content-center">
+            <form class="col-md-6 col-xs-12">
+              <h5 class="text-uppercase text-center">Search for a transaction</h5>
+              <div class="form-group">
+                <input type="email" class="form-control mt-3" id="searchEmail" aria-describedby="emailHelp" placeholder="tax ID, amount, block number, ...">
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>-->
+    <!-- /JUMBOTRON-->
+
+    <!-- TRANSACTIONS -->
+    <section id="transaction" class="container">
+      <h5>Transactions</h5>
+      <div *ngIf="transactions; else noTransactions">
+        <div *ngFor="let transaction of transactions">
+          <div class="card" (click)="openTransactionDetailDialog(transaction)">
+            <div class="card-block text-nowrap">
+                <ul class="list-inline row">
+                  <li class="list-inline-item hidden-xs-down col-3 text-uppercase align-bottom">{{ transaction.transactionType }}</li>
+                  <li class="list-inline-item col-4 amount text-left align-baseline">
+                    <span *ngIf="transaction.transactionType == 'received'" class="text-success">+</span>
+                    <span *ngIf="transaction.transactionType == 'sent'" class="text-danger">-</span>
+                    {{ transaction.transactionAmount + transaction.transactionFee | coinNotation }}
+                    <small class="text-uppercase"> {{ coinUnit }} </small>
+                    <span *ngIf="transaction.transactionConfirmedInBlock" class="badge badge-success text-capitalize">Confirmed</span>
+                    <span *ngIf="!transaction.transactionConfirmedInBlock" class="badge badge-warning text-capitalize">Pending</span>
+                  </li>
+                  <li class="list-inline-item col text-right align-baseline transactionDate">{{ transaction.transactionTimestamp * 1000 | date:'medium' }}</li>
+                </ul>
+              </div>
+          </div>
+        </div>
+      </div>
+      <!-- /card-->
+      <div>
+        <ng-template #noTransactions><em class="muted">Looks like you haven't made any transactions yet.</em></ng-template>
+      </div>
+    </section>
+    <!-- /TRANSACTIONS -->
+  </section>
+  <!-- /CONTENT-->
+</section>
+<!-- /breeze-->

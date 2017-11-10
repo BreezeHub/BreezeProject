@@ -1,0 +1,104 @@
+<section id="breeze">
+  <!-- CONTENT -->
+  <div id="content" class="bitcoin">
+    <div class="container" id="Tumblebit">
+      <div class="row d-flex align-items-center">
+        <!-- left column -->
+        <div class="col-xs-12 col-sm-6 text-center">
+          <div class="col-10 my-4 offset-1">
+            <i *ngIf="!tumbling" class="icon-tumblebit my-4 OFF"></i>
+            <i *ngIf="tumbling" class="icon-tumblebit my-4 ON"></i>
+            <p class="help mt-4">The Breeze Privacy Protocol takes an amount of Bitcoin at a time, shuffles and swaps it with other coins, then transfers it to your destination wallet.  It can take some time to transfer several coins.</p>
+          </div>
+          <form class="col-10 my-4 offset-1" [formGroup]="tumbleForm">
+            <div class="row" *ngIf="!tumbling">
+              <label class="col-12 text-left" for="">Destination wallet</label>
+            </div>
+            <div class="form-group mb-4">
+              <select *ngIf="!tumbling" class="form-control custom-select" formControlName="selectWallet">
+                <option value="" disabled selected>Please select a destination wallet...</option>
+                <option *ngFor="let wallet of wallets" [value]="wallet">{{ wallet }}</option>
+              </select>
+            </div>
+            <button type="button" class="btn btn-lg btn-primary mt-4" (click)="startTumbling()" [disabled]="((!isConnected && !tumbling) || !hasRegistrations) || !isSynced" *ngIf="!tumbling">Start</button>
+            <button type="button" class="btn btn-danger mt-2" (click)="stopTumbling()" [disabled]="(!isConnected && tumbling) || !isSynced" *ngIf="tumbling">Stop</button>
+            <!-- <button type="button" class="btn btn-lg btn-primary mt-4" (click)="tumbleClicked()" [disabled]="(!isConnected && !tumbling) || !isSynced">{{ tumbling ? "Stop" : "Start" }}</button> -->
+            <p class="help mt-4" *ngIf="!isSynced">Please wait until the wallet is fully synced.</p>
+            <p class="help mt-4" *ngIf="!isConnected">Please wait until the wallet is connected.</p>
+            <p class="help mt-4" *ngIf="!hasRegistrations">Not enough masternodes registered to start the Breeze Privacy Protocol. Please wait.</p>
+          </form>
+        </div>
+        <!-- /left column-->
+
+        <!-- right column -->
+        <div class="col-xs-12 col-sm-6">
+          <!-- table 1 -->
+          <table class="table">
+            <thead>
+              <tr>
+                <th *ngIf="isConnected">Connection <span class="badge badge-success float-right">Online</span></th>
+                <th *ngIf="!isConnected">Connection <span class="badge badge-danger float-right">Offline</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  <code data-toggle="tooltip" data-placement="top" title="{{ tumblerAddress }}">{{ tumblerAddress }}</code>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <!-- /table 1-->
+          <!-- table 2 -->
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Balance</th>
+                <th>Source</th>
+                <th>Destination</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Available</td>
+                <td>{{ confirmedBalance | coinNotation }}</td>
+                <td>{{ (destinationConfirmedBalance | coinNotation) || "Select destination wallet" }}</td>
+              </tr>
+              <tr>
+                <td>Pending</td>
+                <td>{{ unconfirmedBalance | coinNotation }}</td>
+                <td>{{ (destinationUnconfirmedBalance | coinNotation) || "Select destination wallet" }}</td>
+              </tr>
+              <tr class="total">
+                <td>Total</td>
+                <td>{{ totalBalance | coinNotation }}</td>
+                <td>{{ (destinationTotalBalance | coinNotation) || "Select destination wallet" }}</td>
+              </tr>
+            </tbody>
+          </table>
+          <!-- /table 2-->
+          <!-- table 3 -->
+          <table class="table" *ngIf="isConnected">
+            <tbody>
+              <tr>
+                <td><strong>Estimate</strong>{{ estimate | number:'1.2-2' }} Hours</td>
+              </tr>
+              <tr>
+                <td><strong>Fee</strong> {{ fee | number:'1.2-2' }}%</td>
+              </tr>
+              <tr>
+                <td><strong>Denomination</strong> {{ denomination }} TBTC</td>
+              </tr>
+            </tbody>
+          </table>
+          <!-- /table 3-->
+          <label class="float-right" for=""><em>Powered by TumbleBit and Stratis Blockchain Technology</em></label>
+        </div>
+        <!-- /right column -->
+
+      </div><!--/row -->
+    </div><!-- /container -->
+  </div><!-- /#content -->
+  <!-- /CONTENT-->
+</section>
+<!-- /breeze-->

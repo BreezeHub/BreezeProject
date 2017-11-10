@@ -1,0 +1,16 @@
+{
+  "profiles": {
+    "Breeze.Daemon Main": {
+      "commandName": "Project",
+      "commandLineArgs": "light -testnet -tumblebit -ppuri=ctb://t4cqwqlvswcyyagg.onion?h=f2c96151dc6a76a906d683a20e40e1b8ac01e8b6"
+    },
+    "Breeze.Daemon TestNet": {
+      "commandName": "Project",
+      "commandLineArgs": "-testnet -tumbler-uri=http://localhost:5050 light -debug=all -loglevel=debug"
+    },
+    "StratisTest": {
+      "commandName": "Project",
+      "commandLineArgs": "stratis -testnet"
+    }
+  }
+}

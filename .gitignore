@@ -255,6 +255,10 @@ TestData/
 
 # dependencies
 **/node_modules
+<<<<<<< HEAD
+=======
+package-lock.json
+>>>>>>> breeze/tumblebit-alpha
 
 # IDEs and editors
 /.idea
@@ -285,3 +289,26 @@ testem.log
 #System Files
 .DS_Store
 Thumbs.db
+
+# ORIGINAL .gitignore STARTS HERE
+
+################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/Breeze.Api/.vs
+/Breeze.Api/src/Breeze.Api.Tests/bin
+/Breeze.Api/src/Breeze.Api.Tests/obj
+/Breeze.Api/src/Breeze.Api/bin
+/Breeze.Api/src/Breeze.Api/obj
+*.user
+/Breeze.Api/src/Breeze.Api/Wallets
+/Breeze.Api/src/Breeze.Wallet/bin
+/Breeze.Api/src/Breeze.Wallet/obj
+
+# DNX
+project.lock.json
+/Breeze/src/Breeze.Daemon/Wallets
+/Breeze/src/Breeze.Daemon/Logs
+/Breeze.UI/.vscode/.BROWSE.VC.DB-wal
+/Breeze.UI/.vscode/.BROWSE.VC.DB-shm

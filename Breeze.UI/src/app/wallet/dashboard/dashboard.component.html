@@ -1,0 +1,83 @@
+ <section id="breeze">
+  <!-- CONTENT -->
+  <section id="content" class="bitcoin">
+    <!-- JUMBOTRON-->
+    <div class="jumbotron jumbotron-fluid">
+      <div class="container">
+        <div class="col-xs-12 text-left">
+          <h5 class="text-capitalize walletName">{{ walletName }}</h5>
+        </div>
+        <div class="row d-flex align-items-center">
+          <div class="col-md-4 text-left">
+            <h5>Active balance</h5>
+            <p class="lead">
+              <!--<strong><span class="h2">29</span>.76500293</strong>-->
+              <strong>{{ (confirmedBalance | coinNotation) || (0 | coinNotation) }}</strong>
+              <small class="text-uppercase"> {{ coinUnit }}</small>
+            </p>
+          </div>
+          <!-- /col-->
+          <!--<div class="col-xs-12 col-md-4 text-left">
+            <h5>Current value</h5>
+            <p class="lead">
+              <i class="icon-coin-dollar"></i>
+              <strong><span class="h2">51,390</span></strong>
+              <small class="text-uppercase">usd</small>
+            </p>
+          </div>-->
+          <div class="col-md-4 text-left">
+            <h5>Unconfirmed balance</h5>
+            <p class="lead">
+              <strong>{{ (unconfirmedBalance | coinNotation) || (0 | coinNotation) }}</strong>
+              <small class="text-uppercase"> {{ coinUnit }}</small>
+            </p>
+          </div>
+          <!-- /col-->
+          <div class="col-md-4 text-right">
+            <p>
+              <a class="btn btn-secondary" data-toggle="modal" data-target="#modalReceive" role="button" (click)="openReceiveDialog()">Receive</a>
+              <a class="btn btn-primary ml-2" data-toggle="modal" data-target="#modalSend" role="button" (click)="openSendDialog()">Send</a>
+            </p>
+          </div>
+          <!-- /col-->
+        </div>
+        <!-- /row-->
+      </div>
+      <!-- /container-->
+    </div>
+    <!-- /JUMBOTRON-->
+
+    <!-- TRANSACTIONS -->
+    <section id="transaction" class="container">
+      <h5>Latest Transactions</h5>
+      <div *ngIf="transactionArray; else noTransactions">
+        <div *ngFor="let transaction of transactionArray; let i=index">
+          <div class="card" *ngIf="i<3" (click)="openTransactionDetailDialog(transaction)">
+            <div class="card-block text-nowrap">
+              <ul class="list-inline row">
+                <li class="list-inline-item hidden-xs-down col-2 text-uppercase align-bottom">{{ transaction.transactionType }}</li>
+                <li class="list-inline-item col-3 amount text-left align-baseline">
+                  <span *ngIf="transaction.transactionType == 'received'" class="text-success">+</span>
+                  <span *ngIf="transaction.transactionType == 'sent'" class="text-danger">-</span>
+                  {{ transaction.transactionAmount + transaction.transactionFee | coinNotation }}
+                  <small class="text-uppercase">{{ coinUnit }}</small>
+                </li>
+                <li class="list-inline-item col amount text-left align-baseline">
+                  <span *ngIf="transaction.transactionConfirmedInBlock" class="badge badge-success text-capitalize">Confirmed</span>
+                  <span *ngIf="!transaction.transactionConfirmedInBlock" class="badge badge-warning text-capitalize">Pending</span>
+                </li>
+                <li class="list-inline-item col-3 text-right align-baseline transactionDate">{{ transaction.transactionTimestamp * 1000 | date:'medium' }}</li>
+              </ul>
+            </div>
+          </div>
+          <!-- /card-->
+        </div>
+      </div>
+      <ng-template #noTransactions><em class="muted">Looks like you haven't made any transactions yet.</em></ng-template>
+    </section>
+    <!-- /TRANSACTIONS -->
+    <status-bar></status-bar>
+  </section>
+  <!-- /CONTENT-->
+</section>
+<!-- /breeze-->

@@ -1,0 +1,25 @@
+<div id="modalReceive" tabindex="-1" role="dialog" aria-labelledby="modal_receive" aria-hidden="true">
+  <div class="modal-dialog modalBg" role="document">
+    <div>
+      <div class="modal-header">
+        <div class="bubble"><i class="icon-download"></i></div>
+      </div>
+      <div class="modal-body">
+        <h5 class="modal-title text-uppercase" id="modalReceive">Receive</h5>
+        <form>
+          <div class="form-group clearfix">
+            <label class="float-left" for="yourAddress">Your address</label>
+            <span class="float-right"><a ngxClipboard [cbContent]="address" (click)="onCopiedClick()">copy</a></span>
+          </div>
+          <div class="myAddress"><code>{{ address }}</code></div>
+          <div class="text-center" *ngIf="copied">
+            <span class="badge badge-success col">Your address has been copied to your clipboard.</span>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-lg btn-primary" data-dismiss="modal" aria-label="Close" (click)="activeModal.close('Close click')">OK</button>
+      </div>
+    </div>
+  </div>
+</div>
