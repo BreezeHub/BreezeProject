@@ -1,0 +1,24 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.0</TargetFramework>
+    <PreserveCompilationContext>true</PreserveCompilationContext>
+    <AssemblyName>NTumbleBit.TumblerServer</AssemblyName>
+	<OutputType>Exe</OutputType>
+    <PackageId>NTumbleBit.TumblerServer</PackageId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Update="wwwroot\**\*">
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\NTumbleBit\NTumbleBit.csproj" />
+    <ProjectReference Include="..\..\..\NStratis\NBitcoin\NBitcoin.csproj" />
+    <ProjectReference Include="..\..\..\NStratis\Hashing\HashLib\HashLib.csproj" />
+  </ItemGroup>
+
+
+</Project>
