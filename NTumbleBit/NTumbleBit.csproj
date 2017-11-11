@@ -18,8 +18,8 @@
 		<PackageReference Include="TCPServer" Version="1.0.13" />
 	</ItemGroup>
 	<ItemGroup>
-        <ProjectReference Include="..\..\..\NStratis\Hashing\HashLib\HashLib.csproj" />
-        <ProjectReference Include="..\..\..\NStratis\NBitcoin\NBitcoin.csproj" />
+        <ProjectReference Include="..\NStratis\Hashing\HashLib\HashLib.csproj" />
+        <ProjectReference Include="..\NStratis\NBitcoin\NBitcoin.csproj" />
 	</ItemGroup>
 	<ItemGroup>
 		<Compile Update="Properties\Resources.Designer.cs">
@@ -34,5 +34,4 @@
 			<LastGenOutput>Resources.Designer.cs</LastGenOutput>
 		</EmbeddedResource>
 	</ItemGroup>
->>>>>>> ab279995c87772aefca3385736f03be8f871538a
 </Project>

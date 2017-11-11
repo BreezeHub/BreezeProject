@@ -57,93 +57,6 @@ namespace NTumbleBit.ClassicTumbler.Client
 			interaction = interaction ?? new AcceptAllClientInteraction();
 			Network = configuration.Network;
 
-<<<<<<< HEAD
-            // if connectiontest then just test the connection, don't care about anything else
-            // todo: refactor it in NTumbleBit for proper connectionTest, it's hacking
-            if (connectionTest)
-            {
-                TumblerServer = configuration.TumblerServer;
-                BobSettings = configuration.BobConnectionSettings;
-                AliceSettings = configuration.AliceConnectionSettings;
-                AllowInsecure = configuration.AllowInsecure;
-                if (this.TumblerServer.IsOnion)
-                    await SetupTorAsync(interaction, configuration.TorPath).ConfigureAwait(false);
-                else if (configuration.TorMandatory)
-                    throw new ConfigException("The tumbler server should use TOR");
-                var client = CreateTumblerClient(0);
-                TumblerParameters = Retry(3, () => client.GetTumblerParameters());
-                if (TumblerParameters == null)
-                    throw new ConfigException("Unable to download tumbler's parameters");                
-                return;
-            }
-
-            Repository = configuration.DBreezeRepository;
-            _Disposables.Add(Repository);
-            Tracker = configuration.Tracker;
-            Services = configuration.Services;
-
-            if (!configuration.OnlyMonitor)
-            {
-                TumblerServer = configuration.TumblerServer;
-                BobSettings = configuration.BobConnectionSettings;
-                AliceSettings = configuration.AliceConnectionSettings;
-                AllowInsecure = configuration.AllowInsecure;
-
-                if (this.TumblerServer.IsOnion)
-                    await SetupTorAsync(interaction, configuration.TorPath).ConfigureAwait(false);
-                else if (configuration.TorMandatory)
-                    throw new ConfigException("The tumbler server should use TOR");
-
-                Cooperative = configuration.Cooperative;
-
-                DestinationWallet = configuration.DestinationWallet;
-
-                try
-                {
-                    TumblerParameters = Repository.Get<ClassicTumblerParameters>("Configuration", configuration.TumblerServer.ToString());
-                }
-                catch
-                {
-                    TumblerParameters = null;
-                }
-                if (TumblerParameters != null && TumblerParameters.GetHash() != configuration.TumblerServer.ConfigurationHash)
-                    TumblerParameters = null;
-
-                var client = CreateTumblerClient(0);
-
-                Logs.Configuration.LogInformation("Downloading tumbler information of " + configuration.TumblerServer.ToString());
-                var parameters = Retry(3, () => client.GetTumblerParameters());
-                if (parameters == null)
-                    throw new ConfigException("Unable to download tumbler's parameters");
-
-                if (parameters.GetHash() != configuration.TumblerServer.ConfigurationHash)
-                    throw new ConfigException("The tumbler returned an invalid configuration");
-
-                var standardCycles = new StandardCycles(configuration.Network);
-                var standardCycle = standardCycles.GetStandardCycle(parameters);
-                if (parameters.ExpectedAddress != TumblerServer.GetRoutableUri(false).AbsoluteUri)
-                    throw new ConfigException("This tumbler has parameters used for an unexpected uri");
-                Logs.Configuration.LogInformation("Checking RSA key proof and standardness of the settings...");
-                if (standardCycle == null || !parameters.IsStandard())
-                {
-                    Logs.Configuration.LogWarning("This tumbler has non standard parameters");
-                    if (!AllowInsecure)
-                        throw new ConfigException("This tumbler has non standard parameters");
-                    standardCycle = null;
-                }
-
-                await interaction.ConfirmParametersAsync(parameters, standardCycle).ConfigureAwait(false);
-
-                if (TumblerParameters == null)
-                {
-                    Repository.UpdateOrInsert("Configuration", TumblerServer.ToString(), parameters, (o, n) => n);
-                    TumblerParameters = parameters;
-                    Logs.Configuration.LogInformation("Tumbler parameters saved");
-                }
-
-                Logs.Configuration.LogInformation($"Using tumbler {TumblerServer.ToString()}");
-            }
-=======
 			RPCClient rpc = null;
 			try
 			{
@@ -216,7 +129,6 @@ namespace NTumbleBit.ClassicTumbler.Client
 
 				Logs.Configuration.LogInformation($"Using tumbler {TumblerServer.ToString()}");
 			}
->>>>>>> ab279995c87772aefca3385736f03be8f871538a
 		}
 
 		private async Task SetupTorAsync(ClientInteraction interaction, string torPath)

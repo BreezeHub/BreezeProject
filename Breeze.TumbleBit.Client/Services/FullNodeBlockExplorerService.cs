@@ -7,7 +7,7 @@ using NBitcoin;
 using Newtonsoft.Json.Linq;
 using NBitcoin.DataEncoders;
 using System.Threading;
-using NTumbleBit.Services;
+using NTumbleBit;
 using Stratis.Bitcoin;
 using Stratis.Bitcoin.Features.Wallet;
 using Stratis.Bitcoin.Features.WatchOnlyWallet;
@@ -15,7 +15,7 @@ using System.Collections.Concurrent;
 
 namespace Breeze.TumbleBit.Client.Services
 {
-    public class FullNodeBlockExplorerService : IBlockExplorerService
+    public class FullNodeBlockExplorerService : NTumbleBit.Services.IBlockExplorerService
     {
         private FullNodeWalletCache Cache { get; }
         private TumblingState TumblingState { get; }

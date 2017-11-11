@@ -3,10 +3,8 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using Microsoft.Extensions.Logging;
-<<<<<<< HEAD
 using NBitcoin;
 using NBitcoin.RPC;
-=======
 using NTumbleBit.Logging;
 using System.Net;
 using NTumbleBit.Configuration;
@@ -16,7 +14,6 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
->>>>>>> ab279995c87772aefca3385736f03be8f871538a
 using NTumbleBit.ClassicTumbler.Client.ConnectionSettings;
 using NTumbleBit.Configuration;
 using NTumbleBit.Logging;
