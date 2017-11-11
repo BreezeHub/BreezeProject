@@ -112,7 +112,7 @@ namespace Stratis.Bitcoin.Features.WatchOnlyWallet
         /// <inheritdoc />
         public void ProcessBlock(Block block)
         {
-            this.logger.LogDebug($"Watch only wallet received block with hash: {block.Header.GetHash()}, coin: {this.coinType}");
+            //this.logger.LogDebug($"Watch only wallet received block with hash: {block.Header.GetHash()}, coin: {this.coinType}");
 
             foreach (Transaction transaction in block.Transactions)
             {
@@ -124,7 +124,7 @@ namespace Stratis.Bitcoin.Features.WatchOnlyWallet
         public void ProcessTransaction(Transaction transaction, Block block = null)
         {
             var transactionHash = transaction.GetHash();
-            this.logger.LogDebug($"watch only wallet received transaction - hash: {transactionHash}, coin: {this.coinType}");
+            //this.logger.LogDebug($"watch only wallet received transaction - hash: {transactionHash}, coin: {this.coinType}");
 
             // Check the transaction outputs for transactions we might be interested in.
             foreach (TxOut utxo in transaction.Outputs)

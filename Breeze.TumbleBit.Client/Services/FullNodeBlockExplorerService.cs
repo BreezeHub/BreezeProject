@@ -12,10 +12,11 @@ using Stratis.Bitcoin;
 using Stratis.Bitcoin.Features.Wallet;
 using Stratis.Bitcoin.Features.WatchOnlyWallet;
 using System.Collections.Concurrent;
+using NTumbleBit.Services;
 
 namespace Breeze.TumbleBit.Client.Services
 {
-    public class FullNodeBlockExplorerService : NTumbleBit.Services.IBlockExplorerService
+    public class FullNodeBlockExplorerService : IBlockExplorerService
     {
         private FullNodeWalletCache Cache { get; }
         private TumblingState TumblingState { get; }
@@ -41,6 +42,27 @@ namespace Breeze.TumbleBit.Client.Services
                 }
                 cancellation.WaitHandle.WaitOne(5000);
             }
+        }
+
+        public TransactionInformation GetTransaction(uint256 txId, bool withProof)
+        {
+            if (txId == null)
+                throw new ArgumentNullException(nameof(txId));
+
+            // Perform the search synchronously
+            foreach (var output in Task.Run(Cache.FindAllTransactionsAsync).Result)
+            {
+                if (output.Transaction.GetHash() == txId)
+                {
+                    if (withProof && output.MerkleProof == null)
+                        return null;
+
+                    return output;
+                }
+            }
+
+            // In the original code null gets returned if the transaction isn't found
+            return null;
         }
 
         public async Task<ICollection<TransactionInformation>> GetTransactionsAsync(Script scriptPubKey, bool withProof)
