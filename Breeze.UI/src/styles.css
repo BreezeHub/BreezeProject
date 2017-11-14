@@ -903,6 +903,20 @@ input.cmn-toggle-round-flat:checked + label:after {
   color: #878685;
 }
 
+#Tumblebit .cycle ul {
+  margin: .75rem 0 .25rem 0;
+}
+
+#Tumblebit .cycle .cycle-number {
+  font-size: .85em;
+  color: #878685;
+}
+
+#Tumblebit .cycle .phase {
+  color: #98A3B3;
+  font-size: .85em;
+}
+
 .loaderContainer {
   padding: 5em 0;
   display: block;
