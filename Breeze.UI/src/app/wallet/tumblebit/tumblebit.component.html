@@ -5,12 +5,12 @@
       <div class="row d-flex align-items-center">
         <!-- left column -->
         <div class="col-xs-12 col-sm-6">
-          <div class="col-10 my-4 mx-auto text-center">
+          <div class="col-11 my-4 mx-auto text-center">
             <i *ngIf="!tumbling" class="icon-tumblebit my-4 OFF"></i>
             <i *ngIf="tumbling" class="icon-tumblebit my-4 ON"></i>
             <p class="help mt-4">The Breeze Privacy Protocol takes an amount of Bitcoin at a time, shuffles and swaps it with other coins, then transfers it to your destination wallet.  It can take some time to transfer several coins.</p>
           </div>
-          <form class="col-10 my-4 mx-auto text-center" [formGroup]="tumbleForm">
+          <form class="col-11 my-4 mx-auto text-center" [formGroup]="tumbleForm">
             <div class="row" *ngIf="!tumbling">
               <label class="col-12 text-left" for="">Destination wallet</label>
             </div>
