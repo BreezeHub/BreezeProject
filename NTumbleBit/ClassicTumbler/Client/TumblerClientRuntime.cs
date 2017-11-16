@@ -57,78 +57,91 @@ namespace NTumbleBit.ClassicTumbler.Client
 			interaction = interaction ?? new AcceptAllClientInteraction();
 			Network = configuration.Network;
 
-			RPCClient rpc = null;
-			try
-			{
-				rpc = configuration.RPCArgs.ConfigureRPCClient(configuration.Network);
-			}
-			catch
-			{
-				throw new ConfigException("Please, fix rpc settings in " + configuration.ConfigurationFile);
-			}
+            // if connectiontest then just test the connection, don't care about anything else
+            // todo: refactor it in NTumbleBit for proper connectionTest, it's hacking
+            if (connectionTest)
+            {
+                TumblerServer = configuration.TumblerServer;
+                BobSettings = configuration.BobConnectionSettings;
+                AliceSettings = configuration.AliceConnectionSettings;
+                AllowInsecure = configuration.AllowInsecure;
+                if (this.TumblerServer.IsOnion)
+                    await SetupTorAsync(interaction, configuration.TorPath).ConfigureAwait(false);
+                else if (configuration.TorMandatory)
+                    throw new ConfigException("The tumbler server should use TOR");
+                var client = CreateTumblerClient(0);
+                TumblerParameters = Retry(3, () => client.GetTumblerParameters());
+                if (TumblerParameters == null)
+                    throw new ConfigException("Unable to download tumbler's parameters");                
+                return;
+            }
 
-			var dbreeze = new DBreezeRepository(Path.Combine(configuration.DataDir, "db2"));
-			Cooperative = configuration.Cooperative;
-			Repository = dbreeze;
-			_Disposables.Add(dbreeze);
-			Tracker = new Tracker(dbreeze, Network);
-			Services = ExternalServices.CreateFromRPCClient(rpc, dbreeze, Tracker, false);
+            Repository = configuration.DBreezeRepository;
+            _Disposables.Add(Repository);
+            Tracker = configuration.Tracker;
+            Services = configuration.Services;
 
-			if(configuration.OutputWallet.RootKey != null && configuration.OutputWallet.KeyPath != null)
-				DestinationWallet = new ClientDestinationWallet(configuration.OutputWallet.RootKey, configuration.OutputWallet.KeyPath, dbreeze, configuration.Network);
-			else if(configuration.OutputWallet.RPCArgs != null)
-			{
-				try
-				{
-					DestinationWallet = new RPCDestinationWallet(configuration.OutputWallet.RPCArgs.ConfigureRPCClient(Network));
-				}
-				catch
-				{
-					throw new ConfigException("Please, fix outputwallet rpc settings in " + configuration.ConfigurationFile);
-				}
-			}
-			else
-				throw new ConfigException("Missing configuration for outputwallet");
+            if (!configuration.OnlyMonitor)
+            {
+                TumblerServer = configuration.TumblerServer;
+                BobSettings = configuration.BobConnectionSettings;
+                AliceSettings = configuration.AliceConnectionSettings;
+                AllowInsecure = configuration.AllowInsecure;
 
-			TumblerParameters = dbreeze.Get<ClassicTumbler.ClassicTumblerParameters>("Configuration", TumblerServer.ToString());
+                if (this.TumblerServer.IsOnion)
+                    await SetupTorAsync(interaction, configuration.TorPath).ConfigureAwait(false);
+                else if (configuration.TorMandatory)
+                    throw new ConfigException("The tumbler server should use TOR");
 
-			if(TumblerParameters != null && TumblerParameters.GetHash() != configuration.TumblerServer.ConfigurationHash)
-				TumblerParameters = null;
+                Cooperative = configuration.Cooperative;
 
-			if(!configuration.OnlyMonitor)
-			{
-				var client = CreateTumblerClient(0);
-				if(TumblerParameters == null)
-				{
-					Logs.Configuration.LogInformation("Downloading tumbler information of " + configuration.TumblerServer.ToString());
-					var parameters = Retry(3, () => client.GetTumblerParameters());
+                DestinationWallet = configuration.DestinationWallet;
 
-					if(parameters.GetHash() != configuration.TumblerServer.ConfigurationHash)
-						throw new ConfigException("The tumbler returned an invalid configuration");
+                try
+                {
+                    TumblerParameters = Repository.Get<ClassicTumblerParameters>("Configuration", configuration.TumblerServer.ToString());
+                }
+                catch
+                {
+                    TumblerParameters = null;
+                }
+                if (TumblerParameters != null && TumblerParameters.GetHash() != configuration.TumblerServer.ConfigurationHash)
+                    TumblerParameters = null;
 
-					var standardCycles = new StandardCycles(configuration.Network);
-					var standardCycle = standardCycles.GetStandardCycle(parameters);
-					if(parameters.ExpectedAddress != TumblerServer.GetRoutableUri(false).AbsoluteUri)
-						throw new ConfigException("This tumbler has parameters used for an unexpected uri");
-					Logs.Configuration.LogInformation("Checking RSA key proof and standardness of the settings...");
-					if(standardCycle == null || !parameters.IsStandard())
-					{
-						Logs.Configuration.LogWarning("This tumbler has non standard parameters");
-						if(!AllowInsecure)
-							throw new ConfigException("This tumbler has non standard parameters");
-						standardCycle = null;
-					}
+                var client = CreateTumblerClient(0);
 
-					await interaction.ConfirmParametersAsync(parameters, standardCycle).ConfigureAwait(false);
+                Logs.Configuration.LogInformation("Downloading tumbler information of " + configuration.TumblerServer.ToString());
+                var parameters = Retry(3, () => client.GetTumblerParameters());
+                if (parameters == null)
+                    throw new ConfigException("Unable to download tumbler's parameters");
 
-					Repository.UpdateOrInsert("Configuration", TumblerServer.ToString(), parameters, (o, n) => n);
-					TumblerParameters = parameters;
+                if (parameters.GetHash() != configuration.TumblerServer.ConfigurationHash)
+                    throw new ConfigException("The tumbler returned an invalid configuration");
 
-					Logs.Configuration.LogInformation("Tumbler parameters saved");
-				}
+                var standardCycles = new StandardCycles(configuration.Network);
+                var standardCycle = standardCycles.GetStandardCycle(parameters);
+                if (parameters.ExpectedAddress != TumblerServer.GetRoutableUri(false).AbsoluteUri)
+                    throw new ConfigException("This tumbler has parameters used for an unexpected uri");
+                Logs.Configuration.LogInformation("Checking RSA key proof and standardness of the settings...");
+                if (standardCycle == null || !parameters.IsStandard())
+                {
+                    Logs.Configuration.LogWarning("This tumbler has non standard parameters");
+                    if (!AllowInsecure)
+                        throw new ConfigException("This tumbler has non standard parameters");
+                    standardCycle = null;
+                }
 
-				Logs.Configuration.LogInformation($"Using tumbler {TumblerServer.ToString()}");
-			}
+                await interaction.ConfirmParametersAsync(parameters, standardCycle).ConfigureAwait(false);
+
+                if (TumblerParameters == null)
+                {
+                    Repository.UpdateOrInsert("Configuration", TumblerServer.ToString(), parameters, (o, n) => n);
+                    TumblerParameters = parameters;
+                    Logs.Configuration.LogInformation("Tumbler parameters saved");
+                }
+
+                Logs.Configuration.LogInformation($"Using tumbler {TumblerServer.ToString()}");
+            }
 		}
 
 		private async Task SetupTorAsync(ClientInteraction interaction, string torPath)
