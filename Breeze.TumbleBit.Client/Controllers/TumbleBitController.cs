@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Breeze.TumbleBit.Client;
+using Breeze.TumbleBit.Client.Models;
 using Breeze.TumbleBit.Models;
 using NBitcoin;
 using NTumbleBit.ClassicTumbler;
@@ -219,5 +221,31 @@ namespace Breeze.TumbleBit.Controllers
                 return ErrorHelpers.BuildErrorResponse(HttpStatusCode.InternalServerError, "Unable to generate block", "Unable to generate block");
             }
         }
-    }
+
+	    /// <summary>
+	    /// Tumbling Progress expressed as json.
+	    /// </summary>
+	    [Route("progress")]
+	    [HttpGet]
+	    public async Task<IActionResult> ProgressAsync()
+	    {
+		    try
+		    {
+			    string folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "breeze-ui");
+			    if (!Directory.Exists(folder)) Directory.CreateDirectory(folder);
+			    string filename = Path.Combine(folder, "tb_progress.json");
+			    if (System.IO.File.Exists(filename) == false)
+				    return this.Json(string.Empty);
+			    else
+			    {
+				    string progress = await System.IO.File.ReadAllTextAsync(filename).ConfigureAwait(false);
+				    return this.Json(progress);
+			    }
+		    }
+			catch (Exception e)
+		    {
+			    return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, $"Could not get progress.", e.ToString());
+		    }
+	    }
+	}
 }

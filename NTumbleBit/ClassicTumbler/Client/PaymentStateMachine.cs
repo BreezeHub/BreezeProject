@@ -172,7 +172,7 @@ namespace NTumbleBit.ClassicTumbler.Client
 			get; set;
 		}
 
-		public void Update()
+		public CycleProgressInfo Update()
 		{
 			int height = Services.BlockExplorerService.GetCurrentHeight();
 			CycleParameters cycle;
@@ -195,10 +195,9 @@ namespace NTumbleBit.ClassicTumbler.Client
 					CyclePhase.ClientCashoutPhase
 				};
 				if(!phases.Any(p => cycle.IsInPhase(p, height)))
-					return;
+					return null;
 				phase = phases.First(p => cycle.IsInPhase(p, height));
 			}
-
 
 			Logs.Client.LogInformation(Environment.NewLine);
 			var period = cycle.GetPeriods().GetPeriod(phase);
@@ -206,6 +205,8 @@ namespace NTumbleBit.ClassicTumbler.Client
 			Logs.Client.LogInformation($"Cycle {cycle.Start} ({Status})");
 			Logs.Client.LogInformation($"{cycle.ToString(height)} in phase {phase} ({blocksLeft} more blocks)");
 			var previousState = Status;
+
+			var progressInfo = new CycleProgressInfo(period, height, blocksLeft, cycle.Start, Status, phase, $"{cycle.ToString(height)} in phase {phase} ({blocksLeft} more blocks)");
 
 			TumblerClient bob = null, alice = null;
 			try
@@ -510,8 +511,8 @@ namespace NTumbleBit.ClassicTumbler.Client
 				if(bob != null)
 					bob.Dispose();
 			}
+			return progressInfo;
 		}
-
 
 		public bool ShouldStayConnected()
 		{

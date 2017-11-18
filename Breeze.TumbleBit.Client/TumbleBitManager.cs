@@ -24,6 +24,7 @@ using Stratis.Bitcoin;
 using Stratis.Bitcoin.Features.Wallet.Interfaces;
 using Stratis.Bitcoin.Interfaces;
 using System.IO;
+using NTumbleBit;
 
 namespace Breeze.TumbleBit.Client
 {
@@ -122,6 +123,10 @@ namespace Breeze.TumbleBit.Client
 	        {
 		        this.tumblingState.Save();
 	        }
+
+			//remove and progress file from previous session
+			//as it is now stale
+			ProgressInfo.RemoveProgressFile();
         }
 
         public async Task<bool> BlockGenerate(int numberOfBlocks)

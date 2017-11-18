@@ -61,6 +61,8 @@ namespace NTumbleBit.ClassicTumbler.Client
 							}
 						}
 
+						var progressInfo = new ProgressInfo(height);
+
 						var cycles = Runtime.TumblerParameters.CycleGenerator.GetCycles(height);
 						var machineStates = cycles
 												.SelectMany(c => Runtime.Repository.List<PaymentStateMachine.State>(GetPartitionKey(c.Start)))
@@ -92,8 +94,10 @@ namespace NTumbleBit.ClassicTumbler.Client
 							var statusBefore = machine.GetInternalState();
 							try
 							{
-								machine.Update();
+								var cycleProgressInfo = machine.Update();
 								InvalidPhaseCount = 0;
+								if (cycleProgressInfo != null)
+									progressInfo.CycleProgressInfoList.Add(cycleProgressInfo);
 							}
 							catch(PrematureRequestException)
 							{
@@ -116,10 +120,13 @@ namespace NTumbleBit.ClassicTumbler.Client
 							{
 								Logs.Client.LogError(new EventId(), ex, "Unhandled StateMachine Error");
 							}
+
 							Save(machine);
 						}
+
+						progressInfo.Save();
 					}
-					catch(OperationCanceledException) when(cancellationToken.IsCancellationRequested)
+					catch (OperationCanceledException) when(cancellationToken.IsCancellationRequested)
 					{
 						Stopped();
 						break;
@@ -130,8 +137,11 @@ namespace NTumbleBit.ClassicTumbler.Client
 						cancellationToken.WaitHandle.WaitOne(5000);
 					}
 				}
+
 			}).Start();
 		}
+
+
 
 		private bool IsInvalidPhase(Exception ex)
 		{
