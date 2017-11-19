@@ -5,9 +5,10 @@ using Breeze.TumbleBit.Controllers;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
+
+using BreezeCommon;
 using Stratis.Bitcoin.Features.Wallet.JsonConverters;
 using NTumbleBit.JsonConverters;
-
 using Stratis.Bitcoin.BlockPulling;
 using Stratis.Bitcoin.Builder;
 using Stratis.Bitcoin.Builder.Feature;
@@ -57,7 +58,7 @@ namespace Breeze.TumbleBit.Client
 
     public static class TumbleBitFeatureExtension
     {
-        public static IFullNodeBuilder UseTumbleBit(this IFullNodeBuilder fullNodeBuilder)
+        public static IFullNodeBuilder UseTumbleBit(this IFullNodeBuilder fullNodeBuilder, ConfigurationOptionWrapper<string> registrationStoreDirectory)
         {
             fullNodeBuilder.ConfigureFeature(features =>
             {
@@ -79,6 +80,7 @@ namespace Breeze.TumbleBit.Client
                         };
 
                         services.AddSingleton<ITumbleBitManager, TumbleBitManager>();
+                        services.AddSingleton<ConfigurationOptionWrapper<string>>(registrationStoreDirectory);
                         services.AddSingleton<TumbleBitController>();
                         //services.AddSingleton<IWalletFeePolicy, LightWalletFeePolicy>();
                     });

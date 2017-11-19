@@ -167,11 +167,8 @@ namespace Breeze.Registration
                             // Remove server registrations
                             this.logger.LogDebug("Insufficient collateral within window period for server: " + record.Record.ServerId);
 
-                            if (record.Record.ProtocolVersion != 252)
-                            {
-                                this.logger.LogDebug("Deleting registration records for server: " + record.Record.ServerId);
-                                this.registrationStore.DeleteAllForServer(record.Record.ServerId);
-                            }
+                            this.logger.LogDebug("Deleting registration records for server: " + record.Record.ServerId);
+                            this.registrationStore.DeleteAllForServer(record.Record.ServerId);
                             
                             // TODO: Remove unneeded transactions from the watch-only wallet?
 

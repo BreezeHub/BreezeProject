@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using BreezeCommon;
 using Breeze.TumbleBit.Client;
 using Breeze.Registration;
 using Microsoft.Extensions.Logging.Console;
@@ -12,13 +13,12 @@ using NLog;
 using NLog.Config;
 using NLog.Targets;
 using NTumbleBit.Logging;
-using Stratis.Bitcoin.Api;
 using Stratis.Bitcoin.Builder;
 using Stratis.Bitcoin.Configuration;
 using Stratis.Bitcoin.Configuration.Logging;
+using Stratis.Bitcoin.Features.Api;
 using Stratis.Bitcoin.Features.BlockStore;
 using Stratis.Bitcoin.Features.Consensus;
-using Stratis.MasterNode.Features.InterNodeComms;
 using Stratis.Bitcoin.Features.LightWallet;
 using Stratis.Bitcoin.Features.MemoryPool;
 using Stratis.Bitcoin.Features.Miner;
@@ -28,6 +28,8 @@ using Stratis.Bitcoin.Features.Wallet;
 using Stratis.Bitcoin.Features.WatchOnlyWallet;
 using Stratis.Bitcoin.Utilities;
 using Stratis.Bitcoin.Utilities.Extensions;
+using Stratis.Bitcoin;
+using System.Threading.Tasks;
 
 namespace Breeze.Daemon
 {
@@ -38,101 +40,112 @@ namespace Breeze.Daemon
 
         public static void Main(string[] args)
         {
-            IFullNodeBuilder fullNodeBuilder = null;
+            MainAsync(args).Wait();
+        }
 
-            // Get the API URI
-            var apiUri = args.GetValueOf("apiuri");
+        public static async Task MainAsync(string[] args)
+        {
+            try
+            { 
+                // Get the API uri.
+                var apiUri = args.GetValueOf("apiuri");
+                var isTestNet = args.Contains("-testnet");
+                var isStratis = args.Contains("stratis");
+                var agent = "Breeze";
 
-            NodeSettings nodeSettings;
+                // This setting is not in NodeSettings yet, so get it directly from the args
+                ConfigurationOptionWrapper<string> registrationStoreDirectory = new ConfigurationOptionWrapper<string>("RegistrationStoreDirectory", args.GetValueOf("storedir"));
 
-            if (args.Contains("stratis"))
-            {
-                if (NodeSettings.PrintHelp(args, Network.StratisMain))
-                    return;
+                NodeSettings nodeSettings;
 
-                Network network = args.Contains("-testnet") ? Network.StratisTest : Network.StratisMain;
+                if (isStratis)
+                {
+                    if (NodeSettings.PrintHelp(args, Network.StratisMain))
+                        return;
 
-                if (args.Contains("-regtest"))
-                    network = Network.StratisRegTest;
+                    Network network = isTestNet ? Network.StratisTest : Network.StratisMain;
+                    if (isTestNet)
+                        args = args.Append("-addnode=51.141.28.47").ToArray(); // TODO: fix this temp hack
 
-                if (args.Contains("-testnet"))
-                    args = args.Append("-addnode=13.64.76.48").ToArray(); // TODO: fix this temp hack 
-
-                nodeSettings = NodeSettings.FromArguments(args, "stratis", network, ProtocolVersion.ALT_PROTOCOL_VERSION);
-                nodeSettings.ApiUri = new Uri(string.IsNullOrEmpty(apiUri) ? DefaultStratisUri : apiUri);
-            }
-            else
-            {
-                nodeSettings = NodeSettings.FromArguments(args);
-                nodeSettings.ApiUri = new Uri(string.IsNullOrEmpty(apiUri) ? DefaultBitcoinUri : apiUri);
-            }
-
-            if (args.Contains("light"))
-            {
-                fullNodeBuilder = new FullNodeBuilder()
-                    .UseNodeSettings(nodeSettings)
-                    .UseLightWallet()
-                    .UseWatchOnlyWallet()
-                    .UseBlockNotification()
-                    .UseTransactionNotification()
-                    .UseApi();
-            }
-            else
-            {
-                fullNodeBuilder = new FullNodeBuilder()
-                    .UseNodeSettings(nodeSettings);
-
-                if (args.Contains("stratis"))
-                    fullNodeBuilder.UseStratisConsensus();
+                    nodeSettings = new NodeSettings("stratis", network, ProtocolVersion.ALT_PROTOCOL_VERSION, agent).LoadArguments(args);
+                    nodeSettings.ApiUri = new Uri(string.IsNullOrEmpty(apiUri) ? DefaultStratisUri : apiUri);
+                }
                 else
-                    fullNodeBuilder.UseConsensus();
+                {
+                    nodeSettings = new NodeSettings(agent: agent).LoadArguments(args);
+                    nodeSettings.ApiUri = new Uri(string.IsNullOrEmpty(apiUri) ? DefaultBitcoinUri : apiUri);
+                }
 
-                fullNodeBuilder.UseBlockStore()
-                    .UseMempool()
-                    .UseBlockNotification()
-                    .UseTransactionNotification()
-                    .UseWallet()
-                    .UseWatchOnlyWallet()
-                    .AddMining()
-                    .AddRPC()
-                    .UseApi();
+                IFullNodeBuilder fullNodeBuilder = null;
+
+                if (args.Contains("light"))
+                {
+                    fullNodeBuilder = new FullNodeBuilder()
+                        .UseNodeSettings(nodeSettings)
+                        .UseLightWallet()
+                        .UseWatchOnlyWallet()
+                        .UseBlockNotification()
+                        .UseTransactionNotification()
+                        .UseApi();
+                }
+                else
+                {
+                    fullNodeBuilder = new FullNodeBuilder()
+                        .UseNodeSettings(nodeSettings);
+
+                    if (args.Contains("stratis"))
+                        fullNodeBuilder.UseStratisConsensus();
+                    else
+                        fullNodeBuilder.UseConsensus();
+
+                    fullNodeBuilder.UseBlockStore()
+                        .UseMempool()
+                        .UseBlockNotification()
+                        .UseTransactionNotification()
+                        .UseWallet()
+                        .UseWatchOnlyWallet()
+                        .AddMining()
+                        .AddRPC()
+                        .UseApi();
+                }
+
+                if (args.Contains("registration"))
+                {
+                    //fullNodeBuilder.UseInterNodeCommunication();
+                    fullNodeBuilder.UseRegistration();
+                }
+
+                // Need this to happen for both TB and non-TB daemon
+                Logs.Configure(new FuncLoggerFactory(i => new DualLogger(i, (a, b) => true, false)));
+
+                // Start NTumbleBit logging to the console
+                SetupTumbleBitConsoleLogs(nodeSettings);
+
+                // Add logging to NLog
+                SetupTumbleBitNLogs(nodeSettings);
+
+                // Currently TumbleBit is bitcoin only
+                if (args.Contains("-tumblebit"))
+                {
+                    // We no longer pass the URI in via the command line, the registration feature selects a random one
+                    fullNodeBuilder.UseTumbleBit(registrationStoreDirectory);
+                }
+
+                IFullNode node = fullNodeBuilder.Build();
+
+                // Start Full Node - this will also start the API.
+                await node.RunAsync();
+
             }
-
-            if (args.Contains("registration"))
+            catch (Exception ex)
             {
-                //fullNodeBuilder.UseInterNodeCommunication();
-                fullNodeBuilder.UseRegistration();
+                Console.WriteLine("There was a problem initializing the node. Details: '{0}'", ex.Message);
             }
-
-            // Need this to happen for both TB and non-TB daemon
-            Logs.Configure(new FuncLoggerFactory(i => new DualLogger(i, (a, b) => true, false)));
-
-            //start NTumbleBit logging to the console
-            SetupTumbleBitConsoleLogs(nodeSettings);
-
-            //add logging to NLog
-            SetupTumbleBitNLogs(nodeSettings);
-
-            //currently tumblebit is bitcoin only
-            if (args.Contains("-tumblebit"))
-            {
-                //var tumblerAddress = args.GetValueOf("-ppuri");
-                //if (tumblerAddress != null)
-                //    nodeSettings.TumblerAddress = tumblerAddress;
-
-                //we no longer pass the cbt uri in on the command line
-                fullNodeBuilder.UseTumbleBit();
-            }
-
-            var node = fullNodeBuilder.Build();
-
-            //start Full Node - this will also start the API
-            node.Run();
         }
 
         private static void SetupTumbleBitConsoleLogs(NodeSettings nodeSettings)
         {
-            //switch Stratis.Bitcoin to Error level only so it does not flood the console
+            // Switch Stratis.Bitcoin to Error level only so it does not flood the console
             var switches = new Dictionary<string, Microsoft.Extensions.Logging.LogLevel>()
             {
                 {"Default", Microsoft.Extensions.Logging.LogLevel.Error},
@@ -151,7 +164,7 @@ namespace Breeze.Daemon
 
         private static void SetupTumbleBitNLogs(NodeSettings nodeSettings)
         {
-            var config = LogManager.Configuration;
+            NLog.Config.LoggingConfiguration config = LogManager.Configuration;
             var folder = Path.Combine(nodeSettings.DataDir, "Logs");
 
             var tbTarget = new FileTarget();

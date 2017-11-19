@@ -14,12 +14,11 @@
 	<ItemGroup>
 		<PackageReference Include="Microsoft.AspNetCore.All" Version="2.0.0" />
 		<PackageReference Include="CommandLineParser" Version="2.1.1-beta" />
-		<PackageReference Include="DBreeze" Version="1.84.0" />
+		<PackageReference Include="DBreeze" Version="1.89.0" />
 		<PackageReference Include="TCPServer" Version="1.0.13" />
 	</ItemGroup>
 	<ItemGroup>
-        <ProjectReference Include="..\NStratis\Hashing\HashLib\HashLib.csproj" />
-        <ProjectReference Include="..\NStratis\NBitcoin\NBitcoin.csproj" />
+	  <ProjectReference Include="..\StratisBitcoinFullNode\src\NBitcoin\NBitcoin.csproj" />
 	</ItemGroup>
 	<ItemGroup>
 		<Compile Update="Properties\Resources.Designer.cs">

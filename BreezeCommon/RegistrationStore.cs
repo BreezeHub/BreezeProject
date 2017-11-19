@@ -88,6 +88,7 @@ namespace BreezeCommon
             }
         }
 
+        /* Not used when InterNodeComms is not enabled
         public void AddCapsule(RegistrationCapsule capsule, Network network)
 		{
 			RegistrationToken token = new RegistrationToken();
@@ -101,6 +102,7 @@ namespace BreezeCommon
 
 			Add(record);
 		}
+        */
 
 		public List<RegistrationRecord> GetByServerId(string serverId)
 		{
@@ -123,6 +125,7 @@ namespace BreezeCommon
 			return GetRecordsOrCreateFile();
 		}
 
+        /* Not used when InterNodeComms is not enabled
 		public List<RegistrationCapsule> GetAllAsCapsules()
 		{
 			List<RegistrationCapsule> capsuleList = new List<RegistrationCapsule>();
@@ -136,6 +139,7 @@ namespace BreezeCommon
 
 			return capsuleList;
 		}
+        */
 
 		public RegistrationRecord GetByGuid(Guid guid)
 		{

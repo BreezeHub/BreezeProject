@@ -5,12 +5,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Alpha\Stratis.Bitcoin.Features.Notifications\Stratis.Bitcoin.Features.Notifications.csproj" />
-    <ProjectReference Include="..\Alpha\Stratis.Bitcoin.Features.WatchOnlyWallet\Stratis.Bitcoin.Features.WatchOnlyWallet.csproj" />
-    <ProjectReference Include="..\Alpha\Stratis.Bitcoin\Stratis.Bitcoin.csproj" />
     <ProjectReference Include="..\BreezeCommon\BreezeCommon.csproj" />
-    <ProjectReference Include="..\NStratis\Hashing\HashLib\HashLib.csproj" />
-    <ProjectReference Include="..\NStratis\NBitcoin\NBitcoin.csproj" />
+    <ProjectReference Include="..\StratisBitcoinFullNode\src\NBitcoin\NBitcoin.csproj" />
+    <ProjectReference Include="..\StratisBitcoinFullNode\src\Stratis.Bitcoin.Features.Notifications\Stratis.Bitcoin.Features.Notifications.csproj" />
+    <ProjectReference Include="..\StratisBitcoinFullNode\src\Stratis.Bitcoin.Features.WatchOnlyWallet\Stratis.Bitcoin.Features.WatchOnlyWallet.csproj" />
   </ItemGroup>
 
 </Project>

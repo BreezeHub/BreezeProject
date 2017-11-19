@@ -79,7 +79,8 @@ namespace Breeze.TumbleBit.Client
             IWalletSyncManager walletSyncManager,
             IWalletFeePolicy walletFeePolicy,
             IBroadcasterManager broadcasterManager,
-            FullNode fullNode)
+            FullNode fullNode,
+            ConfigurationOptionWrapper<string> registrationStoreDirectory)
         {
             this.walletManager = walletManager as WalletManager;
             this.watchOnlyWalletManager = watchOnlyWalletManager;
@@ -95,8 +96,10 @@ namespace Breeze.TumbleBit.Client
             this.broadcasterManager = broadcasterManager;
             this.fullNode = fullNode;
 
-            if (this.nodeSettings.RegistrationStoreDir != null)
-                this.registrationStore = new RegistrationStore(this.nodeSettings.RegistrationStoreDir);
+            if (registrationStoreDirectory.Value != null)
+            {
+                this.registrationStore = new RegistrationStore(registrationStoreDirectory.Value);
+            }
             else
             {
                 this.registrationStore = new RegistrationStore(this.nodeSettings.DataDir);
@@ -159,6 +162,7 @@ namespace Breeze.TumbleBit.Client
             }
             catch (Exception e)
             {
+                this.logger.LogError("Error generating block(s): " + e);
                 return false;
             }
         }
@@ -353,7 +357,7 @@ namespace Breeze.TumbleBit.Client
             }
             catch (Exception e)
             {
-                this.logger.LogDebug("Error obtaining tumbler parameters: " + e);
+                this.logger.LogError("Error obtaining tumbler parameters: " + e);
                 return null;
             }
             finally
@@ -406,7 +410,7 @@ namespace Breeze.TumbleBit.Client
             var key = destAccount.ExtendedPubKey;
             var keyPath = new KeyPath("0");
 
-            // stop and dispose onlymonitor
+            // Stop and dispose onlymonitor
             if (this.broadcasterJob != null && this.broadcasterJob.Started)
             {
                 await this.broadcasterJob.Stop().ConfigureAwait(false);
@@ -421,11 +425,11 @@ namespace Breeze.TumbleBit.Client
                 this.runtime.DestinationWallet =
                     new ClientDestinationWallet(extPubKey, keyPath, this.runtime.Repository, this.runtime.Network);
             this.TumblerParameters = this.runtime.TumblerParameters;
-            // run onlymonitor mode
+            // Run onlymonitor mode
             this.broadcasterJob = this.runtime.CreateBroadcasterJob();
             this.broadcasterJob.Start();
 
-            // run tumbling mode
+            // Run tumbling mode
             this.stateMachine = new StateMachinesExecutor(this.runtime);
             this.stateMachine.Start();
 
@@ -436,7 +440,7 @@ namespace Breeze.TumbleBit.Client
 
         public async Task OnlyMonitorAsync()
         {
-            // onlymonitor is running by default, so it's enough if statemachine is stopped
+            // Onlymonitor is running by default, so it's enough if statemachine is stopped
             if (this.stateMachine != null && this.stateMachine.Started)
             {
                 await this.stateMachine.Stop().ConfigureAwait(false);
