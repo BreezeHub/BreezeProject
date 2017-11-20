@@ -7,11 +7,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BreezeCommon", "BreezeCommo
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BreezeCommon.Tests", "BreezeCommon.Tests\BreezeCommon.Tests.csproj", "{2C83BBC3-64CF-4B28-852E-911A733C9672}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{805B10D3-7B3D-4B85-B14D-F2AE89071D71}"
-	ProjectSection(SolutionItems) = preProject
-		appveyor.yml = appveyor.yml
-	EndProjectSection
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NTumbleBit", "NTumbleBit\NTumbleBit.csproj", "{52E8CBAF-587C-4864-9C2E-73DABE64878B}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NTumbleBit.Tests", "NTumbleBit.Tests\NTumbleBit.Tests.csproj", "{8545E6DC-BCB6-4D02-A3CB-3964F82A71DC}"
@@ -45,6 +40,12 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stratis.Bitcoin.Features.WatchOnlyWallet", "StratisBitcoinFullNode\src\Stratis.Bitcoin.Features.WatchOnlyWallet\Stratis.Bitcoin.Features.WatchOnlyWallet.csproj", "{C6B59C4E-F7A4-4960-B955-44E544353199}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stratis.Bitcoin.Features.Notifications", "StratisBitcoinFullNode\src\Stratis.Bitcoin.Features.Notifications\Stratis.Bitcoin.Features.Notifications.csproj", "{BE5806B9-0FC5-4C97-971C-F17884BFEE54}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Breeze.BreezeServer", "Breeze.BreezeServer\Breeze.BreezeServer.csproj", "{86D97BFD-E626-4022-A47D-D23D69290115}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Breeze.BreezeServer.Tests", "Breeze.BreezeServer.Tests\Breeze.BreezeServer.Tests.csproj", "{AEC010E8-CB9E-410F-ACFB-07A3DCB75BEF}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NTumbleBit.ClassicTumbler.Server.CLI", "NTumbleBit.ClassicTumbler.Server.CLI\NTumbleBit.ClassicTumbler.Server.CLI.csproj", "{4E24F42C-6EB6-4FFF-9E5B-D57AFC2C36BF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -128,6 +129,18 @@ Global
 		{BE5806B9-0FC5-4C97-971C-F17884BFEE54}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BE5806B9-0FC5-4C97-971C-F17884BFEE54}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BE5806B9-0FC5-4C97-971C-F17884BFEE54}.Release|Any CPU.Build.0 = Release|Any CPU
+		{86D97BFD-E626-4022-A47D-D23D69290115}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{86D97BFD-E626-4022-A47D-D23D69290115}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{86D97BFD-E626-4022-A47D-D23D69290115}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{86D97BFD-E626-4022-A47D-D23D69290115}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AEC010E8-CB9E-410F-ACFB-07A3DCB75BEF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AEC010E8-CB9E-410F-ACFB-07A3DCB75BEF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AEC010E8-CB9E-410F-ACFB-07A3DCB75BEF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AEC010E8-CB9E-410F-ACFB-07A3DCB75BEF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4E24F42C-6EB6-4FFF-9E5B-D57AFC2C36BF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4E24F42C-6EB6-4FFF-9E5B-D57AFC2C36BF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4E24F42C-6EB6-4FFF-9E5B-D57AFC2C36BF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4E24F42C-6EB6-4FFF-9E5B-D57AFC2C36BF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

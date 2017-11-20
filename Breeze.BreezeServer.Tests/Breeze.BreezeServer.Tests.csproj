@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp1.1</TargetFramework>
+    <TargetFramework>netcoreapp2.0</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
@@ -12,11 +12,10 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Breeze.BreezeServer\Breeze.BreezeServer.csproj" />
-    <ProjectReference Include="..\BreezeCommon\BreezeCommon\BreezeCommon.csproj" />
-    <ProjectReference Include="..\BreezeCommon\BreezeProtocol\NTumbleBit\NTumbleBit.csproj" />
-    <ProjectReference Include="..\BreezeCommon\BreezeProtocol\NTumbleBit.ClassicTumbler.Server.CLI\NTumbleBit.ClassicTumbler.Server.CLI.csproj" />
-    <ProjectReference Include="..\NStratis\NBitcoin\NBitcoin.csproj" />
-    <ProjectReference Include="..\NStratis\Hashing\HashLib\HashLib.csproj" />
+    <ProjectReference Include="..\BreezeCommon\BreezeCommon.csproj" />
+    <ProjectReference Include="..\NTumbleBit\NTumbleBit.csproj" />
+    <ProjectReference Include="..\NTumbleBit.ClassicTumbler.Server.CLI\NTumbleBit.ClassicTumbler.Server.CLI.csproj" />
+    <ProjectReference Include="..\StratisBitcoinFullNode\src\NBitcoin\NBitcoin.csproj" />
   </ItemGroup>
 
   <ItemGroup>
