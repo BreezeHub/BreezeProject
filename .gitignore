@@ -255,10 +255,7 @@ TestData/
 
 # dependencies
 **/node_modules
-<<<<<<< HEAD
-=======
 package-lock.json
->>>>>>> breeze/tumblebit-alpha
 
 # IDEs and editors
 /.idea
@@ -312,3 +309,7 @@ project.lock.json
 /Breeze/src/Breeze.Daemon/Logs
 /Breeze.UI/.vscode/.BROWSE.VC.DB-wal
 /Breeze.UI/.vscode/.BROWSE.VC.DB-shm
+=======
+
+.DS_Store
+.vscode

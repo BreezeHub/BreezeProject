@@ -54,7 +54,7 @@ namespace Breeze.Daemon
                 var agent = "Breeze";
 
                 // This setting is not in NodeSettings yet, so get it directly from the args
-                ConfigurationOptionWrapper<string> registrationStoreDirectory = new ConfigurationOptionWrapper<string>("RegistrationStoreDirectory", args.GetValueOf("storedir"));
+                ConfigurationOptionWrapper<string> registrationStoreDirectory = new ConfigurationOptionWrapper<string>("RegistrationStoreDirectory", args.GetValueOf("-storedir"));
 
                 NodeSettings nodeSettings;
 
