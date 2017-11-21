@@ -563,7 +563,13 @@ $curve: cubic-bezier(0.650, 0.000, 0.450, 1.000);
       color: #878685;
     }
   }
-  .cycle {
+  .cycles {
+    a {
+      color:#D0BF90 !important;
+      text-decoration: underline;
+      font-size: .85em;
+      &:hover {text-decoration: none;}
+    }
     ul {margin: .75rem 0 .25rem 0;}
     .cycle-number {
       font-size: .85em;
