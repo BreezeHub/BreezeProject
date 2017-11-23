@@ -14,6 +14,7 @@ import { WalletRecovery } from '../classes/wallet-recovery';
 import { WalletLoad } from '../classes/wallet-load';
 import { WalletInfo } from '../classes/wallet-info';
 import { Mnemonic } from '../classes/mnemonic';
+import { FeeEstimation } from '../classes/fee-estimation';
 import { TransactionBuilding } from '../classes/transaction-building';
 import { TransactionSending } from '../classes/transaction-sending';
 
@@ -56,7 +57,6 @@ export class ApiService {
         .get(this.stratisApiUrl + '/wallet/files')
         .map((response: Response) => response);
      }
-
 
      /**
       * Get a new mnemonic
@@ -133,6 +133,18 @@ export class ApiService {
 
       return this.http
         .get(this.currentApiUrl + '/wallet/status')
+        .map((response: Response) => response);
+    }
+
+    /** 
+     * Get general wallet info from the API once.
+     */
+    getGeneralInfoOnce(data: WalletInfo): Observable<any> {
+      let params: URLSearchParams = new URLSearchParams();
+      params.set('Name', data.walletName);
+
+      return this.http
+        .get(this.bitcoinApiUrl + '/wallet/general-info', new RequestOptions({headers: this.headers, search: params}))
         .map((response: Response) => response);
     }
 
@@ -217,13 +229,32 @@ export class ApiService {
     }
 
     /**
+     * Estimate the fee of a transaction
+     */
+    estimateFee(data: FeeEstimation): Observable<any> {
+      this.getCurrentCoin();
+
+      let params: URLSearchParams = new URLSearchParams();
+      params.set('walletName', data.walletName);
+      params.set('accountName', data.accountName);
+      params.set('destinationAddress', data.destinationAddress);
+      params.set('amount', data.amount);
+      params.set('feeType', data.feeType);
+      params.set('allowUnconfirmed', "true");
+      
+      return this.http
+        .get(this.currentApiUrl + '/wallet/estimate-txfee', new RequestOptions({headers: this.headers, search: params}))
+        .map((response: Response) => response);
+    }
+
+    /**
      * Build a transaction
      */
     buildTransaction(data: TransactionBuilding): Observable<any> {
       this.getCurrentCoin();
 
       return this.http
-        .post(this.currentApiUrl + '/wallet/build-transaction/', JSON.stringify(data), {headers: this.headers})
+        .post(this.currentApiUrl + '/wallet/build-transaction', JSON.stringify(data), {headers: this.headers})
         .map((response: Response) => response);
     }
 
@@ -234,7 +265,7 @@ export class ApiService {
       this.getCurrentCoin();
 
       return this.http
-        .post(this.currentApiUrl + '/wallet/send-transaction/', JSON.stringify(data), {headers: this.headers})
+        .post(this.currentApiUrl + '/wallet/send-transaction', JSON.stringify(data), {headers: this.headers})
         .map((response: Response) => response);
     }
 

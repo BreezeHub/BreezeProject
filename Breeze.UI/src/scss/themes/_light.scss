@@ -7,18 +7,9 @@
 //
 /////////////////////////////
 
-// links
-$link-color : #D0BF90;
-
 // buttons
-$btn-primary-color:              $white !important;
-$btn-primary-bg:                 $brand-primary !default;
-$btn-primary-border:             $btn-primary-bg !default;
-
-$btn-secondary-color:            $gray-dark !default;
-$btn-secondary-bg:               $white !default;
-$btn-secondary-border:           $gray-light !default;
-
+$btn-primary-color: $white !important;
+//
 .btn-primary {
   @include button-variant($btn-primary-color, $btn-primary-bg, $btn-primary-border);
 }
@@ -29,13 +20,38 @@ $btn-secondary-border:           $gray-light !default;
 //    CUSTOM
 //
 /////////////////////////////
+.btn-lg {font-size:1em;}
+.btn-primary {
+    background-color: transparent;
+    background-image: linear-gradient(90deg, #20B7C1 0%, #1387C8 100%) !important;
+    &:hover {
+      background-image: linear-gradient(-90deg, #20B7C1 0%, #1387C8 100%) !important;
+      border-color: transparent !important;
+    }
+  }
+  .btn-secondary {
+    color: $gray !important;
+    &:hover {background-color: $white !important;}
+}
+
+// LOGIN / SETUP
+.login {
+  .text-danger {
+    background-color: rgba(255,255,255,.7);
+    padding: 0.25rem 1rem;
+    border-radius: 50px;
+    display: inline-block;
+    font-size: .7rem;
+  }
+}
+
 
 // NAVBAR
 #navbarBreeze {
   .navbar-nav {
     .nav-item {
       .nav-link {
-        color: $gray-dark;
+        color: $gray;
         font-size: .86rem;
         &:hover {color: lighten($brand-primary,20%);}
         &.is-active {
@@ -62,12 +78,17 @@ $btn-secondary-border:           $gray-light !default;
 
     // TRANSACTIONS
     #transaction {
+      .muted {opacity: .5;}
+      h5 {
+        font-size: .85em;
+        color: $gray;
+      }
       a {color: $link-color;}
       // Cards
       .card {
         border: $card-border-width solid $teal;
-        color: #BFBFBF !important;
-        font-size: .85em;
+        color: #7385A0 !important;
+        font-size: .85em !important;
         .amount {
           color: $black;
           font-weight: 600;
@@ -77,9 +98,15 @@ $btn-secondary-border:           $gray-light !default;
           }
         }
         &:hover {
-          border-color: #FCDCB5 !important;
-          background-color: #FEFDFA !important;
-          box-shadow: 0 2px 10px 0 rgba(80,96,120,0.10);
+          cursor: pointer;
+          text-decoration: none !important;
+          background: #F5FCFF;
+          border: 1px solid #BCE8FE;
+          box-shadow: 4px 2px 11px 0 rgba(80,96,120,0.10);
+        }
+        li {
+          line-height: 2.5em;
+          &.transactionDate {color: $gray-light;}
         }
       }
     }
@@ -89,15 +116,12 @@ $btn-secondary-border:           $gray-light !default;
       i {
         font-size: 6.5rem;
         &.OFF {
-          -webkit-text-fill-color: #DCE8F1 !important;
-          fill: #DCE8F1 !important;
+          -webkit-text-fill-color: $gray-lighter !important;
+          fill: $gray-lighter !important;
         }
         &.ON {
-          -webkit-text-fill-color:: $brand-primary !important;
+          -webkit-text-fill-color: $brand-primary !important;
           fill: $brand-primary !important;
-          -webkit-animation: fadeinout 3s linear infinite;
-          animation: fadeinout 3s linear infinite;
-          opacity: 0;
         }
       }
       .help {
@@ -115,21 +139,7 @@ $btn-secondary-border:           $gray-light !default;
         }
       }
     }
-  }
-}
 
-// icon animation when TB is ON
-@-webkit-keyframes fadeinout {50% { opacity: 1; }}
-@keyframes fadeinout {50% { opacity: 1; }}
-
-// modal load TB text
-#modalPasswordConfirmation {
-  .help {
-    color: $gray;
-    font-size: .9em;
-    font-style: italic;
-    line-height: 1.3em;
-    font-weight: 200;
   }
 }
 
@@ -155,5 +165,13 @@ $btn-secondary-border:           $gray-light !default;
 #modalCheck {
   .btn-link, .card {
     a {color: $link-color !important;}
+  }
+}
+
+// SETUP
+.badge {
+  &.badge-default {
+    color: $gray;
+    background-color: $white !important;
   }
 }
