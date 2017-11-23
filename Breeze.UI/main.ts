@@ -162,8 +162,8 @@ function startBitcoinApi() {
   if (os.platform() == 'win32') {
       stratisDir = '-storedir=' + path.join(os.homedir(), 'AppData', 'Roaming', 'StratisNode', 'stratis', 'StratisTest', 'registrationHistory.json');
   }
-  
-  bitcoinProcess = spawnBitcoin(apiPath, ['light', '-testnet', '-tumblebit', 'registration', stratisDir], {
+
+  bitcoinProcess = spawnBitcoin(apiPath, ['-testnet', '-tumblebit', 'registration', stratisDir], {
       detached: true
   });
 
@@ -182,7 +182,7 @@ function startStratisApi() {
       apiPath = path.resolve(__dirname, 'assets\\daemon\\Breeze.Daemon.exe');
   }
 
-  stratisProcess = spawnStratis(apiPath, ['stratis', 'light', '-testnet', 'registration'], {
+  stratisProcess = spawnStratis(apiPath, ['stratis', '-testnet', 'registration'], {
       detached: true
   });
 
