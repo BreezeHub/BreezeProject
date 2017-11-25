@@ -42,7 +42,7 @@ namespace Breeze.BreezeServer
                 runtime = TumblerRuntime.FromConfiguration(config, new AcceptAllClientInteraction());
                 return;
             }
-            
+
             using (var interactive = new Interactive())
             {
                 config = new TumblerConfiguration();
@@ -64,6 +64,10 @@ namespace Breeze.BreezeServer
                     var job = new BroadcasterJob(interactive.Runtime.Services);
                     job.Start();
                     interactive.Services.Add(job);
+
+                    var tor = new TorRegisterJob(config, runtime);
+                    tor.Start();
+                    interactive.Services.Add(tor);
 
                     if (!config.OnlyMonitor)
                     {
