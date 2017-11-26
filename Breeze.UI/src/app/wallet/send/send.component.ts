@@ -4,9 +4,11 @@ import { FormGroup, FormControl, Validators, FormBuilder } from '@angular/forms'
 import { ApiService } from '../../shared/services/api.service';
 import { GlobalService } from '../../shared/services/global.service';
 import { ModalService } from '../../shared/services/modal.service';
+import { CoinNotationPipe } from '../../shared/pipes/coin-notation.pipe';
 
 import { NgbModal, NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 
+import { FeeEstimation } from '../../shared/classes/fee-estimation';
 import { TransactionBuilding } from '../../shared/classes/transaction-building';
 import { TransactionSending } from '../../shared/classes/transaction-sending';
 
@@ -27,6 +29,7 @@ export class SendComponent implements OnInit {
   public coinUnit: string;
   public isSending: boolean = false;
   public estimatedFee: number;
+  public apiError: string;
   private transactionHex: string;
   private responseMessage: any;
   private errorMessage: string;
@@ -38,7 +41,7 @@ export class SendComponent implements OnInit {
 
   private buildSendForm(): void {
     this.sendForm = this.fb.group({
-      "address": ["", Validators.required],
+      "address": ["", Validators.compose([Validators.required, Validators.minLength(26)])],
       // "amount": ["", Validators.compose([Validators.required, Validators.pattern(/^[0-9]+(\.[0-9]{0,8})?$/)])],
       "amount": ["", Validators.compose([Validators.required, Validators.pattern(/^([0-9]+)?(\.[0-9]{0,8})?$/)])],
       "fee": ["medium", Validators.required],
@@ -64,6 +67,12 @@ export class SendComponent implements OnInit {
         }
       }
     }
+
+    this.apiError = "";
+
+    if(this.sendForm.get("address").valid && this.sendForm.get("amount").valid) {
+      this.estimateFee();
+    }
   }
 
   formErrors = {
@@ -75,7 +84,8 @@ export class SendComponent implements OnInit {
 
   validationMessages = {
     'address': {
-      'required': 'An address is required.'
+      'required': 'An address is required.',
+      'minlength': 'An address is at least 26 characters long.'
     },
     'amount': {
       'required': 'An amount is required.',
@@ -103,42 +113,41 @@ export class SendComponent implements OnInit {
         response => {
           if (response.status >= 200 && response.status < 400){
             balanceResponse = response.json();
-            console.log(balanceResponse);
           }
         },
         error => {
           console.log(error);
           if (error.status === 0) {
-            this.genericModalService.openModal(null, null);
+            //this.genericModalService.openModal(null, null);
+            this.apiError = "Something went wrong while connecting to the API. Please restart the application."
           } else if (error.status >= 400) {
             if (!error.json().errors[0]) {
               console.log(error);
             }
             else {
-              this.genericModalService.openModal(null, error.json().errors[0].message);
+              //this.genericModalService.openModal(null, error.json().errors[0].message);
+              this.apiError = error.json().errors[0].message;
             }
           }
         },
         () => {
-          this.sendForm.patchValue({amount: balanceResponse.maxSpendableAmount});
+          this.sendForm.patchValue({amount: +new CoinNotationPipe(this.globalService).transform(balanceResponse.maxSpendableAmount)});
           this.estimatedFee = balanceResponse.fee;
         }
       )
   };
 
-  public buildTransaction() {
-    this.transaction = new TransactionBuilding(
+  public estimateFee() {
+    let transaction = new FeeEstimation(
       this.globalService.getWalletName(),
       "account 0",
-      this.sendForm.get("password").value,
-      this.sendForm.get("address").value,
+      this.sendForm.get("address").value.trim(),
       this.sendForm.get("amount").value,
       this.sendForm.get("fee").value,
       true
     );
 
-    this.apiService
-      .buildTransaction(this.transaction)
+    this.apiService.estimateFee(transaction)
       .subscribe(
         response => {
           if (response.status >= 200 && response.status < 400){
@@ -147,7 +156,6 @@ export class SendComponent implements OnInit {
         },
         error => {
           console.log(error);
-          this.isSending = false;
           if (error.status === 0) {
             this.genericModalService.openModal(null, null);
           } else if (error.status >= 400) {
@@ -155,7 +163,53 @@ export class SendComponent implements OnInit {
               console.log(error);
             }
             else {
-              this.genericModalService.openModal(null, error.json().errors[0].message);
+              //this.genericModalService.openModal(null, error.json().errors[0].message);
+              this.apiError = error.json().errors[0].message;
+            }
+          }
+        },
+        () => {
+          this.estimatedFee = this.responseMessage;
+        }
+      )
+    ;
+  }
+
+  public buildTransaction() {
+    this.transaction = new TransactionBuilding(
+      this.globalService.getWalletName(),
+      "account 0",
+      this.sendForm.get("password").value,
+      this.sendForm.get("address").value.trim(),
+      this.sendForm.get("amount").value,
+      this.sendForm.get("fee").value,
+      true
+    );
+
+    let transactionData;
+
+    this.apiService
+      .buildTransaction(this.transaction)
+      .subscribe(
+        response => {
+          if (response.status >= 200 && response.status < 400){
+            console.log(response);
+            this.responseMessage = response.json();
+          }
+        },
+        error => {
+          console.log(error);
+          this.isSending = false;
+          if (error.status === 0) {
+            //this.genericModalService.openModal(null, null);
+            this.apiError = "Something went wrong while connecting to the API. Please restart the application."
+          } else if (error.status >= 400) {
+            if (!error.json().errors[0]) {
+              console.log(error);
+            }
+            else {
+              //this.genericModalService.openModal(null, error.json().errors[0].message);
+              this.apiError = error.json().errors[0].message;
             }
           }
         },
@@ -189,13 +243,15 @@ export class SendComponent implements OnInit {
           console.log(error);
           this.isSending = false;
           if (error.status === 0) {
-            this.genericModalService.openModal(null, null);
+            //this.genericModalService.openModal(null, null);
+            this.apiError = "Something went wrong while connecting to the API. Please restart the application."
           } else if (error.status >= 400) {
             if (!error.json().errors[0]) {
               console.log(error);
             }
             else {
-              this.genericModalService.openModal(null, error.json().errors[0].message);
+              //this.genericModalService.openModal(null, error.json().errors[0].message);
+              this.apiError = error.json().errors[0].message;
             }
           }
         },

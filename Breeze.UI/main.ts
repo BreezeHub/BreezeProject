@@ -11,8 +11,10 @@ const url = require('url');
 const os = require('os');
 
 let serve;
+let testnet;
 const args = process.argv.slice(1);
 serve = args.some(val => val === "--serve");
+testnet = args.some(val => val === "--testnet");
 
 if (serve) {
   require('electron-reload')(__dirname, {
@@ -31,9 +33,9 @@ let mainWindow = null;
 function createWindow() {
   let applicationIcon
   if (serve) {
-    applicationIcon = nativeImage.createFromPath("./src/assets/images/breeze-logo.png")
+    applicationIcon = nativeImage.createFromPath("./src/assets/images/breeze-logo-tray.png")
   } else {
-    applicationIcon = nativeImage.createFromPath(path.join(__dirname + '/assets/images/breeze-logo.png'))
+    applicationIcon = nativeImage.createFromPath(path.join(__dirname + '/assets/images/breeze-logo-tray.png'))
   }
 
   // Create the browser window.
@@ -162,10 +164,11 @@ function startBitcoinApi() {
   if (os.platform() == 'win32') {
       stratisDir = '-storedir=' + path.join(os.homedir(), 'AppData', 'Roaming', 'StratisNode', 'stratis', 'StratisTest', 'registrationHistory.json');
   }
-  
-  bitcoinProcess = spawnBitcoin(apiPath, ['light', '-testnet', '-tumblebit', 'registration', stratisDir], {
-      detached: true
+
+  bitcoinProcess = spawnBitcoin(apiPath, ['light ', '-testnet', '-tumblebit', 'registration', stratisDir], {
+    detached: true
   });
+
 
   bitcoinProcess.stdout.on('data', (data) => {
     writeLog(`Bitcoin: ${data}`);
@@ -183,8 +186,9 @@ function startStratisApi() {
   }
 
   stratisProcess = spawnStratis(apiPath, ['stratis', 'light', '-testnet', 'registration'], {
-      detached: true
+    detached: true
   });
+
 
   stratisProcess.stdout.on('data', (data) => {
     writeLog(`Stratis: ${data}`);
