@@ -16,7 +16,8 @@ namespace Breeze.BreezeServer
     /// </summary>
     public class BreezeConfiguration
     {
-        public bool IsTestNet { get; set; }
+        public Network TumblerNetwork { get; set; }
+
         public string RpcUser { get; set; }
         public string RpcPassword { get; set; }
         public string RpcUrl { get; set; }
@@ -43,6 +44,7 @@ namespace Breeze.BreezeServer
                 {
                     StringBuilder builder = new StringBuilder();
                     builder.AppendLine("# Breeze TumbleBit daemon settings");
+                    builder.AppendLine("#network=testnet");
                     builder.AppendLine("#rpc.user=");
                     builder.AppendLine("#rpc.password=");
                     builder.AppendLine("#rpc.url=http://127.0.0.1:16174");
@@ -66,8 +68,21 @@ namespace Breeze.BreezeServer
 
                 var configFile = TextFileConfiguration.Parse(File.ReadAllText(configPath));
 
-                IsTestNet = configFile.GetOrDefault<bool>("testnet", false);
+                if (configFile.GetOrDefault<string>("network", "testnet").Equals("testnet"))
+                {
+                    TumblerNetwork = Network.TestNet;
+                }
 
+                if (configFile.GetOrDefault<string>("network", "testnet").Equals("regtest"))
+                {
+                    TumblerNetwork = Network.RegTest;
+                }
+
+                if (configFile.GetOrDefault<string>("network", "testnet").Equals("main"))
+                {
+                    TumblerNetwork = Network.Main;
+                }
+                
                 RpcUser = configFile.GetOrDefault<string>("rpc.user", null);
                 RpcPassword = configFile.GetOrDefault<string>("rpc.password", null);
                 RpcUrl = configFile.GetOrDefault<string>("rpc.url", null);
@@ -123,11 +138,14 @@ namespace Breeze.BreezeServer
 
                 // Use user keyfile; default new key if invalid
 
-                var bitcoinNetwork = "MainNet";
-                if (IsTestNet)
-                {
+                string bitcoinNetwork;
+                
+                if (TumblerNetwork == Network.Main)
+                    bitcoinNetwork = "MainNet";
+                else if (TumblerNetwork == Network.RegTest)
+                    bitcoinNetwork = "RegTest";
+                else // TumblerNetwork == Network.TestNet
                     bitcoinNetwork = "TestNet";
-                }
 
                 // Create directory for key files if it does not already exist
                 Directory.CreateDirectory(Path.Combine(GetDefaultDataDir("NTumbleBitServer"), bitcoinNetwork));

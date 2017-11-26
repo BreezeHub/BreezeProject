@@ -40,7 +40,7 @@ namespace Breeze.BreezeServer
 			logger.LogInformation("{Time} Pre-initialising server to obtain parameters for configuration", DateTime.Now);
 			
 			var preTumblerConfig = serviceProvider.GetService<ITumblerService>();
-			preTumblerConfig.StartTumbler(config.IsTestNet, true);
+			preTumblerConfig.StartTumbler(config, true);
 
 			string configurationHash = preTumblerConfig.runtime.ClassicTumblerParameters.GetHash().ToString();
 			string onionAddress = preTumblerConfig.runtime.TorUri.Host.Substring(0, 16);
@@ -78,7 +78,7 @@ namespace Breeze.BreezeServer
 
 			var tumbler = serviceProvider.GetService<ITumblerService>();
 			
-			tumbler.StartTumbler(config.IsTestNet, false);
+			tumbler.StartTumbler(config, false);
 		}
 	}
 }

@@ -7,6 +7,6 @@ namespace Breeze.BreezeServer
         TumblerConfiguration config { get; set; }
         TumblerRuntime runtime { get; set; }
         
-        void StartTumbler(bool testnet, bool getConfigOnly);
+        void StartTumbler(BreezeConfiguration breezeConfig, bool getConfigOnly);
     }
 }
