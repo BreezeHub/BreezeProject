@@ -28,8 +28,8 @@
             <p class="help mt-4" *ngIf="!hasRegistrations">Not enough masternodes registered to start the Breeze Privacy Protocol. Please wait.</p>
           </form>
 
-          <!-- Cylces -->
-          <div class="col-11 mx-auto cycles">
+          <!-- Cylces
+          <div class="col-11 mx-auto cycles" *ngIf="tumbling">
             <div class="cycle-line my-1">
               <ul class="list-inline row">
                 <li class="cycle-number list-inline-item float-left">Cycle 198733 - Phase 7/8</li>
@@ -62,7 +62,6 @@
                 </div>
               </div>
             </div>
-            <!-- /cycle-line -->
             <div class="cycle-line my-1">
               <ul class="list-inline row">
                 <li class="cycle-number list-inline-item float-left">Cycle 198733 - Phase 6/8</li>
@@ -95,7 +94,6 @@
                 </div>
               </div>
             </div>
-            <!-- /cycle-line -->
             <div class="cycle-line my-1">
               <ul class="list-inline row">
                 <li class="cycle-number list-inline-item float-left">Cycle 198733 - Phase 3/8</li>
@@ -128,7 +126,6 @@
                 </div>
               </div>
             </div>
-            <!-- /cycle-line -->
             <div class="cycle-line my-1">
               <ul class="list-inline row">
                 <li class="cycle-number list-inline-item float-left">Cycle 198733 - Phase 6/8</li>
@@ -161,8 +158,6 @@
                 </div>
               </div>
             </div>
-            <!-- /cycle-line -->
-            <!-- hidden cycles -->
             <div class="collapse" id="collapseCycle">
               <div class="cycle-line my-1">
                 <ul class="list-inline row">
@@ -196,7 +191,6 @@
                   </div>
                 </div>
               </div>
-              <!-- /cycle-line -->
               <div class="cycle-line my-1">
                 <ul class="list-inline row">
                   <li class="cycle-number list-inline-item float-left">Cycle 198733 - Phase 6/8</li>
@@ -229,14 +223,11 @@
                   </div>
                 </div>
               </div>
-              <!-- /cycle-line -->
             </div>
-            <!-- /hidden cycles -->
             <p class="row text-center">
               <a class="col my-4" data-toggle="collapse" href="#collapseCycle" aria-expanded="false" aria-controls="collapseCycle">Show all cycles 4/6</a>
             </p>
-          </div>
-          <!-- /Cycles -->
+          </div>-->
         </div>
         <!-- /left column-->
 
