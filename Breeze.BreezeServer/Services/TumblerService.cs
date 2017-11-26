@@ -11,6 +11,7 @@ using NTumbleBit.ClassicTumbler.Server;
 using NTumbleBit.Services;
 using NTumbleBit.Configuration;
 using NTumbleBit.ClassicTumbler.CLI;
+using NBitcoin;
 
 namespace Breeze.BreezeServer
 {
@@ -19,17 +20,20 @@ namespace Breeze.BreezeServer
         public TumblerConfiguration config { get; set; }
         public TumblerRuntime runtime { get; set; }
         
-        public void StartTumbler(bool testnet, bool getConfigOnly)
+        public void StartTumbler(BreezeConfiguration breezeConfig, bool getConfigOnly)
         {
             string[] args;
 			
-			if (!testnet)
+			if (breezeConfig.TumblerNetwork == Network.TestNet)
 				// TODO: Tumbler is locked to testnet for testing
-				args = new string[] {"-testnet"};
-			else
-				args = new string[] {"-testnet"};
+				args = new string[] {"-testnet", "-debug"};
+			else if (breezeConfig.TumblerNetwork == Network.RegTest)
+                args = new string[] {"-regtest", "-debug"};
+            else
+                args = new string[] {"-debug"};
 
             var argsConf = new TextFileConfiguration(args);
+
             var debug = argsConf.GetOrDefault<bool>("debug", false);
 
             ConsoleLoggerProcessor loggerProcessor = new ConsoleLoggerProcessor();
