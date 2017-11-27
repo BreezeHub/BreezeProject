@@ -3,11 +3,11 @@
 [![Windows build status][1]][2] | [![Linux build status][3]][4] | [![OS X build status][5]][6] | 
 
 [1]: https://ci.appveyor.com/api/projects/status/j9g1kfpo48kf3eyr?svg=true
-[2]: https://ci.appveyor.com/project/breezehubadmin/breeze
-[3]: https://travis-ci.org/BreezeHub/Breeze.svg?branch=tumblebit-alpha
-[4]: https://travis-ci.org/BreezeHub/Breeze
-[5]: https://travis-ci.org/BreezeHub/Breeze.svg?branch=tumblebit-alpha
-[6]: https://travis-ci.org/BreezeHub/Breeze
+[2]: https://ci.appveyor.com/project/breezehubadmin/breezeproject
+[3]: https://travis-ci.org/BreezeHub/BreezeProject.svg?branch=tumblebit-alpha
+[4]: https://travis-ci.org/BreezeHub/BreezeProject
+[5]: https://travis-ci.org/BreezeHub/BreezeProject.svg?branch=tumblebit-alpha
+[6]: https://travis-ci.org/BreezeHub/BreezeProject
 
 
 # Breeze Wallet with Breeze Privacy Protocol
@@ -23,11 +23,8 @@ Breeze daemon is the backend REST service, hosting a Bitcoin node upon which Bre
 
 ```
 # Clone and go in the directory
-git clone https://github.com/breezehub/Breeze
+git clone https://github.com/breezehub/BreezeProject
 cd Breeze
-
-# Switch branch
-git checkout tumblebit-alpha
 
 # Initialize dependencies
 git submodule update --init --recursive
@@ -66,13 +63,13 @@ This is early release, alpha software, is provided for experiment, testing and d
 
 For **testnet** only.
 
-[7]: https://ci.appveyor.com/api/projects/breezehubadmin/breeze/artifacts/breeze_out/breeze-win7-x86-Release.zip?job=Environment%3A%20win_runtime%3Dwin7-x86%2C%20arch%3Dia32%2C%20plat%3Dwin32
-[8]: https://ci.appveyor.com/api/projects/breezehubadmin/breeze/artifacts/breeze_out/breeze-win7-x64-Release.zip?job=Environment%3A%20win_runtime%3Dwin7-x64%2C%20arch%3Dx64%2C%20plat%3Dwin32
-[9]: https://ci.appveyor.com/api/projects/breezehubadmin/breeze/artifacts/breeze_out/breeze-win10-x86-Release.zip?job=Environment%3A%20win_runtime%3Dwin10-x86%2C%20arch%3Dia32%2C%20plat%3Dwin32
-[10]: https://ci.appveyor.com/api/projects/breezehubadmin/breeze/artifacts/breeze_out/breeze-win10-x64-Release.zip?job=Environment%3A%20win_runtime%3Dwin10-x64%2C%20arch%3Dx64%2C%20plat%3Dwin32
-[11]: https://github.com/breezehub/Breeze/releases/download/cd-unstable/breeze-ubuntu.14.04-x64-Release.zip
-[12]: https://github.com/breezehub/Breeze/releases/download/cd-unstable/breeze-ubuntu.14.04-x64-Release.zip
-[13]: https://github.com/breezehub/Breeze/releases/download/cd-unstable/breeze-osx.10.11-x64-Release.zip
-[14]: https://github.com/breezehub/Breeze/releases/download/cd-unstable/breeze-osx.10.12-x64-Release.zip
+[7]: https://ci.appveyor.com/api/projects/breezehubadmin/breezeproject/artifacts/breeze_out/breeze-win7-x86-Release.zip?job=Environment%3A%20win_runtime%3Dwin7-x86%2C%20arch%3Dia32%2C%20plat%3Dwin32
+[8]: https://ci.appveyor.com/api/projects/breezehubadmin/breezeproject/artifacts/breeze_out/breeze-win7-x64-Release.zip?job=Environment%3A%20win_runtime%3Dwin7-x64%2C%20arch%3Dx64%2C%20plat%3Dwin32
+[9]: https://ci.appveyor.com/api/projects/breezehubadmin/breezeproject/artifacts/breeze_out/breeze-win10-x86-Release.zip?job=Environment%3A%20win_runtime%3Dwin10-x86%2C%20arch%3Dia32%2C%20plat%3Dwin32
+[10]: https://ci.appveyor.com/api/projects/breezehubadmin/breezeproject/artifacts/breeze_out/breeze-win10-x64-Release.zip?job=Environment%3A%20win_runtime%3Dwin10-x64%2C%20arch%3Dx64%2C%20plat%3Dwin32
+[11]: https://github.com/breezehub/BreezeProject/releases/download/cd-unstable/breeze-ubuntu.14.04-x64-Release.zip
+[12]: https://github.com/breezehub/BreezeProject/releases/download/cd-unstable/breeze-ubuntu.14.04-x64-Release.zip
+[13]: https://github.com/breezehub/BreezeProject/releases/download/cd-unstable/breeze-osx.10.11-x64-Release.zip
+[14]: https://github.com/breezehub/BreezeProject/releases/download/cd-unstable/breeze-osx.10.12-x64-Release.zip
 
 With TumbleBit
