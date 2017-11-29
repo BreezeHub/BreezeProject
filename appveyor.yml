@@ -127,13 +127,13 @@ artifacts:
 #      deployment configuration    #
 #----------------------------------#
 
-deploy:
-- provider: GitHub
-  tag: $(APPVEYOR_REPO_TAG_NAME)
-  auth_token:
-    secure: faXallYrtShJywqNK+adalNNl50Wjns7dFsCDDx5/eNBegshCLjfshUeMPgIX9Ld
-  draft: false
-  prerelease: true
-  force_update: true
-  on:
-    branch: master                 # release from master branch only
+#deploy:
+#- provider: GitHub
+#  tag: $(APPVEYOR_REPO_TAG_NAME)
+#  auth_token:
+#    secure: faXallYrtShJywqNK+adalNNl50Wjns7dFsCDDx5/eNBegshCLjfshUeMPgIX9Ld
+#  draft: false
+#  prerelease: true
+#  force_update: true
+#  on:
+#    branch: master                 # release from master branch only
