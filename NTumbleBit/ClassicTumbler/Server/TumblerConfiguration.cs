@@ -121,6 +121,7 @@ namespace NTumbleBit.ClassicTumbler.Server
 			{
 				AssetConfigFileExists();
 				var configTemp = TextFileConfiguration.Parse(File.ReadAllText(ConfigurationFile));
+				
 				Network = configTemp.GetOrDefault<bool>("testnet", false) ? Network.TestNet :
 						  configTemp.GetOrDefault<bool>("regtest", false) ? Network.RegTest :
 						  Network.Main;

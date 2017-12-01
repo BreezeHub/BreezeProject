@@ -36,7 +36,7 @@ namespace Breeze.BreezeServer
         public Money TxOutputValueSetting { get; set; }
         public Money TxFeeValueSetting { get; set; }
 
-        public BreezeConfiguration(string configPath)
+        public BreezeConfiguration(string configPath, string datadir = null)
         {
             try
             {
@@ -147,20 +147,26 @@ namespace Breeze.BreezeServer
                 else // TumblerNetwork == Network.TestNet
                     bitcoinNetwork = "TestNet";
 
-                // Create directory for key files if it does not already exist
-                Directory.CreateDirectory(Path.Combine(GetDefaultDataDir("NTumbleBitServer"), bitcoinNetwork));
+                if (datadir == null)
+                {
+                    // Create default directory for key files if it does not already exist
+                    Directory.CreateDirectory(Path.Combine(GetDefaultDataDir("NTumbleBitServer"), bitcoinNetwork));
 
-                TumblerRsaKeyFile = configFile.GetOrDefault<string>("tumbler.rsakeyfile", Path.Combine(GetDefaultDataDir("NTumbleBitServer"), "Tumbler.pem"));
+                    TumblerRsaKeyFile = configFile.GetOrDefault<string>("tumbler.rsakeyfile",
+                        Path.Combine(GetDefaultDataDir("NTumbleBitServer"), bitcoinNetwork, "Tumbler.pem"));
+                }
+                else
+                {
+                    Directory.CreateDirectory(Path.Combine(datadir, bitcoinNetwork));
+                    
+                    TumblerRsaKeyFile = configFile.GetOrDefault<string>("tumbler.rsakeyfile",
+                        Path.Combine(datadir, bitcoinNetwork, "Tumbler.pem"));                    
+                }
                 
-                var nTumbleBitPath = GetDefaultDataDir("NTumbleBitServer");
-                var defaultTumblerRsaKeyFile = Path.Combine(nTumbleBitPath, bitcoinNetwork, "Tumbler.pem");
                 TumblerRsaKeyFile = BreezeConfigurationValidator.ValidateTumblerRsaKeyFile(
                     TumblerRsaKeyFile,
-                    defaultTumblerRsaKeyFile
+                    TumblerRsaKeyFile
                 );
-
-                if (!TumblerRsaKey.Exists(this.TumblerRsaKeyFile))
-                    TumblerRsaKey.Create(this.TumblerRsaKeyFile);
                 
                 TumblerEcdsaKeyAddress = configFile.GetOrDefault<string>("tumbler.ecdsakeyaddress", null);
 
@@ -169,9 +175,7 @@ namespace Breeze.BreezeServer
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
-
-                throw new Exception("ERROR: Unable to read configuration");
+                throw new Exception("ERROR: Unable to read configuration. " + e);
             }
         }
 

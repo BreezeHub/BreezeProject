@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using BreezeCommon;
 using NBitcoin;
 using NTumbleBit.ClassicTumbler.Server;
+using Breeze.BreezeServer.Services;
 
 namespace Breeze.BreezeServer
 {

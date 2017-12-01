@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using CommandLine;
 
 using Microsoft.AspNetCore.Hosting;
@@ -12,28 +14,34 @@ using NTumbleBit.Services;
 using NTumbleBit.Configuration;
 using NTumbleBit.ClassicTumbler.CLI;
 using NBitcoin;
+using Breeze.BreezeServer;
 
-namespace Breeze.BreezeServer
+namespace Breeze.BreezeServer.Services
 {
     public class TumblerService : ITumblerService
     {
         public TumblerConfiguration config { get; set; }
         public TumblerRuntime runtime { get; set; }
         
-        public void StartTumbler(BreezeConfiguration breezeConfig, bool getConfigOnly)
+        public void StartTumbler(BreezeConfiguration breezeConfig, bool getConfigOnly, string ntumblebitServerConf = null, string datadir = null)
         {
-            string[] args;
+            var argsTemp = new List<string>();
+            argsTemp.Add("-debug");
 			
 			if (breezeConfig.TumblerNetwork == Network.TestNet)
-				// TODO: Tumbler is locked to testnet for testing
-				args = new string[] {"-testnet", "-debug"};
+				argsTemp.Add("-testnet");
 			else if (breezeConfig.TumblerNetwork == Network.RegTest)
-                args = new string[] {"-regtest", "-debug"};
-            else
-                args = new string[] {"-debug"};
+			    argsTemp.Add("-regtest");
+            // No else needed, mainnet is defaulted
+            
+            if (ntumblebitServerConf != null)
+                argsTemp.Add("-conf=" + ntumblebitServerConf);
 
+            if (datadir != null)
+                argsTemp.Add("-datadir=" + datadir);
+
+            string[] args = argsTemp.ToArray();
             var argsConf = new TextFileConfiguration(args);
-
             var debug = argsConf.GetOrDefault<bool>("debug", false);
 
             ConsoleLoggerProcessor loggerProcessor = new ConsoleLoggerProcessor();
