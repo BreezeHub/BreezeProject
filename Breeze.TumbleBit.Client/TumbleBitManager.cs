@@ -327,6 +327,8 @@ namespace Breeze.TumbleBit.Client
         /// <inheritdoc />
         public async Task<ClassicTumblerParameters> ConnectToTumblerAsync()
         {
+            this.TumblerAddress = "ctb://zggwpuuwiukvdqz3.onion?h=97104fee142594c4e38a9ba1c609206911c175f3";
+            
             /// If the -ppuri command line option wasn't used to bypass the registration store lookup
             if (this.TumblerAddress == null)
             {
