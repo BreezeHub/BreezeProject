@@ -131,6 +131,10 @@ namespace Breeze.Daemon
                     fullNodeBuilder.UseTumbleBit(registrationStoreDirectory);
                 }
 
+                Logs.Configuration.LogDebug("args:", args);
+                foreach (string str in args)
+                    Logs.Configuration.LogWarning("arg:", str);
+                
                 IFullNode node = fullNodeBuilder.Build();
 
                 // Start Full Node - this will also start the API.
