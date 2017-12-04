@@ -120,25 +120,44 @@ namespace Breeze.TumbleBit.Client
             // Load saved state e.g. previously selected server
 	        if (File.Exists(this.tumblingState.GetStateFilePath()))
 	        {
-		        this.tumblingState.LoadStateFromMemory();
-	        }
-	        else
-	        {
-		        this.tumblingState.Save();
-	        }
+	            try
+	            {
+	                this.tumblingState.LoadStateFromMemory();
+	            }
+	            catch (NullReferenceException)
+	            {
+	                // The file appears to get corrupted sometimes, not clear why
+	                // May be if the node is not shut down correctly
+	            }
+            }
 
-			//remove and progress file from previous session
-			//as it is now stale
+            this.tumblingState.Save();
+
+			// Remove the progress file from previous session as it is now stale
 			ProgressInfo.RemoveProgressFile();
         }
 
         public async Task<bool> BlockGenerate(int numberOfBlocks)
         {
+            if (this.network != Network.RegTest && this.network != Network.StratisRegTest)
+            {
+                this.logger.LogError("Can only generate blocks on regtest");
+                return false;
+            }
+
             var wallet = this.tumblingState.WalletManager;
             var w = wallet.GetWalletsNames().FirstOrDefault();
             if (w == null)
+            {
+                this.logger.LogError("No wallet found");
                 throw new Exception("No wallet found");
+            }
             var acc = wallet.GetAccounts(w).FirstOrDefault();
+            if (acc == null)
+            {
+                this.logger.LogError("No account found in wallet");
+                throw new Exception("No account found in wallet");
+            }
             var account = new WalletAccountReference(w, acc.Name);
             var address = wallet.GetUnusedAddress(account);
 
@@ -344,7 +363,7 @@ namespace Breeze.TumbleBit.Client
                     return null;
                 }
                 
-                this.TumblerAddress = "ctb://" + record.Record.OnionAddress + ".onion?h=" + record.Record.ConfigurationHash;
+                this.TumblerAddress = "ctb://" + registrationToken.OnionAddress + ".onion?h=" + registrationToken.ConfigurationHash;
             }
 
             this.tumblingState.TumblerUri = new Uri(this.TumblerAddress);
@@ -381,7 +400,7 @@ namespace Breeze.TumbleBit.Client
             // Check if in initial block download
             if (!this.chain.IsDownloaded())
             {
-                this.logger.LogDebug("Chain is still being downloaded: " + this.chain.Tip.ToString());
+                this.logger.LogDebug("Chain is still being downloaded: " + this.chain.Tip);
                 throw new Exception("Chain is still being downloaded");
             }
 
