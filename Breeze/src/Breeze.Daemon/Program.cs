@@ -130,10 +130,6 @@ namespace Breeze.Daemon
                     // We no longer pass the URI in via the command line, the registration feature selects a random one
                     fullNodeBuilder.UseTumbleBit(registrationStoreDirectory);
                 }
-
-                Logs.Configuration.LogDebug("args:", args);
-                foreach (string str in args)
-                    Logs.Configuration.LogWarning("arg:", str);
                 
                 IFullNode node = fullNodeBuilder.Build();
 
