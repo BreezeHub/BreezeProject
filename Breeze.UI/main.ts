@@ -13,8 +13,8 @@ const os = require('os');
 let serve;
 let testnet;
 const args = process.argv.slice(1);
-serve = args.some(val => val === "--serve");
-testnet = args.some(val => val === "--testnet");
+serve = args.some(val => val === "--serve" || val === "-serve");
+testnet = args.some(val => val === "--testnet" || val === "-testnet");
 
 if (serve) {
   require('electron-reload')(__dirname, {
@@ -165,10 +165,15 @@ function startBitcoinApi() {
       stratisDir = '-storedir=' + path.join(os.homedir(), 'AppData', 'Roaming', 'StratisNode', 'stratis', 'StratisTest', 'registrationHistory.json');
   }
 
-  bitcoinProcess = spawnBitcoin(apiPath, ['light ', '-testnet', '-tumblebit', 'registration', stratisDir], {
-    detached: true
-  });
-
+  if(!testnet) {
+    bitcoinProcess = spawnBitcoin(apiPath, ['light ', '-tumblebit', 'registration', stratisDir], {
+      detached: true
+    });
+  } else {
+    bitcoinProcess = spawnBitcoin(apiPath, ['light ', '-testnet', '-tumblebit', 'registration', stratisDir], {
+      detached: true
+    });
+  }
 
   bitcoinProcess.stdout.on('data', (data) => {
     writeLog(`Bitcoin: ${data}`);
@@ -185,10 +190,15 @@ function startStratisApi() {
       apiPath = path.resolve(__dirname, 'assets\\daemon\\Breeze.Daemon.exe');
   }
 
-  stratisProcess = spawnStratis(apiPath, ['stratis', 'light', '-testnet', 'registration'], {
-    detached: true
-  });
-
+  if (!testnet) {
+    stratisProcess = spawnStratis(apiPath, ['stratis', 'light', 'registration'], {
+      detached: true
+    });
+  } else {
+    stratisProcess = spawnStratis(apiPath, ['stratis', 'light', '-testnet', 'registration'], {
+      detached: true
+    });
+  }
 
   stratisProcess.stdout.on('data', (data) => {
     writeLog(`Stratis: ${data}`);
