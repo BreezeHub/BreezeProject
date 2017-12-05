@@ -3,7 +3,7 @@
 # you can use {branch} name in version format too
 # version: 1.0.{build}-{branch}
 
-version: 0.2.0.{build}
+version: 0.3.0.{build}
 pull_requests:
   do_not_increment_build_number: true
 
@@ -20,7 +20,6 @@ branches:
 image: Visual Studio 2017
 clone_folder: c:\projects\breeze
 configuration:
- # - Debug
   - Release
 
 build:
@@ -28,27 +27,46 @@ build:
 
 environment:
   matrix:
-  - win_runtime: win7-x64
+  - win_runtime: win-x64
     arch: x64
     plat: win32
-  - win_runtime: win7-x86
-    arch: ia32
-    plat: win32
-  - win_runtime: win10-x64
-    arch: x64
-    plat: win32
-  - win_runtime: win10-x86
+  - win_runtime: win-x86
     arch: ia32
     plat: win32
 
+# build cache to preserve files/folders between builds
+cache:
+  - '%APPVEYOR_BUILD_FOLDER%\Breeze.UI\node_modules'
+  - '%USERPROFILE%\.nuget\packages'
+  
 init:
 - ps: |
       $env:log_prefix = "[$env:win_runtime][$env:configuration]"
-      $env:node_output_name = "Breeze-$env:plat-$env:arch"
-      $env:app_output_name = "breeze-$env:win_runtime"
-      $env:app_output_zip_name = "breeze-$env:win_runtime-$env:configuration.zip"
-      if ($env:APPVEYOR_REPO_TAG -eq "false") { $env:APPVEYOR_REPO_TAG_NAME = "mainnet" }
+      if ($env:APPVEYOR_REPO_TAG -eq "false") { $env:APPVEYOR_REPO_TAG_NAME = "cd-unstable" }
 
+install:
+- ps: |
+      Write-Host "Installing dependencies" -foregroundcolor "magenta"
+      
+      Write-Host "--> git submodule" -foregroundcolor "magenta"
+      git submodule update --init --recursive
+      
+      Write-Host "--> node 6" -foregroundcolor "magenta"
+      Install-Product node 6
+      
+      Write-Host "--> npm config" -foregroundcolor "magenta"
+      npm config set unsafe-perm=true
+      
+      Write-Host "--> npm install" -foregroundcolor "magenta"
+      cd $env:APPVEYOR_BUILD_FOLDER/Breeze.UI
+      npm install
+      
+      Write-Host "--> npm install npx" -foregroundcolor "magenta"
+      npm install -g npx
+      
+      Write-Host "$env:log_prefix FINISHED restoring dotnet and npm packages" -foregroundcolor "magenta"
+      if ($LastExitCode -ne 0) { $host.SetShouldExit($LastExitCode) }
+    
 #---------------------------------#
 #       build configuration       #
 #---------------------------------#
@@ -59,9 +77,6 @@ before_build:
       Write-Host "Windows runtime: $env:win_runtime" -foregroundcolor "magenta"
       Write-Host "Build directory: $env:APPVEYOR_BUILD_FOLDER" -foregroundcolor "magenta"
       Write-Host "Configuration: $env:configuration" -foregroundcolor "magenta"
-      Write-Host "node.js output name: $env:node_output_name" -foregroundcolor "magenta"
-      Write-Host "App output folder name: $env:app_output_name" -foregroundcolor "magenta"
-      Write-Host "App output zip file name: $env:app_output_zip_name" -foregroundcolor "magenta"
       Write-Host "Branch: $env:APPVEYOR_REPO_BRANCH" -foregroundcolor "magenta"
       Write-Host "Tag is set: $env:APPVEYOR_REPO_TAG" -foregroundcolor "magenta"
       Write-Host "Tag: $env:APPVEYOR_REPO_TAG_NAME" -foregroundcolor "magenta"
@@ -69,44 +84,28 @@ before_build:
       Write-Host "Commit message: $env:APPVEYOR_REPO_COMMIT_MESSAGE" -foregroundcolor "magenta"
       Write-Host "*--------------------------------*" -foregroundcolor "magenta"
 
-      Write-Host "$env:log_prefix STARTED restoring dotnet and npm packages" -foregroundcolor "magenta"
-      
-      # Initialize dependencies
-      git submodule update --init --recursive
-     
-      cd $env:APPVEYOR_BUILD_FOLDER/Breeze.UI
-
-      Install-Product node 6
-      npm install
-      Write-Host "$env:log_prefix FINISHED restoring dotnet and npm packages" -foregroundcolor "magenta"
       if ($LastExitCode -ne 0) { $host.SetShouldExit($LastExitCode) }
     
 build_script:
 - ps: |
-      Write-Host "$env:log_prefix running 'dotnet build'" -foregroundcolor "magenta"
-      cd $env:APPVEYOR_BUILD_FOLDER/Breeze/src/Breeze.Daemon
-      dotnet restore -v m
-      dotnet build -c $env:configuration -r $env:win_runtime -v m 
-
       Write-Host "$env:log_prefix running 'dotnet publish'" -foregroundcolor "magenta"
-      dotnet publish -c $env:configuration -v m -r $env:win_runtime -o $env:APPVEYOR_BUILD_FOLDER\dotnet_out\$env:win_runtime
+      cd $env:APPVEYOR_BUILD_FOLDER/StratisBitcoinFullNode/Stratis.BreezeD
+      dotnet publish -c $env:configuration -v m -r $env:win_runtime -o $env:APPVEYOR_BUILD_FOLDER\Breeze.UI\daemon
+      if ($LastExitCode -ne 0) { $host.SetShouldExit($LastExitCode)  }
       
-      Write-Host "$env:log_prefix running 'npm run'" -foregroundcolor "magenta"
+      Write-Host "$env:log_prefix building Breeze" -foregroundcolor "magenta"
       cd $env:APPVEYOR_BUILD_FOLDER/Breeze.UI
       npm run build:prod
+      if ($LastExitCode -ne 0) { $host.SetShouldExit($LastExitCode)  }
+      
       Write-Host "$env:log_prefix packaging breeze" -foregroundcolor "magenta"
-      node package.js --platform=$env:plat --arch=$env:arch --path=$env:APPVEYOR_BUILD_FOLDER\breeze_out
+      npx electron-builder build --windows --$env:arch
+      if ($LastExitCode -ne 0) { $host.SetShouldExit($LastExitCode)  }     
+      Write-Host "[$env:configuration][$env:win_runtime] FINISHED Breeze packaging" -foregroundcolor "magenta"
       
-      Write-Host "$env:log_prefix rename the folder generated by npm from $env:node_output_name to $env:app_output_name" -foregroundcolor "magenta"
-      Rename-Item $env:APPVEYOR_BUILD_FOLDER\breeze_out\$env:node_output_name $env:app_output_name
-      
-      Write-Host "$env:log_prefix copying the Breeze api into the app" -foregroundcolor "magenta"
-      New-Item -Path $env:APPVEYOR_BUILD_FOLDER\breeze_out\$env:app_output_name\resources\app\assets\daemon -ItemType directory 
-      xcopy /s $env:APPVEYOR_BUILD_FOLDER\dotnet_out\$env:win_runtime\* $env:APPVEYOR_BUILD_FOLDER\breeze_out\$env:app_output_name\resources\app\assets\daemon\
-      Write-Host "$env:log_prefix zipping the result" -foregroundcolor "magenta"
-      7z a  $env:APPVEYOR_BUILD_FOLDER\breeze_out\$env:app_output_zip_name $env:APPVEYOR_BUILD_FOLDER\breeze_out\$env:app_output_name
-            
-      Write-Host "[$env:configuration][$env:win_runtime] FINISHED dotnet build" -foregroundcolor "magenta"
+      dir
+      cd app-builds
+      dir      
       if ($LastExitCode -ne 0) { $host.SetShouldExit($LastExitCode)  }
     
 test_script:
@@ -120,20 +119,20 @@ test_script:
 
 # pushing all files in build directory recursively
 artifacts:
-- path: breeze_out\*.zip
+- path: Breeze.UI\app-builds\*.exe
   name: Breeze app
   
 #----------------------------------#
 #      deployment configuration    #
 #----------------------------------#
 
-#deploy:
-#- provider: GitHub
-#  tag: $(APPVEYOR_REPO_TAG_NAME)
-#  auth_token:
-#    secure: faXallYrtShJywqNK+adalNNl50Wjns7dFsCDDx5/eNBegshCLjfshUeMPgIX9Ld
-#  draft: false
-#  prerelease: true
-#  force_update: true
-#  on:
-#    branch: master                 # release from master branch only
+deploy:
+- provider: GitHub
+  tag: $(APPVEYOR_REPO_TAG_NAME)
+  auth_token:
+    secure: faXallYrtShJywqNK+adalNNl50Wjns7dFsCDDx5/eNBegshCLjfshUeMPgIX9Ld
+  draft: false
+  prerelease: true
+  force_update: true
+  on:
+    branch: master                 # release from master branch only

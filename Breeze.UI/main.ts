@@ -157,7 +157,11 @@ function startBitcoinApi() {
   //Start Breeze Bitcoin Daemon
   let apiPath = path.resolve(__dirname, 'assets//daemon//Breeze.Daemon');
   if (os.platform() === 'win32') {
-      apiPath = path.resolve(__dirname, 'assets\\daemon\\Breeze.Daemon.exe');
+      apiPath = path.resolve(__dirname, '..\\..\\resources\\daemon\\Breeze.Daemon.exe');
+  } else if (os.platform() === 'linux') {
+    apiPath = path.resolve(__dirname, '..//..//resources//daemon//Stratis.BreezeD');
+  } else {
+    apiPath = path.resolve(__dirname, '..//..//resources//daemon//Stratis.BreezeD');
   }
 
   let stratisDir = '-storedir=' + path.join(os.homedir(), '.stratisnode', 'stratis', 'StratisTest', 'registrationHistory.json');
@@ -187,7 +191,11 @@ function startStratisApi() {
   //Start Breeze Stratis Daemon
   let apiPath = path.resolve(__dirname, 'assets//daemon//Breeze.Daemon');
   if (os.platform() === 'win32') {
-      apiPath = path.resolve(__dirname, 'assets\\daemon\\Breeze.Daemon.exe');
+      apiPath = path.resolve(__dirname, '..\\..\\resources\\daemon\\Breeze.Daemon.exe');
+  } else if (os.platform() === 'linux') {
+    apiPath = path.resolve(__dirname, '..//..//resources//daemon//Stratis.BreezeD');
+  } else {
+    apiPath = path.resolve(__dirname, '..//..//resources//daemon//Stratis.BreezeD');
   }
 
   if (!testnet) {
