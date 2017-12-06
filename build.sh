@@ -47,11 +47,11 @@ echo $log_prefix FINISHED restoring dotnet and npm packages
 
 # dotnet publish
 echo $log_prefix running 'dotnet publish'
-cd $TRAVIS_BUILD_DIR/StratisBitcoinFullNode/Stratis.BreezeD
+cd $TRAVIS_BUILD_DIR/Breeze/src/Breeze.Daemon
 dotnet publish -c $configuration -r $TRAVIS_OS_NAME-$arch -v m -o $TRAVIS_BUILD_DIR/Breeze.UI/daemon
 
-echo $log_prefix chmoding the Stratis.BreezeD file
-chmod +x $TRAVIS_BUILD_DIR/Breeze.UI/daemon/Stratis.BreezeD
+echo $log_prefix chmoding the Breeze.Daemon file
+chmod +x $TRAVIS_BUILD_DIR/Breeze.UI/daemon/Breeze.Daemon
 
 # node Build
 cd $TRAVIS_BUILD_DIR/Breeze.UI
