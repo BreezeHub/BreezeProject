@@ -170,11 +170,11 @@ function startBitcoinApi() {
   }
 
   if(!testnet) {
-    bitcoinProcess = spawnBitcoin(apiPath, ['light ', '-tumblebit', 'registration', stratisDir], {
+    bitcoinProcess = spawnBitcoin(apiPath, ['light', '-tumblebit', 'registration', stratisDir], {
       detached: true
     });
   } else {
-    bitcoinProcess = spawnBitcoin(apiPath, ['light ', '-testnet', '-tumblebit', 'registration', stratisDir], {
+    bitcoinProcess = spawnBitcoin(apiPath, ['light', '-testnet', '-tumblebit', 'registration', stratisDir], {
       detached: true
     });
   }
