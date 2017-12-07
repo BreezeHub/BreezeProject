@@ -132,7 +132,7 @@ deploy:
 - provider: GitHub
   tag: $(APPVEYOR_REPO_TAG_NAME)
   auth_token:
-    secure: ypUTJ0jALaF+6Ff68eUX3lZIfxaav3hKb3lVHKYT/nw6rYyhiRaoPjcJsTlBUNqL
+    secure: faXallYrtShJywqNK+adalNNl50Wjns7dFsCDDx5/eNBegshCLjfshUeMPgIX9Ld
   draft: false
   prerelease: true
   force_update: true
