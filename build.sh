@@ -79,7 +79,7 @@ ls
 echo $log_prefix contents of the app-builds folder
 cd $TRAVIS_BUILD_DIR/Breeze.UI/app-builds/
 # replace the spaces in the name with a dot as CI system have trouble handling spaces in names.
-for file in *.{dmg,tar.gz,deb}; do mv "$file" `echo $file | tr ' ' '.'` ; done
+for file in *.{dmg,tar.gz,deb}; do mv "$file" `echo $file | tr ' ' '.'` 2>/dev/null || : ; done
 
 ls
 
