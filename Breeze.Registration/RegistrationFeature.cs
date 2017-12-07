@@ -13,6 +13,7 @@ using BreezeCommon;
 using Stratis.Bitcoin.Signals;
 using Stratis.Bitcoin.Features.WatchOnlyWallet;
 using Stratis.Bitcoin.Features.Notifications.Interfaces;
+using Stratis.Bitcoin.Features.Wallet.Interfaces;
 
 namespace Breeze.Registration
 {
@@ -24,7 +25,8 @@ namespace Breeze.Registration
         private readonly ConcurrentChain chain;
         private readonly Signals signals;
         private IWatchOnlyWalletManager watchOnlyWalletManager;
-	    private readonly IBlockNotification blockNotification;
+	    private readonly BlockNotification blockNotification;
+		private IWalletSyncManager walletSyncManager;
 
         private ILoggerFactory loggerFactory;
         private readonly IRegistrationManager registrationManager;
@@ -41,7 +43,8 @@ namespace Breeze.Registration
             ConcurrentChain chain,
             Signals signals,
             IWatchOnlyWalletManager watchOnlyWalletManager,
-            IBlockNotification blockNotification)
+            IBlockNotification blockNotification,
+	        IWalletSyncManager walletSyncManager)
 		{
             this.loggerFactory = loggerFactory;
             this.logger = loggerFactory.CreateLogger(this.GetType().FullName);
@@ -52,7 +55,8 @@ namespace Breeze.Registration
             this.signals = signals;
             this.network = nodeSettings.Network;
             this.watchOnlyWalletManager = watchOnlyWalletManager;
-		    this.blockNotification = blockNotification;
+		    this.blockNotification = blockNotification as BlockNotification;
+			this.walletSyncManager = walletSyncManager;
 
             if (nodeSettings.Network == Network.Main || nodeSettings.Network == Network.TestNet || nodeSettings.Network == Network.RegTest)
             {
@@ -74,16 +78,23 @@ namespace Breeze.Registration
             if (!this.isBitcoin)
             {
                 // Start syncing from the height of the earliest possible registration transaction instead of the genesis block. This saves time.
-                //this.logger.LogDebug("Registration: blockNotification.StartHash = " + this.blockNotification.StartHash);
-                if (true) // (this.blockNotification.StartHash == null)
+                this.logger.LogDebug("Registration: blockNotification.StartHash = " + this.blockNotification.StartHash);
+	            
+	            // Note that the headers (Headers.Height in console output) still need to sync first, which takes some
+	            // time. Once that height is reached the blocks begin being downloaded from that height in full.
+                if (this.blockNotification.StartHash == null)
                 {
-                    if (this.network == Network.StratisMain) // 616966
-                        this.blockNotification.SyncFrom(uint256.Parse("d88a5b3734b991eca919b399cc676b4990f93a7b1b59aba0d42b13ffe7ec1169"));
+	                if (this.network == Network.StratisMain)
+	                {
+		                this.walletSyncManager.SyncFromHeight(616966); // d88a5b3734b991eca919b399cc676b4990f93a7b1b59aba0d42b13ffe7ec1169
+	                }
 
-                    if (this.network == Network.StratisTest) // 168994, first registration was in 168995
-                        this.blockNotification.SyncFrom(uint256.Parse("120f5aab8a3b82ca273d4f3c5a8ae698d1d4135014ad0d813a16f9272c5dca58"));
+	                if (this.network == Network.StratisTest) // 168994, first registration was in 168995
+	                {
+		                this.walletSyncManager.SyncFromHeight(168994); // 120f5aab8a3b82ca273d4f3c5a8ae698d1d4135014ad0d813a16f9272c5dca58
+	                }
 
-                    // For regtest, it is not clear that re-issuing a sync command will be beneficial. Generally you want to sync from genesis in that case.
+	                // For regtest, it is not clear that re-issuing a sync command will be beneficial. Generally you want to sync from genesis in that case.
                 }
 
                 // Only need to subscribe to receive blocks and transactions on the Stratis network
