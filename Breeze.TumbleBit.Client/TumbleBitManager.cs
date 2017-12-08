@@ -471,7 +471,15 @@ namespace Breeze.TumbleBit.Client
 
         public int RegistrationCount()
         {
-            return this.registrationStore.GetAll().Count;
+            try
+            {
+                return this.registrationStore.GetAll().Count;
+            }
+            catch (Exception)
+            {
+                return 0;
+            }
+            
         }
         
         public async Task Initialize()
