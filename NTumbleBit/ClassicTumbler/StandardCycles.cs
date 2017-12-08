@@ -72,7 +72,7 @@ namespace NTumbleBit.ClassicTumbler
 			{
 				FriendlyName = "Shorty",
 				Consensus = consensus,
-				Denomination = Money.Coins(0.01m),
+				Denomination = Money.Coins(0.0011m),
 				Generator = new OverlappedCycleGenerator()
 				{
 					RegistrationOverlap = 1,
@@ -94,7 +94,7 @@ namespace NTumbleBit.ClassicTumbler
 			{
 				FriendlyName = "Shorty2x",
 				Consensus = consensus,
-				Denomination = Money.Coins(0.02m),
+				Denomination = Money.Coins(0.0011m),
 				Generator = new OverlappedCycleGenerator()
 				{
 					RegistrationOverlap = 1,
@@ -116,7 +116,7 @@ namespace NTumbleBit.ClassicTumbler
 			{
 				FriendlyName = "Kotori",
 				Consensus = consensus,
-				Denomination = Money.Coins(1.0m),
+				Denomination = Money.Coins(0.0011m),
 				Generator = new OverlappedCycleGenerator()
 				{
 					RegistrationOverlap = 1,
@@ -171,8 +171,8 @@ namespace NTumbleBit.ClassicTumbler
 							}).OrderBy(c => c).ToArray();
 						for(int ii = 1; ii < starts.Length; ii++)
 						{
-							if(starts[ii] - starts[ii - 1] < GetBlocksCount(consensus, 20))
-								throw new InvalidOperationException("A standard cycle generator generates cycles which overlap too much");
+							//if(starts[ii] - starts[ii - 1] < GetBlocksCount(consensus, 20))
+							//	throw new InvalidOperationException("A standard cycle generator generates cycles which overlap too much");
 						}
 
 						//Check if it is a we already checked such state module total
@@ -230,11 +230,11 @@ namespace NTumbleBit.ClassicTumbler
 		public IEnumerable<StandardCycle> ToEnumerable()
 		{
 			yield return _Kotori;
-			if(_Debug)
-			{
+			//if(_Debug)
+			//{
 				yield return _Shorty;
 				yield return _Shorty2x;
-			}
+			//}
 		}
 
 		public StandardCycle GetStandardCycle(ClassicTumblerParameters tumblerParameters)
