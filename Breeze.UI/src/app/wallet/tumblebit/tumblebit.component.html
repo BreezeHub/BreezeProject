@@ -20,11 +20,12 @@
                 <option *ngFor="let wallet of wallets" [value]="wallet">{{ wallet }}</option>
               </select>
             </div>
-            <button type="button" class="btn btn-lg btn-primary mt-4" (click)="startTumbling()" [disabled]="((!isConnected && !tumbling) || !hasRegistrations) || !isSynced" *ngIf="!tumbling">Start</button>
+            <!-- <button type="button" class="btn btn-lg btn-primary mt-4" (click)="startTumbling()" [disabled]="((!isConnected && !tumbling) || !hasRegistrations) || !isSynced" *ngIf="!tumbling">Start</button> -->
+            <button type="button" class="btn btn-lg btn-primary mt-4" (click)="startTumbling()" [disabled]="(!isConnected && !tumbling) || !isSynced" *ngIf="!tumbling">Start</button>
             <button type="button" class="btn btn-danger mt-2" (click)="stopTumbling()" [disabled]="(!isConnected && tumbling) || !isSynced" *ngIf="tumbling">Stop</button>
             <p class="help mt-4" *ngIf="!isSynced">Please wait until the wallet is fully synced.</p>
             <p class="help mt-4" *ngIf="!isConnected">Please wait until the wallet is connected.</p>
-            <p class="help mt-4" *ngIf="!hasRegistrations">Not enough masternodes registered to start the Breeze Privacy Protocol. Please wait.</p>
+            <!-- <p class="help mt-4" *ngIf="!hasRegistrations">Not enough masternodes registered to start the Breeze Privacy Protocol. Please wait.</p> -->
           </form>
 
           <div class="col-11 mx-auto cycles" *ngIf="tumbling && progressDataArray && isConnected">
