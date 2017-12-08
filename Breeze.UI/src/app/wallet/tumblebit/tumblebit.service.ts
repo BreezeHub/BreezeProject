@@ -45,6 +45,14 @@ export class TumblebitService {
       .map((response: Response) => response);
   }
 
+  getProgress(): Observable<any> {
+    return Observable
+      .interval(10000)
+      .startWith(0)
+      .switchMap(() => this.http.get(this.tumblerClientUrl + 'progress'))
+      .map((response: Response) => response);
+  }
+
   getWalletDestinationBalance(data: string): Observable<any> {
     let params: URLSearchParams = new URLSearchParams();
     params.set('walletName', data);
