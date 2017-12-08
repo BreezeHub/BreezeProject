@@ -38,7 +38,8 @@
     "deleteAppDataOnUninstall": true,
     "guid": "ed20df62-ff5a-4b83-a5e3-a361357c6e51",
     "createDesktopShortcut": true,
-    "createStartMenuShortcut": true
+    "createStartMenuShortcut": true,
+	"license": "../Licenses/breeze-license.txt"
   },
   "msi": {
     "warningsAsErrors": false
