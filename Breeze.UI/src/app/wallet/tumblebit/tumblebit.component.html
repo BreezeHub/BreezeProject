@@ -5,12 +5,12 @@
       <div class="row d-flex align-items-center">
         <!-- left column -->
         <div class="col-xs-12 col-sm-6">
-          <div class="col-11 my-5 mx-auto text-center">
+          <div class="col-11 my-2 mx-auto text-center">
             <i *ngIf="!tumbling" class="icon-tumblebit my-4 OFF"></i>
             <i *ngIf="tumbling" class="icon-tumblebit my-4 ON"></i>
-            <p class="help mt-4">The Breeze Privacy Protocol takes an amount of Bitcoin at a time, shuffles and swaps it with other coins, then transfers it to your destination wallet.  It can take some time to transfer several coins.</p>
+            <p class="help mt-3">The Breeze Privacy Protocol takes an amount of Bitcoin at a time, shuffles and swaps it with other coins, then transfers it to your destination wallet.  It can take some time to transfer several coins.</p>
           </div>
-          <form class="col-11 my-4 mx-auto text-center" [formGroup]="tumbleForm">
+          <form class="col-11 mx-auto text-center" [formGroup]="tumbleForm">
             <div class="row" *ngIf="!tumbling">
               <label class="col-12 text-left" for="">Destination wallet</label>
             </div>
@@ -21,22 +21,22 @@
               </select>
             </div>
             <!-- <button type="button" class="btn btn-lg btn-primary mt-4" (click)="startTumbling()" [disabled]="((!isConnected && !tumbling) || !hasRegistrations) || !isSynced" *ngIf="!tumbling">Start</button> -->
-            <button type="button" class="btn btn-lg btn-primary mt-4" (click)="startTumbling()" [disabled]="(!isConnected && !tumbling) || !isSynced" *ngIf="!tumbling">Start</button>
-            <button type="button" class="btn btn-danger mt-2" (click)="stopTumbling()" [disabled]="(!isConnected && tumbling) || !isSynced" *ngIf="tumbling">Stop</button>
+            <button type="button" class="btn btn-lg btn-primary" (click)="startTumbling()" [disabled]="(!isConnected && !tumbling) || !isSynced" *ngIf="!tumbling">Start</button>
+            <button type="button" class="btn btn-danger" (click)="stopTumbling()" [disabled]="(!isConnected && tumbling) || !isSynced" *ngIf="tumbling">Stop</button>
             <p class="help mt-4" *ngIf="!isSynced">Please wait until the wallet is fully synced.</p>
             <p class="help mt-4" *ngIf="!isConnected">Please wait until the wallet is connected.</p>
             <!-- <p class="help mt-4" *ngIf="!hasRegistrations">Not enough masternodes registered to start the Breeze Privacy Protocol. Please wait.</p> -->
           </form>
 
-          <div class="col-11 mx-auto cycles" *ngIf="tumbling && progressDataArray && isConnected">
-            <div *ngFor="let cycle of progressDataArray; let i=index" class="cycle-line my-1">
-              <ul class="list-inline row">
+          <div class="col-11 mx-auto cycles mt-3" *ngIf="tumbling && progressDataArray && isConnected">
+            <div *ngFor="let cycle of progressDataArray; let i=index" class="cycle-line">
+              <ul class="list-inline">
                 <li class="cycle-number list-inline-item float-left">Cycle {{ cycle.periodStart }} - Phase {{ cycle.cyclePhaseNumber }}/6</li>
                 <li *ngIf="!cycle.cycleFailed" class="phase list-inline-item ml-auto">{{ cycle.cyclePhase }} ({{ cycle.blocksLeft }} more blocks)</li>
                 <li *ngIf="cycle.cycleFailed" class="phase text-danger list-inline-item ml-auto">Failed</li>
               </ul>
-              <div class="row no-gutters">
-                <div class="progress col-1" *ngFor="let number of [1,2,3,4,5,6]" style="margin: 2px;">
+              <div class="row no-gutters mb-2">
+                <div class="progress col" *ngFor="let number of [1,2,3,4,5,6]" style="margin: 2px;">
                   <ngb-progressbar class="progress-bar" [striped]="true" [animated]="number === cycle.cyclePhaseNumber ? true : false" [class.bg-danger]="cycle.cycleFailed" [value]="number <= cycle.cyclePhaseNumber ? 100 : 0" [max]="100" style="width: 100%; height: 6px;"></ngb-progressbar>
                 </div>
               </div>
