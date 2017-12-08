@@ -25,6 +25,7 @@ using Stratis.Bitcoin.Features.Wallet.Interfaces;
 using Stratis.Bitcoin.Interfaces;
 using System.IO;
 using NTumbleBit;
+using Stratis.Bitcoin.Features.Wallet.Models;
 
 namespace Breeze.TumbleBit.Client
 {
@@ -409,6 +410,28 @@ namespace Breeze.TumbleBit.Client
             Wallet destinationWallet = this.walletManager.GetWallet(destinationWalletName);
             Wallet originWallet = this.walletManager.GetWallet(originWalletName);
 
+            // Check if origin wallet has a balance
+            WalletBalanceModel model = new WalletBalanceModel();
+
+            var originWalletAccounts = this.walletManager.GetAccounts(originWallet.Name).ToList();
+            var originConfirmed = new Money(0);
+            var originUnconfirmed = new Money(0);
+            
+            foreach (var originAccount in originWallet.GetAccountsByCoinType(this.tumblingState.CoinType))
+            {
+                var result = originAccount.GetSpendableAmount();
+
+                originConfirmed += result.ConfirmedAmount;
+                originUnconfirmed += result.UnConfirmedAmount;
+            }
+            
+            // Should ideally take fee into account too, but that is dynamic
+            if ((originConfirmed + originUnconfirmed) <= this.TumblerParameters.Denomination)
+            {
+                this.logger.LogDebug("Insufficient funds in origin wallet");
+                throw new Exception("Insufficient funds in origin wallet");
+            }
+            
             // TODO: Check if password is valid
 
             // Update the state and save
