@@ -164,9 +164,16 @@ function startBitcoinApi() {
     apiPath = path.resolve(__dirname, '..//..//resources//daemon//Breeze.Daemon');
   }
 
-  let stratisDir = '-storedir=' + path.join(os.homedir(), '.stratisnode', 'stratis', 'StratisTest', 'registrationHistory.json');
-  if (os.platform() == 'win32') {
-      stratisDir = '-storedir=' + path.join(os.homedir(), 'AppData', 'Roaming', 'StratisNode', 'stratis', 'StratisTest', 'registrationHistory.json');
+  if (!testnet) {
+    let stratisDir = '-storedir=' + path.join(os.homedir(), '.stratisnode', 'stratis', 'StratisMain', 'registrationHistory.json');
+    if (os.platform() == 'win32') {
+        stratisDir = '-storedir=' + path.join(os.homedir(), 'AppData', 'Roaming', 'StratisNode', 'stratis', 'StratisMain', 'registrationHistory.json');
+    }
+  } else { 
+    let stratisDir = '-storedir=' + path.join(os.homedir(), '.stratisnode', 'stratis', 'StratisTest', 'registrationHistory.json');
+    if (os.platform() == 'win32') {
+        stratisDir = '-storedir=' + path.join(os.homedir(), 'AppData', 'Roaming', 'StratisNode', 'stratis', 'StratisTest', 'registrationHistory.json');
+    }
   }
 
   if(!testnet) {
