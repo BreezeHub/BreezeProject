@@ -9,7 +9,7 @@ Download and install the TOR Expert Bundle for Windows at: [torproject.org](http
 If you do not know how to make a batch file, have a look [here](https://www.howtogeek.com/263177/how-to-write-a-batch-script-on-windows/). <br>
 Unzip the Expert Bundle and create a Windows Batch file inside the Tor folder, containing:
 ```
-tor -cookieauthentication 1
+tor -cookieauthentication 1 -controlport 9051
 ```
 
 Run the batch file (run this each time you want to start the wallet).<br>
@@ -28,7 +28,7 @@ brew install tor
 
 Start TOR (run this each time you want to start the wallet)
 ```
-tor -cookieauthentication 1
+tor -cookieauthentication 1 -controlport 9051
 ```
 
 **Debian/Ubuntu** <br />
@@ -39,5 +39,5 @@ sudo apt-get install tor
 
 Run TOR (run this each time you want to start the wallet)
 ```
-tor -cookieauthentication 1
+tor -cookieauthentication 1 -controlport 9051
 ```
