@@ -9,6 +9,7 @@ import { WalletInfo } from '../../shared/classes/wallet-info';
 import { TumblebitService } from './tumblebit.service';
 import { TumblerConnectionRequest } from './classes/tumbler-connection-request';
 import { TumbleRequest } from './classes/tumble-request';
+import { CycleInfo } from './classes/cycle-info';
 import { ModalService } from '../../shared/services/modal.service';
 
 import { Observable } from 'rxjs/Rx';
@@ -44,6 +45,8 @@ export class TumblebitComponent implements OnInit {
   public denomination: number;
   private tumbleStatus: any;
   private tumbleStateSubscription: Subscription;
+  private progressSubscription: Subscription;
+  public progressDataArray: CycleInfo[];
   public tumbleForm: FormGroup;
   public tumbling: Boolean = false;
   private connectForm: FormGroup;
@@ -73,6 +76,10 @@ export class TumblebitComponent implements OnInit {
 
     if (this.walletStatusSubscription) {
       this.walletStatusSubscription.unsubscribe();
+    }
+
+    if (this.progressSubscription) {
+      this.progressSubscription.unsubscribe();
     }
   };
 
@@ -168,6 +175,9 @@ export class TumblebitComponent implements OnInit {
               this.tumbling = false;
             } else if (response.json().state === "Tumbling") {
               this.tumbling = true;
+              if (!this.progressSubscription) {
+                this.getProgress();
+              }
               this.destinationWalletName = response.json().destinationWallet;
               this.getDestinationWalletBalance();
             }
@@ -232,6 +242,7 @@ export class TumblebitComponent implements OnInit {
     if (!this.isConnected) {
       this.genericModalService.openModal(null, "Can't start tumbling when you're not connected to a server. Please try again later.");
     } else {
+      this.getProgress();
       const modalRef = this.modalService.open(PasswordConfirmationComponent);
       modalRef.componentInstance.sourceWalletName = this.globalService.getWalletName();
       modalRef.componentInstance.destinationWalletName = this.destinationWalletName;
@@ -244,6 +255,7 @@ export class TumblebitComponent implements OnInit {
         response => {
           if (response.status >= 200 && response.status < 400) {
             this.tumbling = false;
+            this.progressSubscription.unsubscribe();
           }
         },
         error => {
@@ -261,6 +273,83 @@ export class TumblebitComponent implements OnInit {
         }
       )
     ;
+  }
+
+  private getProgress() {
+    this.progressSubscription = this.tumblebitService.getProgress()
+      .subscribe(
+        response => {
+          if (response.status >= 200 && response.status < 400) {
+            let responseArray= JSON.parse(response.json()).CycleProgressInfoList;
+            if (responseArray) {
+              let responseData = responseArray;
+              this.progressDataArray = [];
+              for (let cycle of responseData) {
+                let periodStart = cycle.Period.Start;
+                let periodEnd = cycle.Period.End;
+                let height = cycle.Height;
+                let blocksLeft = cycle.BlocksLeft;
+                let cycleStart = cycle.Start;
+                let cycleFailed = cycle.Failed;
+                let cycleAsciiArt = cycle.AsciiArt;
+                let status = cycle.Status;
+                let phase = this.getPhaseString(cycle.Phase);
+                let phaseNumber = this.getPhaseNumber(cycle.Phase);
+
+                this.progressDataArray.push(new CycleInfo(periodStart, periodEnd, height, blocksLeft, cycleStart, cycleFailed, cycleAsciiArt, status, phase, phaseNumber));
+              }
+            }
+          }
+        },
+        error => {
+          console.error(error);
+          if (error.status === 0) {
+            this.genericModalService.openModal(null, 'Something went wrong while connecting to the TumbleBit Client. Please restart the application.');
+          } else if (error.status >= 400) {
+            if (!error.json().errors[0]) {
+              console.error(error);
+            }
+            else {
+              this.genericModalService.openModal(null, error.json().errors[0].message);
+            }
+          }
+        }
+      )
+    ;
+  }
+
+  private getPhaseNumber(phase: string) {
+    switch (phase) {
+      case "Registration":
+        return 1;
+      case "ClientChannelEstablishment":
+        return 2;
+      case "TumblerChannelEstablishment":
+        return 3;
+      case "PaymentPhase":
+        return 4;
+      case "TumblerCashoutPhase":
+        return 5;
+      case "ClientCashoutPhase":
+        return 6;
+    }
+  }
+
+  private getPhaseString(phase: string) {
+    switch (phase) {
+      case "Registration":
+        return "Registration";
+      case "ClientChannelEstablishment":
+        return "Client Channel Establishment";
+      case "TumblerChannelEstablishment":
+        return "Tumbler Channel Establishment";
+      case "PaymentPhase":
+        return "Payment Phase";
+      case "TumblerCashoutPhase":
+        return "Tumbler Cashout Phase";
+      case "ClientCashoutPhase":
+        return "Client Cashout Phase";
+    }
   }
 
   // TODO: move into a shared service
