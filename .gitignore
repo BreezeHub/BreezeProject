@@ -313,3 +313,4 @@ project.lock.json
 
 .DS_Store
 .vscode
+/Breeze.UI/daemon

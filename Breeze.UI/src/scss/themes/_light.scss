@@ -114,7 +114,7 @@ $btn-primary-color: $white !important;
     // Tumblebit
     #Tumblebit {
       i {
-        font-size: 6.5rem;
+        font-size: 4.5rem;
         &.OFF {
           -webkit-text-fill-color: $gray-lighter !important;
           fill: $gray-lighter !important;
@@ -122,8 +122,17 @@ $btn-primary-color: $white !important;
         &.ON {
           -webkit-text-fill-color: $brand-primary !important;
           fill: $brand-primary !important;
+          animation: pulse 5s infinite;
         }
       }
+
+
+      @keyframes pulse {
+        0% {opacity: 0;}
+        100% {opacity: 1;}
+      }
+
+
       .help {
         color: $gray;
         font-size: .9em;

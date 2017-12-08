@@ -26,6 +26,7 @@ export class TumblebitComponent implements OnInit {
   constructor(private apiService: ApiService, private tumblebitService: TumblebitService, private globalService: GlobalService, private modalService: NgbModal, private genericModalService: ModalService, private fb: FormBuilder) {
     this.buildTumbleForm();
   }
+  public coinUnit: string;
   public confirmedBalance: number;
   public unconfirmedBalance: number;
   public totalBalance: number;
@@ -59,6 +60,7 @@ export class TumblebitComponent implements OnInit {
     this.checkTumblingStatus();
     this.getWalletFiles();
     this.getWalletBalance();
+    this.coinUnit = this.globalService.getCoinUnit();
   };
 
   ngOnDestroy() {
