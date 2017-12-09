@@ -5,6 +5,7 @@ using System.Security.Cryptography;
 using System.Text;
 
 using NBitcoin;
+using NBitcoin.JsonConverters;
 using Newtonsoft.Json;
 using NTumbleBit;
 
@@ -74,7 +75,10 @@ namespace BreezeCommon
 
         public string ConfigurationHash { get; set; }
 
-        public RegistrationToken(int protocolVersion, string serverId, IPAddress ipv4Addr, IPAddress ipv6Addr, string onionAddress, string configurationHash, int port)
+		[JsonConverter(typeof(PubKeyConverter))]
+		public PubKey EcdsaPubKey { get; set; }
+		
+        public RegistrationToken(int protocolVersion, string serverId, IPAddress ipv4Addr, IPAddress ipv6Addr, string onionAddress, string configurationHash, int port, PubKey ecdsaPubKey)
 		{
 			ProtocolVersion = protocolVersion;
             ServerId = serverId;
@@ -83,6 +87,7 @@ namespace BreezeCommon
 			OnionAddress = onionAddress;
 			Port = port;
             ConfigurationHash = configurationHash;
+			EcdsaPubKey = ecdsaPubKey;
 		}
 
 		public RegistrationToken()
@@ -90,11 +95,11 @@ namespace BreezeCommon
 			// Constructor for when a token is being reconstituted from blockchain data
 		}
 
-		public byte[] GetRegistrationTokenBytes(RsaKey rsaKey, BitcoinSecret privateKeyEcdsa)
+		public List<byte> GetHeaderBytes()
 		{
 			var token = new List<byte>();
 
-            token.AddRange(Encoding.ASCII.GetBytes(ServerId.PadRight(34)));
+			token.AddRange(Encoding.ASCII.GetBytes(ServerId.PadRight(34)));
 
 			if (Ipv4Addr != null)
 			{
@@ -135,6 +140,13 @@ namespace BreezeCommon
 			token.Add(portNumber[0]);
 			token.Add(portNumber[1]);
 
+			return token;
+		}
+		
+		public byte[] GetRegistrationTokenBytes(RsaKey rsaKey, BitcoinSecret privateKeyEcdsa)
+		{
+			var token = GetHeaderBytes();
+
             CryptoUtils cryptoUtils = new CryptoUtils(rsaKey, privateKeyEcdsa);
 
 			// Sign header (excluding preliminary length marker bytes) with RSA
@@ -157,6 +169,11 @@ namespace BreezeCommon
 
             // Server configuration hash
             token.AddRange(Encoding.ASCII.GetBytes(ConfigurationHash));
+			
+			byte[] ecdsaPubKeyLength = BitConverter.GetBytes(EcdsaPubKey.ToBytes().Length);
+			token.Add(ecdsaPubKeyLength[0]);
+			token.Add(ecdsaPubKeyLength[1]);
+			token.AddRange(EcdsaPubKey.ToBytes());
 
             // Finally add protocol byte and computed length to beginning of header
             byte[] protocolVersionByte = BitConverter.GetBytes(ProtocolVersion);
@@ -321,9 +338,45 @@ namespace BreezeCommon
             ConfigurationHash = Encoding.ASCII.GetString(configurationHashTemp);
             position += 40;
 
+			temp = GetSubArray(bitstream, position, 2);
+			var ecdsaPubKeyLength = ((int)temp[1] << 8) + ((int)temp[0]);
+			position += 2;
+
+			EcdsaPubKey = new PubKey(GetSubArray(bitstream, position, ecdsaLength));
+			position += ecdsaPubKeyLength;
+			
             // TODO: Validate signatures
         }
 
+		public bool VerifySignatures()
+		{
+			if ((EcdsaPubKey != null) && (EcdsaSignature != null))
+				return EcdsaPubKey.VerifyMessage(GetHeaderBytes().ToArray(), Encoding.UTF8.GetString(EcdsaSignature));
+			else
+				return false;
+		}
+
+		public bool Validate(Network network)
+		{
+			if (EcdsaPubKey == null)
+				return false;
+
+			if (ServerId == null)
+				return false;
+			
+			if (EcdsaPubKey.GetAddress(network).ToString() != ServerId)
+				return false;
+			
+			if (!VerifySignatures())
+				return false;
+
+			if (OnionAddress == null)
+				return false;
+			
+			// TODO: What other validation is required?
+			return true;
+		}
+		
 		private byte[] GetSubArray(byte[] data, int index, int length)
 		{
 			byte[] result = new byte[length];

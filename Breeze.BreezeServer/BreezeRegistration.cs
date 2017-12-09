@@ -113,7 +113,7 @@ namespace Breeze.BreezeServer
                 Environment.Exit(0);
             }
 
-            RegistrationToken registrationToken = new RegistrationToken(PROTOCOL_VERSION_TO_USE, config.TumblerEcdsaKeyAddress, config.Ipv4Address, config.Ipv6Address, onionAddress, configurationHash, config.Port);
+            RegistrationToken registrationToken = new RegistrationToken(PROTOCOL_VERSION_TO_USE, config.TumblerEcdsaKeyAddress, config.Ipv4Address, config.Ipv6Address, onionAddress, configurationHash, config.Port, privateKeyEcdsa.PubKey);
             byte[] msgBytes = registrationToken.GetRegistrationTokenBytes(tumblerKey, privateKeyEcdsa);
 
             // Create the registration transaction using the bytes generated above
