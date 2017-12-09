@@ -44,8 +44,17 @@ namespace NTumbleBit
 			this.StatusEnum = status;
 			this.PhaseEnum = phase;
 			this.AsciiArt = asciiArt;
+
+		    this.CheckForFailedState();
 		}
-	}
+
+	    private void CheckForFailedState()
+	    {
+	        if (this.PhaseEnum > CyclePhase.TumblerChannelEstablishment &&
+	            this.StatusEnum == PaymentStateMachineStatus.Registered)
+	            this.Failed = true;
+	    }
+    }
 
 	public class ProgressInfo
     {

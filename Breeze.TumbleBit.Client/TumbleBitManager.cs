@@ -426,7 +426,7 @@ namespace Breeze.TumbleBit.Client
             }
             
             // Should ideally take fee into account too, but that is dynamic
-            if ((originConfirmed + originUnconfirmed) <= this.TumblerParameters.Denomination)
+            if ((originConfirmed + originUnconfirmed) <= new Money(0.0011m, MoneyUnit.BTC))
             {
                 this.logger.LogDebug("Insufficient funds in origin wallet");
                 throw new Exception("Insufficient funds in origin wallet");
