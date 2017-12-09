@@ -33,9 +33,14 @@ namespace BreezeCommon
 		public byte[] SignDataECDSA(byte[] message)
 		{
 			var signature = EcdsaKey.PrivateKey.SignMessage(message);
-			var signedBytes = Encoding.ASCII.GetBytes(signature);
+			var signedBytes = Encoding.UTF8.GetBytes(signature);
 
 			return signedBytes;
+		}
+
+		public static bool VerifySignatureECDSA(byte[] message, PubKey key, string signature)
+		{
+			return key.VerifyMessage(message, signature);
 		}
 	}
 }

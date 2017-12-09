@@ -5,6 +5,7 @@ using BreezeCommon;
 using Stratis.Bitcoin.Features.WatchOnlyWallet;
 using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Breeze.Registration
 {
@@ -55,9 +56,13 @@ namespace Breeze.Registration
                         {
                             RegistrationToken registrationToken = new RegistrationToken();
                             registrationToken.ParseTransaction(tx, this.network);
+
+                            if (!registrationToken.Validate(this.network))
+                                continue;
+                            
                             MerkleBlock merkleBlock = new MerkleBlock(block, new uint256[] { tx.GetHash() });
                             RegistrationRecord registrationRecord = new RegistrationRecord(DateTime.Now, Guid.NewGuid(), tx.GetHash().ToString(), tx.ToHex(), registrationToken, merkleBlock.PartialMerkleTree, height);
-
+                            
                             // Ignore protocol versions outside the accepted bounds
                             if (registrationRecord.Record.ProtocolVersion < MIN_PROTOCOL_VERSION)
                                 continue;
@@ -87,6 +92,8 @@ namespace Breeze.Registration
                 // Perform watch-only wallet housekeeping - iterate through known servers
                 HashSet<string> knownServers = new HashSet<string>();
 
+                // TODO: This is very CPU intensive and slows down the initial sync.
+                // TODO: Incorporate a cache of server balances and a dirty flag on transaction receipt to trigger rebalance?
                 foreach (RegistrationRecord record in this.registrationStore.GetAll())
                 {
                     if (knownServers.Add(record.Record.ServerId))

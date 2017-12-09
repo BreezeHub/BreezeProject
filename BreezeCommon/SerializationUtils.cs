@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-
+using NBitcoin;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -85,6 +85,33 @@ namespace BreezeCommon
 			}
 
 			throw new NotImplementedException();
+		}
+	}
+	
+	public class PubKeyConverter : JsonConverter
+	{
+		/// <inheritdoc />
+		public override bool CanConvert(Type objectType)
+		{
+			return objectType == typeof(PubKey);
+		}
+
+		/// <inheritdoc />
+		public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+		{
+			if (reader.Value == null)
+				return null;
+
+			return new PubKey(Convert.FromBase64String((string)reader.Value));
+		}
+
+		/// <inheritdoc />
+		public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+		{
+			if ((PubKey)value == null)
+				writer.WriteNull();
+			
+			writer.WriteValue(Convert.ToBase64String(((PubKey)value).ToBytes()));
 		}
 	}
 }

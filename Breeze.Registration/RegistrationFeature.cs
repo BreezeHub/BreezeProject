@@ -1,5 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Security.Principal;
+using System.Text;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using NBitcoin;
@@ -10,6 +13,7 @@ using Stratis.Bitcoin.Configuration;
 using Stratis.Bitcoin.Features.Notifications;
 using Stratis.Bitcoin.Utilities;
 using BreezeCommon;
+using NBitcoin.Crypto;
 using Stratis.Bitcoin.Signals;
 using Stratis.Bitcoin.Features.WatchOnlyWallet;
 using Stratis.Bitcoin.Features.Notifications.Interfaces;
@@ -97,7 +101,18 @@ namespace Breeze.Registration
 	                // For regtest, it is not clear that re-issuing a sync command will be beneficial. Generally you want to sync from genesis in that case.
                 }
 
-                // Only need to subscribe to receive blocks and transactions on the Stratis network
+	            // Verify that the registration store is in a consistent state on startup
+	            // The signatures of all the records 
+	            foreach (var registrationRecord in this.registrationStore.GetAll())
+	            {
+		            var registrationToken = registrationRecord.Record;
+
+		            if (!registrationToken.Validate(this.network))
+		            	// TODO: Delete record
+		            	continue;
+	            }
+
+	            // Only need to subscribe to receive blocks and transactions on the Stratis network
                 this.blockSubscriberdDisposable = this.signals.SubscribeForBlocks(new RegistrationBlockObserver(this.chain, this.registrationManager));
                 //this.transactionSubscriberdDisposable = this.signals.SubscribeForTransactions(new TransactionObserver(this.registrationManager));
             }
