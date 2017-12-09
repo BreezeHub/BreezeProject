@@ -58,7 +58,7 @@ namespace Breeze.TorTester.CLI
                 Console.WriteLine("Handler is null");
             }
 
-            Console.WriteLine("Starting tor connectivity test...");
+            Console.WriteLine(DateTime.Now + " Starting tor connectivity test...");
             
             while (true)
             {
@@ -67,12 +67,12 @@ namespace Breeze.TorTester.CLI
                 {
                     var parameters = client.GetTumblerParameters();
                     stopwatch.Stop();
-                    Console.WriteLine("Received parameter response in " + stopwatch.ElapsedMilliseconds + "ms");
+                    Console.WriteLine(DateTime.Now + " Received parameter response in " + stopwatch.ElapsedMilliseconds + "ms");
                 }
                 catch
                 {
                     stopwatch.Stop();
-                    Console.WriteLine("Timed out after " + stopwatch.ElapsedMilliseconds + "ms");
+                    Console.WriteLine(DateTime.Now + " Timed out after " + stopwatch.ElapsedMilliseconds + "ms");
                 }
             }
         }
