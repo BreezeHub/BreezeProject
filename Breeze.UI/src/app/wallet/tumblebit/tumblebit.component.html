@@ -31,7 +31,7 @@
           <div class="col-11 mx-auto cycles mt-3" *ngIf="tumbling && progressDataArray && isConnected">
             <div *ngFor="let cycle of progressDataArray; let i=index" class="cycle-line">
               <ul class="list-inline">
-                <li class="cycle-number list-inline-item float-left">Cycle {{ cycle.periodStart }} - Phase {{ cycle.cyclePhaseNumber }}/6</li>
+                <li class="cycle-number list-inline-item float-left">Cycle {{ cycle.cycleStart }} - Phase {{ cycle.cyclePhaseNumber }}/6</li>
                 <li *ngIf="!cycle.cycleFailed" class="phase list-inline-item ml-auto">{{ cycle.cyclePhase }} ({{ cycle.blocksLeft }} more blocks)</li>
                 <li *ngIf="cycle.cycleFailed" class="phase text-danger list-inline-item ml-auto">Failed</li>
               </ul>

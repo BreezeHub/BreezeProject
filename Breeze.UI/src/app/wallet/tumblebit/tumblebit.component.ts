@@ -295,11 +295,11 @@ export class TumblebitComponent implements OnInit {
                 let cycleStart = cycle.Start;
                 let cycleFailed = cycle.Failed;
                 let cycleAsciiArt = cycle.AsciiArt;
-                let status = cycle.Status;
-                let phase = this.getPhaseString(cycle.Phase);
-                let phaseNumber = this.getPhaseNumber(cycle.Phase);
+                let cycleStatus = cycle.Status;
+                let cyclePhase = this.getPhaseString(cycle.Phase);
+                let cyclePhaseNumber = this.getPhaseNumber(cycle.Phase);
 
-                this.progressDataArray.push(new CycleInfo(periodStart, periodEnd, height, blocksLeft, cycleStart, cycleFailed, cycleAsciiArt, status, phase, phaseNumber));
+                this.progressDataArray.push(new CycleInfo(periodStart, periodEnd, height, blocksLeft, cycleStart, cycleFailed, cycleAsciiArt, cycleStatus, cyclePhase, cyclePhaseNumber));
               }
             }
           }
