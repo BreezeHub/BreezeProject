@@ -285,23 +285,25 @@ export class TumblebitComponent implements OnInit {
       .subscribe(
         response => {
           if (response.status >= 200 && response.status < 400) {
-            let responseArray= JSON.parse(response.json()).CycleProgressInfoList;
-            if (responseArray) {
-              let responseData = responseArray;
-              this.progressDataArray = [];
-              for (let cycle of responseData) {
-                let periodStart = cycle.Period.Start;
-                let periodEnd = cycle.Period.End;
-                let height = cycle.Height;
-                let blocksLeft = cycle.BlocksLeft;
-                let cycleStart = cycle.Start;
-                let cycleFailed = cycle.Failed;
-                let cycleAsciiArt = cycle.AsciiArt;
-                let cycleStatus = cycle.Status;
-                let cyclePhase = this.getPhaseString(cycle.Phase);
-                let cyclePhaseNumber = this.getPhaseNumber(cycle.Phase);
+            if (response.json()) {
+              let responseArray = JSON.parse(response.json()).CycleProgressInfoList;
+              if (responseArray) {
+                this.progressDataArray = [];
+                let responseData = responseArray;
+                for (let cycle of responseData) {
+                  let periodStart = cycle.Period.Start;
+                  let periodEnd = cycle.Period.End;
+                  let height = cycle.Height;
+                  let blocksLeft = cycle.BlocksLeft;
+                  let cycleStart = cycle.Start;
+                  let cycleFailed = cycle.Failed;
+                  let cycleAsciiArt = cycle.AsciiArt;
+                  let cycleStatus = cycle.Status;
+                  let cyclePhase = this.getPhaseString(cycle.Phase);
+                  let cyclePhaseNumber = this.getPhaseNumber(cycle.Phase);
 
-                this.progressDataArray.push(new CycleInfo(periodStart, periodEnd, height, blocksLeft, cycleStart, cycleFailed, cycleAsciiArt, cycleStatus, cyclePhase, cyclePhaseNumber));
+                  this.progressDataArray.push(new CycleInfo(periodStart, periodEnd, height, blocksLeft, cycleStart, cycleFailed, cycleAsciiArt, cycleStatus, cyclePhase, cyclePhaseNumber));
+                }
               }
             }
           }

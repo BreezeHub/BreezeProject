@@ -28,7 +28,7 @@
             <!-- <p class="help mt-4" *ngIf="!hasRegistrations">Not enough masternodes registered to start the Breeze Privacy Protocol. Please wait.</p> -->
           </form>
 
-          <div class="col-11 mx-auto cycles mt-3" *ngIf="tumbling && progressDataArray && isConnected">
+          <div class="col-11 mx-auto cycles mt-3" *ngIf="(tumbling && isConnected) && progressDataArray ">
             <div *ngFor="let cycle of progressDataArray" class="cycle-line">
               <ul class="list-inline">
                 <li class="cycle-number list-inline-item float-left">Cycle {{ cycle.cycleStart }} - Phase {{ cycle.cyclePhaseNumber }}/6</li>
