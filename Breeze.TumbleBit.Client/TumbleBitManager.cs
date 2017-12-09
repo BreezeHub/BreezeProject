@@ -375,6 +375,10 @@ namespace Breeze.TumbleBit.Client
             try
             {
                 rt = await TumblerClientRuntime.FromConfigurationAsync(config, connectionTest:true).ConfigureAwait(false);
+                
+                // This is overwritten by the tumble method, but it is needed at the beginning of that method for the balance check
+                this.TumblerParameters = rt.TumblerParameters;
+                
                 return rt.TumblerParameters;
             }
             catch (Exception e)
@@ -425,8 +429,8 @@ namespace Breeze.TumbleBit.Client
                 originUnconfirmed += result.UnConfirmedAmount;
             }
             
-            // Should ideally take fee into account too, but that is dynamic
-            if ((originConfirmed + originUnconfirmed) <= new Money(0.0011m, MoneyUnit.BTC))
+            // Should ideally take network transaction fee into account too, but that is dynamic
+            if ((originConfirmed + originUnconfirmed) <= (this.TumblerParameters.Denomination + this.TumblerParameters.Fee))
             {
                 this.logger.LogDebug("Insufficient funds in origin wallet");
                 throw new Exception("Insufficient funds in origin wallet");
