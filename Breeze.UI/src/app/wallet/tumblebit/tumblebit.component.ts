@@ -176,6 +176,9 @@ export class TumblebitComponent implements OnInit {
 
             if (response.json().state === "OnlyMonitor") {
               this.tumbling = false;
+              if (this.progressSubscription) {
+                this.progressSubscription.unsubscribe();
+              }
             } else if (response.json().state === "Tumbling") {
               this.tumbling = true;
               if (!this.progressSubscription) {
@@ -245,7 +248,6 @@ export class TumblebitComponent implements OnInit {
     if (!this.isConnected) {
       this.genericModalService.openModal(null, "Can't start tumbling when you're not connected to a server. Please try again later.");
     } else {
-      this.getProgress();
       const modalRef = this.modalService.open(PasswordConfirmationComponent);
       modalRef.componentInstance.sourceWalletName = this.globalService.getWalletName();
       modalRef.componentInstance.destinationWalletName = this.destinationWalletName;

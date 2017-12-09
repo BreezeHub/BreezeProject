@@ -47,7 +47,7 @@ export class TumblebitService {
 
   getProgress(): Observable<any> {
     return Observable
-      .interval(10000)
+      .interval(this.pollingInterval)
       .startWith(0)
       .switchMap(() => this.http.get(this.tumblerClientUrl + 'progress'))
       .map((response: Response) => response);
