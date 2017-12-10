@@ -8,14 +8,14 @@
     "buildResources": "dist/assets/images"
   },
   "win": {
-    "icon": "dist/assets/images",
+    "icon": "dist/assets/images/icon",
     "target": [
       "nsis"
     ],
     "artifactName": "${productName}-v${version}-setup-${os}-${env.arch}.${ext}"
   },
   "linux": {
-    "icon": "dist/assets/images",
+    "icon": "dist/assets/images/icon",
     "target": [
       "deb",
       "tar.gz"
