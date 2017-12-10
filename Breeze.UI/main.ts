@@ -168,11 +168,11 @@ function startBitcoinApi() {
 
   if(!testnet) {
     bitcoinProcess = spawnBitcoin(apiPath, ['light', '-tumblebit', 'registration', stratisDir], {
-      detached: true
+      detached: false
     });
   } else {
     bitcoinProcess = spawnBitcoin(apiPath, ['light', '-testnet', '-tumblebit', 'registration', stratisDir], {
-      detached: true
+      detached: false
     });
   }
 
@@ -197,11 +197,11 @@ function startStratisApi() {
 
   if (!testnet) {
     stratisProcess = spawnStratis(apiPath, ['stratis', 'light', 'registration'], {
-      detached: true
+      detached: false
     });
   } else {
     stratisProcess = spawnStratis(apiPath, ['stratis', 'light', '-testnet', 'registration'], {
-      detached: true
+      detached: false
     });
   }
 
