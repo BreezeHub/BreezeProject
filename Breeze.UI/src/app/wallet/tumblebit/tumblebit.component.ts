@@ -303,6 +303,9 @@ export class TumblebitComponent implements OnInit {
                   let cyclePhaseNumber = this.getPhaseNumber(cycle.Phase);
 
                   this.progressDataArray.push(new CycleInfo(periodStart, periodEnd, height, blocksLeft, cycleStart, cycleFailed, cycleAsciiArt, cycleStatus, cyclePhase, cyclePhaseNumber));
+                  this.progressDataArray.sort(function(cycle1, cycle2) {
+                    return cycle1.cycleStart - cycle2.cycleStart;
+                  })
                 }
               }
             }
