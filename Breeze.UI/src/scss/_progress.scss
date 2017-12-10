@@ -12,7 +12,7 @@
   line-height: $progress-height;
   text-align: center;
   background-color: $progress-bg;
-  @include border-radius($progress-border-radius);
+  border-radius: 0;
 }
 .progress-bar {
   height: $progress-height;
