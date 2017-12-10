@@ -8,14 +8,14 @@
     "buildResources": "dist/assets/images"
   },
   "win": {
-    "icon": "dist/assets/images/breeze-logo",
+    "icon": "dist/assets/images/breeze-logo.ico",
     "target": [
       "nsis"
     ],
     "artifactName": "${productName}-v${version}-setup-${os}-${env.arch}.${ext}"
   },
   "linux": {
-    "icon": "dist/assets/images/breeze-logo",
+    "icon": "dist/assets/images/breeze-logo.png",
     "target": [
       "deb",
       "tar.gz"
@@ -25,7 +25,7 @@
     "artifactName": "${productName}-v${version}-${os}-${arch}.${ext}"
   },
   "mac": {
-    "icon": "dist/assets/images/breeze-logo",
+    "icon": "dist/assets/images/breeze-logo.icns",
     "target": [
       "dmg"
     ],
