@@ -31,13 +31,6 @@ require('electron-context-menu')({
 let mainWindow = null;
 
 function createWindow() {
-  let applicationIcon
-  if (serve) {
-    applicationIcon = nativeImage.createFromPath("./src/assets/images/breeze-logo-tray.png")
-  } else {
-    applicationIcon = nativeImage.createFromPath(path.join(__dirname + '/assets/images/breeze-logo-tray.png'))
-  }
-
   // Create the browser window.
   mainWindow = new BrowserWindow({
     width: 1200,
@@ -47,10 +40,6 @@ function createWindow() {
     minHeight: 650,
     title: "Breeze Wallet"
   });
-
-  if (os.platform() === "win32"){
-    mainWindow.setIcon(applicationIcon);
-  }
 
    // and load the index.html of the app.
   mainWindow.loadURL(url.format({
@@ -155,7 +144,7 @@ function startBitcoinApi() {
   const spawnBitcoin = require('child_process').spawn;
 
   //Start Breeze Bitcoin Daemon
-  let apiPath = path.resolve(__dirname, 'assets//daemon//Breeze.Daemon');
+  let apiPath;
   if (os.platform() === 'win32') {
       apiPath = path.resolve(__dirname, '..\\..\\resources\\daemon\\Breeze.Daemon.exe');
   } else if (os.platform() === 'linux') {
@@ -170,7 +159,7 @@ function startBitcoinApi() {
     if (os.platform() == 'win32') {
         stratisDir = '-storedir=' + path.join(os.homedir(), 'AppData', 'Roaming', 'StratisNode', 'stratis', 'StratisMain', 'registrationHistory.json');
     }
-  } else { 
+  } else {
     stratisDir = '-storedir=' + path.join(os.homedir(), '.stratisnode', 'stratis', 'StratisTest', 'registrationHistory.json');
     if (os.platform() == 'win32') {
         stratisDir = '-storedir=' + path.join(os.homedir(), 'AppData', 'Roaming', 'StratisNode', 'stratis', 'StratisTest', 'registrationHistory.json');
@@ -230,7 +219,7 @@ function createTray() {
   if (serve) {
     trayIcon = nativeImage.createFromPath('./src/assets/images/breeze-logo-tray.png');
   } else {
-    trayIcon = nativeImage.createFromPath(path.join(__dirname + '/assets/images/breeze-logo-tray.png'));
+    trayIcon = nativeImage.createFromPath(path.resolve(__dirname, '../../resources/src/assets/images/breeze-logo-tray.png'));
   }
 
   let systemTray = new Tray(trayIcon);
