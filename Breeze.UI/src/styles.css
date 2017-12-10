@@ -10276,15 +10276,12 @@ a.text-gray-dark:focus, a.text-gray-dark:hover {
 #content.bitcoin #Tumblebit i.ON {
   -webkit-text-fill-color: #189BC5 !important;
   fill: #189BC5 !important;
-  animation: pulse 5s infinite;
+  animation: fadeIn 2s infinite alternate;
 }
 
-@keyframes pulse {
-  0% {
+@keyframes fadeIn {
+  from {
     opacity: 0;
-  }
-  100% {
-    opacity: 1;
   }
 }
 

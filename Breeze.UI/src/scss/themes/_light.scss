@@ -122,14 +122,13 @@ $btn-primary-color: $white !important;
         &.ON {
           -webkit-text-fill-color: $brand-primary !important;
           fill: $brand-primary !important;
-          animation: pulse 5s infinite;
+          animation: fadeIn 2s infinite alternate;
         }
       }
 
 
-      @keyframes pulse {
-        0% {opacity: 0;}
-        100% {opacity: 1;}
+      @keyframes fadeIn {
+        from { opacity: 0; }
       }
 
 
