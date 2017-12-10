@@ -6,6 +6,8 @@ import { NgbModal, NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { TumblebitService } from '../tumblebit.service';
 import { TumbleRequest } from '../classes/tumble-request';
 
+import { ModalService } from '../../../shared/services/modal.service';
+
 @Component({
   selector: 'app-password-confirmation',
   templateUrl: './password-confirmation.component.html',
@@ -15,7 +17,7 @@ export class PasswordConfirmationComponent implements OnInit {
 
   @Input() sourceWalletName: string;
   @Input() destinationWalletName: string;
-  constructor(private tumblebitService: TumblebitService, public activeModal: NgbActiveModal, private fb: FormBuilder) {
+  constructor(private tumblebitService: TumblebitService, public activeModal: NgbActiveModal, private fb: FormBuilder, private genericModalService: ModalService) {
     this.buildWalletPasswordForm();
   }
 
@@ -86,9 +88,11 @@ export class PasswordConfirmationComponent implements OnInit {
           } else if (error.status >= 400) {
             if (!error.json().errors[0]) {
               console.error(error);
+              this.startingTumble = false;
             }
             else {
-              alert(error.json().errors[0].message);
+              this.startingTumble = false;
+              this.genericModalService.openModal(null, error.json().errors[0].message);
             }
           }
         },

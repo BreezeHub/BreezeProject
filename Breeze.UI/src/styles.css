@@ -2054,7 +2054,7 @@ kbd {
   font-size: 90%;
   color: #fff;
   background-color: #878685;
-  border-radius: 0.2rem;
+  border-radius: 0.1rem;
 }
 
 kbd kbd {
@@ -5655,13 +5655,13 @@ tbody.collapse.show {
 }
 
 .pagination-sm .page-item:first-child .page-link {
-  border-bottom-left-radius: 0.2rem;
-  border-top-left-radius: 0.2rem;
+  border-bottom-left-radius: 0.1rem;
+  border-top-left-radius: 0.1rem;
 }
 
 .pagination-sm .page-item:last-child .page-link {
-  border-bottom-right-radius: 0.2rem;
-  border-top-right-radius: 0.2rem;
+  border-bottom-right-radius: 0.1rem;
+  border-top-right-radius: 0.1rem;
 }
 
 .badge {
@@ -5863,7 +5863,7 @@ a.badge:focus, a.badge:hover {
   line-height: 1rem;
   text-align: center;
   background-color: #DCE8F1;
-  border-radius: 0.25rem;
+  border-radius: 0;
 }
 
 .progress-bar {
@@ -10276,15 +10276,12 @@ a.text-gray-dark:focus, a.text-gray-dark:hover {
 #content.bitcoin #Tumblebit i.ON {
   -webkit-text-fill-color: #189BC5 !important;
   fill: #189BC5 !important;
-  animation: pulse 5s infinite;
+  animation: fadeIn 2s infinite alternate;
 }
 
-@keyframes pulse {
-  0% {
+@keyframes fadeIn {
+  from {
     opacity: 0;
-  }
-  100% {
-    opacity: 1;
   }
 }
 
