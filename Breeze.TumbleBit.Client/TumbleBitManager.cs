@@ -331,7 +331,7 @@ namespace Breeze.TumbleBit.Client
             if (this.network == Network.TestNet) {
                 this.TumblerAddress = "ctb://sz64kj6ev5576w34.onion?h=ceced829426faf63cb906b99e5ee1ff83f001a95";
             } else {
-                this.TumblerAddress = "ctb://zggwpuuwiukvdqz3.onion?h=97104fee142594c4e38a9ba1c609206911c175f3";
+                this.TumblerAddress = "ctb://frspe6yz6en4wbrt.onion?h=d8e176ea7890d764b98bdb4be9f872875ac2fb7e";
             }
             
             /// If the -ppuri command line option wasn't used to bypass the registration store lookup
