@@ -4,11 +4,6 @@
  * Copyright 2011-2017 Twitter, Inc.
  * Licensed under MIT (https://github.com/twbs/bootstrap/blob/master/LICENSE)
  */
-html {
-  overflow: -moz-scrollbars-vertical;
-  overflow-y: scroll;
-}
-
 body {
   overflow-x: hidden;
 }
@@ -966,8 +961,8 @@ input.cmn-toggle-round-flat:checked + label:after {
   border: 1px solid #D7E0ED;
   border-radius: 8px;
   max-height: 200px;
-  overflow-y: scroll;
   height: auto;
+  overflow-y: scroll;
 }
 
 #Tumblebit .cycles .cycle-line {
