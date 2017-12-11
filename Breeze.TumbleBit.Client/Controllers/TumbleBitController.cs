@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Breeze.TumbleBit.Client;
@@ -231,8 +232,13 @@ namespace Breeze.TumbleBit.Controllers
 	    {
 		    try
 		    {
-			    string folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "StratisNode\\bitcoin\\TumbleBit");
-			    if (!Directory.Exists(folder)) Directory.CreateDirectory(folder);
+		        string folder;
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                    folder = Path.Combine(Environment.GetEnvironmentVariable("HOME"), ".stratisnode", "bitcoin", "TumbleBit");
+                else
+                    folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "StratisNode\\bitcoin\\TumbleBit");
+
+                if (!Directory.Exists(folder)) Directory.CreateDirectory(folder);
 			    string filename = Path.Combine(folder, "tb_progress.json");
 			    if (System.IO.File.Exists(filename) == false)
 				    return this.Json(string.Empty);
