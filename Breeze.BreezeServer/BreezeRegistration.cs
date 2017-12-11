@@ -18,6 +18,7 @@ namespace Breeze.BreezeServer
     public class BreezeRegistration
     {
         // 254 = potentially nonsensical data from internal tests. 253 will be the public testnet version
+        // 1 = mainnet protocol version incorporating signature check
         private int PROTOCOL_VERSION_TO_USE = 1;
 
         public bool CheckBreezeRegistration(BreezeConfiguration config, string regStorePath, string configurationHash, string onionAddress, RsaKey tumblerKey)
@@ -60,21 +61,32 @@ namespace Breeze.BreezeServer
                 return false;
             }
 
-            if (!config.Ipv4Address.Equals(registrationToken.Ipv4Addr))
+            // IPv4
+            if (config.Ipv4Address == null && registrationToken.Ipv4Addr != null)
                 return false;
 
+            if (config.Ipv4Address != null && registrationToken.Ipv4Addr == null)
+                return false;
+
+            if (config.Ipv4Address != null && registrationToken.Ipv4Addr != null)
+                if (!config.Ipv4Address.Equals(registrationToken.Ipv4Addr))
+                    return false;
+
+            // IPv6
             if (config.Ipv6Address == null && registrationToken.Ipv6Addr != null)
                 return false;
 
             if (config.Ipv6Address != null && registrationToken.Ipv6Addr == null)
                 return false;
 
-            if (config.Ipv6Address != null && !config.Ipv6Address.Equals(registrationToken.Ipv6Addr))
-                return false;
+            if (config.Ipv6Address != null && registrationToken.Ipv6Addr != null)
+                if (!config.Ipv6Address.Equals(registrationToken.Ipv6Addr))
+                    return false;
 
+            // Onion
             if (onionAddress != registrationToken.OnionAddress)
                 return false;
-              
+
             if (config.Port != registrationToken.Port)
                 return false;
 
@@ -83,8 +95,6 @@ namespace Breeze.BreezeServer
                 return false;
             
             // TODO: Check if transaction is actually confirmed on the blockchain?
-
-            // TODO: Check that own signature is correct for at least the tumbler RSA key?
             
             return true;
         }
