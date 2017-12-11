@@ -122,7 +122,7 @@ namespace Breeze.Daemon
                 SetupTumbleBitConsoleLogs(nodeSettings);
 
                 // Add logging to NLog
-                SetupTumbleBitNLogs(nodeSettings);
+                //SetupTumbleBitNLogs(nodeSettings);
 
                 // Currently TumbleBit is bitcoin only
                 if (args.Contains("-tumblebit"))
