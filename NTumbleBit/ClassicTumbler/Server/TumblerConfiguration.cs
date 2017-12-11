@@ -155,7 +155,7 @@ namespace NTumbleBit.ClassicTumbler.Server
 			}
 
 			var standardCycles = new StandardCycles(Network);
-			var cycleName = config.GetOrDefault<string>("cycle", standardCycles.Debug ? "shorty2x" : "kotori");
+			var cycleName = config.GetOrDefault<string>("cycle", standardCycles.Debug ? "shorty2x" : "shorty2x");
 
 			Logs.Configuration.LogInformation($"Using cycle {cycleName}");
 			
@@ -183,8 +183,8 @@ namespace NTumbleBit.ClassicTumbler.Server
 			DBreezeRepository = new DBreezeRepository(Path.Combine(DataDir, "db2"));
 			Tracker = new Tracker(DBreezeRepository, Network);
 
-		    //0.1% fee by default
-		    var defaultFee = Money.Satoshis((decimal)ClassicTumblerParameters.Denomination.Satoshi * 0.001m);
+		    // 1% fee by default (desired value should be set in configuration anyway)
+		    var defaultFee = Money.Satoshis((decimal)ClassicTumblerParameters.Denomination.Satoshi * 0.01m);
 		    ClassicTumblerParameters.Fee = config.GetOrDefault<Money>("tumbler.fee", defaultFee);
 
 			RPCClient rpc = null;
@@ -230,7 +230,7 @@ namespace NTumbleBit.ClassicTumbler.Server
 				Logs.Configuration.LogInformation("Creating configuration file");
 				StringBuilder builder = new StringBuilder();
 				builder.AppendLine("####Common Commands####");
-				builder.AppendLine("#Connection to the input wallet. TumbleBit.CLI will try to autoconfig based on default settings of Bitcoin Core.");
+				builder.AppendLine("#Connection to the input Bitcoin wallet.");
 				builder.AppendLine("#rpc.url=http://localhost:" + Network.RPCPort + "/");
 				builder.AppendLine("#rpc.user=bitcoinuser");
 				builder.AppendLine("#rpc.password=bitcoinpassword");
@@ -241,9 +241,9 @@ namespace NTumbleBit.ClassicTumbler.Server
 
 				builder.AppendLine("####Tumbler settings####");
 				builder.AppendLine("## The fees in BTC");
-				builder.AppendLine("#tumbler.fee=0.01");
-				builder.AppendLine("## The cycle used among " + string.Join(",", new StandardCycles(Network).ToEnumerable().Select(c => c.FriendlyName)));
-				builder.AppendLine("#cycle=kotori");
+				builder.AppendLine("#tumbler.fee=0.001");
+				builder.AppendLine("## The cycle used can be one of: " + string.Join(",", new StandardCycles(Network).ToEnumerable().Select(c => c.FriendlyName)));
+				builder.AppendLine("#cycle=shorty2x");
 
 				builder.AppendLine();
 				builder.AppendLine();
@@ -265,9 +265,6 @@ namespace NTumbleBit.ClassicTumbler.Server
 				builder.AppendLine();
 				builder.AppendLine();
 
-				builder.AppendLine("####Debug Commands####");
-				builder.AppendLine("#Whether or not the tumbler deliver puzzle's solution off chain to the client (default: true)");
-				builder.AppendLine("#cooperative=false");
 				File.WriteAllText(config, builder.ToString());
 			}
 			return config;
@@ -276,7 +273,7 @@ namespace NTumbleBit.ClassicTumbler.Server
 		private void AssetConfigFileExists()
 		{
 			if(!File.Exists(ConfigurationFile))
-				throw new ConfigurationException("Configuration file does not exists");
+				throw new ConfigurationException("Configuration file does not exist");
 		}
 
 		public void OpenBrowser(string url)
