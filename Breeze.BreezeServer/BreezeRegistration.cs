@@ -18,7 +18,7 @@ namespace Breeze.BreezeServer
     public class BreezeRegistration
     {
         // 254 = potentially nonsensical data from internal tests. 253 will be the public testnet version
-        private int PROTOCOL_VERSION_TO_USE = 253;
+        private int PROTOCOL_VERSION_TO_USE = 1;
 
         public bool CheckBreezeRegistration(BreezeConfiguration config, string regStorePath, string configurationHash, string onionAddress, RsaKey tumblerKey)
         {

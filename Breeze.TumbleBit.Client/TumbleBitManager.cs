@@ -169,13 +169,21 @@ namespace Breeze.TumbleBit.Client
                 if (this.network == Network.Main || this.network == Network.TestNet || this.network == Network.RegTest)
                 {
                     // Bitcoin PoW
-                    powMining.GenerateBlocks(new ReserveScript(address.Pubkey), (ulong)numberOfBlocks, int.MaxValue);
+                    await Task.Run(() =>
+                    {
+                        powMining.GenerateBlocks(new ReserveScript(address.Pubkey), (ulong) numberOfBlocks,
+                            int.MaxValue);
+                    });
                 }
 
                 if (this.network == Network.StratisMain || this.network == Network.StratisTest || this.network == Network.StratisRegTest)
                 {
                     // Stratis PoW
-                    powMining.GenerateBlocks(new ReserveScript { reserveSfullNodecript = address.ScriptPubKey }, (ulong)numberOfBlocks, int.MaxValue);
+                    await Task.Run(() =>
+                    {
+                        powMining.GenerateBlocks(new ReserveScript {reserveSfullNodecript = address.ScriptPubKey},
+                            (ulong) numberOfBlocks, int.MaxValue);
+                    });
                 }
 
                 return true;
@@ -327,14 +335,8 @@ namespace Breeze.TumbleBit.Client
 
         /// <inheritdoc />
         public async Task<ClassicTumblerParameters> ConnectToTumblerAsync()
-        {
-            if (this.network == Network.TestNet) {
-                this.TumblerAddress = "ctb://sz64kj6ev5576w34.onion?h=ceced829426faf63cb906b99e5ee1ff83f001a95";
-            } else {
-                this.TumblerAddress = "ctb://frspe6yz6en4wbrt.onion?h=d8e176ea7890d764b98bdb4be9f872875ac2fb7e";
-            }
-            
-            /// If the -ppuri command line option wasn't used to bypass the registration store lookup
+        {            
+            // If the -ppuri command line option wasn't used to bypass the registration store lookup
             if (this.TumblerAddress == null)
             {
                 List<RegistrationRecord> registrations = this.registrationStore.GetAll();
@@ -440,7 +442,7 @@ namespace Breeze.TumbleBit.Client
                 throw new Exception("Insufficient funds in origin wallet");
             }
             
-            // TODO: Check if password is valid
+            // TODO: Check if password is valid before starting any cycles
 
             // Update the state and save
             this.tumblingState.DestinationWallet = destinationWallet ?? throw new Exception($"Destination wallet not found. Have you created a wallet with name {destinationWalletName}?");

@@ -12,8 +12,8 @@ namespace Breeze.Registration
     public class RegistrationManager : IRegistrationManager
     {
         public Money MASTERNODE_COLLATERAL_THRESHOLD = new Money(250000, MoneyUnit.BTC);
-        public int MAX_PROTOCOL_VERSION = 253;
-        public int MIN_PROTOCOL_VERSION = 0;
+        public int MAX_PROTOCOL_VERSION = 128; // >128 = regard as test versions
+        public int MIN_PROTOCOL_VERSION = 1;
         public int WINDOW_PERIOD_BLOCK_COUNT = 30;
 
         private ILoggerFactory loggerFactory;
