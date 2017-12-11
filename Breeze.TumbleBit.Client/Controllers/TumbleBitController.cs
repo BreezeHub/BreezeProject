@@ -231,7 +231,7 @@ namespace Breeze.TumbleBit.Controllers
 	    {
 		    try
 		    {
-			    string folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "breeze-ui");
+			    string folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "StratisNode\\bitcoin\\TumbleBit");
 			    if (!Directory.Exists(folder)) Directory.CreateDirectory(folder);
 			    string filename = Path.Combine(folder, "tb_progress.json");
 			    if (System.IO.File.Exists(filename) == false)
