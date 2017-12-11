@@ -169,8 +169,7 @@ export class TumblebitComponent implements OnInit {
               this.hasRegistrations = false;
             }
 
-            // if (!this.isConnected && this.hasRegistrations && this.isSynced) {
-            if (!this.isConnected && this.isSynced) {
+            if (!this.isConnected && this.hasRegistrations && this.isSynced) {
               this.connectToTumbler();
             }
 
