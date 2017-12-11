@@ -11,7 +11,6 @@ using Breeze.TumbleBit.Client.Models;
 using Breeze.TumbleBit.Models;
 using NBitcoin;
 using NTumbleBit.ClassicTumbler;
-using Stratis.Bitcoin.Configuration;
 using Stratis.Bitcoin.Features.Wallet;
 using Stratis.Bitcoin.Features.Wallet.Models;
 using Stratis.Bitcoin.Utilities;
@@ -28,13 +27,9 @@ namespace Breeze.TumbleBit.Controllers
     {
         private readonly IWalletManager walletManager;
         private readonly ITumbleBitManager tumbleBitManager;
-        private readonly DataFolder dataFolder;
 
-        public TumbleBitController(ITumbleBitManager tumbleBitManager, IWalletManager walletManager, DataFolder dataFolder)
+        public TumbleBitController(ITumbleBitManager tumbleBitManager, IWalletManager walletManager)
         {
-            Guard.NotNull(dataFolder, nameof(dataFolder));
-
-            this.dataFolder = dataFolder;
             this.tumbleBitManager = tumbleBitManager;
             this.walletManager = walletManager;
         }
@@ -228,31 +223,35 @@ namespace Breeze.TumbleBit.Controllers
             }
         }
 
-        /// <summary>
-        /// Tumbling Progress expressed as json.
-        /// </summary>
-        [Route("progress")]
-        [HttpGet]
-        public async Task<IActionResult> ProgressAsync()
-        {
-            try
-            {
-                string folder = Path.Combine(this.dataFolder.WalletPath, "TumbleBit");
-
-                if (!Directory.Exists(folder)) Directory.CreateDirectory(folder);
-                string filename = Path.Combine(folder, "tb_progress.json");
-                if (System.IO.File.Exists(filename) == false)
-                    return this.Json(string.Empty);
+	    /// <summary>
+	    /// Tumbling Progress expressed as json.
+	    /// </summary>
+	    [Route("progress")]
+	    [HttpGet]
+	    public async Task<IActionResult> ProgressAsync()
+	    {
+		    try
+		    {
+		        string folder;
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                    folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "StratisNode\\bitcoin\\TumbleBit");
                 else
-                {
-                    string progress = await System.IO.File.ReadAllTextAsync(filename).ConfigureAwait(false);
-                    return this.Json(progress);
-                }
-            }
-            catch (Exception e)
-            {
-                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, $"Could not get progress.", e.ToString());
-            }
-        }
-    }
+                    folder = Path.Combine(Environment.GetEnvironmentVariable("HOME"), ".stratisnode", "bitcoin", "TumbleBit");
+                  
+                if (!Directory.Exists(folder)) Directory.CreateDirectory(folder);
+			    string filename = Path.Combine(folder, "tb_progress.json");
+			    if (System.IO.File.Exists(filename) == false)
+				    return this.Json(string.Empty);
+			    else
+			    {
+				    string progress = await System.IO.File.ReadAllTextAsync(filename).ConfigureAwait(false);
+				    return this.Json(progress);
+			    }
+		    }
+			catch (Exception e)
+		    {
+			    return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, $"Could not get progress.", e.ToString());
+		    }
+	    }
+	}
 }
