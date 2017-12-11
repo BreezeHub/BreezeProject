@@ -2,11 +2,6 @@
 //
 // Copy variables from `_variables.scss` to this file to override default values
 // without modifying source files.
-html {
-    overflow: -moz-scrollbars-vertical;
-    overflow-y: scroll;
-}
-
 body {overflow-x: hidden;}
 a, button {&:hover {cursor: pointer !important;}}
 code {color: $spacegray !important;}
@@ -622,6 +617,8 @@ $curve: cubic-bezier(0.650, 0.000, 0.450, 1.000);
     max-height: 200px;
     overflow-y: scroll;
     height: auto;
+    overflow: -moz-scrollbars-vertical !important;
+    overflow-y: scroll !important;
     .cycle-line {
       font-size: .725rem;
       color: $gray;

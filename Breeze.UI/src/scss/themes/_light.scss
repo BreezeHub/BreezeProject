@@ -125,13 +125,9 @@ $btn-primary-color: $white !important;
           animation: fadeIn 2s infinite alternate;
         }
       }
-
-
       @keyframes fadeIn {
         from { opacity: 0; }
       }
-
-
       .help {
         color: $gray;
         font-size: .9em;
