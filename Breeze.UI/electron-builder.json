@@ -15,7 +15,7 @@
     "artifactName": "${productName}-v${version}-setup-${os}-${env.arch}.${ext}"
   },
   "linux": {
-    "icon": "dist/assets/images/icon",
+    "icon": "dist/assets/images/",
     "target": [
       "deb",
       "tar.gz"
