@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Text;
 using Newtonsoft.Json;
 using NTumbleBit.ClassicTumbler;
@@ -69,7 +70,12 @@ namespace NTumbleBit
 
 	    public void Save()
 	    {
-		    string folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "breeze-ui");
+	        string folder;
+	        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+	            folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "StratisNode\\bitcoin\\TumbleBit");
+	        else
+	            folder = Path.Combine(Environment.GetEnvironmentVariable("HOME"), ".stratisnode", "bitcoin", "TumbleBit");
+
 		    if (!Directory.Exists(folder)) Directory.CreateDirectory(folder);
 		    string filename = Path.Combine(folder, "tb_progress.json");
 

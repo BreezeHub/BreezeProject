@@ -233,11 +233,11 @@ namespace Breeze.TumbleBit.Controllers
 		    try
 		    {
 		        string folder;
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-                    folder = Path.Combine(Environment.GetEnvironmentVariable("HOME"), ".stratisnode", "bitcoin", "TumbleBit");
-                else
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                     folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "StratisNode\\bitcoin\\TumbleBit");
-
+                else
+                    folder = Path.Combine(Environment.GetEnvironmentVariable("HOME"), ".stratisnode", "bitcoin", "TumbleBit");
+                  
                 if (!Directory.Exists(folder)) Directory.CreateDirectory(folder);
 			    string filename = Path.Combine(folder, "tb_progress.json");
 			    if (System.IO.File.Exists(filename) == false)
