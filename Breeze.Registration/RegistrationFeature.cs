@@ -90,10 +90,10 @@ namespace Breeze.Registration
                 {
 	                if (this.network == Network.StratisMain)
 	                {
-		                this.walletSyncManager.SyncFromHeight(616966); // d88a5b3734b991eca919b399cc676b4990f93a7b1b59aba0d42b13ffe7ec1169
+		                this.walletSyncManager.SyncFromHeight(636089); // 9ba4617c7cb4ed74d1f22098a51321667353bf8b80c1b2f4e05d0d9d01d5ab8c
 	                }
 
-	                if (this.network == Network.StratisTest) // 168994, first registration was in 168995
+	                if (this.network == Network.StratisTest) // 168994, first testnet registration was in 168995
 	                {
 		                this.walletSyncManager.SyncFromHeight(168994); // 120f5aab8a3b82ca273d4f3c5a8ae698d1d4135014ad0d813a16f9272c5dca58
 	                }
@@ -102,14 +102,13 @@ namespace Breeze.Registration
                 }
 
 	            // Verify that the registration store is in a consistent state on startup
-	            // The signatures of all the records 
+	            // The signatures of all the records need to be validated
 	            foreach (var registrationRecord in this.registrationStore.GetAll())
 	            {
 		            var registrationToken = registrationRecord.Record;
 
 		            if (!registrationToken.Validate(this.network))
-		            	// TODO: Delete record
-		            	continue;
+			            this.registrationStore.Delete(registrationRecord.RecordGuid);
 	            }
 
 	            // Only need to subscribe to receive blocks and transactions on the Stratis network
