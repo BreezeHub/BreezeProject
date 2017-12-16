@@ -81,7 +81,7 @@ namespace Breeze.TumbleBit.Client
             IWalletFeePolicy walletFeePolicy,
             IBroadcasterManager broadcasterManager,
             FullNode fullNode,
-            ConfigurationOptionWrapper<string> registrationStoreDirectory)
+            ConfigurationOptionWrapper<string>[] configurationOptions)
         {
             this.walletManager = walletManager as WalletManager;
             this.watchOnlyWalletManager = watchOnlyWalletManager;
@@ -97,13 +97,27 @@ namespace Breeze.TumbleBit.Client
             this.broadcasterManager = broadcasterManager;
             this.fullNode = fullNode;
 
-            if (registrationStoreDirectory.Value != null)
+            foreach (var option in configurationOptions)
             {
-                this.registrationStore = new RegistrationStore(registrationStoreDirectory.Value);
-            }
-            else
-            {
-                this.registrationStore = new RegistrationStore(this.nodeSettings.DataDir);
+                if (option.Name.Equals("RegistrationStoreDirectory"))
+                {
+                    if (option.Value != null)
+                    {
+                        this.registrationStore = new RegistrationStore(option.Value);
+                    }
+                    else
+                    {
+                        this.registrationStore = new RegistrationStore(this.nodeSettings.DataDir);
+                    }
+                }
+
+                if (option.Name.Equals("MasterNodeUri"))
+                {
+                    if (option.Value != null)
+                    {
+                        this.TumblerAddress = option.Value;
+                    }
+                }
             }
 
             this.tumblingState = new TumblingState(
@@ -336,7 +350,9 @@ namespace Breeze.TumbleBit.Client
         /// <inheritdoc />
         public async Task<ClassicTumblerParameters> ConnectToTumblerAsync()
         {
-            this.TumblerAddress = "ctb://6cvi6ulcd4qn42mi.onion?h=95cb936fde9ae1856bcfd953746c26724a25dc46";
+            // Temporary hardcoding for testnet
+            if (this.TumblerAddress == null)
+                this.TumblerAddress = "ctb://6cvi6ulcd4qn42mi.onion?h=95cb936fde9ae1856bcfd953746c26724a25dc46";
             
             // If the -ppuri command line option wasn't used to bypass the registration store lookup
             if (this.TumblerAddress == null)

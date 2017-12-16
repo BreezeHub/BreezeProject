@@ -55,6 +55,7 @@ namespace Breeze.Daemon
 
                 // This setting is not in NodeSettings yet, so get it directly from the args
                 ConfigurationOptionWrapper<string> registrationStoreDirectory = new ConfigurationOptionWrapper<string>("RegistrationStoreDirectory", args.GetValueOf("-storedir"));
+                ConfigurationOptionWrapper<string>[] configurationOptions = { registrationStoreDirectory };
 
                 NodeSettings nodeSettings;
 
@@ -128,7 +129,7 @@ namespace Breeze.Daemon
                 if (args.Contains("-tumblebit"))
                 {
                     // We no longer pass the URI in via the command line, the registration feature selects a random one
-                    fullNodeBuilder.UseTumbleBit(registrationStoreDirectory);
+                    fullNodeBuilder.UseTumbleBit(configurationOptions);
                 }
                 
                 IFullNode node = fullNodeBuilder.Build();

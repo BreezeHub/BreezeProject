@@ -58,7 +58,7 @@ namespace Breeze.TumbleBit.Client
 
     public static class TumbleBitFeatureExtension
     {
-        public static IFullNodeBuilder UseTumbleBit(this IFullNodeBuilder fullNodeBuilder, ConfigurationOptionWrapper<string> registrationStoreDirectory)
+        public static IFullNodeBuilder UseTumbleBit(this IFullNodeBuilder fullNodeBuilder, ConfigurationOptionWrapper<string>[] configurationOptions)
         {
             fullNodeBuilder.ConfigureFeature(features =>
             {
@@ -80,7 +80,7 @@ namespace Breeze.TumbleBit.Client
                         };
 
                         services.AddSingleton<ITumbleBitManager, TumbleBitManager>();
-                        services.AddSingleton<ConfigurationOptionWrapper<string>>(registrationStoreDirectory);
+                        services.AddSingleton<ConfigurationOptionWrapper<string>[]>(configurationOptions);
                         services.AddSingleton<TumbleBitController>();
                         //services.AddSingleton<IWalletFeePolicy, LightWalletFeePolicy>();
                     });

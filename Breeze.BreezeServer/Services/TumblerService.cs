@@ -87,6 +87,15 @@ namespace Breeze.BreezeServer.Services
                         interactive.Services.Add(host);
                     }
 
+                    string baseUri;
+                    if (runtime.TorUri.ToString().EndsWith("/"))
+                        baseUri = runtime.TorUri.ToString().Substring(0, runtime.TorUri.ToString().Length - 1);
+                    else
+                        baseUri = runtime.TorUri.ToString();
+
+                    var tempUri = (baseUri + "?h=" + runtime.ClassicTumblerParametersHash).Replace("http:", "ctb:");
+                    File.WriteAllText(Path.Combine(config.DataDir, "uri.txt"), tempUri);
+
                     interactive.StartInteractive();
                 }
                 catch (ConfigException ex)

@@ -1,7 +1,10 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Threading;
+using System.Threading.Tasks;
 using Xunit;
 
 using NBitcoin;
@@ -18,26 +21,26 @@ using Stratis.Bitcoin.IntegrationTests;
 
 using Breeze.BreezeServer;
 using Breeze.BreezeServer.Services;
+using Breeze.TumbleBit.Models;
+using BreezeCommon;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Stratis.Bitcoin.Features.Notifications;
+using Stratis.Bitcoin.Features.WatchOnlyWallet;
+using System.Text;
 
 namespace Breeze.TumbleBit.Client.Tests
 {
     public class Tests
     {
         [Fact]
-        public void Test1()
-        {
-            Assert.True(true);
-        }
-
-        [Fact]
         public void MakeNode()
         {
             using (NodeBuilder builder = NodeBuilder.Create(version : "0.15.1"))
             {
-                var core3 = builder.CreateNode(true);
-                var rpc3 = core3.CreateRPCClient();
+                HttpClient client = null;
+
+                var coreNode = builder.CreateNode(true);
                 
                 // Replicate portions of BreezeServer's Program.cs. Maybe refactor it into a class/function in future
                 var serviceProvider = new ServiceCollection()
@@ -51,7 +54,7 @@ namespace Breeze.TumbleBit.Client.Tests
                 
                 // Skip the registration code - that can be tested separately
                 
-                string configPath = Path.Combine(core3.DataFolder, "breeze.conf");
+                string configPath = Path.Combine(coreNode.DataFolder, "breeze.conf");
                 string[] breezeServerConfig =
                 {
                     "network=regtest", // Only the network setting is currently used from this file
@@ -72,7 +75,8 @@ namespace Breeze.TumbleBit.Client.Tests
                 
                 BreezeConfiguration config = new BreezeConfiguration(configPath);
                 
-                string ntbServerConfigPath = Path.Combine(core3.DataFolder, "server.config");
+                var rpc3 = coreNode.CreateRPCClient();
+                string ntbServerConfigPath = Path.Combine(coreNode.DataFolder, "server.config");
                 string[] ntbServerConfig =
                 {
                     "regtest=1",
@@ -84,24 +88,63 @@ namespace Breeze.TumbleBit.Client.Tests
                 };
                 
                 File.WriteAllLines(ntbServerConfigPath, ntbServerConfig);
-                
-                // TODO: Maybe move this to after the initial block generation so they don't have to be processed
+
+                // We need to start up the masternode prior to creating the SBFN instance so that
+                // we have the URI available for starting the TumbleBit feature
                 // TODO: Also need to see if NTB interactive console interferes with later parts of the test
-                var tumbler = serviceProvider.GetService<Breeze.BreezeServer.Services.ITumblerService>();
-			    tumbler.StartTumbler(config, false, "server.config", Path.GetFullPath(core3.DataFolder));
+                new Thread(delegate ()
+                {
+                    Thread.CurrentThread.IsBackground = true;
+                    // By instantiating the TumblerService directly the registration logic is skipped
+                    var tumbler = serviceProvider.GetService<Breeze.BreezeServer.Services.ITumblerService>();
+                    tumbler.StartTumbler(config, false, "server.config", Path.GetFullPath(coreNode.DataFolder));
+                }).Start();
                 
-                //var node1 = builder.CreateStratisPowNode();
+                // Wait for URI file to be written out by the TumblerService
+                while (!File.Exists(Path.Combine(coreNode.DataFolder, "uri.txt")))
+                {
+                    Thread.Sleep(1000);
+                }
+
+                Console.WriteLine("* URI file detected *");
+                Thread.Sleep(5000);
+                
+                var serverAddress = File.ReadAllText(Path.Combine(coreNode.DataFolder, "uri.txt"));
+
+                /* For some reason this is not able to actually connect to the server. Perhaps something to do with proxy endpoint mapping?
+                string serverAddress;
+                using (client = new HttpClient())
+                {
+                    client.DefaultRequestHeaders.Accept.Clear();
+                    client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                    var uri = new Uri("http://127.0.0.1:37123/api/v1/tumblers/address");
+                    serverAddress = client.GetStringAsync(uri).GetAwaiter().GetResult();
+
+                    Console.WriteLine(serverAddress);
+                }*/
+
+                // Not used for this test
+                ConfigurationOptionWrapper<string> registrationStoreDirectory = new ConfigurationOptionWrapper<string>("RegistrationStoreDirectory", "");
+
+                // Force SBFN to use the temporary hidden service to connect to the server
+                ConfigurationOptionWrapper<string> masternodeUri = new ConfigurationOptionWrapper<string>("MasterNodeUri", serverAddress);
+
+                ConfigurationOptionWrapper<string>[] configurationOptions = { registrationStoreDirectory, masternodeUri };
+
                 CoreNode node1 = builder.CreateStratisPowNode(true, fullNodeBuilder =>
                 {
                     fullNodeBuilder
                         .UseConsensus()
                         .UseBlockStore()
                         .UseMempool()
+                        .UseBlockNotification()
+                        .UseTransactionNotification()
                         .AddMining()
                         .UseWallet()
+                        .UseWatchOnlyWallet()
                         .UseApi()
-                        .AddRPC();
-                    //.UseTumbleBit();
+                        .AddRPC()
+                        .UseTumbleBit(configurationOptions);
                 });
                
                 node1.NotInIBD();
@@ -113,37 +156,66 @@ namespace Breeze.TumbleBit.Client.Tests
                 wm1.CreateWallet("TumbleBit1", "bob");
                 
                 // Mined coins only mature after 100 blocks on regtest
-                core3.FindBlock(101);
+                coreNode.FindBlock(101);
 
                 var rpc1 = node1.CreateRPCClient();
                 //var rpc2 = node2.CreateRPCClient();
                 
-                rpc1.AddNode(core3.Endpoint, false);
+                rpc3.AddNode(node1.Endpoint, false);
+                rpc1.AddNode(coreNode.Endpoint, false);
 
-                TestHelper.WaitLoop(() => rpc1.GetBestBlockHash() == rpc3.GetBestBlockHash());
-                
                 var amount = new Money(5.0m, MoneyUnit.BTC);
                 var destination = wm1.GetUnusedAddress(new WalletAccountReference("alice", "account 0"));
                 
                 rpc3.SendToAddress(BitcoinAddress.Create(destination.Address, Network.RegTest), amount);
 
-                core3.FindBlock(1);
-                
-                var unspent = rpc1.ListUnspent();
+                coreNode.FindBlock(1);
+
+                // Wait for SBFN to sync with the core node
+                TestHelper.WaitLoop(() => rpc1.GetBestBlockHash() == rpc3.GetBestBlockHash());
+
+                //var unspent = rpc1.ListUnspent();
+
+                // Connect to server and start tumbling
+                using (client = new HttpClient())
+                {
+                    client.DefaultRequestHeaders.Accept.Clear();
+                    client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+                    // Sample returned output
+                    // {"tumbler":"ctb://<onionaddress>.onion?h=<confighash>","denomination":"0.01000000","fee":"0.00010000","network":"RegTest","estimate":"22200"}
+                    var connectResponse = client.GetStringAsync(node1.FullNode.Settings.ApiUri + "api/TumbleBit/connect").GetAwaiter().GetResult();
+
+                    //Assert.StartsWith("[{\"", connectResponse);
+
+                    var tumbleModel = new TumbleRequest { OriginWalletName = "alice", OriginWalletPassword = "TumbleBit1", DestinationWalletName = "bob"};
+                    var tumbleContent = new StringContent(tumbleModel.ToString(), Encoding.UTF8, "application/json");
+                    Console.WriteLine("Sending tumble request...");
+                    var tumbleResponse = client.PostAsync(node1.FullNode.Settings.ApiUri + "api/TumbleBit/tumble", tumbleContent).GetAwaiter().GetResult();
+                    Console.WriteLine("Tumble request sent");
+
+                    //Assert.StartsWith("[{\"", tumbleResponse);
+                }
 
                 // TODO: Move forward specific numbers of blocks and check interim states? TB tests should already do that
-                for (int i = 0; i < 100; i++)
+                for (int i = 0; i < 10; i++)
                 {
-                    core3.FindBlock(1);
-                    Thread.Sleep(30); // <- is TumblerService in its own thread? If not, move it into one and we wait for it
+                    coreNode.FindBlock(1);
+                    Thread.Sleep(5000);
                 }
                 
                 // Check destination wallet for tumbled coins
                 
                 // TODO: Need to amend TumblerService so that it can be shut down within the test
                 
-                core3.Kill(false);
+                coreNode.Kill(false);
                 node1.Kill(false);
+
+                if (client != null)
+                {
+                    client.Dispose();
+                    client = null;
+                }
             }
         }
     }
