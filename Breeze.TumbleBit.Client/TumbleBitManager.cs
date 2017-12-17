@@ -25,6 +25,7 @@ using Stratis.Bitcoin.Features.Wallet.Interfaces;
 using Stratis.Bitcoin.Interfaces;
 using System.IO;
 using NTumbleBit;
+using NTumbleBit.Configuration;
 using Stratis.Bitcoin.Features.Wallet.Models;
 
 namespace Breeze.TumbleBit.Client
@@ -334,7 +335,7 @@ namespace Breeze.TumbleBit.Client
         }
 
         /// <inheritdoc />
-        public async Task<ClassicTumblerParameters> ConnectToTumblerAsync()
+        public async Task<Result<ClassicTumblerParameters>> ConnectToTumblerAsync()
         {
             this.TumblerAddress = "ctb://6cvi6ulcd4qn42mi.onion?h=95cb936fde9ae1856bcfd953746c26724a25dc46";
             
@@ -371,7 +372,7 @@ namespace Breeze.TumbleBit.Client
                 if (!validRegistrationFound)
                 {
                     this.logger.LogDebug("Did not find a valid registration");
-                    return null;
+                    return Result.Fail<ClassicTumblerParameters>("Did not find a valid registration");
                 }
                 
                 this.TumblerAddress = "ctb://" + registrationToken.OnionAddress + ".onion?h=" + registrationToken.ConfigurationHash;
@@ -382,17 +383,26 @@ namespace Breeze.TumbleBit.Client
             TumblerClientRuntime rt = null;
             try
             {
-                rt = await TumblerClientRuntime.FromConfigurationAsync(config, connectionTest:true).ConfigureAwait(false);
-                
+                rt = await TumblerClientRuntime.FromConfigurationAsync(config, connectionTest: true)
+                    .ConfigureAwait(false);
+
                 // This is overwritten by the tumble method, but it is needed at the beginning of that method for the balance check
                 this.TumblerParameters = rt.TumblerParameters;
-                
-                return rt.TumblerParameters;
+
+                return Result.Ok(rt.TumblerParameters);
+            }
+            catch (Exception cex) when (cex is PrivacyProtocolConfigException || cex is ConfigException) 
+            {
+                this.logger.LogError("Error obtaining tumbler parameters: " + cex);
+                return Result.Fail<ClassicTumblerParameters>(
+                    cex is PrivacyProtocolConfigException
+                        ? "The Privacy Protocol requires Tor. Please ensure Tor is running."
+                        : cex.Message);
             }
             catch (Exception e)
             {
                 this.logger.LogError("Error obtaining tumbler parameters: " + e);
-                return null;
+                return Result.Fail<ClassicTumblerParameters>("Error obtaining tumbler parameters"); 
             }
             finally
             {
