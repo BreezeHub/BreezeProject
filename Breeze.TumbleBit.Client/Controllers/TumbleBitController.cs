@@ -52,19 +52,19 @@ namespace Breeze.TumbleBit.Controllers
             {
                 var tumblerParameters = await this.tumbleBitManager.ConnectToTumblerAsync().ConfigureAwait(false);
 
-                if (tumblerParameters == null)
-                    return ErrorHelpers.BuildErrorResponse(HttpStatusCode.InternalServerError, "Unable to connect", "Unable to connect");
+                if (tumblerParameters.Failure)
+                    return ErrorHelpers.BuildErrorResponse(HttpStatusCode.InternalServerError, tumblerParameters.Message, tumblerParameters.Message);
 
-                var periods = tumblerParameters.CycleGenerator.FirstCycle.GetPeriods();
+                var periods = tumblerParameters.Value.CycleGenerator.FirstCycle.GetPeriods();
                 var lengthBlocks = periods.Total.End - periods.Total.Start;
                 var cycleLengthSeconds = lengthBlocks * 10 * 60;
 
                 var parameterDictionary = new Dictionary<string, string>()
                 {
                     ["tumbler"] = this.tumbleBitManager.TumblerAddress,
-                    ["denomination"] = tumblerParameters.Denomination.ToString(),
-                    ["fee"] = tumblerParameters.Fee.ToString(),
-                    ["network"] = tumblerParameters.Network.Name,
+                    ["denomination"] = tumblerParameters.Value.Denomination.ToString(),
+                    ["fee"] = tumblerParameters.Value.Fee.ToString(),
+                    ["network"] = tumblerParameters.Value.Network.Name,
                     ["estimate"] = cycleLengthSeconds.ToString()
                 };
 

@@ -15,7 +15,7 @@ namespace Breeze.TumbleBit.Client
         /// Connects to the tumbler.
         /// </summary>
         /// <returns></returns>
-        Task<ClassicTumblerParameters> ConnectToTumblerAsync();
+        Task<Result<ClassicTumblerParameters>> ConnectToTumblerAsync();
 
         Task TumbleAsync(string originWalletName, string destinationWalletName, string originWalletPassword);
 

@@ -165,7 +165,12 @@ namespace NTumbleBit.ClassicTumbler.Client.ConnectionSettings
 						{
 							await SetupAsync(interaction, null).ConfigureAwait(false);
 						}
-						catch
+						catch (ConfigException cex)
+						{
+						    process.Dispose();
+						    throw new PrivacyProtocolConfigException(PrivacyProtocolType.Tor, cex);
+						}
+                        catch 
 						{
 							process.Dispose();
 							throw;

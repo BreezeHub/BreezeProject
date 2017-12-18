@@ -155,7 +155,16 @@ namespace NTumbleBit.ClassicTumbler.Client
 			var tor = settings as ITorConnectionSettings;
 			if(tor == null)
 				throw new ConfigException("TOR Settings not properly configured");
-			_Disposables.Add(await tor.SetupAsync(interaction, torPath).ConfigureAwait(false));
+
+		    try
+		    {
+		        var torSettings = await tor.SetupAsync(interaction, torPath).ConfigureAwait(false);
+                _Disposables.Add(torSettings);
+		    }
+		    catch (ConfigException cex)
+		    {
+		        throw new PrivacyProtocolConfigException(PrivacyProtocolType.Tor, cex);
+            }
 		}
 
 		public BroadcasterJob CreateBroadcasterJob()
