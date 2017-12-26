@@ -1,15 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.27004.2005
+VisualStudioVersion = 15.0.27004.2010
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BreezeCommon", "BreezeCommon\BreezeCommon.csproj", "{6EFC9DC0-6555-48A0-9724-D4B7CE4BC366}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BreezeCommon.Tests", "BreezeCommon.Tests\BreezeCommon.Tests.csproj", "{2C83BBC3-64CF-4B28-852E-911A733C9672}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NTumbleBit", "NTumbleBit\NTumbleBit.csproj", "{52E8CBAF-587C-4864-9C2E-73DABE64878B}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NTumbleBit.Tests", "NTumbleBit.Tests\NTumbleBit.Tests.csproj", "{8545E6DC-BCB6-4D02-A3CB-3964F82A71DC}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Breeze.Registration", "Breeze.Registration\Breeze.Registration.csproj", "{48AE1752-EE4A-4D37-B62D-423F60EAC2A4}"
 EndProject
@@ -47,13 +45,15 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Breeze.BreezeServer.Tests",
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NTumbleBit.ClassicTumbler.Server.CLI", "NTumbleBit.ClassicTumbler.Server.CLI\NTumbleBit.ClassicTumbler.Server.CLI.csproj", "{4E24F42C-6EB6-4FFF-9E5B-D57AFC2C36BF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stratis.Bitcoin.IntegrationTests", "StratisBitcoinFullNode\src\Stratis.Bitcoin.IntegrationTests\Stratis.Bitcoin.IntegrationTests.csproj", "{E14DB393-4FB8-4B10-B2C5-2308B0AE0DE1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stratis.Bitcoin.IntegrationTests", "StratisBitcoinFullNode\src\Stratis.Bitcoin.IntegrationTests\Stratis.Bitcoin.IntegrationTests.csproj", "{E14DB393-4FB8-4B10-B2C5-2308B0AE0DE1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Breeze.TumbleBit.Client.Tests", "Breeze.TumbleBit.Client.Tests\Breeze.TumbleBit.Client.Tests.csproj", "{9E052942-1FE6-4109-B53B-52A9BCD54318}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Breeze.TumbleBit.Client.Tests", "Breeze.TumbleBit.Client.Tests\Breeze.TumbleBit.Client.Tests.csproj", "{9E052942-1FE6-4109-B53B-52A9BCD54318}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Breeze.TorTester.CLI", "Breeze.TorTester.CLI\Breeze.TorTester.CLI.csproj", "{86655A31-C780-4C0A-8F66-0F21272715EC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Breeze.TorTester.CLI", "Breeze.TorTester.CLI\Breeze.TorTester.CLI.csproj", "{86655A31-C780-4C0A-8F66-0F21272715EC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Breeze.TumbleBit.Client.DBreezeUtils", "Breeze.TumbleBit.Client.DBreezeUtils\Breeze.TumbleBit.Client.DBreezeUtils.csproj", "{B53D0A27-E6ED-46ED-AA78-478994507887}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Breeze.TumbleBit.Client.DBreezeUtils", "Breeze.TumbleBit.Client.DBreezeUtils\Breeze.TumbleBit.Client.DBreezeUtils.csproj", "{B53D0A27-E6ED-46ED-AA78-478994507887}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Breeze.Registration.Tests", "Breeze.Registration.Tests\Breeze.Registration.Tests.csproj", "{85FAC456-78A4-46B6-960E-4EEEC1CB34CD}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -73,10 +73,6 @@ Global
 		{52E8CBAF-587C-4864-9C2E-73DABE64878B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{52E8CBAF-587C-4864-9C2E-73DABE64878B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{52E8CBAF-587C-4864-9C2E-73DABE64878B}.Release|Any CPU.Build.0 = Release|Any CPU
-		{8545E6DC-BCB6-4D02-A3CB-3964F82A71DC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{8545E6DC-BCB6-4D02-A3CB-3964F82A71DC}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{8545E6DC-BCB6-4D02-A3CB-3964F82A71DC}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{8545E6DC-BCB6-4D02-A3CB-3964F82A71DC}.Release|Any CPU.Build.0 = Release|Any CPU
 		{48AE1752-EE4A-4D37-B62D-423F60EAC2A4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{48AE1752-EE4A-4D37-B62D-423F60EAC2A4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{48AE1752-EE4A-4D37-B62D-423F60EAC2A4}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -165,6 +161,10 @@ Global
 		{B53D0A27-E6ED-46ED-AA78-478994507887}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B53D0A27-E6ED-46ED-AA78-478994507887}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B53D0A27-E6ED-46ED-AA78-478994507887}.Release|Any CPU.Build.0 = Release|Any CPU
+		{85FAC456-78A4-46B6-960E-4EEEC1CB34CD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{85FAC456-78A4-46B6-960E-4EEEC1CB34CD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{85FAC456-78A4-46B6-960E-4EEEC1CB34CD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{85FAC456-78A4-46B6-960E-4EEEC1CB34CD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
