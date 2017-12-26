@@ -73,7 +73,13 @@ namespace NTumbleBit.ClassicTumbler.Server.Controllers
 			}
 		}
 
-		[HttpGet("api/v1/tumblers/{tumblerId}/parameters")]
+	    [HttpGet("api/v1/tumblers/address")]
+	    public async Task<string> GetAddress()
+	    {
+	        return Runtime.TorUri.ToString();
+	    }
+
+        [HttpGet("api/v1/tumblers/{tumblerId}/parameters")]
 		public ClassicTumblerParameters GetParameters(
 			[ModelBinder(BinderType = typeof(TumblerParametersModelBinder))]
 			ClassicTumblerParameters tumblerId)
@@ -163,7 +169,7 @@ namespace NTumbleBit.ClassicTumbler.Server.Controllers
 
 			if(request.MerkleProof.PartialMerkleTree
 				.GetMatchedTransactions()
-				.FirstOrDefault() != request.Transaction.GetHash() || !request.MerkleProof.Header.CheckProofOfWork())
+				.FirstOrDefault() != request.Transaction.GetHash() || !request.MerkleProof.Header.CheckProofOfWork(this.Parameters.Network.Consensus))
 			{
 				Logs.Tumbler.LogDebug("Invalid transaction merkle proof");
 				throw new ActionResultException(BadRequest("invalid-merkleproof"));

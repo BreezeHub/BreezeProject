@@ -17,6 +17,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Stratis.Bitcoin.P2P.Protocol.Payloads;
 
 namespace NTumbleBit.Tests
 {

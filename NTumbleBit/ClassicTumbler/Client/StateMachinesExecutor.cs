@@ -81,8 +81,18 @@ namespace NTumbleBit.ClassicTumbler.Client
                             cancellationToken.WaitHandle.WaitOne(waitRandom);
                             cancellationToken.ThrowIfCancellationRequested();
                         }
+                        else
+                        {
+                            // Need to ensure that the rest of the processing only happens after the server
+                            // has definitely recognised that a block has been received. Invalid phase
+                            // errors will result otherwise
+                            Logs.Client.LogDebug("Waiting 2 seconds before updating machine states...");
 
-						foreach(var state in machineStates)
+                            cancellationToken.WaitHandle.WaitOne(2);
+                            cancellationToken.ThrowIfCancellationRequested();
+                        }
+
+                        foreach (var state in machineStates)
 						{
 							var machine = new PaymentStateMachine(Runtime, state);
 							if(machine.Status == PaymentStateMachineStatus.Wasted)

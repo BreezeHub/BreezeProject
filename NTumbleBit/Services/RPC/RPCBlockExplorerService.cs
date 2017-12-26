@@ -58,11 +58,16 @@ namespace NTumbleBit.Services.RPC
 				var h = _RPCClient.GetBestBlockHash();
 				if(h != currentBlock)
 				{
+                    Console.WriteLine("* New block received by server: " + h);
 					_Cache.Refresh(h);
 					return h;
 				}
-				cancellation.WaitHandle.WaitOne(5000);
-			}
+                if (this.RPCClient.Network != Network.RegTest)
+				    cancellation.WaitHandle.WaitOne(5000);
+                else
+                    // For deep integration tests there is a race condition between the client and server when processing incoming blocks
+                    cancellation.WaitHandle.WaitOne(500);
+            }
 		}
 
 		public async Task<ICollection<TransactionInformation>> GetTransactionsAsync(Script scriptPubKey, bool withProof)

@@ -45,8 +45,9 @@ namespace NTumbleBit.ClassicTumbler.Client
 			{
 				await runtime.ConfigureAsync(configuration, interaction, connectionTest).ConfigureAwait(false);
 			}
-			catch
+			catch (Exception e)
 			{
+                Console.WriteLine("Exception during runtime configuration: " + e);
 				runtime?.Dispose();
 				throw;
 			}
@@ -123,12 +124,19 @@ namespace NTumbleBit.ClassicTumbler.Client
                 if (parameters.ExpectedAddress != TumblerServer.GetRoutableUri(false).AbsoluteUri)
                     throw new ConfigException("This tumbler has parameters used for an unexpected uri");
                 Logs.Configuration.LogInformation("Checking RSA key proof and standardness of the settings...");
-                if (standardCycle == null || !parameters.IsStandard())
+                try
                 {
-                    Logs.Configuration.LogWarning("This tumbler has non standard parameters");
-                    if (!AllowInsecure)
-                        throw new ConfigException("This tumbler has non standard parameters");
-                    standardCycle = null;
+                    if (standardCycle == null || !parameters.IsStandard())
+                    {
+                        Logs.Configuration.LogWarning("This tumbler has non standard parameters");
+                        if (!AllowInsecure)
+                            throw new ConfigException("This tumbler has non standard parameters");
+                        standardCycle = null;
+                    }
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine("Exception checking tumbler parameters: " + e);
                 }
 
                 await interaction.ConfirmParametersAsync(parameters, standardCycle).ConfigureAwait(false);
