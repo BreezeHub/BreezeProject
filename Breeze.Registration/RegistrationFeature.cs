@@ -77,7 +77,7 @@ namespace Breeze.Registration
             }
 		}
 
-		public override void Start()
+		public override void Initialize()
 		{
             if (!this.isBitcoin)
             {
@@ -119,7 +119,7 @@ namespace Breeze.Registration
             this.registrationManager.Initialize(this.loggerFactory, this.registrationStore, this.isBitcoin, this.network, this.watchOnlyWalletManager);
         }
 
-        public override void Stop()
+        public override void Dispose()
         {
             this.blockSubscriberdDisposable?.Dispose();
             //this.transactionSubscriberdDisposable?.Dispose();

@@ -23,7 +23,7 @@ namespace Breeze.BreezeServer.Services
         public TumblerConfiguration config { get; set; }
         public TumblerRuntime runtime { get; set; }
         
-        public void StartTumbler(BreezeConfiguration breezeConfig, bool getConfigOnly, string ntumblebitServerConf = null, string datadir = null)
+        public void StartTumbler(BreezeConfiguration breezeConfig, bool getConfigOnly, string ntumblebitServerConf = null, string datadir = null, bool torMandatory = true)
         {
             var argsTemp = new List<string>();
             argsTemp.Add("-debug");
@@ -59,6 +59,10 @@ namespace Breeze.BreezeServer.Services
             {
                 config = new TumblerConfiguration();
                 config.LoadArgs(args);
+
+                if (!torMandatory)
+                    config.TorMandatory = false;
+                
                 try
                 {
                     runtime = TumblerRuntime.FromConfiguration(config, new TextWriterClientInteraction(Console.Out, Console.In));
@@ -88,11 +92,21 @@ namespace Breeze.BreezeServer.Services
                     }
 
                     string baseUri;
-                    if (runtime.TorUri.ToString().EndsWith("/"))
-                        baseUri = runtime.TorUri.ToString().Substring(0, runtime.TorUri.ToString().Length - 1);
-                    else
-                        baseUri = runtime.TorUri.ToString();
 
+                    if (runtime.TorUri == null)
+                        baseUri = runtime.LocalEndpoint.ToString();
+                    else
+                    {
+
+                        if (runtime.TorUri.ToString().EndsWith("/"))
+                            baseUri = runtime.TorUri.ToString().Substring(0, runtime.TorUri.ToString().Length - 1);
+                        else
+                            baseUri = runtime.TorUri.ToString();
+                    }
+
+                    if (!baseUri.StartsWith("http://") && (!baseUri.StartsWith("ctb://")))
+                        baseUri = "http://" + baseUri;
+                    
                     var tempUri = (baseUri + "?h=" + runtime.ClassicTumblerParametersHash).Replace("http:", "ctb:");
                     File.WriteAllText(Path.Combine(config.DataDir, "uri.txt"), tempUri);
 

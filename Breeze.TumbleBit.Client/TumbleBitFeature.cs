@@ -7,7 +7,6 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
 using BreezeCommon;
-using Stratis.Bitcoin.Features.Wallet.JsonConverters;
 using NTumbleBit.JsonConverters;
 using Stratis.Bitcoin.BlockPulling;
 using Stratis.Bitcoin.Builder;
@@ -20,6 +19,7 @@ using Stratis.Bitcoin.Signals;
 using Stratis.Bitcoin.Features.Wallet;
 using Stratis.Bitcoin.Features.LightWallet;
 using NBitcoin;
+using Stratis.Bitcoin.Utilities.JsonConverters;
 
 namespace Breeze.TumbleBit.Client
 {
@@ -39,7 +39,7 @@ namespace Breeze.TumbleBit.Client
             this.signals = signals;
         }
 
-        public override void Start()
+        public override void Initialize()
         {
             this.tumbleBitManager.Initialize();
 
@@ -47,7 +47,7 @@ namespace Breeze.TumbleBit.Client
             //this.transactionSubscriberdDisposable = this.signals.SubscribeForTransactions(new TumbleBitBlockObserver(this.tumbleBitManager));
         }
 
-        public override void Stop()
+        public override void Dispose()
         {
             this.blockSubscriberdDisposable?.Dispose();
             //this.transactionSubscriberdDisposable?.Dispose();
