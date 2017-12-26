@@ -255,7 +255,7 @@ namespace Breeze.TumbleBit.Controllers
 	    }
 
         ///<inheritdoc/>
-        [Route("last_block_mins")]
+        [Route("last-block-mins")]
         [HttpGet]
         public IActionResult LastBlockMinsAsync()
         {
