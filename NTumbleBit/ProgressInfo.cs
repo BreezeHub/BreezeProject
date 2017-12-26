@@ -69,15 +69,9 @@ namespace NTumbleBit
 	    }
 
 	    public void Save()
-	    {
-	        string folder;
-	        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-	            folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "StratisNode\\bitcoin\\TumbleBit");
-	        else
-	            folder = Path.Combine(Environment.GetEnvironmentVariable("HOME"), ".stratisnode", "bitcoin", "TumbleBit");
-
-		    if (!Directory.Exists(folder)) Directory.CreateDirectory(folder);
-		    string filename = Path.Combine(folder, "tb_progress.json");
+        {   
+		    if (!Directory.Exists(ProgressInfo.Folder)) Directory.CreateDirectory(ProgressInfo.Folder);
+		    string filename = Path.Combine(ProgressInfo.Folder, "tb_progress.json");
 
 		    using (var file = File.CreateText(filename))
 			{
@@ -88,9 +82,18 @@ namespace NTumbleBit
 
 	    public static void RemoveProgressFile()
 	    {
-			string folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "breeze-ui");
-		    string filename = Path.Combine(folder, "tb_progress.json");
+		    string filename = Path.Combine(ProgressInfo.Folder, "tb_progress.json");
 			if (File.Exists(filename)) File.Delete(filename);
 		}
+
+        private static string Folder
+        {
+            get
+            {
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                    return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "StratisNode\\bitcoin\\TumbleBit");
+                return Path.Combine(Environment.GetEnvironmentVariable("HOME"), ".stratisnode", "bitcoin", "TumbleBit");
+            }
+        }
 	}
 }
