@@ -156,6 +156,8 @@ namespace Breeze.TumbleBit.Client
 
         public async Task<bool> BlockGenerate(int numberOfBlocks)
         {
+            // TODO: Refactor this to use the same technique used in the StratisRegTest unit tests
+
             if (this.network != Network.RegTest && this.network != Network.StratisRegTest)
             {
                 this.logger.LogError("Can only generate blocks on regtest");
@@ -219,19 +221,46 @@ namespace Breeze.TumbleBit.Client
             token.AddRange(Encoding.ASCII.GetBytes("".PadRight(34)));
 
             // IPv4 address
-            token.Add(0x00); token.Add(0x00); token.Add(0x00); token.Add(0x00);
+            token.Add(0x00);
+            token.Add(0x00);
+            token.Add(0x00);
+            token.Add(0x00);
 
             // IPv6 address
-            token.Add(0x00); token.Add(0x00); token.Add(0x00); token.Add(0x00);
-            token.Add(0x00); token.Add(0x00); token.Add(0x00); token.Add(0x00);
-            token.Add(0x00); token.Add(0x00); token.Add(0x00); token.Add(0x00);
-            token.Add(0x00); token.Add(0x00); token.Add(0x00); token.Add(0x00);
+            token.Add(0x00);
+            token.Add(0x00);
+            token.Add(0x00);
+            token.Add(0x00);
+            token.Add(0x00);
+            token.Add(0x00);
+            token.Add(0x00);
+            token.Add(0x00);
+            token.Add(0x00);
+            token.Add(0x00);
+            token.Add(0x00);
+            token.Add(0x00);
+            token.Add(0x00);
+            token.Add(0x00);
+            token.Add(0x00);
+            token.Add(0x00);
 
             // Onion address
-            token.Add(0x00); token.Add(0x00); token.Add(0x00); token.Add(0x00);
-            token.Add(0x00); token.Add(0x00); token.Add(0x00); token.Add(0x00);
-            token.Add(0x00); token.Add(0x00); token.Add(0x00); token.Add(0x00);
-            token.Add(0x00); token.Add(0x00); token.Add(0x00); token.Add(0x00);
+            token.Add(0x00);
+            token.Add(0x00);
+            token.Add(0x00);
+            token.Add(0x00);
+            token.Add(0x00);
+            token.Add(0x00);
+            token.Add(0x00);
+            token.Add(0x00);
+            token.Add(0x00);
+            token.Add(0x00);
+            token.Add(0x00);
+            token.Add(0x00);
+            token.Add(0x00);
+            token.Add(0x00);
+            token.Add(0x00);
+            token.Add(0x00);
 
             // Port number
             byte[] portNumber = BitConverter.GetBytes(37123);
@@ -319,31 +348,35 @@ namespace Breeze.TumbleBit.Client
 
             this.logger.LogDebug("Trying to broadcast transaction: " + sendTx.GetHash());
 
-            var bcResult = await this.broadcasterManager.TryBroadcastAsync(sendTx).ConfigureAwait(false);
-            if (bcResult == Stratis.Bitcoin.Broadcasting.Success.Yes)
+            await this.broadcasterManager.BroadcastTransactionAsync(sendTx).ConfigureAwait(false);
+            var bcResult = this.broadcasterManager.GetTransaction(sendTx.GetHash()).State;
+            switch (bcResult)
             {
-                this.logger.LogDebug("Broadcasted transaction: " + sendTx.GetHash());
-            }
-            else if (bcResult == Stratis.Bitcoin.Broadcasting.Success.No)
-            {
-                this.logger.LogDebug("Could not propagate transaction: " + sendTx.GetHash());
-            }
-            else if (bcResult == Stratis.Bitcoin.Broadcasting.Success.DontKnow)
-            {
-                // wait for propagation
-                var waited = TimeSpan.Zero;
-                var period = TimeSpan.FromSeconds(1);
-                while (TimeSpan.FromSeconds(21) > waited)
-                {
-                    // if broadcasts doesn't contain then success
-                    var transactionEntry = this.broadcasterManager.GetTransaction(sendTx.GetHash());
-                    if (transactionEntry != null && transactionEntry.State == Stratis.Bitcoin.Broadcasting.State.Propagated)
+                case Stratis.Bitcoin.Broadcasting.State.Broadcasted:
+                case Stratis.Bitcoin.Broadcasting.State.Propagated:
+                    this.logger.LogDebug("Broadcasted transaction: " + sendTx.GetHash());
+                    break;
+                case Stratis.Bitcoin.Broadcasting.State.ToBroadcast:
+                    // Wait for propagation
+                    var waited = TimeSpan.Zero;
+                    var period = TimeSpan.FromSeconds(1);
+                    while (TimeSpan.FromSeconds(21) > waited)
                     {
-                        this.logger.LogDebug("Propagated transaction: " + sendTx.GetHash());
+                        // Check BroadcasterManager for broadcast success
+                        var transactionEntry = this.broadcasterManager.GetTransaction(sendTx.GetHash());
+                        if (transactionEntry != null &&
+                            transactionEntry.State == Stratis.Bitcoin.Broadcasting.State.Propagated)
+                        {
+                            // TODO: This is cluttering up the console, only need to log it once
+                            this.logger.LogDebug("Propagated transaction: " + sendTx.GetHash());
+                        }
+                        await Task.Delay(period).ConfigureAwait(false);
+                        waited += period;
                     }
-                    await Task.Delay(period).ConfigureAwait(false);
-                    waited += period;
-                }
+                    break;
+                case Stratis.Bitcoin.Broadcasting.State.CantBroadcast:
+                    // Do nothing
+                    break;
             }
 
             this.logger.LogDebug("Uncertain if transaction was propagated: " + sendTx.GetHash());
@@ -396,7 +429,19 @@ namespace Breeze.TumbleBit.Client
             }
 
             this.tumblingState.TumblerUri = new Uri(this.TumblerAddress);
-            var config = new FullNodeTumblerClientConfiguration(this.tumblingState, onlyMonitor: false, connectionTest: true);
+
+            FullNodeTumblerClientConfiguration config;
+            if (this.TumblerAddress.Contains("127.0.0.1"))
+            {
+                config = new FullNodeTumblerClientConfiguration(this.tumblingState, onlyMonitor: false,
+                    connectionTest: true, useProxy: false);
+            }
+            else
+            {
+                config = new FullNodeTumblerClientConfiguration(this.tumblingState, onlyMonitor: false,
+                    connectionTest: true, useProxy: true);
+            }
+
             TumblerClientRuntime rt = null;
             try
             {
@@ -500,7 +545,19 @@ namespace Breeze.TumbleBit.Client
             }
             this.runtime?.Dispose();
 
-            var config = new FullNodeTumblerClientConfiguration(this.tumblingState, onlyMonitor: false);
+            // Bypass Tor for integration tests
+            FullNodeTumblerClientConfiguration config;
+            if (this.TumblerAddress.Contains("127.0.0.1"))
+            {
+                config = new FullNodeTumblerClientConfiguration(this.tumblingState, onlyMonitor: false,
+                    connectionTest: false, useProxy: false);
+            }
+            else
+            {
+                config = new FullNodeTumblerClientConfiguration(this.tumblingState, onlyMonitor: false,
+                    connectionTest: false, useProxy: true);
+            }
+
             this.runtime = await TumblerClientRuntime.FromConfigurationAsync(config).ConfigureAwait(false);
 
             var extPubKey = new BitcoinExtPubKey(key, this.runtime.Network);
