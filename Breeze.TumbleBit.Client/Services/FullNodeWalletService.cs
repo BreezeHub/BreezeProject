@@ -121,29 +121,35 @@ namespace Breeze.TumbleBit.Client.Services
 
             //LogDebug("Trying to broadcast transaction: " + tx.GetHash());
 
-            var bcResult = await this.TumblingState.BroadcasterManager.TryBroadcastAsync(tx).ConfigureAwait(false);
-            if (bcResult == Stratis.Bitcoin.Broadcasting.Success.Yes)
+            await this.TumblingState.BroadcasterManager.BroadcastTransactionAsync(tx).ConfigureAwait(false);
+            var bcResult = TumblingState.BroadcasterManager.GetTransaction(tx.GetHash()).State;
+            switch (bcResult)
             {
-                //LogDebug("Broadcasted transaction: " + tx.GetHash());
-            }
-            else if (bcResult == Stratis.Bitcoin.Broadcasting.Success.DontKnow)
-            {
-                // wait for propagation
-                var waited = TimeSpan.Zero;
-                var period = TimeSpan.FromSeconds(1);
-                while (TimeSpan.FromSeconds(21) > waited)
-                {
-                    // if broadcasts doesn't contain then success
-                    var transactionEntry = this.TumblingState.BroadcasterManager.GetTransaction(tx.GetHash());
-                    if (transactionEntry != null && transactionEntry.State == Stratis.Bitcoin.Broadcasting.State.Propagated)
+                case Stratis.Bitcoin.Broadcasting.State.Broadcasted:
+                case Stratis.Bitcoin.Broadcasting.State.Propagated:
+                    //LogDebug("Broadcasted transaction: " + tx.GetHash());
+                    break;
+                case Stratis.Bitcoin.Broadcasting.State.ToBroadcast:
+                    // Wait for propagation
+                    var waited = TimeSpan.Zero;
+                    var period = TimeSpan.FromSeconds(1);
+                    while (TimeSpan.FromSeconds(21) > waited)
                     {
-                        //LogDebug("Propagated transaction: " + tx.GetHash());
+                        // Check BroadcasterManager for broadcast success
+                        var transactionEntry = this.TumblingState.BroadcasterManager.GetTransaction(tx.GetHash());
+                        if (transactionEntry != null && transactionEntry.State == Stratis.Bitcoin.Broadcasting.State.Propagated)
+                        {
+                            //LogDebug("Propagated transaction: " + tx.GetHash());
+                        }
+                        await Task.Delay(period).ConfigureAwait(false);
+                        waited += period;
                     }
-                    await Task.Delay(period).ConfigureAwait(false);
-                    waited += period;
-                }
+                    break;
+                case Stratis.Bitcoin.Broadcasting.State.CantBroadcast:
+                    // Do nothing
+                    break;
             }
-
+                
             //LogDebug("Uncertain if transaction was propagated: " + tx.GetHash());
 
             return tx;

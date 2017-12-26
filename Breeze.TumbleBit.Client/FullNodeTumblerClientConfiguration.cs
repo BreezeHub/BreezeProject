@@ -17,7 +17,7 @@ namespace Breeze.TumbleBit.Client
     public class FullNodeTumblerClientConfiguration : TumblerClientConfigurationBase
     {
         private TumblingState tumblingState;
-        public FullNodeTumblerClientConfiguration(TumblingState tumblingState, bool onlyMonitor, bool connectionTest = false)
+        public FullNodeTumblerClientConfiguration(TumblingState tumblingState, bool onlyMonitor, bool connectionTest = false, bool useProxy = true)
         {
             this.tumblingState = tumblingState ?? throw new ArgumentNullException(nameof(tumblingState));
             Network = tumblingState.TumblerNetwork ?? throw new ArgumentNullException(nameof(tumblingState.TumblerNetwork));
@@ -35,17 +35,25 @@ namespace Breeze.TumbleBit.Client
                     if (TumblerServer == null) throw new ConfigException("Tumbler server is not configured");
                 }
 
-                AliceConnectionSettings = new SocksConnectionSettings()
+                if (useProxy)
                 {
-                    Proxy = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 9050)
-                };
+                    AliceConnectionSettings = new SocksConnectionSettings()
+                    {
+                        Proxy = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 9050)
+                    };
 
-                // TODO: Need to check what recommended configuration is to prevent Alice/Bob linkage
-                BobConnectionSettings = new SocksConnectionSettings()
+                    BobConnectionSettings = new SocksConnectionSettings()
+                    {
+                        Proxy = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 9050)
+                    };
+                }
+                else
                 {
-                    Proxy = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 9050)
-                };
-
+                    // This mode is only for unit/integration tests, as it allows testing with latency introduced by Tor
+                    AliceConnectionSettings = new ConnectionSettingsBase();
+                    BobConnectionSettings = new ConnectionSettingsBase();                    
+                }
+                
                 if (connectionTest)
                 {
                     return;

@@ -106,7 +106,7 @@ namespace Breeze.TumbleBit.Client.Services
                 if (!isFinal || IsDoubleSpend(tx.Transaction))
                     return false;
 
-                if (this.TumblingState.TumblerNetwork != Network.RegTest || this.TumblingState.TumblerNetwork == Network.StratisRegTest)
+                if ((this.TumblingState.TumblerNetwork != Network.RegTest) && (this.TumblingState.TumblerNetwork != Network.StratisRegTest))
                 {
                     var smartBitApi = new SmartBitApi(TumblingState.TumblerNetwork);
                     var result = await smartBitApi.PushTx(tx.Transaction).ConfigureAwait(false);
@@ -129,34 +129,39 @@ namespace Breeze.TumbleBit.Client.Services
                 {
                     // On the regtest networks we have to rely on peer nodes to broadcast the transaction
 
-                    //LogDebug("Trying to broadcast transaction: " + tx.GetHash());
+                    Logs.Broadcasters.LogDebug("Trying to broadcast transaction: " + tx.Transaction.GetHash());
 
-                    var bcResult = await this.TumblingState.BroadcasterManager.TryBroadcastAsync(tx.Transaction).ConfigureAwait(false);
-                    if (bcResult == Stratis.Bitcoin.Broadcasting.Success.Yes)
+                    await this.TumblingState.BroadcasterManager.BroadcastTransactionAsync(tx.Transaction).ConfigureAwait(false);
+                    var bcResult = TumblingState.BroadcasterManager.GetTransaction(tx.Transaction.GetHash()).State;
+                    switch (bcResult)
                     {
-                        //LogDebug("Broadcasted transaction: " + tx.GetHash());
-                    }
-                    else if (bcResult == Stratis.Bitcoin.Broadcasting.Success.DontKnow)
-                    {
-                        // wait for propagation
-                        var waited = TimeSpan.Zero;
-                        var period = TimeSpan.FromSeconds(1);
-                        while (TimeSpan.FromSeconds(21) > waited)
-                        {
-                            // if broadcasts doesn't contain then success
-                            var transactionEntry = this.TumblingState.BroadcasterManager.GetTransaction(tx.Transaction.GetHash());
-                            if (transactionEntry != null && transactionEntry.State == Stratis.Bitcoin.Broadcasting.State.Propagated)
+                        case Stratis.Bitcoin.Broadcasting.State.Broadcasted:
+                        case Stratis.Bitcoin.Broadcasting.State.Propagated:
+                            Logs.Broadcasters.LogDebug("Broadcasted transaction: " + tx.Transaction.GetHash());
+                            break;
+                        case Stratis.Bitcoin.Broadcasting.State.ToBroadcast:
+                            // Wait for propagation
+                            var waited = TimeSpan.Zero;
+                            var period = TimeSpan.FromSeconds(1);
+                            while (TimeSpan.FromSeconds(21) > waited)
                             {
-                                //LogDebug("Propagated transaction: " + tx.GetHash());
+                                // Check BroadcasterManager for broadcast success
+                                var transactionEntry = this.TumblingState.BroadcasterManager.GetTransaction(tx.Transaction.GetHash());
+                                if (transactionEntry != null && transactionEntry.State == Stratis.Bitcoin.Broadcasting.State.Propagated)
+                                {
+                                    Logs.Broadcasters.LogDebug("Propagated transaction: " + tx.Transaction.GetHash());
+                                }
+                                await Task.Delay(period).ConfigureAwait(false);
+                                waited += period;
                             }
-                            await Task.Delay(period).ConfigureAwait(false);
-                            waited += period;
-                        }
+                            break;
+                        case Stratis.Bitcoin.Broadcasting.State.CantBroadcast:
+                            // Do nothing
+                            break;
                     }
-
-                    //LogDebug("Uncertain if transaction was propagated: " + tx.GetHash());
                 }
 
+                // TODO: Check return value
                 return false;
             }
             finally
@@ -205,6 +210,10 @@ namespace Breeze.TumbleBit.Client.Services
             var height = TumblingState.Chain.Height;
             //3 days expiration
             record.Expiration = height + (int)(TimeSpan.FromDays(3).Ticks / Network.Main.Consensus.PowTargetSpacing.Ticks);
+            Console.WriteLine("=====");
+            Console.WriteLine("Broadcast hash: " + transaction.GetHash());
+            Console.WriteLine("Broadcast transaction: " + transaction.ToHex());
+            Console.WriteLine("=====");
             Repository.UpdateOrInsert<Record>("Broadcasts", transaction.GetHash().ToString(), record, (o, n) => o);
             return TryBroadcastCoreAsync(record, height);
         }
