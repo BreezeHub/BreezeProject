@@ -253,5 +253,24 @@ namespace Breeze.TumbleBit.Controllers
 			    return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, $"Could not get progress.", e.ToString());
 		    }
 	    }
-	}
+
+        ///<inheritdoc/>
+        [Route("last_block_mins")]
+        [HttpGet]
+        public IActionResult LastBlockMinsAsync()
+        {
+            try
+            {
+                var parameterDictionary = new Dictionary<string, string>()
+                {
+                    ["mins"] = this.tumbleBitManager.LastBlockTime.ToString()
+                };
+                return this.Json(parameterDictionary);
+            }
+            catch (Exception e)
+            {
+                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, $"Could not get last block mins.", e.ToString());
+            }
+        }
+    }
 }

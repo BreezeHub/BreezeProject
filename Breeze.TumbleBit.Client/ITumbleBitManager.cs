@@ -49,5 +49,11 @@ namespace Breeze.TumbleBit.Client
         /// <param name="height">The height of the block in the blockchain.</param>
         /// <param name="block">The block.</param>
         void ProcessBlock(int height, Block block);
+
+        /// <summary>
+        /// Last Block time expressed in minutes since the last block.
+        /// Returns -1 if the block time is undefined for any reason.
+        /// </summary>
+        int LastBlockTime { get; }
     }
 }

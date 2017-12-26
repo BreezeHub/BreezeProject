@@ -24,6 +24,7 @@ using Stratis.Bitcoin;
 using Stratis.Bitcoin.Features.Wallet.Interfaces;
 using Stratis.Bitcoin.Interfaces;
 using System.IO;
+using System.Runtime.CompilerServices;
 using NTumbleBit;
 using NTumbleBit.Configuration;
 using Stratis.Bitcoin.Features.Wallet.Models;
@@ -578,6 +579,23 @@ namespace Breeze.TumbleBit.Client
             }
 
             this.runtime?.Dispose();
+        }
+
+        public int LastBlockTime
+        {
+            get
+            {
+                try
+                {
+                    var chainedBlock = this.chain.Tip;
+                    var timespan = DateTimeOffset.UtcNow - chainedBlock.Header.BlockTime;
+                    return timespan.Minutes;
+                }
+                catch (Exception)
+                {
+                    return -1;
+                }
+            }
         }
     }
 }
