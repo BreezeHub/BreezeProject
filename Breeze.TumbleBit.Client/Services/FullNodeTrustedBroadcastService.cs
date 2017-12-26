@@ -71,10 +71,6 @@ namespace Breeze.TumbleBit.Client.Services
 
         private void AddBroadcast(Record broadcast)
         {
-            Console.WriteLine("=====");
-            Console.WriteLine("Trusted Broadcast hash: " + broadcast.Request.Transaction.GetHash());
-            Console.WriteLine("Trusted Broadcast transaction: " + broadcast.Request.Transaction.ToHex());
-            Console.WriteLine("=====");
             Repository.UpdateOrInsert("TrustedBroadcasts", broadcast.Request.Transaction.GetHash().ToString(), broadcast, (o, n) => n);
         }
 

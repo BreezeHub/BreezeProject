@@ -138,6 +138,7 @@ namespace Breeze.TumbleBit.Client.Services
                         case Stratis.Bitcoin.Broadcasting.State.Broadcasted:
                         case Stratis.Bitcoin.Broadcasting.State.Propagated:
                             Logs.Broadcasters.LogDebug("Broadcasted transaction: " + tx.Transaction.GetHash());
+                            return true;
                             break;
                         case Stratis.Bitcoin.Broadcasting.State.ToBroadcast:
                             // Wait for propagation
@@ -150,18 +151,20 @@ namespace Breeze.TumbleBit.Client.Services
                                 if (transactionEntry != null && transactionEntry.State == Stratis.Bitcoin.Broadcasting.State.Propagated)
                                 {
                                     Logs.Broadcasters.LogDebug("Propagated transaction: " + tx.Transaction.GetHash());
+                                    // Have to presume propagated = broadcasted on regtest
+                                    return true;
                                 }
                                 await Task.Delay(period).ConfigureAwait(false);
                                 waited += period;
                             }
                             break;
                         case Stratis.Bitcoin.Broadcasting.State.CantBroadcast:
+                            Logs.Broadcasters.LogDebug("Could not broadcast transaction: " + tx.Transaction.GetHash());
                             // Do nothing
                             break;
                     }
                 }
 
-                // TODO: Check return value
                 return false;
             }
             finally
@@ -210,10 +213,6 @@ namespace Breeze.TumbleBit.Client.Services
             var height = TumblingState.Chain.Height;
             //3 days expiration
             record.Expiration = height + (int)(TimeSpan.FromDays(3).Ticks / Network.Main.Consensus.PowTargetSpacing.Ticks);
-            Console.WriteLine("=====");
-            Console.WriteLine("Broadcast hash: " + transaction.GetHash());
-            Console.WriteLine("Broadcast transaction: " + transaction.ToHex());
-            Console.WriteLine("=====");
             Repository.UpdateOrInsert<Record>("Broadcasts", transaction.GetHash().ToString(), record, (o, n) => o);
             return TryBroadcastCoreAsync(record, height);
         }
