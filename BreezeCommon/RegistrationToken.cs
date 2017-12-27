@@ -342,7 +342,7 @@ namespace BreezeCommon
 			var ecdsaPubKeyLength = ((int)temp[1] << 8) + ((int)temp[0]);
 			position += 2;
 
-			EcdsaPubKey = new PubKey(GetSubArray(bitstream, position, ecdsaLength));
+			EcdsaPubKey = new PubKey(GetSubArray(bitstream, position, ecdsaPubKeyLength));
 			position += ecdsaPubKeyLength;
 			
             // TODO: Validate signatures
