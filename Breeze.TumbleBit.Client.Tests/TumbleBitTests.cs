@@ -442,7 +442,7 @@ namespace Breeze.TumbleBit.Client.Tests
                 // TODO: Move forward specific numbers of blocks and check interim states? TB tests already do that
                 for (int i = 0; i < 80; i++)
                 {
-                    coreNode.FindBlock(1);
+                    rpc3.Generate(1);
                     builder.SyncNodes();
 
                     // Try to ensure the invalid phase error does not occur
@@ -466,6 +466,5 @@ namespace Breeze.TumbleBit.Client.Tests
                 }
             }
         }
-
     }
 }
