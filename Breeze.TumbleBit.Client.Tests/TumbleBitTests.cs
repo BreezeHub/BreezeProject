@@ -382,7 +382,8 @@ namespace Breeze.TumbleBit.Client.Tests
                 wm1.CreateWallet("TumbleBit1", "bob");
 
                 // Mined coins only mature after 100 blocks on regtest
-                coreNode.FindBlock(101);
+                // Additionally, we need to force Segwit to activate in order for NTB to work correctly
+                coreNode.FindBlock(450);
 
                 var rpc1 = node1.CreateRPCClient();
                 //var rpc2 = node2.CreateRPCClient();

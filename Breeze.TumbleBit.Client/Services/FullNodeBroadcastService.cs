@@ -98,7 +98,7 @@ namespace Breeze.TumbleBit.Client.Services
             {
                 remove = currentHeight >= tx.Expiration;
 
-                //Happens when the caller does not know the previous input yet
+                // Happens when the caller does not know the previous input yet
                 if (tx.Transaction.Inputs.Count == 0 || tx.Transaction.Inputs[0].PrevOut.Hash == uint256.Zero)
                     return false;
 
@@ -106,64 +106,44 @@ namespace Breeze.TumbleBit.Client.Services
                 if (!isFinal || IsDoubleSpend(tx.Transaction))
                     return false;
 
-                if ((this.TumblingState.TumblerNetwork != Network.RegTest) && (this.TumblingState.TumblerNetwork != Network.StratisRegTest))
+                // Use the broadcast manager for all networks
+
+                Logs.Broadcasters.LogDebug("Trying to broadcast transaction: " + tx.Transaction.GetHash());
+
+                await this.TumblingState.BroadcasterManager.BroadcastTransactionAsync(tx.Transaction).ConfigureAwait(false);
+                var bcResult = TumblingState.BroadcasterManager.GetTransaction(tx.Transaction.GetHash()).State;
+                switch (bcResult)
                 {
-                    var smartBitApi = new SmartBitApi(TumblingState.TumblerNetwork);
-                    var result = await smartBitApi.PushTx(tx.Transaction).ConfigureAwait(false);
-                    if (result.State == SmartBitResultState.Success)
-                    {
-                        await Cache.ImportUnconfirmedTransaction(tx.Transaction).ConfigureAwait(false);
-                        foreach (var output in tx.Transaction.Outputs)
-                        {
-                            TumblingState.WatchOnlyWalletManager.WatchScriptPubKey(output.ScriptPubKey);
-                        }
-                        Logs.Broadcasters.LogInformation($"Broadcasted {tx.Transaction.GetHash()}");
+                    case Stratis.Bitcoin.Broadcasting.State.Broadcasted:
+                    case Stratis.Bitcoin.Broadcasting.State.Propagated:
+                        Logs.Broadcasters.LogDebug("Broadcasted transaction: " + tx.Transaction.GetHash());
                         return true;
-                    }
-                    else if (result.State == SmartBitResultState.Failure)
-                    {
-                        remove = false;
-                    }
-                }
-                else
-                {
-                    // On the regtest networks we have to rely on peer nodes to broadcast the transaction
-
-                    Logs.Broadcasters.LogDebug("Trying to broadcast transaction: " + tx.Transaction.GetHash());
-
-                    await this.TumblingState.BroadcasterManager.BroadcastTransactionAsync(tx.Transaction).ConfigureAwait(false);
-                    var bcResult = TumblingState.BroadcasterManager.GetTransaction(tx.Transaction.GetHash()).State;
-                    switch (bcResult)
-                    {
-                        case Stratis.Bitcoin.Broadcasting.State.Broadcasted:
-                        case Stratis.Bitcoin.Broadcasting.State.Propagated:
-                            Logs.Broadcasters.LogDebug("Broadcasted transaction: " + tx.Transaction.GetHash());
-                            return true;
-                            break;
-                        case Stratis.Bitcoin.Broadcasting.State.ToBroadcast:
-                            // Wait for propagation
-                            var waited = TimeSpan.Zero;
-                            var period = TimeSpan.FromSeconds(1);
-                            while (TimeSpan.FromSeconds(21) > waited)
+                        break;
+                    case Stratis.Bitcoin.Broadcasting.State.ToBroadcast:
+                        // Wait for propagation
+                        var waited = TimeSpan.Zero;
+                        var period = TimeSpan.FromSeconds(1);
+                        while (TimeSpan.FromSeconds(21) > waited)
+                        {
+                            // Check BroadcasterManager for broadcast success
+                            var transactionEntry = this.TumblingState.BroadcasterManager.GetTransaction(tx.Transaction.GetHash());
+                            if (transactionEntry != null && transactionEntry.State == Stratis.Bitcoin.Broadcasting.State.Propagated)
                             {
-                                // Check BroadcasterManager for broadcast success
-                                var transactionEntry = this.TumblingState.BroadcasterManager.GetTransaction(tx.Transaction.GetHash());
-                                if (transactionEntry != null && transactionEntry.State == Stratis.Bitcoin.Broadcasting.State.Propagated)
-                                {
-                                    Logs.Broadcasters.LogDebug("Propagated transaction: " + tx.Transaction.GetHash());
-                                    // Have to presume propagated = broadcasted on regtest
-                                    return true;
-                                }
-                                await Task.Delay(period).ConfigureAwait(false);
-                                waited += period;
+                                Logs.Broadcasters.LogDebug("Propagated transaction: " + tx.Transaction.GetHash());
+                                // Have to presume propagated = broadcasted when we are operating as a light wallet (or on regtest)
+                                return true;
                             }
-                            break;
-                        case Stratis.Bitcoin.Broadcasting.State.CantBroadcast:
-                            Logs.Broadcasters.LogDebug("Could not broadcast transaction: " + tx.Transaction.GetHash());
-                            // Do nothing
-                            break;
-                    }
+                            await Task.Delay(period).ConfigureAwait(false);
+                            waited += period;
+                        }
+                        break;
+                    case Stratis.Bitcoin.Broadcasting.State.CantBroadcast:
+                        Logs.Broadcasters.LogDebug("Could not broadcast transaction: " + tx.Transaction.GetHash());
+                        // Do nothing
+                        break;
                 }
+
+                Logs.Broadcasters.LogDebug("Timed out trying to broadcast transaction: " + tx.Transaction.GetHash());
 
                 return false;
             }
