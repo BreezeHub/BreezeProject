@@ -2,9 +2,10 @@
 using NBitcoin.Payment;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Net;
 using System.Text;
-using System.Web.NBitcoin;
+using NBitcoin.DataEncoders;
 
 namespace NTumbleBit.ClassicTumbler
 {
@@ -157,7 +158,7 @@ namespace NTumbleBit.ClassicTumbler
 					builder.Append("&");
 				builder.Append(parameter.Key);
 				builder.Append("=");
-				builder.Append(HttpUtility.UrlEncode(parameter.Value));
+				builder.Append(UrlEncode(parameter.Value));
 			}
 		}
 
@@ -181,6 +182,143 @@ namespace NTumbleBit.ClassicTumbler
 
 			WriteParameters(parameters, builder);
 			return builder.ToString();
+		}
+		
+		public static string UrlEncode(string str)		
+		{		
+			return UrlEncode(str, Encoding.UTF8);		
+		}		
+ 
+		public static string UrlEncode(string s, Encoding Enc)		
+		{		
+			if(s == null)		
+				return null;		
+ 		
+			if(s == String.Empty)		
+				return String.Empty;		
+ 		
+			bool needEncode = false;		
+			int len = s.Length;		
+			for(int i = 0; i < len; i++)		
+			{		
+				char c = s[i];		
+				if((c < '0') || (c < 'A' && c > '9') || (c > 'Z' && c < 'a') || (c > 'z'))		
+				{		
+					if(HttpEncoderNotEncoded(c))
+						continue;
+ 		
+					needEncode = true;		
+					break;		
+				}		
+			}		
+ 		
+			if(!needEncode)		
+				return s;		
+ 		
+			// avoided GetByteCount call		
+			byte[] bytes = new byte[Enc.GetMaxByteCount(s.Length)];		
+			int realLen = Enc.GetBytes(s, 0, s.Length, bytes, 0);		
+			return Encoders.ASCII.EncodeData(UrlEncodeToBytes(bytes, 0, realLen));		
+		}		
+		
+		public static byte[] UrlEncodeToBytes(byte[] bytes, int offset, int count)		
+		{		
+			if(bytes == null)		
+				return null;		
+			#if NET_4_0		
+				return HttpEncoder.Current.UrlEncode (bytes, offset, count);		
+			#else		
+				return HttpEncoderUrlEncodeToBytes(bytes, offset, count);		
+			#endif		
+		}
+		
+		private static bool HttpEncoderNotEncoded(char c)
+		{
+			//query strings are allowed to contain both ? and / characters, see section 3.4 of http://www.ietf.org/rfc/rfc3986.txt, which is basically the spec written by Tim Berners-Lee and friends governing how the web should operate.
+			//pchar         = unreserved / pct-encoded / sub-delims / ":" / "@"
+			//query         = *( pchar / "/" / "?" )
+			return (c == '!' || c == '(' || c == ')' || c == '*' || c == '-' || c == '.' || c == '_' || c == '?' || c == '/' || c == ':'
+			#if !NET_4_0
+			        || c == '\''
+			#endif
+			);
+		}
+		
+		private static byte[] HttpEncoderUrlEncodeToBytes(byte[] bytes, int offset, int count)
+		{
+			if(bytes == null)
+				throw new ArgumentNullException("bytes");
+
+			int blen = bytes.Length;
+			if(blen == 0)
+				return new byte[0];
+
+			if(offset < 0 || offset >= blen)
+				throw new ArgumentOutOfRangeException("offset");
+
+			if(count < 0 || count > blen - offset)
+				throw new ArgumentOutOfRangeException("count");
+
+			MemoryStream result = new MemoryStream(count);
+			int end = offset + count;
+			for(int i = offset; i < end; i++)
+				HttpEncoderUrlEncodeChar((char)bytes[i], result, false);
+
+			return result.ToArray();
+		}
+		
+		private static void HttpEncoderUrlEncodeChar(char c, Stream result, bool isUnicode)
+		{
+			char[] hexChars = "0123456789abcdef".ToCharArray();
+			
+			if(c > 255)
+			{
+				//FIXME: what happens when there is an internal error?
+				//if (!isUnicode)
+				//    throw new ArgumentOutOfRangeException ("c", c, "c must be less than 256");
+				int idx;
+				int i = (int)c;
+
+				result.WriteByte((byte)'%');
+				result.WriteByte((byte)'u');
+				idx = i >> 12;
+				result.WriteByte((byte)hexChars[idx]);
+				idx = (i >> 8) & 0x0F;
+				result.WriteByte((byte)hexChars[idx]);
+				idx = (i >> 4) & 0x0F;
+				result.WriteByte((byte)hexChars[idx]);
+				idx = i & 0x0F;
+				result.WriteByte((byte)hexChars[idx]);
+				return;
+			}
+
+			if(c > ' ' && HttpEncoderNotEncoded(c))
+			{
+				result.WriteByte((byte)c);
+				return;
+			}
+			if((c < '0') ||
+			   (c < 'A' && c > '9') ||
+			   (c > 'Z' && c < 'a') ||
+			   (c > 'z'))
+			{
+				if(isUnicode && c > 127)
+				{
+					result.WriteByte((byte)'%');
+					result.WriteByte((byte)'u');
+					result.WriteByte((byte)'0');
+					result.WriteByte((byte)'0');
+				}
+				else
+					result.WriteByte((byte)'%');
+
+				int idx = ((int)c) >> 4;
+				result.WriteByte((byte)hexChars[idx]);
+				idx = ((int)c) & 0x0F;
+				result.WriteByte((byte)hexChars[idx]);
+			}
+			else
+				result.WriteByte((byte)c);
 		}
 	}
 }
