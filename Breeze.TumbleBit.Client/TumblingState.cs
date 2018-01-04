@@ -8,7 +8,8 @@ using NBitcoin;
 using Newtonsoft.Json;
 using NTumbleBit.ClassicTumbler;
 using Stratis.Bitcoin.Configuration;
-using Stratis.Bitcoin.Interfaces;
+    using Stratis.Bitcoin.Connection;
+    using Stratis.Bitcoin.Interfaces;
 using Stratis.Bitcoin.Features.Wallet;
 using Stratis.Bitcoin.Features.WatchOnlyWallet;
 using Stratis.Bitcoin.Features.Wallet.Interfaces;
@@ -80,6 +81,9 @@ namespace Breeze.TumbleBit.Client
         [JsonIgnore]
         public IBroadcasterManager BroadcasterManager { get; set; }
 
+        [JsonIgnore]
+        public ConnectionManager ConnectionManager { get; set; }
+
         [JsonConstructor]
         public TumblingState()
         {
@@ -94,7 +98,8 @@ namespace Breeze.TumbleBit.Client
             WalletSyncManager walletSyncManager,
             IWalletFeePolicy walletFeePolicy,
             NodeSettings nodeSettings,
-            IBroadcasterManager broadcasterManager)
+            IBroadcasterManager broadcasterManager,
+            ConnectionManager connectionManager)
         {
             this.Logger = loggerFactory.CreateLogger(this.GetType().FullName);
             this.Chain = chain;
@@ -107,6 +112,7 @@ namespace Breeze.TumbleBit.Client
             this.WalletFeePolicy = walletFeePolicy;
             this.NodeSettings = nodeSettings;
             this.BroadcasterManager = broadcasterManager;
+            this.ConnectionManager = connectionManager;
         }
 
         /// <inheritdoc />

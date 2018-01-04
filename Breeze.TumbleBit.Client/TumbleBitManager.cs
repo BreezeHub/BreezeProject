@@ -25,8 +25,10 @@ using Stratis.Bitcoin.Features.Wallet.Interfaces;
 using Stratis.Bitcoin.Interfaces;
 using System.IO;
 using System.Runtime.CompilerServices;
+using Breeze.TumbleBit.Client.Services;
 using NTumbleBit;
 using NTumbleBit.Configuration;
+using Stratis.Bitcoin.Connection;
 using Stratis.Bitcoin.Features.Wallet.Models;
 
 namespace Breeze.TumbleBit.Client
@@ -59,6 +61,7 @@ namespace Breeze.TumbleBit.Client
         private readonly NodeSettings nodeSettings;
         private readonly IWalletFeePolicy walletFeePolicy;
         private IBroadcasterManager broadcasterManager;
+        private ConnectionManager connectionManager;
         private FullNode fullNode;
         private TumblerClientRuntime runtime;
         private StateMachinesExecutor stateMachine;
@@ -97,6 +100,7 @@ namespace Breeze.TumbleBit.Client
             this.logger = loggerFactory.CreateLogger(this.GetType().FullName);
             this.walletFeePolicy = walletFeePolicy;
             this.broadcasterManager = broadcasterManager;
+            this.connectionManager = fullNode.ConnectionManager as ConnectionManager;
             this.fullNode = fullNode;
 
             foreach (var option in configurationOptions)
@@ -132,7 +136,8 @@ namespace Breeze.TumbleBit.Client
                 this.walletSyncManager,
                 this.walletFeePolicy,
                 this.nodeSettings,
-                this.broadcasterManager);
+                this.broadcasterManager,
+                this.connectionManager);
 
             // Load saved state e.g. previously selected server
 	        if (File.Exists(this.tumblingState.GetStateFilePath()))

@@ -67,7 +67,10 @@ namespace Breeze.TumbleBit.Client.Services
                     }
                     .ToList(), TumblingState.OriginWalletPassword)
                 {
-                    MinConfirmations = 0,
+                    // To avoid using un-propagated (and hence unconfirmed) transactions we require at least 1 confirmation
+                    // If a transaction is somehow invalid, all transactions using it as an input are invalidated. This
+                    // tries to guard against that.
+                    MinConfirmations = 1,
                     OverrideFeeRate = feeRate,
                     Sign = true
                 };
