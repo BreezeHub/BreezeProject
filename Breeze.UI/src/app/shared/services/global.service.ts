@@ -1,15 +1,15 @@
-import {Injectable} from "@angular/core";
+import {Injectable} from '@angular/core';
 
 @Injectable()
 export class GlobalService {
-  constructor() {}
-
   private walletPath: string;
   private currentWalletName: string;
   private coinType: number;
   private coinName: string;
   private coinUnit: string;
   private network: string;
+
+  constructor() {}
 
   getWalletPath() {
     return this.walletPath;

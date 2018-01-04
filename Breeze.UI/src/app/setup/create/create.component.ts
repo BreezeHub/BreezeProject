@@ -10,6 +10,7 @@ import { PasswordValidationDirective } from '../../shared/directives/password-va
 
 import { WalletCreation } from '../../shared/classes/wallet-creation';
 import { Mnemonic } from '../../shared/classes/mnemonic';
+import { Error } from '../../shared/classes/error';
 
 @Component({
   selector: 'create-component',
@@ -18,60 +19,10 @@ import { Mnemonic } from '../../shared/classes/mnemonic';
 })
 
 export class CreateComponent implements OnInit {
-  constructor(private globalService: GlobalService, private apiService: ApiService, private genericModalService: ModalService, private router: Router, private fb: FormBuilder) {
-    this.buildCreateForm();
-  }
 
   public createWalletForm: FormGroup;
   private newWallet: WalletCreation;
   private mnemonic: string;
-
-  ngOnInit() {
-    this.getNewMnemonic();
-  }
-
-  private buildCreateForm(): void {
-    this.createWalletForm = this.fb.group({
-      "walletName": ["",
-        Validators.compose([
-          Validators.required,
-          Validators.minLength(1),
-          Validators.maxLength(24),
-          Validators.pattern(/^[a-zA-Z0-9]*$/)
-        ])
-      ],
-      "walletPassword": ["",
-        Validators.required,
-        // Validators.compose([
-        //   Validators.required,
-        //   Validators.pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.{10,})/)])
-        ],
-      "walletPasswordConfirmation": ["", Validators.required],
-      "selectNetwork": ["test", Validators.required]
-    }, {
-      validator: PasswordValidationDirective.MatchPassword
-    });
-
-    this.createWalletForm.valueChanges
-      .subscribe(data => this.onValueChanged(data));
-
-    this.onValueChanged();
-  }
-
-  onValueChanged(data?: any) {
-    if (!this.createWalletForm) { return; }
-    const form = this.createWalletForm;
-    for (const field in this.formErrors) {
-      this.formErrors[field] = '';
-      const control = form.get(field);
-      if (control && control.dirty && !control.valid) {
-        const messages = this.validationMessages[field];
-        for (const key in control.errors) {
-          this.formErrors[field] += messages[key] + ' ';
-        }
-      }
-    }
-  }
 
   formErrors = {
     'walletName': '',
@@ -88,7 +39,8 @@ export class CreateComponent implements OnInit {
     },
     'walletPassword': {
       'required': 'A password is required.',
-      'pattern': 'A password must be at least 10 characters long and contain one lowercase and uppercase alphabetical character and a number.'
+      'pattern':
+        'A password must be at least 10 characters long and contain one lowercase and uppercase alphabetical character and a number.'
     },
     'walletPasswordConfirmation': {
       'required': 'Confirm your password.',
@@ -96,19 +48,82 @@ export class CreateComponent implements OnInit {
     }
   };
 
+  constructor(
+    private globalService: GlobalService,
+    private apiService: ApiService,
+    private genericModalService: ModalService,
+    private router: Router,
+    private fb: FormBuilder) {
+    this.buildCreateForm();
+  }
+
+  ngOnInit() {
+    this.getNewMnemonic();
+  }
+
+  private buildCreateForm(): void {
+    this.createWalletForm = this.fb.group({
+      'walletName': ['',
+        Validators.compose([
+          Validators.required,
+          Validators.minLength(1),
+          Validators.maxLength(24),
+          Validators.pattern(/^[a-zA-Z0-9]*$/)
+        ])
+      ],
+      'walletPassword': ['',
+        Validators.required,
+        // Validators.compose([
+        //   Validators.required,
+        //   Validators.pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.{10,})/)])
+        ],
+      'walletPasswordConfirmation': ['', Validators.required],
+      'selectNetwork': ['test', Validators.required]
+    }, {
+      validator: PasswordValidationDirective.MatchPassword
+    });
+
+    this.createWalletForm.valueChanges
+      .subscribe(data => this.onValueChanged(data));
+
+    this.onValueChanged();
+  }
+
+  onValueChanged(data?: any) {
+    if (!this.createWalletForm) { return; }
+    const form = this.createWalletForm;
+    for (const field in this.formErrors) {
+      if (!this.formErrors.hasOwnProperty(field)) { continue; }
+      this.formErrors[field] = '';
+      const control = form.get(field);
+      if (control && control.dirty && !control.valid) {
+        const messages = this.validationMessages[field];
+        for (const key in control.errors) {
+          if (control.errors.hasOwnProperty(key)) {
+            this.formErrors[field] += messages[key] + ' ';
+          }
+        }
+      }
+    }
+  }
+
   public onBackClicked() {
-    this.router.navigate(["/setup"]);
+    this.router.navigate(['/setup']);
   }
 
   public onContinueClicked() {
     if (this.mnemonic) {
       this.newWallet = new WalletCreation(
-        this.createWalletForm.get("walletName").value,
+        this.createWalletForm.get('walletName').value,
         this.mnemonic,
-        this.createWalletForm.get("walletPassword").value,
+        this.createWalletForm.get('walletPassword').value,
       );
-      this.router.navigate(['/setup/create/show-mnemonic'], { queryParams : { name: this.newWallet.name, mnemonic: this.newWallet.mnemonic, password: this.newWallet.password }});
-      //this.createWallets(this.newWallet);
+      this.router.navigate(
+        ['/setup/create/show-mnemonic'],
+        {
+          queryParams : { name: this.newWallet.name, mnemonic: this.newWallet.mnemonic, password: this.newWallet.password }
+        });
+      // this.createWallets(this.newWallet);
     }
   }
 
@@ -117,20 +132,19 @@ export class CreateComponent implements OnInit {
       .getNewMnemonic()
       .subscribe(
         response => {
-          if (response.status >= 200 && response.status < 400){
+          if (response.status >= 200 && response.status < 400) {
             this.mnemonic = response.json();
           }
         },
         error => {
           console.log(error);
           if (error.status === 0) {
-            this.genericModalService.openModal(null, null);
+            this.genericModalService.openModal(null);
           } else if (error.status >= 400) {
             if (!error.json().errors[0]) {
               console.log(error);
-            }
-            else {
-              this.genericModalService.openModal(null, error.json().errors[0].message);
+            } else {
+              this.genericModalService.openModal(Error.toDialogOptions(error, null));
             }
           }
         }

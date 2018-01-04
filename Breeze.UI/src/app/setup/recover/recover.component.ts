@@ -8,6 +8,7 @@ import { ApiService } from '../../shared/services/api.service';
 import { ModalService } from '../../shared/services/modal.service';
 
 import { WalletRecovery } from '../../shared/classes/wallet-recovery';
+import { Error } from '../../shared/classes/error';
 
 @Component({
   selector: 'app-recover',
@@ -15,58 +16,6 @@ import { WalletRecovery } from '../../shared/classes/wallet-recovery';
   styleUrls: ['./recover.component.css']
 })
 export class RecoverComponent implements OnInit {
-
-  constructor(private globalService: GlobalService, private apiService: ApiService, private genericModalService: ModalService, private router: Router, private fb: FormBuilder) {
-    this.buildRecoverForm();
-  }
-
-  public recoverWalletForm: FormGroup;
-  public creationDate: Date;
-  public isRecovering: boolean = false;
-  public maxDate = new Date();
-  public bsConfig: Partial<BsDatepickerConfig>;
-  private walletRecovery: WalletRecovery;
-
-  ngOnInit() {
-    this.bsConfig = Object.assign({}, {showWeekNumbers: false, containerClass: 'theme-blue'});
-  }
-
-  private buildRecoverForm(): void {
-    this.recoverWalletForm = this.fb.group({
-      "walletName": ["", [
-          Validators.required,
-          Validators.minLength(1),
-          Validators.maxLength(24),
-          Validators.pattern(/^[a-zA-Z0-9]*$/)
-        ]
-      ],
-      "walletMnemonic": ["", Validators.required],
-      "walletDate": ["", Validators.required],
-      "walletPassword": ["", Validators.required],
-      "selectNetwork": ["test", Validators.required]
-    });
-
-    this.recoverWalletForm.valueChanges
-      .subscribe(data => this.onValueChanged(data));
-
-    this.onValueChanged();
-  }
-
-  onValueChanged(data?: any) {
-    if (!this.recoverWalletForm) { return; }
-    const form = this.recoverWalletForm;
-    for (const field in this.formErrors) {
-      this.formErrors[field] = '';
-      const control = form.get(field);
-      if (control && control.dirty && !control.valid) {
-        const messages = this.validationMessages[field];
-        for (const key in control.errors) {
-          this.formErrors[field] += messages[key] + ' ';
-        }
-      }
-    }
-  }
-
   formErrors = {
     'walletName': '',
     'walletMnemonic': '',
@@ -94,33 +43,92 @@ export class RecoverComponent implements OnInit {
 
   };
 
-  public onBackClicked() {
-    this.router.navigate(["/setup"]);
+  public recoverWalletForm: FormGroup;
+  public creationDate: Date;
+  public isRecovering = false;
+  public maxDate = new Date();
+  public bsConfig: Partial<BsDatepickerConfig>;
+  private walletRecovery: WalletRecovery;
+
+  constructor(
+    private globalService: GlobalService,
+    private apiService: ApiService,
+    private genericModalService: ModalService,
+    private router: Router,
+    private fb: FormBuilder) {
+    this.buildRecoverForm();
   }
 
-  public onRecoverClicked(){
+  ngOnInit() {
+    this.bsConfig = Object.assign({}, {showWeekNumbers: false, containerClass: 'theme-blue'});
+  }
+
+  private buildRecoverForm(): void {
+    this.recoverWalletForm = this.fb.group({
+      'walletName': ['', [
+          Validators.required,
+          Validators.minLength(1),
+          Validators.maxLength(24),
+          Validators.pattern(/^[a-zA-Z0-9]*$/)
+        ]
+      ],
+      'walletMnemonic': ['', Validators.required],
+      'walletDate': ['', Validators.required],
+      'walletPassword': ['', Validators.required],
+      'selectNetwork': ['test', Validators.required]
+    });
+
+    this.recoverWalletForm.valueChanges
+      .subscribe(data => this.onValueChanged(data));
+
+    this.onValueChanged();
+  }
+
+  onValueChanged(data?: any) {
+    if (!this.recoverWalletForm) { return; }
+    const form = this.recoverWalletForm;
+    for (const field in this.formErrors) {
+      if (!this.formErrors.hasOwnProperty(field)) { continue; }
+      this.formErrors[field] = '';
+      const control = form.get(field);
+      if (control && control.dirty && !control.valid) {
+        const messages = this.validationMessages[field];
+        for (const key in control.errors) {
+          if (control.errors.hasOwnProperty(key)) {
+            this.formErrors[field] += messages[key] + ' ';
+          }
+        }
+      }
+    }
+  }
+
+  public onBackClicked() {
+    this.router.navigate(['/setup']);
+  }
+
+  public onRecoverClicked() {
     this.isRecovering = true;
 
-    let recoveryDate = new Date(this.recoverWalletForm.get("walletDate").value);
+    const recoveryDate = new Date(this.recoverWalletForm.get('walletDate').value);
     recoveryDate.setDate(recoveryDate.getDate() - 1);
 
     this.walletRecovery = new WalletRecovery(
-      this.recoverWalletForm.get("walletName").value,
-      this.recoverWalletForm.get("walletMnemonic").value,
-      this.recoverWalletForm.get("walletPassword").value,
+      this.recoverWalletForm.get('walletName').value,
+      this.recoverWalletForm.get('walletMnemonic').value,
+      this.recoverWalletForm.get('walletPassword').value,
       recoveryDate
     );
     this.recoverWallets(this.walletRecovery);
   }
 
   private recoverWallets(recoverWallet: WalletRecovery) {
-    let bitcoinErrorMessage = "";
+    let bitcoinErrorMessage = '';
     this.apiService
       .recoverBitcoinWallet(recoverWallet)
       .subscribe(
         response => {
           if (response.status >= 200 && response.status < 400) {
-            //Bitcoin Wallet Recovered
+            // Bitcoin Wallet Recovered
           }
           this.recoverStratisWallet(recoverWallet, bitcoinErrorMessage);
         },
@@ -128,12 +136,11 @@ export class RecoverComponent implements OnInit {
           this.isRecovering = false;
           console.log(error);
           if (error.status === 0) {
-            this.genericModalService.openModal(null, null);
+            this.genericModalService.openModal(null);
           } else if (error.status >= 400) {
             if (!error.json().errors[0]) {
               console.log(error);
-            }
-            else {
+            } else {
               bitcoinErrorMessage = error.json().errors[0].message;
             }
           }
@@ -144,14 +151,15 @@ export class RecoverComponent implements OnInit {
   }
 
   private recoverStratisWallet(recoverWallet: WalletRecovery, bitcoinErrorMessage: string){
-    let stratisErrorMessage = "";
+    let stratisErrorMessage = '';
     this.apiService
       .recoverStratisWallet(recoverWallet)
       .subscribe(
         response => {
           if (response.status >= 200 && response.status < 400) {
-            let body = "Your wallet has been recovered. \nYou will be redirected to the decryption page.";
-            this.genericModalService.openModal("Wallet Recovered", body);
+            const body =
+              'Your wallet has been recovered. \nYou will be redirected to the decryption page.';
+            this.genericModalService.openModal({ title: 'Wallet Recovered', body: body});
             this.router.navigate([''])
           }
             this.AlertIfNeeded(bitcoinErrorMessage, stratisErrorMessage);
@@ -160,12 +168,11 @@ export class RecoverComponent implements OnInit {
           this.isRecovering = false;
           console.log(error);
           if (error.status === 0) {
-            this.genericModalService.openModal(null, null);
+            this.genericModalService.openModal(null);
           } else if (error.status >= 400) {
             if (!error.json().errors[0]) {
               console.log(error);
-            }
-            else {
+            } else {
               stratisErrorMessage = error.json().errors[0].message;
             }
           }
@@ -176,9 +183,13 @@ export class RecoverComponent implements OnInit {
   }
 
   private AlertIfNeeded(bitcoinErrorMessage: string, stratisErrorMessage: string) {
-        if(bitcoinErrorMessage !== "" || stratisErrorMessage !== "") {
-          let errorMessage = "<strong>Bitcoin wallet recovery:</strong><br>" + bitcoinErrorMessage + "<br><br><strong>Stratis wallet recovery:</strong><br>" + stratisErrorMessage;
-          this.genericModalService.openModal(null, errorMessage);
+        if (bitcoinErrorMessage !== '' || stratisErrorMessage !== '') {
+          const errorMessage =
+            '<strong>Bitcoin wallet recovery:</strong><br>' +
+            bitcoinErrorMessage +
+            '<br><br><strong>Stratis wallet recovery:</strong><br>' +
+            stratisErrorMessage;
+          this.genericModalService.openModal({ body: errorMessage});
     }
   }
 }

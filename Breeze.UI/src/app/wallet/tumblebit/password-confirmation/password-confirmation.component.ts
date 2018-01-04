@@ -5,6 +5,7 @@ import { NgbModal, NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 
 import { TumblebitService } from '../tumblebit.service';
 import { TumbleRequest } from '../classes/tumble-request';
+import { Error } from '../../../shared/classes/error';
 
 import { ModalService } from '../../../shared/services/modal.service';
 
@@ -17,19 +18,32 @@ export class PasswordConfirmationComponent implements OnInit {
 
   @Input() sourceWalletName: string;
   @Input() destinationWalletName: string;
-  constructor(private tumblebitService: TumblebitService, public activeModal: NgbActiveModal, private fb: FormBuilder, private genericModalService: ModalService) {
-    this.buildWalletPasswordForm();
-  }
-
   public startingTumble: Boolean = false;
   private walletPasswordForm: FormGroup;
+  formErrors = {
+    'walletPassword': ''
+  };
+
+  validationMessages = {
+    'walletPassword': {
+      'required': 'The wallet password is required.'
+    }
+  };
+
+  constructor(
+    private tumblebitService: TumblebitService,
+    public activeModal: NgbActiveModal,
+    private fb: FormBuilder,
+    private genericModalService: ModalService) {
+    this.buildWalletPasswordForm();
+  }
 
   ngOnInit() {
   }
 
   private buildWalletPasswordForm(): void {
     this.walletPasswordForm = this.fb.group({
-      "walletPassword": ["", Validators.required]
+      'walletPassword': ['', Validators.required]
     });
 
     this.walletPasswordForm.valueChanges
@@ -42,31 +56,24 @@ export class PasswordConfirmationComponent implements OnInit {
     if (!this.walletPasswordForm) { return; }
     const form = this.walletPasswordForm;
     for (const field in this.formErrors) {
+      if (!this.formErrors.hasOwnProperty(field)) { continue; }
       this.formErrors[field] = '';
       const control = form.get(field);
       if (control && control.dirty && !control.valid) {
         const messages = this.validationMessages[field];
         for (const key in control.errors) {
-          this.formErrors[field] += messages[key] + ' ';
+          if (control.errors.hasOwnProperty(key)) {
+            this.formErrors[field] += messages[key] + ' ';
+          }
         }
       }
     }
   }
 
-  formErrors = {
-    'walletPassword': ''
-  };
-
-  validationMessages = {
-    'walletPassword': {
-      'required': 'The wallet password is required.'
-    }
-  };
-
   private onConfirm() {
     this.startingTumble = true;
 
-    let tumbleRequest = new TumbleRequest(
+    const tumbleRequest = new TumbleRequest(
       this.sourceWalletName,
       this.destinationWalletName,
       this.walletPasswordForm.get('walletPassword').value
@@ -89,10 +96,9 @@ export class PasswordConfirmationComponent implements OnInit {
             if (!error.json().errors[0]) {
               console.error(error);
               this.startingTumble = false;
-            }
-            else {
+            } else {
               this.startingTumble = false;
-              this.genericModalService.openModal(null, error.json().errors[0].message);
+              this.genericModalService.openModal(Error.toDialogOptions(error, null));
             }
           }
         },

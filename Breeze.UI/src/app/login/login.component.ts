@@ -8,6 +8,7 @@ import { ModalService } from '../shared/services/modal.service';
 
 import { WalletLoad } from '../shared/classes/wallet-load';
 import { WalletInfo } from '../shared/classes/wallet-info';
+import { Error } from '../shared/classes/error';
 
 @Component({
   selector: 'app-login',
@@ -16,14 +17,27 @@ import { WalletInfo } from '../shared/classes/wallet-info';
 })
 
 export class LoginComponent implements OnInit {
-  constructor(private globalService: GlobalService, private apiService: ApiService, private genericModalService: ModalService, private router: Router, private fb: FormBuilder) {
-    this.buildDecryptForm();
-  }
-
-  public hasWallet: boolean = false;
+  public hasWallet = false;
   public isDecrypting = false;
   private openWalletForm: FormGroup;
   private wallets: [string];
+  formErrors = {
+    'password': ''
+  };
+
+  validationMessages = {
+    'password': {
+      'required': 'Please enter your password.'
+    }
+  };
+
+  constructor(private globalService: GlobalService,
+    private apiService: ApiService,
+    private genericModalService: ModalService,
+    private router: Router,
+    private fb: FormBuilder) {
+    this.buildDecryptForm();
+  }
 
   ngOnInit() {
     this.getWalletFiles();
@@ -31,8 +45,8 @@ export class LoginComponent implements OnInit {
 
   private buildDecryptForm(): void {
     this.openWalletForm = this.fb.group({
-      "selectWallet": ["", Validators.required],
-      "password": ["", Validators.required]
+      'selectWallet': ['', Validators.required],
+      'password': ['', Validators.required]
     });
 
     this.openWalletForm.valueChanges
@@ -45,39 +59,36 @@ export class LoginComponent implements OnInit {
     if (!this.openWalletForm) { return; }
     const form = this.openWalletForm;
     for (const field in this.formErrors) {
+      if (!this.formErrors.hasOwnProperty(field)) {
+        continue;
+      }
       this.formErrors[field] = '';
       const control = form.get(field);
       if (control && control.dirty && !control.valid) {
         const messages = this.validationMessages[field];
         for (const key in control.errors) {
-          this.formErrors[field] += messages[key] + ' ';
+          if (control.errors.hasOwnProperty(key)) {
+            this.formErrors[field] += messages[key] + ' ';
+          }
         }
       }
     }
   }
-
-  formErrors = {
-    'password': ''
-  };
-
-  validationMessages = {
-    'password': {
-      'required': 'Please enter your password.'
-    }
-  };
 
   private getWalletFiles() {
     this.apiService.getWalletFiles()
       .subscribe(
         response => {
           if (response.status >= 200 && response.status < 400) {
-            let responseMessage = response.json();
+            const responseMessage = response.json();
             this.wallets = responseMessage.walletsFiles;
             this.globalService.setWalletPath(responseMessage.walletsPath);
             if (this.wallets.length > 0) {
               this.hasWallet = true;
-              for (let wallet in this.wallets) {
-                this.wallets[wallet] = this.wallets[wallet].slice(0, -12);
+              for (const wallet in this.wallets) {
+                if (this.wallets.hasOwnProperty(wallet)) {
+                  this.wallets[wallet] = this.wallets[wallet].slice(0, -12);
+                }
               }
               this.updateWalletFileDisplay(this.wallets[0]);
             } else {
@@ -87,13 +98,12 @@ export class LoginComponent implements OnInit {
         },
         error => {
           if (error.status === 0) {
-            this.genericModalService.openModal(null, null);
+            this.genericModalService.openModal(null);
           } else if (error.status >= 400) {
             if (!error.json().errors[0]) {
               console.log(error);
-            }
-            else {
-              this.genericModalService.openModal(null, error.json().errors[0].message);
+            } else {
+              this.genericModalService.openModal(Error.toDialogOptions(error, null));
             }
           }
         }
@@ -117,11 +127,11 @@ export class LoginComponent implements OnInit {
 
   private onDecryptClicked() {
     this.isDecrypting = true;
-    this.globalService.setWalletName(this.openWalletForm.get("selectWallet").value);
+    this.globalService.setWalletName(this.openWalletForm.get('selectWallet').value);
     this.getCurrentNetwork();
-    let walletLoad = new WalletLoad(
-      this.openWalletForm.get("selectWallet").value,
-      this.openWalletForm.get("password").value
+    const walletLoad = new WalletLoad(
+      this.openWalletForm.get('selectWallet').value,
+      this.openWalletForm.get('password').value
     );
     this.loadWallets(walletLoad);
   }
@@ -137,13 +147,12 @@ export class LoginComponent implements OnInit {
         error => {
           this.isDecrypting = false;
           if (error.status === 0) {
-            this.genericModalService.openModal(null, null);
+            this.genericModalService.openModal(null);
           } else if (error.status >= 400) {
             if (!error.json().errors[0]) {
               console.log(error);
-            }
-            else {
-              this.genericModalService.openModal(null, error.json().errors[0].message);
+            } else {
+              this.genericModalService.openModal(Error.toDialogOptions(error, null));
             }
           }
         },
@@ -164,13 +173,12 @@ export class LoginComponent implements OnInit {
         error => {
           this.isDecrypting = false;
           if (error.status === 0) {
-            this.genericModalService.openModal(null, null);
+            this.genericModalService.openModal(null);
           } else if (error.status >= 400) {
             if (!error.json().errors[0]) {
               console.log(error);
-            }
-            else {
-              this.genericModalService.openModal(null, error.json().errors[0].message);
+            } else {
+              this.genericModalService.openModal(Error.toDialogOptions(error, null));
             }
           }
         }
@@ -179,31 +187,30 @@ export class LoginComponent implements OnInit {
   }
 
   private getCurrentNetwork() {
-    let walletInfo = new WalletInfo(this.globalService.getWalletName())
+    const walletInfo = new WalletInfo(this.globalService.getWalletName())
     this.apiService.getGeneralInfoOnce(walletInfo)
       .subscribe(
         response => {
           if (response.status >= 200 && response.status < 400) {
-            let responseMessage = response.json();
+            const responseMessage = response.json();
             this.globalService.setNetwork(responseMessage.network);
-            if (responseMessage.network === "Main") {
-              this.globalService.setCoinName("Bitcoin");
-              this.globalService.setCoinUnit("BTC");
-            } else if (responseMessage.network === "TestNet") {
-              this.globalService.setCoinName("TestBitcoin");
-              this.globalService.setCoinUnit("TBTC");
+            if (responseMessage.network === 'Main') {
+              this.globalService.setCoinName('Bitcoin');
+              this.globalService.setCoinUnit('BTC');
+            } else if (responseMessage.network === 'TestNet') {
+              this.globalService.setCoinName('TestBitcoin');
+              this.globalService.setCoinUnit('TBTC');
             }
           }
         },
         error => {
           if (error.status === 0) {
-            this.genericModalService.openModal(null, null);
+            this.genericModalService.openModal(null);
           } else if (error.status >= 400) {
             if (!error.json().errors[0]) {
               console.log(error);
-            }
-            else {
-              this.genericModalService.openModal(null, error.json().errors[0].message);
+            } else {
+              this.genericModalService.openModal(Error.toDialogOptions(error, null));
             }
           }
         }

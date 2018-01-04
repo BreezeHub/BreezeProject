@@ -7,6 +7,7 @@ import { ApiService } from '../../../shared/services/api.service';
 import { ModalService } from '../../../shared/services/modal.service';
 
 import { WalletCreation } from '../../../shared/classes/wallet-creation';
+import { Error } from '../../../shared/classes/error';
 
 import { Subscription } from 'rxjs/Subscription';
 import { Subscribable } from 'rxjs/Observable';
@@ -17,77 +18,6 @@ import { Subscribable } from 'rxjs/Observable';
   styleUrls: ['./confirm-mnemonic.component.css']
 })
 export class ConfirmMnemonicComponent implements OnInit {
-
-  constructor(private globalService: GlobalService, private apiService: ApiService, private genericModalService: ModalService, private route: ActivatedRoute, private router: Router, private fb: FormBuilder) {
-    this.buildMnemonicForm();
-  }
-  private subscription: Subscription;
-  private newWallet: WalletCreation;
-  public mnemonicForm: FormGroup;
-  public matchError: string = "";
-  public isCreating: boolean;
-
-  ngOnInit() {
-    this.subscription = this.route.queryParams.subscribe(params => {
-      this.newWallet = new WalletCreation(
-        params["name"],
-        params["mnemonic"],
-        params["password"]
-      )
-    });
-  }
-
-  private buildMnemonicForm(): void {
-    this.mnemonicForm = this.fb.group({
-      "word1": ["",
-        Validators.compose([
-          Validators.required,
-          Validators.minLength(1),
-          Validators.maxLength(24),
-          Validators.pattern(/^[a-zA-Z]*$/)
-        ])
-      ],
-      "word2": ["",
-        Validators.compose([
-          Validators.required,
-          Validators.minLength(1),
-          Validators.maxLength(24),
-          Validators.pattern(/^[a-zA-Z]*$/)
-        ])
-      ],
-      "word3": ["",
-        Validators.compose([
-          Validators.required,
-          Validators.minLength(1),
-          Validators.maxLength(24),
-          Validators.pattern(/^[a-zA-Z]*$/)
-        ])
-      ]
-    });
-
-    this.mnemonicForm.valueChanges
-      .subscribe(data => this.onValueChanged(data));
-
-    this.onValueChanged();
-  }
-
-  onValueChanged(data?: any) {
-    if (!this.mnemonicForm) { return; }
-    const form = this.mnemonicForm;
-    for (const field in this.formErrors) {
-      this.formErrors[field] = '';
-      const control = form.get(field);
-      if (control && control.dirty && !control.valid) {
-        const messages = this.validationMessages[field];
-        for (const key in control.errors) {
-          this.formErrors[field] += messages[key] + ' ';
-        }
-      }
-    }
-
-    this.matchError = "";
-  }
-
   formErrors = {
     'word1': '',
     'word2': '',
@@ -114,6 +44,85 @@ export class ConfirmMnemonicComponent implements OnInit {
       'pattern': 'Please enter a valid scret word. [a-Z] are the only characters allowed.'
     }
   };
+  private subscription: Subscription;
+  private newWallet: WalletCreation;
+  public mnemonicForm: FormGroup;
+  public matchError = '';
+  public isCreating: boolean;
+
+  constructor(
+    private globalService: GlobalService,
+    private apiService: ApiService,
+    private genericModalService: ModalService,
+    private route: ActivatedRoute,
+    private router: Router,
+    private fb: FormBuilder) {
+    this.buildMnemonicForm();
+  }
+
+  ngOnInit() {
+    this.subscription = this.route.queryParams.subscribe(params => {
+      this.newWallet = new WalletCreation(
+        params['name'],
+        params['mnemonic'],
+        params['password']
+      )
+    });
+  }
+
+  private buildMnemonicForm(): void {
+    this.mnemonicForm = this.fb.group({
+      'word1': ['',
+        Validators.compose([
+          Validators.required,
+          Validators.minLength(1),
+          Validators.maxLength(24),
+          Validators.pattern(/^[a-zA-Z]*$/)
+        ])
+      ],
+      'word2': ['',
+        Validators.compose([
+          Validators.required,
+          Validators.minLength(1),
+          Validators.maxLength(24),
+          Validators.pattern(/^[a-zA-Z]*$/)
+        ])
+      ],
+      'word3': ['',
+        Validators.compose([
+          Validators.required,
+          Validators.minLength(1),
+          Validators.maxLength(24),
+          Validators.pattern(/^[a-zA-Z]*$/)
+        ])
+      ]
+    });
+
+    this.mnemonicForm.valueChanges
+      .subscribe(data => this.onValueChanged(data));
+
+    this.onValueChanged();
+  }
+
+  onValueChanged(data?: any) {
+    if (!this.mnemonicForm) { return; }
+    const form = this.mnemonicForm;
+    for (const field in this.formErrors) {
+      if (!this.formErrors.hasOwnProperty(field)) { continue; }
+      this.formErrors[field] = '';
+      const control = form.get(field);
+      if (control && control.dirty && !control.valid) {
+        const messages = this.validationMessages[field];
+        for (const key in control.errors) {
+          if (control.errors.hasOwnProperty(key)) {
+            this.formErrors[field] += messages[key] + ' ';
+          }
+        }
+      }
+    }
+
+    this.matchError = '';
+  }
 
   public onConfirmClicked() {
     this.checkMnemonic();
@@ -124,17 +133,25 @@ export class ConfirmMnemonicComponent implements OnInit {
   }
 
   public onBackClicked() {
-    this.router.navigate(['/setup/create/show-mnemonic'], { queryParams : { name: this.newWallet.name, mnemonic: this.newWallet.mnemonic, password: this.newWallet.password }});
+    this.router.navigate(
+      ['/setup/create/show-mnemonic'],
+      { queryParams : {
+        name: this.newWallet.name,
+        mnemonic: this.newWallet.mnemonic,
+        password: this.newWallet.password
+      }});
   }
 
   private checkMnemonic(): boolean {
-    let mnemonic = this.newWallet.mnemonic;
-    let mnemonicArray = mnemonic.split(" ");
+    const mnemonic = this.newWallet.mnemonic;
+    const mnemonicArray = mnemonic.split(' ');
 
-    if (this.mnemonicForm.get("word1").value.trim() === mnemonicArray[3] && this.mnemonicForm.get("word2").value.trim() === mnemonicArray[7] && this.mnemonicForm.get("word3").value.trim() === mnemonicArray[11]) {
+    if (this.mnemonicForm.get('word1').value.trim() === mnemonicArray[3] &&
+        this.mnemonicForm.get('word2').value.trim() === mnemonicArray[7] &&
+        this.mnemonicForm.get('word3').value.trim() === mnemonicArray[11]) {
       return true;
     } else {
-      this.matchError = "The secret words do not match."
+      this.matchError = 'The secret words do not match.'
       return false;
     }
   }
@@ -144,7 +161,7 @@ export class ConfirmMnemonicComponent implements OnInit {
       .createBitcoinWallet(wallet)
       .subscribe(
         response => {
-          if (response.status >= 200 && response.status < 400){
+          if (response.status >= 200 && response.status < 400) {
             // Bitcoin wallet created
           }
         },
@@ -152,13 +169,12 @@ export class ConfirmMnemonicComponent implements OnInit {
           console.log(error);
           this.isCreating = false;
           if (error.status === 0) {
-            this.genericModalService.openModal(null, null);
+            this.genericModalService.openModal(null);
           } else if (error.status >= 400) {
             if (!error.json().errors[0]) {
               console.log(error);
-            }
-            else {
-              this.genericModalService.openModal(null, error.json().errors[0].message);
+            } else {
+              this.genericModalService.openModal(Error.toDialogOptions(error, null));
               this.router.navigate(['/setup/create']);
             }
           }
@@ -173,8 +189,12 @@ export class ConfirmMnemonicComponent implements OnInit {
       .createStratisWallet(wallet)
       .subscribe(
         response => {
-          if (response.status >= 200 && response.status < 400){
-            this.genericModalService.openModal("Wallet Created", "Your wallet has been created.<br>Keep your secret words and password safe!");
+          if (response.status >= 200 && response.status < 400) {
+            this.genericModalService.openModal(
+              {
+                title: 'Wallet Created',
+                body: 'Your wallet has been created.<br>Keep your secret words and password safe!'
+              });
             this.router.navigate(['']);
           }
         },
@@ -182,13 +202,12 @@ export class ConfirmMnemonicComponent implements OnInit {
           this.isCreating = false;
           console.log(error);
           if (error.status === 0) {
-            this.genericModalService.openModal(null, null);
+            this.genericModalService.openModal(null);
           } else if (error.status >= 400) {
             if (!error.json().errors[0]) {
               console.log(error);
-            }
-            else {
-              this.genericModalService.openModal(null, error.json().errors[0].message);
+            } else {
+              this.genericModalService.openModal(Error.toDialogOptions(error, null));
               this.router.navigate(['/setup/create']);
             }
           }

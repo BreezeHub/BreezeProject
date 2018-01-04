@@ -7,6 +7,7 @@ import { ModalService } from '../../shared/services/modal.service';
 
 import { WalletInfo } from '../../shared/classes/wallet-info';
 import { TransactionInfo } from '../../shared/classes/transaction-info';
+import { Error } from '../../shared/classes/error';
 
 import { Observable } from 'rxjs/Rx';
 import { Subscription } from 'rxjs/Subscription';
@@ -19,13 +20,17 @@ import { TransactionDetailsComponent } from '../transaction-details/transaction-
   styleUrls: ['./history.component.css'],
 })
 
-export class HistoryComponent {
-  constructor(private apiService: ApiService, private globalService: GlobalService, private modalService: NgbModal, private genericModalService: ModalService) {}
-
+export class HistoryComponent implements OnInit, OnDestroy {
   public transactions: TransactionInfo[];
   public coinUnit: string;
   private errorMessage: string;
   private walletHistorySubscription: Subscription;
+
+  constructor(
+    private apiService: ApiService,
+    private globalService: GlobalService,
+    private modalService: NgbModal,
+    private genericModalService: ModalService) {}
 
   ngOnInit() {
     this.startSubscriptions();
@@ -43,7 +48,7 @@ export class HistoryComponent {
 
     // todo: add history in seperate service to make it reusable
   private getHistory() {
-    let walletInfo = new WalletInfo(this.globalService.getWalletName())
+    const walletInfo = new WalletInfo(this.globalService.getWalletName())
     let historyResponse;
     this.walletHistorySubscription = this.apiService.getWalletHistory(walletInfo)
       .subscribe(
@@ -59,14 +64,13 @@ export class HistoryComponent {
           console.log(error);
           if (error.status === 0) {
             this.cancelSubscriptions();
-            this.genericModalService.openModal(null, null);
+            this.genericModalService.openModal(null);
           } else if (error.status >= 400) {
             if (!error.json().errors[0]) {
               console.log(error);
-            }
-            else {
+            } else {
               if (error.json().errors[0].description) {
-                this.genericModalService.openModal(null, error.json().errors[0].message);
+                this.genericModalService.openModal(Error.toDialogOptions(error, null));
               } else {
                 this.cancelSubscriptions();
                 this.startSubscriptions();
@@ -81,31 +85,37 @@ export class HistoryComponent {
   private getTransactionInfo(transactions: any) {
     this.transactions = [];
 
-    for (let transaction of transactions) {
+    for (const transaction of transactions) {
       let transactionType;
-      if (transaction.type === "send") {
-        transactionType = "sent";
-      } else if (transaction.type === "received") {
-        transactionType = "received";
+      if (transaction.type === 'send') {
+        transactionType = 'sent';
+      } else if (transaction.type === 'received') {
+        transactionType = 'received';
       }
-      let transactionId = transaction.id;
-      let transactionAmount = transaction.amount;
+      const transactionId = transaction.id;
+      const transactionAmount = transaction.amount;
       let transactionFee;
       if (transaction.fee) {
         transactionFee = transaction.fee;
       } else {
         transactionFee = 0;
       }
-      let transactionConfirmedInBlock = transaction.confirmedInBlock;
-      let transactionTimestamp = transaction.timestamp;
-      let transactionConfirmed;
+      const transactionConfirmedInBlock = transaction.confirmedInBlock;
+      const transactionTimestamp = transaction.timestamp;
 
-      this.transactions.push(new TransactionInfo(transactionType, transactionId, transactionAmount, transactionFee, transactionConfirmedInBlock, transactionTimestamp));
+      this.transactions.push(
+        new TransactionInfo(
+          transactionType,
+          transactionId,
+          transactionAmount,
+          transactionFee,
+          transactionConfirmedInBlock,
+          transactionTimestamp));
     }
   }
 
   private cancelSubscriptions() {
-    if(this.walletHistorySubscription) {
+    if (this.walletHistorySubscription) {
       this.walletHistorySubscription.unsubscribe();
     }
   };
