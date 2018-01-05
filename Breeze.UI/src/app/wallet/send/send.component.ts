@@ -12,6 +12,7 @@ import { FeeEstimation } from '../../shared/classes/fee-estimation';
 import { TransactionBuilding } from '../../shared/classes/transaction-building';
 import { TransactionSending } from '../../shared/classes/transaction-sending';
 import { Error } from '../../shared/classes/error';
+import { Log } from '../../shared/services/logger.service';
 
 import { SendConfirmationComponent } from './send-confirmation/send-confirmation.component';
 
@@ -128,14 +129,12 @@ export class SendComponent implements OnInit {
         error => {
           console.log(error);
           if (error.status === 0) {
-            // this.genericModalService.openModal(null, null);
             this.apiError = 'Something went wrong while connecting to the API. Please restart the application.'
           } else if (error.status >= 400) {
             if (!error.json().errors[0]) {
-              console.log(error);
+              Log.error(error);
             } else {
-              // this.genericModalService.openModal(null, error.json().errors[0].message);
-              this.apiError = error.json().errors[0].message;
+              this.apiError = Error.getMessage(error);
             }
           }
         },
@@ -171,8 +170,7 @@ export class SendComponent implements OnInit {
             if (!error.json().errors[0]) {
               console.log(error);
             } else {
-              // this.genericModalService.openModal(null, error.json().errors[0].message);
-              this.apiError = error.json().errors[0].message;
+              this.apiError = Error.getMessage(error);
             }
           }
         },
@@ -207,14 +205,12 @@ export class SendComponent implements OnInit {
           console.log(error);
           this.isSending = false;
           if (error.status === 0) {
-            // this.genericModalService.openModal(null, null);
             this.apiError = 'Something went wrong while connecting to the API. Please restart the application.'
           } else if (error.status >= 400) {
             if (!error.json().errors[0]) {
-              console.log(error);
+              Log.error(error);
             } else {
-              // this.genericModalService.openModal(null, error.json().errors[0].message);
-              this.apiError = error.json().errors[0].message;
+              this.apiError = Error.getMessage(error);
             }
           }
         },
@@ -248,14 +244,12 @@ export class SendComponent implements OnInit {
           console.log(error);
           this.isSending = false;
           if (error.status === 0) {
-            // this.genericModalService.openModal(null, null);
             this.apiError = 'Something went wrong while connecting to the API. Please restart the application.'
           } else if (error.status >= 400) {
             if (!error.json().errors[0]) {
-              console.log(error);
+              Log.error(error);
             } else {
-              // this.genericModalService.openModal(null, error.json().errors[0].message);
-              this.apiError = error.json().errors[0].message;
+              this.apiError = Error.getMessage(error);
             }
           }
         },
