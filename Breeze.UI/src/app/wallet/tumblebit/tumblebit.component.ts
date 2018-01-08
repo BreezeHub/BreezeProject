@@ -264,6 +264,7 @@ export class TumblebitComponent implements OnInit, OnDestroy {
       modalRef.componentInstance.denomination = this.denomination;
       modalRef.componentInstance.fee = this.fee;
       modalRef.componentInstance.balance = this.unconfirmedBalance + this.confirmedBalance;
+      modalRef.componentInstance.coinUnit = this.coinUnit;
     }
   }
 
