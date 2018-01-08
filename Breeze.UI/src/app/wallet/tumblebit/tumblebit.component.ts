@@ -261,6 +261,9 @@ export class TumblebitComponent implements OnInit, OnDestroy {
       const modalRef = this.modalService.open(PasswordConfirmationComponent);
       modalRef.componentInstance.sourceWalletName = this.globalService.getWalletName();
       modalRef.componentInstance.destinationWalletName = this.destinationWalletName;
+      modalRef.componentInstance.denomination = this.denomination;
+      modalRef.componentInstance.fee = this.fee;
+      modalRef.componentInstance.balance = this.unconfirmedBalance + this.confirmedBalance;
     }
   }
 
