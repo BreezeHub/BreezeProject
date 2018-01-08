@@ -463,7 +463,7 @@ namespace Breeze.TumbleBit.Client
                 this.logger.LogError("Error obtaining tumbler parameters: " + cex);
                 return Result.Fail<ClassicTumblerParameters>(
                     cex is PrivacyProtocolConfigException
-                        ? "The Privacy Protocol requires Tor. Please ensure Tor is running."
+                        ? "Tor is required for connectivity to an active Stratis Masternode. Please restart Breeze Wallet with Privacy Protocol and ensure that an instance of Tor is running."
                         : cex.Message);
             }
             catch (Exception e)
