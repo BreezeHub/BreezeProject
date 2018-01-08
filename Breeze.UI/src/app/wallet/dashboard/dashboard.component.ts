@@ -5,6 +5,7 @@ import { ApiService } from '../../shared/services/api.service';
 import { GlobalService } from '../../shared/services/global.service';
 import { ModalService } from '../../shared/services/modal.service';
 import { WalletInfo } from '../../shared/classes/wallet-info';
+import { Error } from '../../shared/classes/error';
 import { TransactionInfo } from '../../shared/classes/transaction-info';
 
 import { SendComponent } from '../send/send.component';
@@ -20,9 +21,7 @@ import { Subscription } from 'rxjs/Subscription';
   styleUrls: ['./dashboard.component.css']
 })
 
-export class DashboardComponent implements OnInit {
-  constructor(private apiService: ApiService, private globalService: GlobalService, private modalService: NgbModal, private genericModalService: ModalService) {}
-
+export class DashboardComponent implements OnInit, OnDestroy {
   public walletName: string;
   public coinUnit: string;
   public confirmedBalance: number;
@@ -30,6 +29,12 @@ export class DashboardComponent implements OnInit {
   public transactionArray: TransactionInfo[];
   private walletBalanceSubscription: Subscription;
   private walletHistorySubscription: Subscription;
+
+  constructor(
+    private apiService: ApiService,
+    private globalService: GlobalService,
+    private modalService: NgbModal,
+    private genericModalService: ModalService) {}
 
   ngOnInit() {
     this.startSubscriptions();
@@ -55,12 +60,12 @@ export class DashboardComponent implements OnInit {
   }
 
   private getWalletBalance() {
-    let walletInfo = new WalletInfo(this.globalService.getWalletName());
+    const walletInfo = new WalletInfo(this.globalService.getWalletName());
     this.walletBalanceSubscription = this.apiService.getWalletBalance(walletInfo)
       .subscribe(
         response =>  {
           if (response.status >= 200 && response.status < 400) {
-              let balanceResponse = response.json();
+              const balanceResponse = response.json();
               this.confirmedBalance = balanceResponse.balances[0].amountConfirmed;
               this.unconfirmedBalance = balanceResponse.balances[0].amountUnconfirmed;
           }
@@ -69,14 +74,13 @@ export class DashboardComponent implements OnInit {
           console.log(error);
           if (error.status === 0) {
             this.cancelSubscriptions();
-            this.genericModalService.openModal(null, null);
+            this.genericModalService.openModal(null);
           } else if (error.status >= 400) {
             if (!error.json().errors[0]) {
               console.log(error);
-            }
-            else {
+            } else {
               if (error.json().errors[0].description) {
-                this.genericModalService.openModal(null, error.json().errors[0].message);
+                this.genericModalService.openModal(Error.toDialogOptions(error, null));
               } else {
                 this.cancelSubscriptions();
                 this.startSubscriptions();
@@ -90,7 +94,7 @@ export class DashboardComponent implements OnInit {
 
   // todo: add history in seperate service to make it reusable
   private getHistory() {
-    let walletInfo = new WalletInfo(this.globalService.getWalletName());
+    const walletInfo = new WalletInfo(this.globalService.getWalletName());
     let historyResponse;
     this.walletHistorySubscription = this.apiService.getWalletHistory(walletInfo)
       .subscribe(
@@ -106,14 +110,13 @@ export class DashboardComponent implements OnInit {
           console.log(error);
           if (error.status === 0) {
             this.cancelSubscriptions();
-            this.genericModalService.openModal(null, null);
+            this.genericModalService.openModal(null);
           } else if (error.status >= 400) {
             if (!error.json().errors[0]) {
               console.log(error);
-            }
-            else {
+            } else {
               if (error.json().errors[0].description) {
-                this.genericModalService.openModal(null, error.json().errors[0].message);
+                this.genericModalService.openModal(Error.toDialogOptions(error, null));
               } else {
                 this.cancelSubscriptions();
                 this.startSubscriptions();
@@ -128,26 +131,29 @@ export class DashboardComponent implements OnInit {
   private getTransactionInfo(transactions: any) {
     this.transactionArray = [];
 
-    for (let transaction of transactions) {
+    for (const transaction of transactions) {
       let transactionType;
-      if (transaction.type === "send") {
-        transactionType = "sent";
-      } else if (transaction.type === "received") {
-        transactionType = "received";
+      if (transaction.type === 'send') {
+        transactionType = 'sent';
+      } else if (transaction.type === 'received') {
+        transactionType = 'received';
       }
-      let transactionId = transaction.id;
-      let transactionAmount = transaction.amount;
+      const transactionId = transaction.id;
+      const transactionAmount = transaction.amount;
       let transactionFee;
       if (transaction.fee) {
         transactionFee = transaction.fee;
       } else {
         transactionFee = 0;
       }
-      let transactionConfirmedInBlock = transaction.confirmedInBlock;
-      let transactionTimestamp = transaction.timestamp;
-      let transactionConfirmed;
+      const transactionConfirmedInBlock = transaction.confirmedInBlock;
+      const transactionTimestamp = transaction.timestamp;
 
-      this.transactionArray.push(new TransactionInfo(transactionType, transactionId, transactionAmount, transactionFee, transactionConfirmedInBlock, transactionTimestamp));
+      this.transactionArray.push(
+        new TransactionInfo(
+          transactionType, transactionId,
+          transactionAmount, transactionFee,
+          transactionConfirmedInBlock, transactionTimestamp));
     }
   }
 
@@ -156,7 +162,7 @@ export class DashboardComponent implements OnInit {
       this.walletBalanceSubscription.unsubscribe();
     }
 
-    if(this.walletHistorySubscription) {
+    if (this.walletHistorySubscription) {
       this.walletHistorySubscription.unsubscribe();
     }
   };

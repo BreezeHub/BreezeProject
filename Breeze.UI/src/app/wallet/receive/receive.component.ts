@@ -5,6 +5,7 @@ import { GlobalService } from '../../shared/services/global.service';
 import { ModalService } from '../../shared/services/modal.service';
 
 import { WalletInfo } from '../../shared/classes/wallet-info';
+import { Error } from '../../shared/classes/error';
 
 import { NgbModal, NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 
@@ -14,12 +15,16 @@ import { NgbModal, NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
   styleUrls: ['./receive.component.css'],
 })
 
-export class ReceiveComponent {
-  constructor(private apiService: ApiService, private globalService: GlobalService, public activeModal: NgbActiveModal, private genericModalService: ModalService) {}
-
-  public address: any = "";
-  public copied: boolean = false;
+export class ReceiveComponent implements OnInit {
+  public address: any = '';
+  public copied = false;
   private errorMessage: string;
+
+  constructor(
+    private apiService: ApiService,
+    private globalService: GlobalService,
+    public activeModal: NgbActiveModal,
+    private genericModalService: ModalService) {}
 
   ngOnInit() {
     this.getUnusedReceiveAddresses();
@@ -30,7 +35,7 @@ export class ReceiveComponent {
   }
 
   private getUnusedReceiveAddresses() {
-    let walletInfo = new WalletInfo(this.globalService.getWalletName())
+    const walletInfo = new WalletInfo(this.globalService.getWalletName())
     this.apiService.getUnusedReceiveAddress(walletInfo)
       .subscribe(
         response => {
@@ -41,13 +46,12 @@ export class ReceiveComponent {
         error => {
           console.log(error);
           if (error.status === 0) {
-            this.genericModalService.openModal(null, null);
+            this.genericModalService.openModal(null);
           } else if (error.status >= 400) {
             if (!error.json().errors[0]) {
               console.log(error);
-            }
-            else {
-              this.genericModalService.openModal(null, error.json().errors[0].message);
+            } else {
+              this.genericModalService.openModal(Error.toDialogOptions(error, null));
             }
           }
         }

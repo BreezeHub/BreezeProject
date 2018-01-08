@@ -6,6 +6,7 @@ import { PasswordConfirmationComponent } from './password-confirmation/password-
 import { ApiService } from '../../shared/services/api.service';
 import { GlobalService } from '../../shared/services/global.service';
 import { WalletInfo } from '../../shared/classes/wallet-info';
+import { Error } from '../../shared/classes/error';
 import { TumblebitService } from './tumblebit.service';
 import { TumblerConnectionRequest } from './classes/tumbler-connection-request';
 import { TumbleRequest } from './classes/tumble-request';
@@ -22,10 +23,7 @@ import { Subscription } from 'rxjs/Subscription';
   styleUrls: ['./tumblebit.component.css'],
 })
 
-export class TumblebitComponent implements OnInit {
-  constructor(private apiService: ApiService, private tumblebitService: TumblebitService, private globalService: GlobalService, private modalService: NgbModal, private genericModalService: ModalService, private fb: FormBuilder) {
-    this.buildTumbleForm();
-  }
+export class TumblebitComponent implements OnInit, OnDestroy {
   public coinUnit: string;
   public confirmedBalance: number;
   public unconfirmedBalance: number;
@@ -39,7 +37,7 @@ export class TumblebitComponent implements OnInit {
   public isConnected: Boolean = false;
   public isSynced: Boolean = false;
   private walletStatusSubscription: Subscription;
-  public tumblerAddressCopied: boolean = false;
+  public tumblerAddressCopied = false;
   public tumblerParameters: any;
   public estimate: number;
   public fee: number;
@@ -52,8 +50,27 @@ export class TumblebitComponent implements OnInit {
   public tumbling: Boolean = false;
   private connectForm: FormGroup;
   public wallets: [string];
-  public tumblerAddress: string = "Connecting...";
+  public tumblerAddress = 'Connecting...';
   public hasRegistrations: Boolean = false;
+  tumbleFormErrors = {
+    'selectWallet': ''
+  }
+
+  validationMessages = {
+    'selectWallet': {
+      'required': 'A destination address is required.',
+    }
+  }
+
+  constructor(
+    private apiService: ApiService,
+    private tumblebitService: TumblebitService,
+    private globalService: GlobalService,
+    private modalService: NgbModal,
+    private genericModalService: ModalService,
+    private fb: FormBuilder) {
+    this.buildTumbleForm();
+  }
 
   ngOnInit() {
     this.checkWalletStatus();
@@ -64,7 +81,7 @@ export class TumblebitComponent implements OnInit {
   };
 
   ngOnDestroy() {
-    if (this.walletBalanceSubscription){
+    if (this.walletBalanceSubscription) {
       this.walletBalanceSubscription.unsubscribe();
     }
 
@@ -98,7 +115,7 @@ export class TumblebitComponent implements OnInit {
 
   // TODO: abstract to a shared utility lib
   onValueChanged(originalForm: FormGroup, formErrors: object, data?: any) {
-    this.destinationWalletName = this.tumbleForm.get("selectWallet").value;
+    this.destinationWalletName = this.tumbleForm.get('selectWallet').value;
 
     if (this.destinationWalletName) {
       this.getDestinationWalletBalance();
@@ -107,33 +124,27 @@ export class TumblebitComponent implements OnInit {
     if (!originalForm) { return; }
     const form = originalForm;
     for (const field in formErrors) {
+      if (!formErrors.hasOwnProperty(field)) { continue; }
       formErrors[field] = '';
       const control = form.get(field);
       if (control && control.dirty && !control.valid) {
         const messages = this.validationMessages[field];
         for (const key in control.errors) {
-          formErrors[field] += messages[key] + ' ';
+          if (control.errors.hasOwnProperty(key)) {
+            formErrors[field] += messages[key] + ' ';
+          }
         }
       }
     }
   }
-  tumbleFormErrors = {
-    'selectWallet': ''
-  }
-
-  validationMessages = {
-    'selectWallet': {
-      'required': 'A destination address is required.',
-    }
-  }
 
   private checkWalletStatus() {
-    let walletInfo = new WalletInfo(this.globalService.getWalletName())
+    const walletInfo = new WalletInfo(this.globalService.getWalletName())
     this.walletStatusSubscription = this.apiService.getGeneralInfo(walletInfo)
       .subscribe(
         response =>  {
           if (response.status >= 200 && response.status < 400) {
-            let generalWalletInfoResponse = response.json();
+            const generalWalletInfoResponse = response.json();
             if (generalWalletInfoResponse.lastBlockSyncedHeight = generalWalletInfoResponse.chainTip) {
               this.isSynced = true;
             } else {
@@ -144,13 +155,12 @@ export class TumblebitComponent implements OnInit {
         error => {
           console.log(error);
           if (error.status === 0) {
-            this.genericModalService.openModal(null, null);
+            this.genericModalService.openModal(null);
           } else if (error.status >= 400) {
             if (!error.json().errors[0]) {
               console.log(error);
-            }
-            else {
-              this.genericModalService.openModal(null, error.json().errors[0].message);
+            } else {
+              this.genericModalService.openModal(Error.toDialogOptions(error, null));
             }
           }
         }
@@ -174,12 +184,12 @@ export class TumblebitComponent implements OnInit {
               this.connectToTumbler();
             }
 
-            if (response.json().state === "OnlyMonitor") {
+            if (response.json().state === 'OnlyMonitor') {
               this.tumbling = false;
               if (this.progressSubscription) {
                 this.progressSubscription.unsubscribe();
               }
-            } else if (response.json().state === "Tumbling") {
+            } else if (response.json().state === 'Tumbling') {
               this.tumbling = true;
               if (!this.progressSubscription) {
                 this.getProgress();
@@ -192,13 +202,13 @@ export class TumblebitComponent implements OnInit {
         error => {
           console.error(error);
           if (error.status === 0) {
-            this.genericModalService.openModal(null, 'Something went wrong while connecting to the TumbleBit Client. Please restart the application.');
+            this.genericModalService.openModal(
+              { body: 'Something went wrong while connecting to the TumbleBit Client. Please restart the application.' });
           } else if (error.status >= 400) {
             if (!error.json().errors[0]) {
               console.error(error);
-            }
-            else {
-              this.genericModalService.openModal(null, error.json().errors[0].message);
+            } else {
+              this.genericModalService.openModal(Error.toDialogOptions(error, null));
             }
           }
         }
@@ -207,7 +217,7 @@ export class TumblebitComponent implements OnInit {
   }
 
   private connectToTumbler() {
-    let connection = new TumblerConnectionRequest(
+    const connection = new TumblerConnectionRequest(
       this.tumblerAddress,
       this.globalService.getNetwork()
     );
@@ -230,13 +240,13 @@ export class TumblebitComponent implements OnInit {
           console.error(error);
           this.isConnected = false;
           if (error.status === 0) {
-            this.genericModalService.openModal(null, 'Something went wrong while connecting to the TumbleBit Client. Please restart the application.');
+            this.genericModalService.openModal(
+              { body: 'Something went wrong while connecting to the TumbleBit Client. Please restart the application.' });
           } else if (error.status >= 400) {
             if (!error.json().errors[0]) {
               console.error(error);
-            }
-            else {
-              this.genericModalService.openModal(null, error.json().errors[0].message);
+            } else {
+              this.genericModalService.openModal(Error.toDialogOptions(error, null));
             }
           }
         }
@@ -246,7 +256,7 @@ export class TumblebitComponent implements OnInit {
 
   private startTumbling() {
     if (!this.isConnected) {
-      this.genericModalService.openModal(null, "Can't start tumbling when you're not connected to a server. Please try again later.");
+      this.genericModalService.openModal({ body: 'Can\'t start tumbling when you\'re not connected to a server. Please try again later.'});
     } else {
       const modalRef = this.modalService.open(PasswordConfirmationComponent);
       modalRef.componentInstance.sourceWalletName = this.globalService.getWalletName();
@@ -266,13 +276,13 @@ export class TumblebitComponent implements OnInit {
         error => {
           console.error(error);
           if (error.status === 0) {
-            this.genericModalService.openModal(null, 'Something went wrong while connecting to the TumbleBit Client. Please restart the application.');
+            this.genericModalService.openModal(
+              { body: 'Something went wrong while connecting to the TumbleBit Client. Please restart the application.'});
           } else if (error.status >= 400) {
             if (!error.json().errors[0]) {
               console.error(error);
-            }
-            else {
-              this.genericModalService.openModal(null, error.json().errors[0].message);
+            } else {
+              this.genericModalService.openModal(Error.toDialogOptions(error, null));
             }
           }
         }
@@ -286,23 +296,34 @@ export class TumblebitComponent implements OnInit {
         response => {
           if (response.status >= 200 && response.status < 400) {
             if (response.json()) {
-              let responseArray = JSON.parse(response.json()).CycleProgressInfoList;
+              const responseArray = JSON.parse(response.json()).CycleProgressInfoList;
               if (responseArray) {
                 this.progressDataArray = [];
-                let responseData = responseArray;
-                for (let cycle of responseData) {
-                  let periodStart = cycle.Period.Start;
-                  let periodEnd = cycle.Period.End;
-                  let height = cycle.Height;
-                  let blocksLeft = cycle.BlocksLeft;
-                  let cycleStart = cycle.Start;
-                  let cycleFailed = cycle.Failed;
-                  let cycleAsciiArt = cycle.AsciiArt;
-                  let cycleStatus = cycle.Status;
-                  let cyclePhase = this.getPhaseString(cycle.Phase);
-                  let cyclePhaseNumber = this.getPhaseNumber(cycle.Phase);
+                const responseData = responseArray;
+                for (const cycle of responseData) {
+                  const periodStart = cycle.Period.Start;
+                  const periodEnd = cycle.Period.End;
+                  const height = cycle.Height;
+                  const blocksLeft = cycle.BlocksLeft;
+                  const cycleStart = cycle.Start;
+                  const cycleFailed = cycle.Failed;
+                  const cycleAsciiArt = cycle.AsciiArt;
+                  const cycleStatus = cycle.Status;
+                  const cyclePhase = this.getPhaseString(cycle.Phase);
+                  const cyclePhaseNumber = this.getPhaseNumber(cycle.Phase);
 
-                  this.progressDataArray.push(new CycleInfo(periodStart, periodEnd, height, blocksLeft, cycleStart, cycleFailed, cycleAsciiArt, cycleStatus, cyclePhase, cyclePhaseNumber));
+                  this.progressDataArray.push(
+                    new CycleInfo(
+                      periodStart,
+                      periodEnd,
+                      height,
+                      blocksLeft,
+                      cycleStart,
+                      cycleFailed,
+                      cycleAsciiArt,
+                      cycleStatus,
+                      cyclePhase,
+                      cyclePhaseNumber));
                   this.progressDataArray.sort(function(cycle1, cycle2) {
                     return cycle1.cycleStart - cycle2.cycleStart;
                   })
@@ -314,13 +335,13 @@ export class TumblebitComponent implements OnInit {
         error => {
           console.error(error);
           if (error.status === 0) {
-            this.genericModalService.openModal(null, 'Something went wrong while connecting to the TumbleBit Client. Please restart the application.');
+            this.genericModalService.openModal(
+              { body: 'Something went wrong while connecting to the TumbleBit Client. Please restart the application.'});
           } else if (error.status >= 400) {
             if (!error.json().errors[0]) {
               console.error(error);
-            }
-            else {
-              this.genericModalService.openModal(null, error.json().errors[0].message);
+            } else {
+              this.genericModalService.openModal(Error.toDialogOptions(error, null));
             }
           }
         }
@@ -330,46 +351,46 @@ export class TumblebitComponent implements OnInit {
 
   private getPhaseNumber(phase: string) {
     switch (phase) {
-      case "Registration":
+      case 'Registration':
         return 1;
-      case "ClientChannelEstablishment":
+      case 'ClientChannelEstablishment':
         return 2;
-      case "TumblerChannelEstablishment":
+      case 'TumblerChannelEstablishment':
         return 3;
-      case "PaymentPhase":
+      case 'PaymentPhase':
         return 4;
-      case "TumblerCashoutPhase":
+      case 'TumblerCashoutPhase':
         return 5;
-      case "ClientCashoutPhase":
+      case 'ClientCashoutPhase':
         return 6;
     }
   }
 
   private getPhaseString(phase: string) {
     switch (phase) {
-      case "Registration":
-        return "Registration";
-      case "ClientChannelEstablishment":
-        return "Client Channel Establishment";
-      case "TumblerChannelEstablishment":
-        return "Tumbler Channel Establishment";
-      case "PaymentPhase":
-        return "Payment Phase";
-      case "TumblerCashoutPhase":
-        return "Tumbler Cashout Phase";
-      case "ClientCashoutPhase":
-        return "Client Cashout Phase";
+      case 'Registration':
+        return 'Registration';
+      case 'ClientChannelEstablishment':
+        return 'Client Channel Establishment';
+      case 'TumblerChannelEstablishment':
+        return 'Tumbler Channel Establishment';
+      case 'PaymentPhase':
+        return 'Payment Phase';
+      case 'TumblerCashoutPhase':
+        return 'Tumbler Cashout Phase';
+      case 'ClientCashoutPhase':
+        return 'Client Cashout Phase';
     }
   }
 
   // TODO: move into a shared service
   private getWalletBalance() {
-    let walletInfo = new WalletInfo(this.globalService.getWalletName())
+    const walletInfo = new WalletInfo(this.globalService.getWalletName())
     this.walletBalanceSubscription = this.apiService.getWalletBalance(walletInfo)
       .subscribe(
         response =>  {
           if (response.status >= 200 && response.status < 400) {
-              let balanceResponse = response.json();
+            const balanceResponse = response.json();
               this.confirmedBalance = balanceResponse.balances[0].amountConfirmed;
               this.unconfirmedBalance = balanceResponse.balances[0].amountUnconfirmed;
               this.totalBalance = this.confirmedBalance + this.unconfirmedBalance;
@@ -378,13 +399,12 @@ export class TumblebitComponent implements OnInit {
         error => {
           console.log(error);
           if (error.status === 0) {
-            this.genericModalService.openModal(null, null);
+            this.genericModalService.openModal(null);
           } else if (error.status >= 400) {
             if (!error.json().errors[0]) {
               console.log(error);
-            }
-            else {
-              this.genericModalService.openModal(null, error.json().errors[0].message);
+            } else {
+              this.genericModalService.openModal(Error.toDialogOptions(error, null));
             }
           }
         }
@@ -400,7 +420,7 @@ export class TumblebitComponent implements OnInit {
       .subscribe(
         response =>  {
           if (response.status >= 200 && response.status < 400) {
-            let balanceResponse = response.json();
+            const balanceResponse = response.json();
             this.destinationConfirmedBalance = balanceResponse.balances[0].amountConfirmed;
             this.destinationUnconfirmedBalance = balanceResponse.balances[0].amountUnconfirmed;
             this.destinationTotalBalance = this.destinationConfirmedBalance + this.destinationUnconfirmedBalance;
@@ -409,13 +429,12 @@ export class TumblebitComponent implements OnInit {
         error => {
           console.log(error);
           if (error.status === 0) {
-            this.genericModalService.openModal(null, null);
+            this.genericModalService.openModal(null);
           } else if (error.status >= 400) {
             if (!error.json().errors[0]) {
               console.log(error);
-            }
-            else {
-              this.genericModalService.openModal(null, error.json().errors[0].message);
+            } else {
+              this.genericModalService.openModal(Error.toDialogOptions(error, null));
             }
           }
         }
@@ -428,26 +447,27 @@ export class TumblebitComponent implements OnInit {
       .subscribe(
         response => {
           if (response.status >= 200 && response.status < 400) {
-            let responseMessage = response.json();
+            const responseMessage = response.json();
             this.wallets = responseMessage.walletsFiles;
             if (this.wallets.length > 0) {
-              for (let wallet in this.wallets) {
-                this.wallets[wallet] = this.wallets[wallet].slice(0, -12);
+              for (const wallet in this.wallets) {
+                if (this.wallets.hasOwnProperty(wallet)) {
+                  this.wallets[wallet] = this.wallets[wallet].slice(0, -12);
+                }
               }
-              //this.updateWalletFileDisplay(this.wallets[0]);
+              // this.updateWalletFileDisplay(this.wallets[0]);
             } else {
             }
           }
         },
         error => {
           if (error.status === 0) {
-            this.genericModalService.openModal(null, null);
+            this.genericModalService.openModal(null);
           } else if (error.status >= 400) {
             if (!error.json().errors[0]) {
               console.log(error);
-            }
-            else {
-              this.genericModalService.openModal(null, error.json().errors[0].message);
+            } else {
+              this.genericModalService.openModal(Error.toDialogOptions(error, null));
             }
           }
         },

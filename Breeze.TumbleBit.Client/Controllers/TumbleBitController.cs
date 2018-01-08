@@ -45,7 +45,7 @@ namespace Breeze.TumbleBit.Controllers
             if (!this.ModelState.IsValid)
             {
                 var errors = this.ModelState.Values.SelectMany(e => e.Errors.Select(m => m.ErrorMessage));
-                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, "Formatting error", string.Join(Environment.NewLine, errors));
+                return Client.ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, "Formatting error", string.Join(Environment.NewLine, errors));
             }
 
             try
@@ -53,7 +53,7 @@ namespace Breeze.TumbleBit.Controllers
                 var tumblerParameters = await this.tumbleBitManager.ConnectToTumblerAsync().ConfigureAwait(false);
 
                 if (tumblerParameters.Failure)
-                    return ErrorHelpers.BuildErrorResponse(HttpStatusCode.InternalServerError, tumblerParameters.Message, tumblerParameters.Message);
+                    return Client.ErrorHelpers.BuildErrorResponse(HttpStatusCode.InternalServerError, tumblerParameters.Message, tumblerParameters.Message);
 
                 var periods = tumblerParameters.Value.CycleGenerator.FirstCycle.GetPeriods();
                 var lengthBlocks = periods.Total.End - periods.Total.Start;
@@ -72,7 +72,7 @@ namespace Breeze.TumbleBit.Controllers
             }
             catch (Exception e)
             {
-                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, $"An error occured connecting to the tumbler with uri {this.tumbleBitManager.TumblerAddress}.", e.ToString());
+                return Client.ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, $"An error occured connecting to the tumbler with uri {this.tumbleBitManager.TumblerAddress}.", e.ToString());
             }
         }
 
@@ -87,12 +87,12 @@ namespace Breeze.TumbleBit.Controllers
             if (!this.ModelState.IsValid)
             {
                 var errors = this.ModelState.Values.SelectMany(e => e.Errors.Select(m => m.ErrorMessage));
-                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, "Formatting error", string.Join(Environment.NewLine, errors));
+                return Client.ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, "Formatting error", string.Join(Environment.NewLine, errors));
             }
 
             if (this.tumbleBitManager.State == TumbleBitManager.TumbleState.Tumbling)
             {
-                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, "Already started tumbling", "");
+                return Client.ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, "Already started tumbling", "");
             }
 
             try
@@ -102,7 +102,7 @@ namespace Breeze.TumbleBit.Controllers
             }
             catch (Exception e)
             {
-                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, "An error occured starting tumbling session.", e.ToString());
+                return Client.ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, "An error occured starting tumbling session.", e.ToString());
             }
         }
 
@@ -129,7 +129,7 @@ namespace Breeze.TumbleBit.Controllers
             }
             catch (Exception e)
             {
-                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, "An error occured during tumbling-state request.", e.ToString());
+                return Client.ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, "An error occured during tumbling-state request.", e.ToString());
             }
         }
 
@@ -147,7 +147,7 @@ namespace Breeze.TumbleBit.Controllers
             }
             catch (Exception e)
             {
-                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, "An error occured during onlymonitor request.", e.ToString());
+                return Client.ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, "An error occured during onlymonitor request.", e.ToString());
             }
         }
 
@@ -166,7 +166,7 @@ namespace Breeze.TumbleBit.Controllers
             if (!this.ModelState.IsValid)
             {
                 var errors = this.ModelState.Values.SelectMany(e => e.Errors.Select(m => m.ErrorMessage));
-                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, "Formatting error", string.Join(Environment.NewLine, errors));
+                return Client.ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, "Formatting error", string.Join(Environment.NewLine, errors));
             }
 
             try
@@ -195,7 +195,7 @@ namespace Breeze.TumbleBit.Controllers
             }
             catch (Exception e)
             {
-                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
+                return Client.ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
             }
         }
 
@@ -219,7 +219,7 @@ namespace Breeze.TumbleBit.Controllers
             }
             else
             {
-                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.InternalServerError, "Unable to generate block", "Unable to generate block");
+                return Client.ErrorHelpers.BuildErrorResponse(HttpStatusCode.InternalServerError, "Unable to generate block", "Unable to generate block");
             }
         }
 
@@ -250,7 +250,7 @@ namespace Breeze.TumbleBit.Controllers
 		    }
 			catch (Exception e)
 		    {
-			    return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, $"Could not get progress.", e.ToString());
+			    return Client.ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, $"Could not get progress.", e.ToString());
 		    }
 	    }
 
@@ -269,7 +269,7 @@ namespace Breeze.TumbleBit.Controllers
             }
             catch (Exception e)
             {
-                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, $"Could not get last block mins.", e.ToString());
+                return Client.ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, $"Could not get last block mins.", e.ToString());
             }
         }
     }

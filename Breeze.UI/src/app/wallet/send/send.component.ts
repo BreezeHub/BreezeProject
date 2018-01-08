@@ -11,6 +11,8 @@ import { NgbModal, NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { FeeEstimation } from '../../shared/classes/fee-estimation';
 import { TransactionBuilding } from '../../shared/classes/transaction-building';
 import { TransactionSending } from '../../shared/classes/transaction-sending';
+import { Error } from '../../shared/classes/error';
+import { Log } from '../../shared/services/logger.service';
 
 import { SendConfirmationComponent } from './send-confirmation/send-confirmation.component';
 
@@ -21,59 +23,15 @@ import { SendConfirmationComponent } from './send-confirmation/send-confirmation
 })
 
 export class SendComponent implements OnInit {
-  constructor(private apiService: ApiService, private globalService: GlobalService, private modalService: NgbModal, private genericModalService: ModalService, public activeModal: NgbActiveModal, private fb: FormBuilder) {
-    this.buildSendForm();
-  }
-
   public sendForm: FormGroup;
   public coinUnit: string;
-  public isSending: boolean = false;
+  public isSending = false;
   public estimatedFee: number;
   public apiError: string;
   private transactionHex: string;
   private responseMessage: any;
   private errorMessage: string;
   private transaction: TransactionBuilding;
-
-  ngOnInit() {
-    this.coinUnit = this.globalService.getCoinUnit();
-  }
-
-  private buildSendForm(): void {
-    this.sendForm = this.fb.group({
-      "address": ["", Validators.compose([Validators.required, Validators.minLength(26)])],
-      // "amount": ["", Validators.compose([Validators.required, Validators.pattern(/^[0-9]+(\.[0-9]{0,8})?$/)])],
-      "amount": ["", Validators.compose([Validators.required, Validators.pattern(/^([0-9]+)?(\.[0-9]{0,8})?$/)])],
-      "fee": ["medium", Validators.required],
-      "password": ["", Validators.required]
-    });
-
-    this.sendForm.valueChanges
-      .subscribe(data => this.onValueChanged(data));
-
-    this.onValueChanged();
-  }
-
-  onValueChanged(data?: any) {
-    if (!this.sendForm) { return; }
-    const form = this.sendForm;
-    for (const field in this.formErrors) {
-      this.formErrors[field] = '';
-      const control = form.get(field);
-      if (control && control.dirty && !control.valid) {
-        const messages = this.validationMessages[field];
-        for (const key in control.errors) {
-          this.formErrors[field] += messages[key] + ' ';
-        }
-      }
-    }
-
-    this.apiError = "";
-
-    if(this.sendForm.get("address").valid && this.sendForm.get("amount").valid) {
-      this.estimateFee();
-    }
-  }
 
   formErrors = {
     'address': '',
@@ -99,10 +57,63 @@ export class SendComponent implements OnInit {
     }
   };
 
+  constructor(
+    private apiService: ApiService,
+    private globalService: GlobalService,
+    private modalService: NgbModal,
+    private genericModalService: ModalService,
+    public activeModal: NgbActiveModal,
+    private fb: FormBuilder) {
+    this.buildSendForm();
+  }
+
+  ngOnInit() {
+    this.coinUnit = this.globalService.getCoinUnit();
+  }
+
+  private buildSendForm(): void {
+    this.sendForm = this.fb.group({
+      'address': ['', Validators.compose([Validators.required, Validators.minLength(26)])],
+      // "amount": ["", Validators.compose([Validators.required, Validators.pattern(/^[0-9]+(\.[0-9]{0,8})?$/)])],
+      'amount': ['', Validators.compose([Validators.required, Validators.pattern(/^([0-9]+)?(\.[0-9]{0,8})?$/)])],
+      'fee': ['medium', Validators.required],
+      'password': ['', Validators.required]
+    });
+
+    this.sendForm.valueChanges
+      .subscribe(data => this.onValueChanged(data));
+
+    this.onValueChanged();
+  }
+
+  onValueChanged(data?: any) {
+    if (!this.sendForm) { return; }
+    const form = this.sendForm;
+    for (const field in this.formErrors) {
+      if (!this.formErrors.hasOwnProperty(field)) { continue; }
+      this.formErrors[field] = '';
+      const control = form.get(field);
+      if (control && control.dirty && !control.valid) {
+        const messages = this.validationMessages[field];
+        for (const key in control.errors) {
+          if (control.errors.hasOwnProperty(key)) {
+            this.formErrors[field] += messages[key] + ' ';
+          }
+        }
+      }
+    }
+
+    this.apiError = '';
+
+    if (this.sendForm.get('address').valid && this.sendForm.get('amount').valid) {
+      this.estimateFee();
+    }
+  }
+
   public getMaxBalance() {
-    let data = {
+    const data = {
       walletName: this.globalService.getWalletName(),
-      feeType: this.sendForm.get("fee").value
+      feeType: this.sendForm.get('fee').value
     }
 
     let balanceResponse;
@@ -111,22 +122,19 @@ export class SendComponent implements OnInit {
       .getMaximumBalance(data)
       .subscribe(
         response => {
-          if (response.status >= 200 && response.status < 400){
+          if (response.status >= 200 && response.status < 400) {
             balanceResponse = response.json();
           }
         },
         error => {
           console.log(error);
           if (error.status === 0) {
-            //this.genericModalService.openModal(null, null);
-            this.apiError = "Something went wrong while connecting to the API. Please restart the application."
+            this.apiError = 'Something went wrong while connecting to the API. Please restart the application.'
           } else if (error.status >= 400) {
             if (!error.json().errors[0]) {
-              console.log(error);
-            }
-            else {
-              //this.genericModalService.openModal(null, error.json().errors[0].message);
-              this.apiError = error.json().errors[0].message;
+              Log.error(error);
+            } else {
+              this.apiError = Error.getMessage(error);
             }
           }
         },
@@ -138,33 +146,31 @@ export class SendComponent implements OnInit {
   };
 
   public estimateFee() {
-    let transaction = new FeeEstimation(
+    const transaction = new FeeEstimation(
       this.globalService.getWalletName(),
-      "account 0",
-      this.sendForm.get("address").value.trim(),
-      this.sendForm.get("amount").value,
-      this.sendForm.get("fee").value,
+      'account 0',
+      this.sendForm.get('address').value.trim(),
+      this.sendForm.get('amount').value,
+      this.sendForm.get('fee').value,
       true
     );
 
     this.apiService.estimateFee(transaction)
       .subscribe(
         response => {
-          if (response.status >= 200 && response.status < 400){
+          if (response.status >= 200 && response.status < 400) {
             this.responseMessage = response.json();
           }
         },
         error => {
           console.log(error);
           if (error.status === 0) {
-            this.genericModalService.openModal(null, null);
+            this.genericModalService.openModal(null);
           } else if (error.status >= 400) {
             if (!error.json().errors[0]) {
               console.log(error);
-            }
-            else {
-              //this.genericModalService.openModal(null, error.json().errors[0].message);
-              this.apiError = error.json().errors[0].message;
+            } else {
+              this.apiError = Error.getMessage(error);
             }
           }
         },
@@ -178,21 +184,19 @@ export class SendComponent implements OnInit {
   public buildTransaction() {
     this.transaction = new TransactionBuilding(
       this.globalService.getWalletName(),
-      "account 0",
-      this.sendForm.get("password").value,
-      this.sendForm.get("address").value.trim(),
-      this.sendForm.get("amount").value,
-      this.sendForm.get("fee").value,
+      'account 0',
+      this.sendForm.get('password').value,
+      this.sendForm.get('address').value.trim(),
+      this.sendForm.get('amount').value,
+      this.sendForm.get('fee').value,
       true
     );
-
-    let transactionData;
 
     this.apiService
       .buildTransaction(this.transaction)
       .subscribe(
         response => {
-          if (response.status >= 200 && response.status < 400){
+          if (response.status >= 200 && response.status < 400) {
             console.log(response);
             this.responseMessage = response.json();
           }
@@ -201,15 +205,12 @@ export class SendComponent implements OnInit {
           console.log(error);
           this.isSending = false;
           if (error.status === 0) {
-            //this.genericModalService.openModal(null, null);
-            this.apiError = "Something went wrong while connecting to the API. Please restart the application."
+            this.apiError = 'Something went wrong while connecting to the API. Please restart the application.'
           } else if (error.status >= 400) {
             if (!error.json().errors[0]) {
-              console.log(error);
-            }
-            else {
-              //this.genericModalService.openModal(null, error.json().errors[0].message);
-              this.apiError = error.json().errors[0].message;
+              Log.error(error);
+            } else {
+              this.apiError = Error.getMessage(error);
             }
           }
         },
@@ -230,32 +231,29 @@ export class SendComponent implements OnInit {
   };
 
   private sendTransaction(hex: string) {
-    let transaction = new TransactionSending(hex);
+    const transaction = new TransactionSending(hex);
     this.apiService
       .sendTransaction(transaction)
       .subscribe(
         response => {
-          if (response.status >= 200 && response.status < 400){
-            this.activeModal.close("Close clicked");
+          if (response.status >= 200 && response.status < 400) {
+            this.activeModal.close('Close clicked');
           }
         },
         error => {
           console.log(error);
           this.isSending = false;
           if (error.status === 0) {
-            //this.genericModalService.openModal(null, null);
-            this.apiError = "Something went wrong while connecting to the API. Please restart the application."
+            this.apiError = 'Something went wrong while connecting to the API. Please restart the application.'
           } else if (error.status >= 400) {
             if (!error.json().errors[0]) {
-              console.log(error);
-            }
-            else {
-              //this.genericModalService.openModal(null, error.json().errors[0].message);
-              this.apiError = error.json().errors[0].message;
+              Log.error(error);
+            } else {
+              this.apiError = Error.getMessage(error);
             }
           }
         },
-        ()=>this.openConfirmationModal()
+        () => this.openConfirmationModal()
       )
     ;
   }

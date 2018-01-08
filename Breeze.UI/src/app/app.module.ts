@@ -1,6 +1,6 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule, Title } from '@angular/platform-browser';
-import { FormsModule, ReactiveFormsModule } from "@angular/forms";
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { HttpModule } from '@angular/http';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
@@ -16,6 +16,7 @@ import { GenericModalComponent } from './shared/components/generic-modal/generic
 
 import { ApiService } from './shared/services/api.service';
 import { GlobalService } from './shared/services/global.service';
+import { Log } from './shared/services/logger.service';
 import { TumblebitService } from './wallet/tumblebit/tumblebit.service';
 import { ModalService } from './shared/services/modal.service';
 
