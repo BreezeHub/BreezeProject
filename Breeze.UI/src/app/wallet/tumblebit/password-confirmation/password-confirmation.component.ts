@@ -21,6 +21,7 @@ export class PasswordConfirmationComponent implements OnInit {
   @Input() denomination: number;
   @Input() fee: number;
   @Input() balance: number;
+  @Input() coinUnit: string;
 
   public startingTumble: Boolean = false;
   private walletPasswordForm: FormGroup;
