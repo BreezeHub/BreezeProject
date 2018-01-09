@@ -18,6 +18,11 @@ export class PasswordConfirmationComponent implements OnInit {
 
   @Input() sourceWalletName: string;
   @Input() destinationWalletName: string;
+  @Input() denomination: number;
+  @Input() fee: number;
+  @Input() balance: number;
+  @Input() coinUnit: string;
+
   public startingTumble: Boolean = false;
   private walletPasswordForm: FormGroup;
   formErrors = {
