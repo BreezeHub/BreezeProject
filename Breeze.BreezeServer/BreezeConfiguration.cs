@@ -82,6 +82,21 @@ namespace Breeze.BreezeServer
                 {
                     TumblerNetwork = Network.Main;
                 }
+
+                if (configFile.GetOrDefault<string>("network", "testnet").Equals("stratistest"))
+                {
+                    TumblerNetwork = Network.StratisTest;
+                }
+
+                if (configFile.GetOrDefault<string>("network", "testnet").Equals("stratisregtest"))
+                {
+                    TumblerNetwork = Network.StratisRegTest;
+                }
+
+                if (configFile.GetOrDefault<string>("network", "testnet").Equals("stratismain"))
+                {
+                    TumblerNetwork = Network.StratisMain;
+                }
                 
                 RpcUser = configFile.GetOrDefault<string>("rpc.user", null);
                 RpcPassword = configFile.GetOrDefault<string>("rpc.password", null);
@@ -140,7 +155,13 @@ namespace Breeze.BreezeServer
 
                 string bitcoinNetwork;
                 
-                if (TumblerNetwork == Network.Main)
+                if (TumblerNetwork == Network.StratisMain)
+                    bitcoinNetwork = "StratisMainNet";
+                else if (TumblerNetwork == Network.StratisTest)
+                    bitcoinNetwork = "StratisTest";
+                else if (TumblerNetwork == Network.StratisRegTest)
+                    bitcoinNetwork = "StratisRegTest";
+                else if (TumblerNetwork == Network.Main)
                     bitcoinNetwork = "MainNet";
                 else if (TumblerNetwork == Network.RegTest)
                     bitcoinNetwork = "RegTest";
