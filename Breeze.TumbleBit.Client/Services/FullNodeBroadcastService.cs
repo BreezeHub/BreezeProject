@@ -182,9 +182,14 @@ namespace Breeze.TumbleBit.Client.Services
                     {
                         foreach (var input in walletTransaction.Transaction.Inputs)
                         {
-                            if (spentInputs.Contains(input.PrevOut))
+                            foreach (var spentInput in spentInputs)
                             {
-                                return true;
+                                // Do not seem to be able to directly check equivalence of the outpoints as
+                                // they (may) have different indexes within the transaction
+                                if (spentInput.Hash == input.PrevOut.Hash)
+                                {
+                                    return true;
+                                }
                             }
                         }
                     }
