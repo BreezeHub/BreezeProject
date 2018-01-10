@@ -269,29 +269,35 @@ export class TumblebitComponent implements OnInit, OnDestroy {
   }
 
   private stopTumbling() {
-    this.tumblebitService.stopTumbling()
-      .subscribe(
-        response => {
-          if (response.status >= 200 && response.status < 400) {
-            this.tumbling = false;
-            this.progressSubscription.unsubscribe();
-          }
-        },
-        error => {
-          console.error(error);
-          if (error.status === 0) {
-            this.genericModalService.openModal(
-              { body: 'Something went wrong while connecting to the TumbleBit Client. Please restart the application.'});
-          } else if (error.status >= 400) {
-            if (!error.json().errors[0]) {
+    this.genericModalService.confirm(
+      {
+        title: 'Are you sure you want to proceed?',
+        body: 'By stopping all current cycles, any current funds that are mid-cycle may take up to 12 hours to reimburse depending on the phase.'
+      },
+      () => {
+        this.tumblebitService.stopTumbling()
+          .subscribe(
+            response => {
+              if (response.status >= 200 && response.status < 400) {
+                this.tumbling = false;
+                this.progressSubscription.unsubscribe();
+              }
+            },
+            error => {
               console.error(error);
-            } else {
-              this.genericModalService.openModal(Error.toDialogOptions(error, null));
+              if (error.status === 0) {
+                this.genericModalService.openModal(
+                  { body: 'Something went wrong while connecting to the TumbleBit Client. Please restart the application.'});
+              } else if (error.status >= 400) {
+                if (!error.json().errors[0]) {
+                  console.error(error);
+                } else {
+                  this.genericModalService.openModal(Error.toDialogOptions(error, null));
+                }
+              }
             }
-          }
-        }
-      )
-    ;
+          );
+        });
   }
 
   private getProgress() {

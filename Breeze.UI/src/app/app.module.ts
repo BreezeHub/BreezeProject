@@ -13,6 +13,7 @@ import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { LoginComponent } from './login/login.component';
 import { GenericModalComponent } from './shared/components/generic-modal/generic-modal.component';
+import { ConfirmDialogComponent } from './shared/components/confirm-dialog/confirm-dialog.component';
 
 import { ApiService } from './shared/services/api.service';
 import { GlobalService } from './shared/services/global.service';
@@ -43,6 +44,7 @@ import { LogoutConfirmationComponent } from './wallet/logout-confirmation/logout
   declarations: [
     AppComponent,
     GenericModalComponent,
+    ConfirmDialogComponent,
     LoginComponent,
     LogoutConfirmationComponent,
     PasswordConfirmationComponent,
@@ -54,6 +56,7 @@ import { LogoutConfirmationComponent } from './wallet/logout-confirmation/logout
   entryComponents: [
     PasswordConfirmationComponent,
     GenericModalComponent,
+    ConfirmDialogComponent,
     SendComponent,
     SendConfirmationComponent,
     ReceiveComponent,
