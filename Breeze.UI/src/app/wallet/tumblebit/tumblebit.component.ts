@@ -272,7 +272,7 @@ export class TumblebitComponent implements OnInit, OnDestroy {
     this.genericModalService.confirm(
       {
         title: 'Are you sure you want to proceed?',
-        body: 'By stopping all current cycles, any current funds that are mid-cycle may take up to 12 hours to reimburse depending on the phaze.'
+        body: 'By stopping all current cycles, any current funds that are mid-cycle may take up to 12 hours to reimburse depending on the phase.'
       },
       () => {
         this.tumblebitService.stopTumbling()
