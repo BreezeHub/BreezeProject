@@ -624,6 +624,32 @@ namespace Breeze.TumbleBit.Client
         /// <inheritdoc />
         public void ProcessBlock(int height, Block block)
         {
+            try
+            {
+                var watchOnlyWallet = this.tumblingState.WatchOnlyWalletManager.GetWatchOnlyWallet();
+
+                // Force watch only wallet to update watched transactions that appear in this block
+                // Note: Transactions affecting watched addresses get updated by the watch only wallet already
+                // TODO: Move this to the watch only wallet ProcessTransaction method
+                foreach (var tx in block.Transactions)
+                {
+                    watchOnlyWallet.WatchedTransactions.TryGetValue(tx.GetHash().ToString(), out Stratis.Bitcoin.Features.WatchOnlyWallet.TransactionData watchedTransaction);
+
+                    if (watchedTransaction != null)
+                    {
+                        // Update block hash and Merkle proof
+                        watchedTransaction.BlockHash = block.GetHash();
+                        watchedTransaction.MerkleProof = new MerkleBlock(block, new[] {tx.GetHash()}).PartialMerkleTree;
+                    }
+                }
+
+                this.tumblingState.WatchOnlyWalletManager.SaveWatchOnlyWallet();
+            }
+            catch (Exception e)
+            {
+                this.logger.LogError("Error updating watched transactions: " + e);
+            }
+
             this.tumblingState.LastBlockReceivedHeight = height;
             this.tumblingState.Save();
         }
