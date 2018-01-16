@@ -12,6 +12,9 @@
           <div *ngIf="!!helpUrl" class="help-url">
             Please refer to <a target="_blank" href="{{helpUrl}}">{{helpUrl}}</a>
           </div>
+          <div *ngIf="showHomeLink" class="help-url text-center">
+            <button class="btn btn-link" type="button" (click)="goBack()">Back to Dashboard</button>
+          </div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-lg btn-primary" (click)="activeModal.close('Close click')">OK</button>
