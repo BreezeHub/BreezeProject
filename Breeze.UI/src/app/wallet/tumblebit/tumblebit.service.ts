@@ -10,12 +10,13 @@ import { TumbleRequest } from './classes/tumble-request';
 export class TumblebitService {
   // The service to connect to & operate a TumbleBit Server via the
   // TumbleBit.Client.CLI tool
-  constructor(private http: Http) { };
 
   private tumblerClientUrl = 'http://localhost:37220/api/TumbleBit/';
   private headers = new Headers({ 'Content-Type': 'application/json' });
 
   private pollingInterval = 3000;
+
+  constructor(private http: Http) { };
 
   // Might make sense to populate tumblerParams here because services are singletons
 
@@ -54,13 +55,16 @@ export class TumblebitService {
   }
 
   getWalletDestinationBalance(data: string): Observable<any> {
-    let params: URLSearchParams = new URLSearchParams();
+    const params: URLSearchParams = new URLSearchParams();
     params.set('walletName', data);
 
     return Observable
       .interval(this.pollingInterval)
       .startWith(0)
-      .switchMap(() => this.http.get(this.tumblerClientUrl + 'destination-balance', new RequestOptions({headers: this.headers, search: params})))
+      .switchMap(
+        () => this.http.get(
+          `${this.tumblerClientUrl}destination-balance`,
+          new RequestOptions({headers: this.headers, search: params})))
       .map((response: Response) => response);
   }
 }

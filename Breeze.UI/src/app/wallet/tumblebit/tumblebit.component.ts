@@ -1,3 +1,4 @@
+import { Router } from '@angular/router';
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { NgbModal, NgbActiveModal, NgbDropdown } from '@ng-bootstrap/ng-bootstrap';
 import { FormGroup, FormControl, Validators, FormBuilder } from '@angular/forms';
@@ -34,6 +35,7 @@ export class TumblebitComponent implements OnInit, OnDestroy {
   public destinationUnconfirmedBalance: number;
   public destinationTotalBalance: number;
   public destinationWalletBalanceSubscription: Subscription;
+  public connectionSubscription: Subscription;
   public isConnected: Boolean = false;
   public isSynced: Boolean = false;
   private walletStatusSubscription: Subscription;
@@ -68,7 +70,8 @@ export class TumblebitComponent implements OnInit, OnDestroy {
     private globalService: GlobalService,
     private modalService: NgbModal,
     private genericModalService: ModalService,
-    private fb: FormBuilder) {
+    private fb: FormBuilder,
+    private router: Router) {
     this.buildTumbleForm();
   }
 
@@ -99,6 +102,10 @@ export class TumblebitComponent implements OnInit, OnDestroy {
 
     if (this.progressSubscription) {
       this.progressSubscription.unsubscribe();
+    }
+
+    if (this.connectionSubscription) {
+      this.connectionSubscription.unsubscribe();
     }
   };
 
@@ -222,7 +229,7 @@ export class TumblebitComponent implements OnInit, OnDestroy {
       this.globalService.getNetwork()
     );
 
-    this.tumblebitService
+    this.connectionSubscription = this.tumblebitService
       .connectToTumbler()
       .subscribe(
         // TODO abstract into shared utility method
@@ -246,6 +253,7 @@ export class TumblebitComponent implements OnInit, OnDestroy {
             if (!error.json().errors[0]) {
               console.error(error);
             } else {
+              this.router.navigate(['/wallet']);
               this.genericModalService.openModal(Error.toDialogOptions(error, null));
             }
           }

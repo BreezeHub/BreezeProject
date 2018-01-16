@@ -35,6 +35,10 @@ export class ModalService {
     if (!!options.helpUrl) {
       this.modalRef.componentInstance.helpUrl = options.helpUrl;
     }
+
+    if (options.showHomeLink) {
+      this.modalRef.componentInstance.showHomeLink = options.showHomeLink;
+    }
   }
 
   public confirm(options: ConfirmDialogOptions, confirmCallback: Function) {
