@@ -83,7 +83,7 @@ namespace NTumbleBit.Configuration
 			try
 			{
 				var address = new Key().PubKey.GetAddress(network);
-				var isValid = ((JObject)rpcClient.SendCommand("validateaddress", address.ToString()).Result)["isvalid"].Value<bool>();
+				var isValid = rpcClient.ValidateAddress(address).IsValid;
 				if(!isValid)
 				{
 					Logs.Configuration.LogError("The RPC Server is on a different blockchain than the one configured for tumbling");

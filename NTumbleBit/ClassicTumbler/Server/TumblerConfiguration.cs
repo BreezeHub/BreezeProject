@@ -115,6 +115,9 @@ namespace NTumbleBit.ClassicTumbler.Server
 
 			Network = args.Contains("-testnet", StringComparer.OrdinalIgnoreCase) ? Network.TestNet :
 				args.Contains("-regtest", StringComparer.OrdinalIgnoreCase) ? Network.RegTest :
+                args.Contains("-stratismain", StringComparer.OrdinalIgnoreCase) ? Network.StratisMain :
+                args.Contains("-stratistest", StringComparer.OrdinalIgnoreCase) ? Network.StratisTest :
+                args.Contains("-stratisregtest", StringComparer.OrdinalIgnoreCase) ? Network.StratisRegTest :
 				Network.Main;
 
 			if(ConfigurationFile != null)
@@ -124,6 +127,9 @@ namespace NTumbleBit.ClassicTumbler.Server
 				
 				Network = configTemp.GetOrDefault<bool>("testnet", false) ? Network.TestNet :
 						  configTemp.GetOrDefault<bool>("regtest", false) ? Network.RegTest :
+                          configTemp.GetOrDefault<bool>("stratismain", false) ? Network.StratisMain :
+                          configTemp.GetOrDefault<bool>("stratistest", false) ? Network.StratisTest :
+                          configTemp.GetOrDefault<bool>("stratisregtest", false) ? Network.StratisRegTest :
 						  Network.Main;
 			}
 			if(DataDir == null)

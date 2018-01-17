@@ -27,11 +27,17 @@ namespace Breeze.BreezeServer.Services
         {
             var argsTemp = new List<string>();
             argsTemp.Add("-debug");
-			
-			if (breezeConfig.TumblerNetwork == Network.TestNet)
-				argsTemp.Add("-testnet");
-			else if (breezeConfig.TumblerNetwork == Network.RegTest)
-			    argsTemp.Add("-regtest");
+
+            if (breezeConfig.TumblerNetwork == Network.TestNet)
+                argsTemp.Add("-testnet");
+            else if (breezeConfig.TumblerNetwork == Network.RegTest)
+                argsTemp.Add("-regtest");
+            else if (breezeConfig.TumblerNetwork == Network.StratisMain)
+                argsTemp.Add("-stratis");
+            else if (breezeConfig.TumblerNetwork == Network.StratisTest)
+                argsTemp.Add("-stratistest");
+            else if (breezeConfig.TumblerNetwork == Network.StratisRegTest)
+                argsTemp.Add("-stratisregtest");
             // No else needed, mainnet is defaulted
             
             if (ntumblebitServerConf != null)
