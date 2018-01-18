@@ -47,8 +47,6 @@ namespace Breeze.Daemon
         {
             try
             { 
-                // Get the API uri.
-                var apiUri = args.GetValueOf("apiuri");
                 var isTestNet = args.Contains("-testnet");
                 var isStratis = args.Contains("stratis");
                 var agent = "Breeze";
@@ -69,12 +67,10 @@ namespace Breeze.Daemon
                         args = args.Append("-addnode=51.141.28.47").ToArray(); // TODO: fix this temp hack
 
                     nodeSettings = new NodeSettings("stratis", network, ProtocolVersion.ALT_PROTOCOL_VERSION, agent).LoadArguments(args);
-                    nodeSettings.ApiUri = new Uri(string.IsNullOrEmpty(apiUri) ? DefaultStratisUri : apiUri);
                 }
                 else
                 {
                     nodeSettings = new NodeSettings(agent: agent).LoadArguments(args);
-                    nodeSettings.ApiUri = new Uri(string.IsNullOrEmpty(apiUri) ? DefaultBitcoinUri : apiUri);
                 }
 
                 IFullNodeBuilder fullNodeBuilder = null;
@@ -153,7 +149,7 @@ namespace Breeze.Daemon
                 {"System", Microsoft.Extensions.Logging.LogLevel.Warning},
                 {"Microsoft", Microsoft.Extensions.Logging.LogLevel.Warning},
                 {"Microsoft.AspNetCore", Microsoft.Extensions.Logging.LogLevel.Error},
-                {"Stratis.Bitcoin", Microsoft.Extensions.Logging.LogLevel.Error},
+                {"Stratis.Bitcoin", Microsoft.Extensions.Logging.LogLevel.Information},
                 {"Breeze.TumbleBit.Client", Microsoft.Extensions.Logging.LogLevel.Debug},
                 {"Breeze.Registration", Microsoft.Extensions.Logging.LogLevel.Debug}
             };

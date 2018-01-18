@@ -33,6 +33,8 @@ using Breeze.BreezeServer.Services;
 using Breeze.TumbleBit.Models;
 using BreezeCommon;
 using NTumbleBit.Logging;
+using Stratis.Bitcoin.IntegrationTests.EnvironmentMockUpHelpers;
+using Stratis.Bitcoin.Utilities.Extensions;
 using LogLevel = Microsoft.Extensions.Logging.LogLevel;
 
 namespace Breeze.TumbleBit.Client.Tests
@@ -161,6 +163,8 @@ namespace Breeze.TumbleBit.Client.Tests
                         .UseTumbleBit(configurationOptions);
                 });
 
+                var apiSettings = node1.FullNode.NodeService<ApiSettings>();
+
                 node1.NotInIBD();
 
                 // Create the source and destination wallets
@@ -198,13 +202,13 @@ namespace Breeze.TumbleBit.Client.Tests
 
                     // Sample returned output
                     // {"tumbler":"ctb://<onionaddress>.onion?h=<confighash>","denomination":"0.01000000","fee":"0.00010000","network":"RegTest","estimate":"22200"}
-                    var connectResponse = client.GetStringAsync(node1.FullNode.Settings.ApiUri + "api/TumbleBit/connect").GetAwaiter().GetResult();
+                    var connectResponse = client.GetStringAsync(apiSettings.ApiUri + "api/TumbleBit/connect").GetAwaiter().GetResult();
 
                     //Assert.StartsWith("[{\"", connectResponse);
 
                     var tumbleModel = new TumbleRequest { OriginWalletName = "alice", OriginWalletPassword = "TumbleBit1", DestinationWalletName = "bob" };
                     var tumbleContent = new StringContent(tumbleModel.ToString(), Encoding.UTF8, "application/json");
-                    var tumbleResponse = client.PostAsync(node1.FullNode.Settings.ApiUri + "api/TumbleBit/tumble", tumbleContent).GetAwaiter().GetResult();
+                    var tumbleResponse = client.PostAsync(apiSettings.ApiUri + "api/TumbleBit/tumble", tumbleContent).GetAwaiter().GetResult();
 
                     //Assert.StartsWith("[{\"", tumbleResponse);
                 }
@@ -219,7 +223,7 @@ namespace Breeze.TumbleBit.Client.Tests
                     {
                         client.DefaultRequestHeaders.Accept.Clear();
                         client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                        var progress = client.GetStringAsync(node1.FullNode.Settings.ApiUri + "api/TumbleBit/progress").GetAwaiter().GetResult();
+                        var progress = client.GetStringAsync(apiSettings.ApiUri + "api/TumbleBit/progress").GetAwaiter().GetResult();
                         Console.WriteLine(progress);
                     }
                 }
@@ -234,7 +238,7 @@ namespace Breeze.TumbleBit.Client.Tests
                     {
                         client.DefaultRequestHeaders.Accept.Clear();
                         client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                        var progress = client.GetStringAsync(node1.FullNode.Settings.ApiUri + "api/TumbleBit/progress").GetAwaiter().GetResult();
+                        var progress = client.GetStringAsync(apiSettings.ApiUri + "api/TumbleBit/progress").GetAwaiter().GetResult();
                         Console.WriteLine(progress);
                     }
                 }
@@ -254,6 +258,8 @@ namespace Breeze.TumbleBit.Client.Tests
         [Fact]
         public void TestWithoutTor()
         {
+            Network.RegTest.Consensus.BIP9Deployments[BIP9Deployments.Segwit] = new BIP9DeploymentsParameters(1, 0, DateTime.Now.AddDays(50).ToUnixTimestamp());
+
             using (NodeBuilder builder = NodeBuilder.Create(version: "0.15.1"))
             {
                 HttpClient client = null;
@@ -264,8 +270,8 @@ namespace Breeze.TumbleBit.Client.Tests
                 coreNode.ConfigParameters.AddOrReplace("printtoconsole", "0");
 
                 coreNode.ConfigParameters.AddOrReplace("debug", "1");
-                coreNode.ConfigParameters.AddOrReplace("prematurewitness", "1");
-                coreNode.ConfigParameters.AddOrReplace("walletprematurewitness", "1");
+                //coreNode.ConfigParameters.AddOrReplace("prematurewitness", "1");
+                //coreNode.ConfigParameters.AddOrReplace("walletprematurewitness", "1");
                 coreNode.ConfigParameters.AddOrReplace("rpcworkqueue", "100");
                 
                 coreNode.Start();
@@ -367,6 +373,8 @@ namespace Breeze.TumbleBit.Client.Tests
                         .UseTumbleBit(configurationOptions);
                 });
 
+                var apiSettings = node1.FullNode.NodeService<ApiSettings>();
+
                 NLog.Config.LoggingConfiguration config1 = LogManager.Configuration;
                 var folder = Path.Combine(node1.DataFolder, "Logs");
 
@@ -388,7 +396,7 @@ namespace Breeze.TumbleBit.Client.Tests
                 // Apply new rules.
                 LogManager.ReconfigExistingLoggers();
 
-                node1.NotInIBD();
+                //node1.NotInIBD();
 
                 // Create the source and destination wallets
                 var wm1 = node1.FullNode.NodeService<IWalletManager>() as WalletManager;
@@ -398,7 +406,7 @@ namespace Breeze.TumbleBit.Client.Tests
 
                 // Mined coins only mature after 100 blocks on regtest
                 // Additionally, we need to force Segwit to activate in order for NTB to work correctly
-                coreNode.FindBlock(450);
+                rpc3.Generate(450);
 
                 var rpc1 = node1.CreateRPCClient();
                 //var rpc2 = node2.CreateRPCClient();
@@ -414,7 +422,7 @@ namespace Breeze.TumbleBit.Client.Tests
                 Console.WriteLine("Waiting for transaction to propagate and finalise");
                 Thread.Sleep(5000);
 
-                coreNode.FindBlock(1);
+                rpc3.Generate(1);
 
                 // Wait for SBFN to sync with the core node
                 TestHelper.WaitLoop(() => rpc1.GetBestBlockHash() == rpc3.GetBestBlockHash());
@@ -438,14 +446,14 @@ namespace Breeze.TumbleBit.Client.Tests
 
                     // Sample returned output
                     // {"tumbler":"ctb://<onionaddress>.onion?h=<confighash>","denomination":"0.01000000","fee":"0.00010000","network":"RegTest","estimate":"22200"}
-                    var connectResponse = client.GetStringAsync(node1.FullNode.Settings.ApiUri + "api/TumbleBit/connect").GetAwaiter().GetResult();
+                    var connectResponse = client.GetStringAsync(apiSettings.ApiUri + "api/TumbleBit/connect").GetAwaiter().GetResult();
 
                     //Assert.StartsWith("[{\"", connectResponse);
 
                     var tumbleModel = new TumbleRequest { OriginWalletName = "alice", OriginWalletPassword = "TumbleBit1", DestinationWalletName = "bob" };
                     var tumbleContent = new StringContent(tumbleModel.ToString(), Encoding.UTF8, "application/json");
 
-                    var tumbleResponse = client.PostAsync(node1.FullNode.Settings.ApiUri + "api/TumbleBit/tumble", tumbleContent).GetAwaiter().GetResult();
+                    var tumbleResponse = client.PostAsync(apiSettings.ApiUri + "api/TumbleBit/tumble", tumbleContent).GetAwaiter().GetResult();
                     
                     // Note that the TB client takes about 30 seconds to completely start up, as it has to check the server parameters and
                     // RSA key proofs
@@ -453,9 +461,16 @@ namespace Breeze.TumbleBit.Client.Tests
                     //Assert.StartsWith("[{\"", tumbleResponse);
                 }
 
+                HdAccount alice;
                 // TODO: Move forward specific numbers of blocks and check interim states? TB tests already do that
                 for (int i = 0; i < 80; i++)
                 {
+                    alice = wm1.GetWalletByName("alice").GetAccountByCoinType("account 0", (CoinType)Network.RegTest.Consensus.CoinType);
+
+                    Console.WriteLine("Wallet balance height: " + node1.FullNode.Chain.Height);
+                    Console.WriteLine("Confirmned: " + alice.GetSpendableAmount().ConfirmedAmount.ToString());
+                    Console.WriteLine("Unconfirmed: " + alice.GetSpendableAmount().UnConfirmedAmount.ToString());
+
                     rpc3.Generate(1);
                     builder.SyncNodes();
 
@@ -626,6 +641,9 @@ namespace Breeze.TumbleBit.Client.Tests
 
                 node2.ConfigParameters.AddOrReplace("apiuri", "http://localhost:37228");
 
+                var apiSettings1 = node1.FullNode.NodeService<ApiSettings>();
+                var apiSettings2 = node2.FullNode.NodeService<ApiSettings>();
+
                 node1.Start();
                 node2.Start();
 
@@ -717,11 +735,11 @@ namespace Breeze.TumbleBit.Client.Tests
 
                     // Sample returned output
                     // {"tumbler":"ctb://<onionaddress>.onion?h=<confighash>","denomination":"0.01000000","fee":"0.00010000","network":"RegTest","estimate":"22200"}
-                    var connectResponse = client.GetStringAsync(node1.FullNode.Settings.ApiUri + "api/TumbleBit/connect").GetAwaiter().GetResult();
+                    var connectResponse = client.GetStringAsync(apiSettings1.ApiUri + "api/TumbleBit/connect").GetAwaiter().GetResult();
                     //Assert.StartsWith("[{\"", connectResponse);
                     var tumbleModel = new TumbleRequest { OriginWalletName = "alice1", OriginWalletPassword = "TumbleBit1", DestinationWalletName = "bob1" };
                     var tumbleContent = new StringContent(tumbleModel.ToString(), Encoding.UTF8, "application/json");
-                    var tumbleResponse = client.PostAsync(node1.FullNode.Settings.ApiUri + "api/TumbleBit/tumble", tumbleContent).GetAwaiter().GetResult();
+                    var tumbleResponse = client.PostAsync(apiSettings1.ApiUri + "api/TumbleBit/tumble", tumbleContent).GetAwaiter().GetResult();
 
                     // Note that the TB client takes about 30 seconds to completely start up, as it has to check the server parameters and
                     // RSA key proofs
@@ -734,10 +752,10 @@ namespace Breeze.TumbleBit.Client.Tests
                     client.DefaultRequestHeaders.Accept.Clear();
                     client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                     
-                    var connectResponse = client.GetStringAsync(node2.FullNode.Settings.ApiUri + "api/TumbleBit/connect").GetAwaiter().GetResult();
+                    var connectResponse = client.GetStringAsync(apiSettings2.ApiUri + "api/TumbleBit/connect").GetAwaiter().GetResult();
                     var tumbleModel = new TumbleRequest { OriginWalletName = "alice2", OriginWalletPassword = "TumbleBit1", DestinationWalletName = "bob2" };
                     var tumbleContent = new StringContent(tumbleModel.ToString(), Encoding.UTF8, "application/json");
-                    var tumbleResponse = client.PostAsync(node2.FullNode.Settings.ApiUri + "api/TumbleBit/tumble", tumbleContent).GetAwaiter().GetResult();
+                    var tumbleResponse = client.PostAsync(apiSettings2.ApiUri + "api/TumbleBit/tumble", tumbleContent).GetAwaiter().GetResult();
 
                     // Note that the TB client takes about 30 seconds to completely start up, as it has to check the server parameters and
                     // RSA key proofs

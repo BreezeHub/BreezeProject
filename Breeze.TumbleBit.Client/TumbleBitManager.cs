@@ -204,7 +204,7 @@ namespace Breeze.TumbleBit.Client
                     // Stratis PoW
                     await Task.Run(() =>
                     {
-                        powMining.GenerateBlocks(new ReserveScript {reserveSfullNodecript = address.ScriptPubKey},
+                        powMining.GenerateBlocks(new ReserveScript {ReserveFullNodeScript = address.ScriptPubKey},
                             (ulong) numberOfBlocks, int.MaxValue);
                     });
                 }

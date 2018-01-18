@@ -110,9 +110,9 @@ namespace Breeze.TumbleBit.Client.Services
                 {
                     // Check number of attached peers - if there is only 1 (or 0) there is a significantly higher risk
                     // the transaction will not get adequately propagated on the network
-                    if (this.TumblingState.ConnectionManager.ConnectedNodes.Count() < 4)
+                    if (this.TumblingState.ConnectionManager.ConnectedPeers.Count() < 4)
                     {
-                        Logs.Broadcasters.LogDebug("Insufficient peers for reliable transaction (" + tx.Transaction.GetHash() + ") propagation: " + this.TumblingState.ConnectionManager.ConnectedNodes.Count());
+                        Logs.Broadcasters.LogDebug("Insufficient peers for reliable transaction (" + tx.Transaction.GetHash() + ") propagation: " + this.TumblingState.ConnectionManager.ConnectedPeers.Count());
                         return false;
                     }
                 }
