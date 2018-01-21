@@ -171,6 +171,7 @@ namespace Breeze.TumbleBit.Client.Services
 
         private bool IsDoubleSpend(Transaction tx)
         {
+            Console.WriteLine("Checking double spends for transaction: " + tx.GetHash());
             var spentInputs = new HashSet<OutPoint>(tx.Inputs.Select(txin => txin.PrevOut));
             var allTransactions = Cache.FindAllTransactionsAsync().Result;
             foreach (var entry in allTransactions)
@@ -180,14 +181,18 @@ namespace Breeze.TumbleBit.Client.Services
                     var walletTransaction = allTransactions.Where(x => x.Transaction.GetHash() == entry.Transaction.GetHash()).FirstOrDefault();
                     if (walletTransaction != null)
                     {
-                        foreach (var input in walletTransaction.Transaction.Inputs)
+                        foreach (TxIn input in walletTransaction.Transaction.Inputs)
                         {
-                            foreach (var spentInput in spentInputs)
+                            foreach (OutPoint spentInput in spentInputs)
                             {
-                                // Do not seem to be able to directly check equivalence of the outpoints as
-                                // they (may) have different indexes within the transaction
-                                if (spentInput.Hash == input.PrevOut.Hash)
+                                if (spentInput == input.PrevOut)
                                 {
+                                    Console.WriteLine("FOUND in transaction: " + walletTransaction.Transaction.GetHash());
+                                    Console.WriteLine("---- Hex for " + tx.GetHash() + "---");
+                                    Console.WriteLine(tx.ToHex());
+                                    Console.WriteLine("---- Hex for " + walletTransaction.Transaction.GetHash() + "---");
+                                    Console.WriteLine(walletTransaction.Transaction.ToHex());
+                                    Console.WriteLine("----");
                                     return true;
                                 }
                             }
@@ -195,6 +200,8 @@ namespace Breeze.TumbleBit.Client.Services
                     }
                 }
             }
+
+            Console.WriteLine("Double spend NOT found for transaction: " + tx.GetHash());
             return false;
         }
 

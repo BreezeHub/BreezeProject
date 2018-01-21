@@ -258,6 +258,7 @@ namespace Breeze.TumbleBit.Client.Tests
         [Fact]
         public void TestWithoutTor()
         {
+            // Workaround for segwit not correctly activating
             Network.RegTest.Consensus.BIP9Deployments[BIP9Deployments.Segwit] = new BIP9DeploymentsParameters(1, 0, DateTime.Now.AddDays(50).ToUnixTimestamp());
 
             using (NodeBuilder builder = NodeBuilder.Create(version: "0.15.1"))
@@ -309,14 +310,14 @@ namespace Breeze.TumbleBit.Client.Tests
 
                 BreezeConfiguration config = new BreezeConfiguration(configPath);
 
-                var rpc3 = coreNode.CreateRPCClient();
+                var coreRpc = coreNode.CreateRPCClient();
                 string ntbServerConfigPath = Path.Combine(coreNode.DataFolder, "server.config");
                 string[] ntbServerConfig =
                 {
                     "regtest=1",
-                    "rpc.url=http://127.0.0.1:" + rpc3.Address.Port + "/",
-                    "rpc.user=" + rpc3.CredentialString.UserPassword.UserName,
-                    "rpc.password=" + rpc3.CredentialString.UserPassword.Password,
+                    "rpc.url=http://127.0.0.1:" + coreRpc.Address.Port + "/",
+                    "rpc.user=" + coreRpc.CredentialString.UserPassword.UserName,
+                    "rpc.password=" + coreRpc.CredentialString.UserPassword.Password,
                     //"cycle=kotori",
                     "tor.enabled=false"
                 };
@@ -348,9 +349,8 @@ namespace Breeze.TumbleBit.Client.Tests
                 // Not used for this test
                 ConfigurationOptionWrapper<string> registrationStoreDirectory = new ConfigurationOptionWrapper<string>("RegistrationStoreDirectory", "");
 
-                // Force SBFN to use the temporary hidden service to connect to the server
+                // Force SBFN to connect to the server
                 ConfigurationOptionWrapper<string> masternodeUri = new ConfigurationOptionWrapper<string>("MasterNodeUri", serverAddress);
-
                 ConfigurationOptionWrapper<string>[] configurationOptions = { registrationStoreDirectory, masternodeUri };
 
                 // Logging for NTB client code
@@ -406,26 +406,26 @@ namespace Breeze.TumbleBit.Client.Tests
 
                 // Mined coins only mature after 100 blocks on regtest
                 // Additionally, we need to force Segwit to activate in order for NTB to work correctly
-                rpc3.Generate(450);
+                coreRpc.Generate(450);
 
                 var rpc1 = node1.CreateRPCClient();
                 //var rpc2 = node2.CreateRPCClient();
 
-                rpc3.AddNode(node1.Endpoint, false);
+                coreRpc.AddNode(node1.Endpoint, false);
                 rpc1.AddNode(coreNode.Endpoint, false);
 
                 var amount = new Money(5.0m, MoneyUnit.BTC);
                 var destination = wm1.GetUnusedAddress(new WalletAccountReference("alice", "account 0"));
                 
-                rpc3.SendToAddress(BitcoinAddress.Create(destination.Address, Network.RegTest), amount);
+                coreRpc.SendToAddress(BitcoinAddress.Create(destination.Address, Network.RegTest), amount);
 
                 Console.WriteLine("Waiting for transaction to propagate and finalise");
                 Thread.Sleep(5000);
 
-                rpc3.Generate(1);
+                coreRpc.Generate(1);
 
                 // Wait for SBFN to sync with the core node
-                TestHelper.WaitLoop(() => rpc1.GetBestBlockHash() == rpc3.GetBestBlockHash());
+                TestHelper.WaitLoop(() => rpc1.GetBestBlockHash() == coreRpc.GetBestBlockHash());
 
                 // Test implementation note: the coins do not seem to immediately appear in the wallet.
                 // This is possibly some sort of race condition between the wallet manager and block generation/sync.
@@ -462,21 +462,28 @@ namespace Breeze.TumbleBit.Client.Tests
                 }
 
                 HdAccount alice;
+                HdAccount bob;
                 // TODO: Move forward specific numbers of blocks and check interim states? TB tests already do that
-                for (int i = 0; i < 80; i++)
+                for (int i = 0; i < 200; i++)
                 {
+                    Console.WriteLine("Wallet balance height: " + node1.FullNode.Chain.Height);
+
                     alice = wm1.GetWalletByName("alice").GetAccountByCoinType("account 0", (CoinType)Network.RegTest.Consensus.CoinType);
 
-                    Console.WriteLine("Wallet balance height: " + node1.FullNode.Chain.Height);
-                    Console.WriteLine("Confirmned: " + alice.GetSpendableAmount().ConfirmedAmount.ToString());
-                    Console.WriteLine("Unconfirmed: " + alice.GetSpendableAmount().UnConfirmedAmount.ToString());
+                    Console.WriteLine("(A) Confirmed: " + alice.GetSpendableAmount().ConfirmedAmount.ToString());
+                    Console.WriteLine("(A) Unconfirmed: " + alice.GetSpendableAmount().UnConfirmedAmount.ToString());
 
-                    rpc3.Generate(1);
+                    bob = wm1.GetWalletByName("bob").GetAccountByCoinType("account 0", (CoinType)Network.RegTest.Consensus.CoinType);
+
+                    Console.WriteLine("(B) Confirmed: " + bob.GetSpendableAmount().ConfirmedAmount.ToString());
+                    Console.WriteLine("(B) Unconfirmed: " + bob.GetSpendableAmount().UnConfirmedAmount.ToString());
+
+                    coreRpc.Generate(1);
                     builder.SyncNodes();
 
                     // Try to ensure the invalid phase error does not occur
                     // (seems to occur when the server has not yet processed a new block and the client has)
-                    TestHelper.WaitLoop(() => rpc1.GetBestBlockHash() == rpc3.GetBestBlockHash());
+                    TestHelper.WaitLoop(() => rpc1.GetBestBlockHash() == coreRpc.GetBestBlockHash());
 
                     var mempool = node1.FullNode.NodeService<MempoolManager>();
                     var mempoolTx = mempool.GetMempoolAsync().Result;

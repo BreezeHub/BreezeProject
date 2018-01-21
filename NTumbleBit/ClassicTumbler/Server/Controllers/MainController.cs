@@ -308,7 +308,17 @@ namespace NTumbleBit.ClassicTumbler.Server.Controllers
 						try
 						{
 							var tx = await task.ConfigureAwait(false);
-							var correlation = new CorrelationId(channelId);
+                            Console.WriteLine("*** Inputs for TumblerEscrow transaction: *** [Cycle " + cycle.Start + "]");
+						    foreach (var input in tx.Inputs)
+						    {
+						        Console.WriteLine("PrevOut hash: " + input.PrevOut.Hash);
+						        Console.WriteLine("PrevOut index: " + input.PrevOut.N);
+						        Console.WriteLine("ScriptSig: " + input.ScriptSig);
+						        Console.WriteLine("WitScript: " + input.WitScript);
+						        Console.WriteLine("******");
+                            }
+
+                            var correlation = new CorrelationId(channelId);
 							Tracker.TransactionCreated(cycle.Start, TransactionType.TumblerEscrow, tx.GetHash(), correlation);
 
 							//Logging/Broadcast per funding TX one time
@@ -332,6 +342,7 @@ namespace NTumbleBit.ClassicTumbler.Server.Controllers
 						}
 						catch(Exception ex)
 						{
+                            Console.WriteLine("Error in escrow callback: " + ex);
 							Logs.Tumbler.LogCritical(new EventId(), ex, "Error during escrow transaction callback");
 						}
 					});

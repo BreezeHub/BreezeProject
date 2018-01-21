@@ -361,6 +361,8 @@ namespace NTumbleBit.ClassicTumbler.Client
 							var outpoint = new OutPoint(tumblerEscrow.Transaction.GetHash(), tumblerEscrow.OutputIndex);
 							var escrowCoin = new Coin(outpoint, txOut).ToScriptCoin(ClientChannelNegotiation.GetTumblerEscrowParameters(tumblerEscrow.EscrowInitiatorKey).ToScript());
 
+                            Console.WriteLine("TumblerEscrow hex: " + tumblerEscrow.Transaction.ToHex());
+
 							PromiseClientSession = ClientChannelNegotiation.ReceiveTumblerEscrowedCoin(escrowCoin);
 							Logs.Client.LogInformation("Tumbler expected escrowed coin received");
 							//Tell to the block explorer we need to track that address (for checking if it is confirmed in payment phase)
@@ -439,7 +441,10 @@ namespace NTumbleBit.ClassicTumbler.Client
 								var tumblingSolution = SolverClientSession.GetSolution();
 								var transaction = PromiseClientSession.GetSignedTransaction(tumblingSolution);
 								Logs.Client.LogDebug("Got puzzle solution cooperatively from the tumbler");
-								Status = PaymentStateMachineStatus.PuzzleSolutionObtained;
+
+							    Console.WriteLine("TumblerCashOut hex: " + transaction.ToHex());
+
+                                Status = PaymentStateMachineStatus.PuzzleSolutionObtained;
 								Services.TrustedBroadcastService.Broadcast(cycle.Start, TransactionType.TumblerCashout, correlation, new TrustedBroadcastRequest()
 								{
 									BroadcastAt = cycle.GetPeriods().ClientCashout.Start,
