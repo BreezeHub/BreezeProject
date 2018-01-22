@@ -43,7 +43,7 @@ namespace Breeze.TumbleBit.Client.Services
 
                 var accounts = TumblingState.OriginWallet.GetAccountsByCoinType((CoinType)TumblingState.OriginWallet.Network.Consensus.CoinType);
                 var account = accounts.First(); // In Breeze at this point only the first account is used
-                var addressString = account.GetFirstUnusedChangeAddress().Address;
+                var addressString = account.GetFirstUnusedReceivingAddress().Address;
                 return BitcoinAddress.Create(addressString);
             }).ConfigureAwait(false);
         }
