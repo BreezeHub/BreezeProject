@@ -44,16 +44,21 @@ namespace Breeze.TumbleBit.Client.Tests
         [Fact]
         public void TestWithTor()
         {
+            // Workaround for segwit not correctly activating
+            Network.RegTest.Consensus.BIP9Deployments[BIP9Deployments.Segwit] = new BIP9DeploymentsParameters(1, 0, DateTime.Now.AddDays(50).ToUnixTimestamp());
+
             using (NodeBuilder builder = NodeBuilder.Create(version: "0.15.1"))
             {
                 HttpClient client = null;
 
                 var coreNode = builder.CreateNode(false);
 
-                coreNode.ConfigParameters.AddOrReplace("debug", "1");
+                // This line has no effect currently as the changes to the config get overwritten
                 coreNode.ConfigParameters.AddOrReplace("printtoconsole", "0");
-                coreNode.ConfigParameters.AddOrReplace("prematurewitness", "1");
-                coreNode.ConfigParameters.AddOrReplace("walletprematurewitness", "1");
+
+                coreNode.ConfigParameters.AddOrReplace("debug", "1");
+                //coreNode.ConfigParameters.AddOrReplace("prematurewitness", "1");
+                //coreNode.ConfigParameters.AddOrReplace("walletprematurewitness", "1");
                 coreNode.ConfigParameters.AddOrReplace("rpcworkqueue", "100");
 
                 coreNode.Start();
@@ -91,14 +96,15 @@ namespace Breeze.TumbleBit.Client.Tests
 
                 BreezeConfiguration config = new BreezeConfiguration(configPath);
 
-                var rpc3 = coreNode.CreateRPCClient();
+                var coreRpc = coreNode.CreateRPCClient();
                 string ntbServerConfigPath = Path.Combine(coreNode.DataFolder, "server.config");
                 string[] ntbServerConfig =
                 {
                     "regtest=1",
-                    "rpc.url=http://127.0.0.1:" + rpc3.Address.Port + "/",
-                    "rpc.user=" + rpc3.CredentialString.UserPassword.UserName,
-                    "rpc.password=" + rpc3.CredentialString.UserPassword.Password,
+                    "rpc.url=http://127.0.0.1:" + coreRpc.Address.Port + "/",
+                    "rpc.user=" + coreRpc.CredentialString.UserPassword.UserName,
+                    "rpc.password=" + coreRpc.CredentialString.UserPassword.Password,
+                    //"cycle=kotori",
                     "tor.enabled=true",
                     "tor.server=127.0.0.1:9051" // We assume for now that tor has been manually started
                 };
@@ -113,7 +119,7 @@ namespace Breeze.TumbleBit.Client.Tests
                     Thread.CurrentThread.IsBackground = true;
                     // By instantiating the TumblerService directly the registration logic is skipped
                     var tumbler = serviceProvider.GetService<Breeze.BreezeServer.Services.ITumblerService>();
-                    tumbler.StartTumbler(config, false, "server.config", Path.GetFullPath(coreNode.DataFolder));
+                    tumbler.StartTumbler(config, false, "server.config", Path.GetFullPath(coreNode.DataFolder), false);
                 }).Start();
 
                 // Wait for URI file to be written out by the TumblerService
@@ -127,25 +133,16 @@ namespace Breeze.TumbleBit.Client.Tests
 
                 var serverAddress = File.ReadAllText(Path.Combine(coreNode.DataFolder, "uri.txt"));
 
-                /* For some reason this is not able to actually connect to the server. Perhaps something to do with proxy endpoint mapping?
-                string serverAddress;
-                using (client = new HttpClient())
-                {
-                    client.DefaultRequestHeaders.Accept.Clear();
-                    client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                    var uri = new Uri("http://127.0.0.1:37123/api/v1/tumblers/address");
-                    serverAddress = client.GetStringAsync(uri).GetAwaiter().GetResult();
-
-                    Console.WriteLine(serverAddress);
-                }*/
-
                 // Not used for this test
                 ConfigurationOptionWrapper<string> registrationStoreDirectory = new ConfigurationOptionWrapper<string>("RegistrationStoreDirectory", "");
 
-                // Force SBFN to use the temporary hidden service to connect to the server
+                // Force SBFN to connect to the server
                 ConfigurationOptionWrapper<string> masternodeUri = new ConfigurationOptionWrapper<string>("MasterNodeUri", serverAddress);
-
                 ConfigurationOptionWrapper<string>[] configurationOptions = { registrationStoreDirectory, masternodeUri };
+
+                // Logging for NTB client code
+                ConsoleLoggerProcessor loggerProcessor = new ConsoleLoggerProcessor();
+                Logs.Configure(new FuncLoggerFactory(i => new CustomerConsoleLogger(i, Logs.SupportDebug(true), false, loggerProcessor)));
 
                 CoreNode node1 = builder.CreateStratisPowNode(true, fullNodeBuilder =>
                 {
@@ -165,7 +162,28 @@ namespace Breeze.TumbleBit.Client.Tests
 
                 var apiSettings = node1.FullNode.NodeService<ApiSettings>();
 
-                node1.NotInIBD();
+                NLog.Config.LoggingConfiguration config1 = LogManager.Configuration;
+                var folder = Path.Combine(node1.DataFolder, "Logs");
+
+                var tbTarget = new FileTarget();
+                tbTarget.Name = "tumblebit";
+                tbTarget.FileName = Path.Combine(folder, "tumblebit.txt");
+                tbTarget.ArchiveFileName = Path.Combine(folder, "tb-${date:universalTime=true:format=yyyy-MM-dd}.txt");
+                tbTarget.ArchiveNumbering = ArchiveNumberingMode.Sequence;
+                tbTarget.ArchiveEvery = FileArchivePeriod.Day;
+                tbTarget.MaxArchiveFiles = 7;
+                tbTarget.Layout = "[${longdate:universalTime=true} ${threadid}${mdlc:item=id}] ${level:uppercase=true}: ${callsite} ${message}";
+                tbTarget.Encoding = Encoding.UTF8;
+
+                var ruleTb = new LoggingRule("*", NLog.LogLevel.Debug, tbTarget);
+                config1.LoggingRules.Add(ruleTb);
+
+                config1.AddTarget(tbTarget);
+
+                // Apply new rules.
+                LogManager.ReconfigExistingLoggers();
+
+                //node1.NotInIBD();
 
                 // Create the source and destination wallets
                 var wm1 = node1.FullNode.NodeService<IWalletManager>() as WalletManager;
@@ -174,25 +192,38 @@ namespace Breeze.TumbleBit.Client.Tests
                 wm1.CreateWallet("TumbleBit1", "bob");
 
                 // Mined coins only mature after 100 blocks on regtest
-                coreNode.FindBlock(101);
+                // Additionally, we need to force Segwit to activate in order for NTB to work correctly
+                coreRpc.Generate(450);
 
                 var rpc1 = node1.CreateRPCClient();
                 //var rpc2 = node2.CreateRPCClient();
 
-                rpc3.AddNode(node1.Endpoint, false);
+                coreRpc.AddNode(node1.Endpoint, false);
                 rpc1.AddNode(coreNode.Endpoint, false);
 
                 var amount = new Money(5.0m, MoneyUnit.BTC);
                 var destination = wm1.GetUnusedAddress(new WalletAccountReference("alice", "account 0"));
 
-                rpc3.SendToAddress(BitcoinAddress.Create(destination.Address, Network.RegTest), amount);
+                coreRpc.SendToAddress(BitcoinAddress.Create(destination.Address, Network.RegTest), amount);
 
-                coreNode.FindBlock(1);
+                Console.WriteLine("Waiting for transaction to propagate and finalise");
+                Thread.Sleep(5000);
+
+                coreRpc.Generate(1);
 
                 // Wait for SBFN to sync with the core node
-                TestHelper.WaitLoop(() => rpc1.GetBestBlockHash() == rpc3.GetBestBlockHash());
+                TestHelper.WaitLoop(() => rpc1.GetBestBlockHash() == coreRpc.GetBestBlockHash());
 
-                //var unspent = rpc1.ListUnspent();
+                // Test implementation note: the coins do not seem to immediately appear in the wallet.
+                // This is possibly some sort of race condition between the wallet manager and block generation/sync.
+                // This extra delay seems to ensure that the coins are definitely in the wallet by the time the
+                // transaction count gets logged to the console below.
+
+                // Wait instead of generating a block
+                Thread.Sleep(5000);
+
+                //var log = node1.FullNode.NodeService<ILogger>();
+                Console.WriteLine("Number of wallet transactions: " + wm1.GetSpendableTransactionsInWallet("alice").Count());
 
                 // Connect to server and start tumbling
                 using (client = new HttpClient())
@@ -208,39 +239,54 @@ namespace Breeze.TumbleBit.Client.Tests
 
                     var tumbleModel = new TumbleRequest { OriginWalletName = "alice", OriginWalletPassword = "TumbleBit1", DestinationWalletName = "bob" };
                     var tumbleContent = new StringContent(tumbleModel.ToString(), Encoding.UTF8, "application/json");
+
                     var tumbleResponse = client.PostAsync(apiSettings.ApiUri + "api/TumbleBit/tumble", tumbleContent).GetAwaiter().GetResult();
+
+                    // Note that the TB client takes about 30 seconds to completely start up, as it has to check the server parameters and
+                    // RSA key proofs
 
                     //Assert.StartsWith("[{\"", tumbleResponse);
                 }
 
-                // TODO: Move forward specific numbers of blocks and check interim states? TB tests should already do that
-                for (int i = 0; i < 6; i++)
+                HdAccount alice;
+                HdAccount bob;
+                // TODO: Move forward specific numbers of blocks and check interim states? TB tests already do that
+                for (int i = 0; i < 80; i++)
                 {
-                    coreNode.FindBlock(1);
-                    Thread.Sleep(5000);
+                    Console.WriteLine("Wallet balance height: " + node1.FullNode.Chain.Height);
 
-                    using (client = new HttpClient())
+                    alice = wm1.GetWalletByName("alice").GetAccountByCoinType("account 0", (CoinType)Network.RegTest.Consensus.CoinType);
+
+                    Console.WriteLine("(A) Confirmed: " + alice.GetSpendableAmount().ConfirmedAmount.ToString());
+                    Console.WriteLine("(A) Unconfirmed: " + alice.GetSpendableAmount().UnConfirmedAmount.ToString());
+
+                    bob = wm1.GetWalletByName("bob").GetAccountByCoinType("account 0", (CoinType)Network.RegTest.Consensus.CoinType);
+
+                    Console.WriteLine("(B) Confirmed: " + bob.GetSpendableAmount().ConfirmedAmount.ToString());
+                    Console.WriteLine("(B) Unconfirmed: " + bob.GetSpendableAmount().UnConfirmedAmount.ToString());
+
+                    coreRpc.Generate(1);
+                    builder.SyncNodes();
+
+                    // Try to ensure the invalid phase error does not occur
+                    // (seems to occur when the server has not yet processed a new block and the client has)
+                    TestHelper.WaitLoop(() => rpc1.GetBestBlockHash() == coreRpc.GetBestBlockHash());
+
+                    var mempool = node1.FullNode.NodeService<MempoolManager>();
+                    var mempoolTx = mempool.GetMempoolAsync().Result;
+                    if (mempoolTx.Count > 0)
                     {
-                        client.DefaultRequestHeaders.Accept.Clear();
-                        client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                        var progress = client.GetStringAsync(apiSettings.ApiUri + "api/TumbleBit/progress").GetAwaiter().GetResult();
-                        Console.WriteLine(progress);
+                        Console.WriteLine("--- Mempool contents ---");
+                        foreach (var tx in mempoolTx)
+                        {
+                            var hex = mempool.GetTransaction(tx).Result;
+                            Console.WriteLine(tx + " ->");
+                            Console.WriteLine(hex);
+                            Console.WriteLine("---");
+                        }
                     }
-                }
 
-                // Splt the cycle so that we can break on the ClientChannelBroadcasted (?) exception
-                for (int i = 0; i < 40; i++)
-                {
-                    coreNode.FindBlock(1);
-                    Thread.Sleep(5000);
-
-                    using (client = new HttpClient())
-                    {
-                        client.DefaultRequestHeaders.Accept.Clear();
-                        client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                        var progress = client.GetStringAsync(apiSettings.ApiUri + "api/TumbleBit/progress").GetAwaiter().GetResult();
-                        Console.WriteLine(progress);
-                    }
+                    Thread.Sleep(20000);
                 }
 
                 // Check destination wallet for tumbled coins
