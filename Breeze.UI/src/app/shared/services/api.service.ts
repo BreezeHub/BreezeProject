@@ -4,7 +4,7 @@ import { Observable } from 'rxjs/Observable';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/switchMap';
 import 'rxjs/add/operator/catch';
-import "rxjs/add/observable/interval";
+import 'rxjs/add/observable/interval';
 import 'rxjs/add/operator/startWith';
 
 import { GlobalService } from './global.service';
@@ -19,11 +19,11 @@ import { TransactionBuilding } from '../classes/transaction-building';
 import { TransactionSending } from '../classes/transaction-sending';
 
 /**
- * For information on the API specification have a look at our swagger files located at http://localhost:5000/swagger/ when running the daemon
+ * For information on the API specification have a look at our swagger files
+ * located at http://localhost:5000/swagger/ when running the daemon
  */
 @Injectable()
 export class ApiService {
-    constructor(private http: Http, private globalService: GlobalService) {};
 
     private headers = new Headers({'Content-Type': 'application/json'});
     private pollingInterval = 3000;
@@ -31,11 +31,13 @@ export class ApiService {
     private stratisApiUrl = 'http://localhost:37221/api';
     private currentApiUrl = 'http://localhost:37220/api';
 
+    constructor(private http: Http, private globalService: GlobalService) {};
+
     private getCurrentCoin() {
-      let currentCoin = this.globalService.getCoinName();
-      if (currentCoin === "Bitcoin" || currentCoin === "TestBitcoin") {
+      const currentCoin = this.globalService.getCoinName();
+      if (currentCoin === 'Bitcoin' || currentCoin === 'TestBitcoin') {
         this.currentApiUrl = this.bitcoinApiUrl;
-      } else if (currentCoin === "Stratis" || currentCoin === "TestStratis") {
+      } else if (currentCoin === 'Stratis' || currentCoin === 'TestStratis') {
         this.currentApiUrl = this.stratisApiUrl;
       }
     }
@@ -62,12 +64,12 @@ export class ApiService {
       * Get a new mnemonic
       */
     getNewMnemonic(): Observable<any> {
-      let params: URLSearchParams = new URLSearchParams();
+      const params: URLSearchParams = new URLSearchParams();
       params.set('language', 'English');
       params.set('wordCount', '12');
 
       return this.http
-        .get(this.bitcoinApiUrl + '/wallet/mnemonic', new RequestOptions({headers: this.headers, search: params}))
+        .get(`${this.bitcoinApiUrl}/wallet/mnemonic`, new RequestOptions({headers: this.headers, search: params}))
         .map((response: Response) => response);
     }
 
@@ -76,7 +78,7 @@ export class ApiService {
      */
     createBitcoinWallet(data: WalletCreation): Observable<any> {
       return this.http
-        .post(this.bitcoinApiUrl + '/wallet/create/', JSON.stringify(data), {headers: this.headers})
+        .post(`${this.bitcoinApiUrl}/wallet/create/`, JSON.stringify(data), {headers: this.headers})
         .map((response: Response) => response);
     }
 
@@ -85,7 +87,7 @@ export class ApiService {
      */
     createStratisWallet(data: WalletCreation): Observable<any> {
       return this.http
-        .post(this.stratisApiUrl + '/wallet/create/', JSON.stringify(data), {headers: this.headers})
+        .post(`${this.stratisApiUrl}/wallet/create/`, JSON.stringify(data), {headers: this.headers})
         .map((response: Response) => response);
     }
 
@@ -94,7 +96,7 @@ export class ApiService {
      */
     recoverBitcoinWallet(data: WalletRecovery): Observable<any> {
       return this.http
-        .post(this.bitcoinApiUrl + '/wallet/recover/', JSON.stringify(data), {headers: this.headers})
+        .post(`${this.bitcoinApiUrl}/wallet/recover/`, JSON.stringify(data), {headers: this.headers})
         .map((response: Response) => response);
     }
 
@@ -103,7 +105,7 @@ export class ApiService {
      */
     recoverStratisWallet(data: WalletRecovery): Observable<any> {
       return this.http
-        .post(this.stratisApiUrl + '/wallet/recover/', JSON.stringify(data), {headers: this.headers})
+        .post(`${this.stratisApiUrl}/wallet/recover/`, JSON.stringify(data), {headers: this.headers})
         .map((response: Response) => response);
     }
 
@@ -112,7 +114,7 @@ export class ApiService {
      */
     loadBitcoinWallet(data: WalletLoad): Observable<any> {
       return this.http
-        .post(this.bitcoinApiUrl + '/wallet/load/', JSON.stringify(data), {headers: this.headers})
+        .post(`${this.bitcoinApiUrl}/wallet/load/`, JSON.stringify(data), {headers: this.headers})
         .map((response: Response) => response);
     }
 
@@ -121,7 +123,7 @@ export class ApiService {
      */
     loadStratisWallet(data: WalletLoad): Observable<any> {
       return this.http
-        .post(this.stratisApiUrl + '/wallet/load/', JSON.stringify(data), {headers: this.headers})
+        .post(`${this.stratisApiUrl}/wallet/load/`, JSON.stringify(data), {headers: this.headers})
         .map((response: Response) => response);
     }
 
@@ -132,19 +134,19 @@ export class ApiService {
       this.getCurrentCoin();
 
       return this.http
-        .get(this.currentApiUrl + '/wallet/status')
+        .get(`${this.currentApiUrl}/wallet/status`)
         .map((response: Response) => response);
     }
 
-    /** 
+    /**
      * Get general wallet info from the API once.
      */
     getGeneralInfoOnce(data: WalletInfo): Observable<any> {
-      let params: URLSearchParams = new URLSearchParams();
+      const params: URLSearchParams = new URLSearchParams();
       params.set('Name', data.walletName);
 
       return this.http
-        .get(this.bitcoinApiUrl + '/wallet/general-info', new RequestOptions({headers: this.headers, search: params}))
+        .get(`${this.bitcoinApiUrl}/wallet/general-info`, new RequestOptions({headers: this.headers, search: params}))
         .map((response: Response) => response);
     }
 
@@ -154,13 +156,14 @@ export class ApiService {
     getGeneralInfo(data: WalletInfo): Observable<any> {
       this.getCurrentCoin();
 
-      let params: URLSearchParams = new URLSearchParams();
+      const params: URLSearchParams = new URLSearchParams();
       params.set('Name', data.walletName);
 
       return Observable
         .interval(this.pollingInterval)
         .startWith(0)
-        .switchMap(() => this.http.get(this.currentApiUrl + '/wallet/general-info', new RequestOptions({headers: this.headers, search: params})))
+        .switchMap(() =>
+            this.http.get(`${this.currentApiUrl}/wallet/general-info`, new RequestOptions({headers: this.headers, search: params})))
         .map((response: Response) => response);
     }
 
@@ -170,13 +173,13 @@ export class ApiService {
     getWalletBalance(data: WalletInfo): Observable<any> {
       this.getCurrentCoin();
 
-      let params: URLSearchParams = new URLSearchParams();
+      const params: URLSearchParams = new URLSearchParams();
       params.set('walletName', data.walletName);
 
       return Observable
         .interval(this.pollingInterval)
         .startWith(0)
-        .switchMap(() => this.http.get(this.currentApiUrl + '/wallet/balance', new RequestOptions({headers: this.headers, search: params})))
+        .switchMap(() => this.http.get(`${this.currentApiUrl}/wallet/balance`, new RequestOptions({headers: this.headers, search: params})))
         .map((response: Response) => response);
     }
 
@@ -186,14 +189,14 @@ export class ApiService {
     getMaximumBalance(data): Observable<any> {
       this.getCurrentCoin();
 
-      let params: URLSearchParams = new URLSearchParams();
+      const params: URLSearchParams = new URLSearchParams();
       params.set('walletName', data.walletName);
-      params.set('accountName', "account 0");
+      params.set('accountName', 'account 0');
       params.set('feeType', data.feeType);
-      params.set('allowUnconfirmed', "true");
+      params.set('allowUnconfirmed', 'true');
 
       return this.http
-        .get(this.currentApiUrl + '/wallet/maxbalance', new RequestOptions({headers: this.headers, search: params}))
+        .get(`${this.currentApiUrl}/wallet/maxbalance`, new RequestOptions({headers: this.headers, search: params}))
         .map((response: Response) => response);
     }
 
@@ -203,13 +206,13 @@ export class ApiService {
     getWalletHistory(data: WalletInfo): Observable<any> {
       this.getCurrentCoin();
 
-      let params: URLSearchParams = new URLSearchParams();
+      const params: URLSearchParams = new URLSearchParams();
       params.set('walletName', data.walletName);
 
       return Observable
         .interval(this.pollingInterval)
         .startWith(0)
-        .switchMap(() => this.http.get(this.currentApiUrl + '/wallet/history', new RequestOptions({headers: this.headers, search: params})))
+        .switchMap(() => this.http.get(`${this.currentApiUrl}/wallet/history`, new RequestOptions({headers: this.headers, search: params})))
         .map((response: Response) => response);
     }
 
@@ -219,12 +222,12 @@ export class ApiService {
     getUnusedReceiveAddress(data: WalletInfo): Observable<any> {
       this.getCurrentCoin();
 
-      let params: URLSearchParams = new URLSearchParams();
+      const params: URLSearchParams = new URLSearchParams();
       params.set('walletName', data.walletName);
-      params.set('accountName', "account 0"); //temporary
+      params.set('accountName', 'account 0'); // temporary
 
       return this.http
-        .get(this.currentApiUrl + '/wallet/address', new RequestOptions({headers: this.headers, search: params}))
+        .get(`${this.currentApiUrl}/wallet/unusedaddress`, new RequestOptions({headers: this.headers, search: params}))
         .map((response: Response) => response);
     }
 
@@ -234,16 +237,16 @@ export class ApiService {
     estimateFee(data: FeeEstimation): Observable<any> {
       this.getCurrentCoin();
 
-      let params: URLSearchParams = new URLSearchParams();
+      const params: URLSearchParams = new URLSearchParams();
       params.set('walletName', data.walletName);
       params.set('accountName', data.accountName);
       params.set('destinationAddress', data.destinationAddress);
       params.set('amount', data.amount);
       params.set('feeType', data.feeType);
-      params.set('allowUnconfirmed', "true");
-      
+      params.set('allowUnconfirmed', 'true');
+
       return this.http
-        .get(this.currentApiUrl + '/wallet/estimate-txfee', new RequestOptions({headers: this.headers, search: params}))
+        .get(`${this.currentApiUrl}/wallet/estimate-txfee`, new RequestOptions({headers: this.headers, search: params}))
         .map((response: Response) => response);
     }
 
@@ -254,7 +257,7 @@ export class ApiService {
       this.getCurrentCoin();
 
       return this.http
-        .post(this.currentApiUrl + '/wallet/build-transaction', JSON.stringify(data), {headers: this.headers})
+        .post(`${this.currentApiUrl}/wallet/build-transaction`, JSON.stringify(data), {headers: this.headers})
         .map((response: Response) => response);
     }
 
@@ -265,7 +268,7 @@ export class ApiService {
       this.getCurrentCoin();
 
       return this.http
-        .post(this.currentApiUrl + '/wallet/send-transaction', JSON.stringify(data), {headers: this.headers})
+        .post(`${this.currentApiUrl}/wallet/send-transaction`, JSON.stringify(data), {headers: this.headers})
         .map((response: Response) => response);
     }
 
@@ -276,7 +279,7 @@ export class ApiService {
       this.getCurrentCoin();
 
       return this.http
-        .post(this.currentApiUrl + '/node/shutdown', '')
+        .post(`${this.currentApiUrl}/node/shutdown`, '')
         .map((response: Response) => response);
     }
 }
