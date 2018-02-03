@@ -80,7 +80,7 @@ namespace Breeze.TumbleBit.Client.DBreezeUtils
                             else
                                 status = "unknown";
                         }
-                        catch (Exception e)
+                        catch (Exception)
                         {
                             status = "unknown";
                         }

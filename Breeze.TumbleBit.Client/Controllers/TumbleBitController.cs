@@ -83,7 +83,7 @@ namespace Breeze.TumbleBit.Controllers
         [HttpPost]
         public async Task<IActionResult> TumbleAsync([FromBody] TumbleRequest request)
         {
-            // checks the request is valid
+            // Checks the request is valid
             if (!this.ModelState.IsValid)
             {
                 var errors = this.ModelState.Values.SelectMany(e => e.Errors.Select(m => m.ErrorMessage));

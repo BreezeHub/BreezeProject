@@ -1,25 +1,26 @@
 ﻿using System;
 using System.Threading.Tasks;
-using NBitcoin;
-using BreezeCommon;
-using Stratis.Bitcoin.Features.WatchOnlyWallet;
 using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
 using System.Linq;
+
+using BreezeCommon;
+using NBitcoin;
+using Stratis.Bitcoin.Features.WatchOnlyWallet;
 
 namespace Breeze.Registration
 {
     public class RegistrationManager : IRegistrationManager
     {
-        public Money MASTERNODE_COLLATERAL_THRESHOLD = new Money(250000, MoneyUnit.BTC);
-        public int MAX_PROTOCOL_VERSION = 128; // >128 = regard as test versions
-        public int MIN_PROTOCOL_VERSION = 1;
-        public int WINDOW_PERIOD_BLOCK_COUNT = 30;
+        public readonly Money MASTERNODE_COLLATERAL_THRESHOLD = new Money(250000, MoneyUnit.BTC);
+        public readonly int MAX_PROTOCOL_VERSION = 128; // >128 = regard as test versions
+        public readonly int MIN_PROTOCOL_VERSION = 1;
+        public readonly int WINDOW_PERIOD_BLOCK_COUNT = 30;
 
         private ILoggerFactory loggerFactory;
         private RegistrationStore registrationStore;
         private Network network;
-        private IWatchOnlyWalletManager watchOnlyWalletManager;
+        private WatchOnlyWalletManager watchOnlyWalletManager;
 
         private ILogger logger;
 
@@ -34,9 +35,14 @@ namespace Breeze.Registration
             this.logger = loggerFactory.CreateLogger(this.GetType().FullName);
             this.registrationStore = registrationStore;
             this.network = network;
-            this.watchOnlyWalletManager = watchOnlyWalletManager;
+            this.watchOnlyWalletManager = watchOnlyWalletManager as WatchOnlyWalletManager;
 
             logger.LogInformation("Initialized RegistrationFeature");
+        }
+
+        public RegistrationStore GetRegistrationStore()
+        {
+            return this.registrationStore;
         }
 
         /// <inheritdoc />
@@ -47,8 +53,12 @@ namespace Breeze.Registration
             {
                 foreach (Transaction tx in block.Transactions)
                 {
+                    // Minor optimisation to disregard transactions that cannot be registrations
+                    if (tx.Outputs.Count < 2)
+                        continue;
+
                     // Check if the transaction has the Breeze registration marker output (literal text BREEZE_REGISTRATION_MARKER)
-                    if (tx.Outputs[0].ScriptPubKey.ToHex().ToLower() == "6a1a425245455a455f524547495354524154494f4e5f4d41524b4552")
+                    if (tx.Outputs[0].ScriptPubKey.ToHex().ToLower().Equals("6a1a425245455a455f524547495354524154494f4e5f4d41524b4552"))
                     {
                         this.logger.LogDebug("Received a new registration transaction: " + tx.GetHash());
 
@@ -58,17 +68,21 @@ namespace Breeze.Registration
                             registrationToken.ParseTransaction(tx, this.network);
 
                             if (!registrationToken.Validate(this.network))
+                            {
+                                this.logger.LogDebug("Registration token failed validation");
                                 continue;
-                            
+                            }
+
                             MerkleBlock merkleBlock = new MerkleBlock(block, new uint256[] { tx.GetHash() });
                             RegistrationRecord registrationRecord = new RegistrationRecord(DateTime.Now, Guid.NewGuid(), tx.GetHash().ToString(), tx.ToHex(), registrationToken, merkleBlock.PartialMerkleTree, height);
                             
                             // Ignore protocol versions outside the accepted bounds
-                            if (registrationRecord.Record.ProtocolVersion < MIN_PROTOCOL_VERSION)
+                            if ((registrationRecord.Record.ProtocolVersion < MIN_PROTOCOL_VERSION) ||
+                                (registrationRecord.Record.ProtocolVersion > MAX_PROTOCOL_VERSION))
+                            {
+                                this.logger.LogDebug("Registration protocol version out of bounds " + tx.GetHash());
                                 continue;
-
-                            if (registrationRecord.Record.ProtocolVersion > MAX_PROTOCOL_VERSION)
-                                continue;
+                            }
 
                             // If there were other registrations for this server previously, remove them and add the new one
                             this.registrationStore.AddWithReplace(registrationRecord);
@@ -77,110 +91,49 @@ namespace Breeze.Registration
                             this.logger.LogDebug("Server Onion address: " + registrationRecord.Record.OnionAddress);
                             this.logger.LogDebug("Server configuration hash: " + registrationRecord.Record.ConfigurationHash);
 
+                            // Add collateral address to watch only wallet so that any funding transactions can be detected
                             this.watchOnlyWalletManager.WatchAddress(registrationRecord.Record.ServerId);
                         }
                         catch (Exception e)
                         {
-                            this.logger.LogDebug("Failed to parse registration transaction " + tx.GetHash() + ", exception: " + e);
+                            this.logger.LogDebug("Failed to parse registration transaction, exception: " + e);
                         }
                     }
                 }
 
                 WatchOnlyWallet watchOnlyWallet = this.watchOnlyWalletManager.GetWatchOnlyWallet();
-
+                
                 // TODO: Need to have 'current height' field in watch-only wallet so that we don't start rebalancing collateral balances before the latest block has been processed & incorporated
+                
                 // Perform watch-only wallet housekeeping - iterate through known servers
-                HashSet<string> knownServers = new HashSet<string>();
-
-                // TODO: This is very CPU intensive and slows down the initial sync.
-                // TODO: Incorporate a cache of server balances and a dirty flag on transaction receipt to trigger rebalance?
                 foreach (RegistrationRecord record in this.registrationStore.GetAll())
                 {
-                    if (knownServers.Add(record.Record.ServerId))
+                    Script scriptToCheck = BitcoinAddress.Create(record.Record.ServerId, this.network).ScriptPubKey;
+                    
+                    this.logger.LogDebug("Recalculating collateral balance for server: " + record.Record.ServerId);
+
+                    if (!watchOnlyWallet.WatchedAddresses.ContainsKey(scriptToCheck.ToString()))
                     {
-                        this.logger.LogDebug("Calculating collateral balance for server: " + record.Record.ServerId);
+                        this.logger.LogDebug("Server address missing from watch-only wallet. Deleting stored registrations for server: " + record.Record.ServerId);
+                        this.registrationStore.DeleteAllForServer(record.Record.ServerId);
+                        continue;
+                    }
 
-                        //var addrToCheck = new WatchedAddress
-                        //{
-                        //    Script = BitcoinAddress.Create(record.Record.ServerId, this.network).ScriptPubKey,
-                        //    Address = record.Record.ServerId
-                        //};
+                    Money serverCollateralBalance = this.watchOnlyWalletManager.GetRelativeBalance(scriptToCheck.ToString());
+                        
+                    this.logger.LogDebug("Collateral balance for server " + record.Record.ServerId + " is " + serverCollateralBalance.ToString() + ", original registration height " + record.BlockReceived + ", current height " + height);
 
-                        var scriptToCheck = BitcoinAddress.Create(record.Record.ServerId, this.network).ScriptPubKey;
+                    if ((serverCollateralBalance < MASTERNODE_COLLATERAL_THRESHOLD) && ((height - record.BlockReceived) > WINDOW_PERIOD_BLOCK_COUNT))
+                    {
+                        // Remove server registrations as funding has not been performed timeously,
+                        // or funds have been removed from the collateral address subsequent to the
+                        // registration being performed
+                        this.logger.LogDebug("Insufficient collateral within window period for server: " + record.Record.ServerId);
+                        this.logger.LogDebug("Deleting registration records for server: " + record.Record.ServerId);
+                        this.registrationStore.DeleteAllForServer(record.Record.ServerId);
 
-                        if (!watchOnlyWallet.WatchedAddresses.ContainsKey(scriptToCheck.ToString()))
-                        {
-                            this.logger.LogDebug("Server address missing from watch-only wallet. Deleting stored registrations for server: " + record.Record.ServerId);
-                            this.registrationStore.DeleteAllForServer(record.Record.ServerId);
-                            continue;
-                        }
-
-                        // Initially the server's balance is zero
-                        Money serverCollateralBalance = new Money(0);
-
-                        // Need this for looking up other transactions in the watch-only wallet
-                        TransactionData prevTransaction;
-
-                        // TODO: Move balance evaluation logic into helper methods in watch-only wallet itself
-                        // Now evaluate the watch-only balance for this server
-                        foreach (string txId in watchOnlyWallet.WatchedAddresses[scriptToCheck.ToString()].Transactions.Keys)
-                        {
-                            TransactionData transaction = watchOnlyWallet.WatchedAddresses[scriptToCheck.ToString()].Transactions[txId];
-
-                            // First check if the inputs contain the watched address
-                            foreach (TxIn input in transaction.Transaction.Inputs)
-                            {
-                                // See if we have the previous transaction in our watch-only wallet.
-                                watchOnlyWallet.WatchedAddresses[scriptToCheck.ToString()].Transactions.TryGetValue(input.PrevOut.Hash.ToString(), out prevTransaction);
-
-                                // If it is null, it can't be related to one of the watched addresses (or it is the very first watched transaction)
-                                if (prevTransaction == null)
-                                    continue;
-
-                                if (prevTransaction.Transaction.Outputs[input.PrevOut.N].ScriptPubKey == scriptToCheck)
-                                {
-                                    // Input = funds are being paid out of the address in question
-
-                                    // Computing the input value is a bit more complex than it looks, as the value is not directly stored
-                                    // in a TxIn object. We need to check the output being spent by the input to get this information.
-                                    // But even an OutPoint does not contain the Value - we need to check the other transactions in the
-                                    // watch-only wallet to see if we have the prior transaction being referenced.
-
-                                    // This does imply that the earliest transaction in the watch-only wallet (for this address) will not
-                                    // have full previous transaction information stored. Therefore we can only reason about the address
-                                    // balance after a given block height; any prior transactions are ignored.
-
-                                    serverCollateralBalance -= prevTransaction.Transaction.Outputs[input.PrevOut.N].Value;
-                                }
-                            }
-
-                            // Check if the outputs contain the watched address
-                            foreach (var output in transaction.Transaction.Outputs)
-                            {
-                                //if (output.ScriptPubKey.GetScriptAddress(this.network).ToString() == record.Record.ServerId)
-                                if (output.ScriptPubKey == scriptToCheck)
-                                {
-                                    // Output = funds are being paid into the address in question
-                                    serverCollateralBalance += output.Value;
-                                }
-                            }
-                        }
-
-                        this.logger.LogDebug("Collateral balance for server " + record.Record.ServerId + " is " + serverCollateralBalance.ToString() + ", original registration height " + record.BlockReceived + " current height " + height);
-
-                        // Ignore collateral requirements for protocol version 252, just in case
-                        if ((serverCollateralBalance < MASTERNODE_COLLATERAL_THRESHOLD) && ((height - record.BlockReceived) > WINDOW_PERIOD_BLOCK_COUNT))
-                        {
-                            // Remove server registrations
-                            this.logger.LogDebug("Insufficient collateral within window period for server: " + record.Record.ServerId);
-
-                            this.logger.LogDebug("Deleting registration records for server: " + record.Record.ServerId);
-                            this.registrationStore.DeleteAllForServer(record.Record.ServerId);
-                            
-                            // TODO: Remove unneeded transactions from the watch-only wallet?
-
-                            // TODO: Need to make the TumbleBitFeature change its server address if this is the address it was using
-                        }
+                        // TODO: Remove unneeded transactions from the watch-only wallet?
+                        // TODO: Need to make the TumbleBitFeature change its server address if this is the address it was using
                     }
                 }
 
