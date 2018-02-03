@@ -2,7 +2,6 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Breeze.TumbleBit.Client.Models;
-using Flurl.Util;
 using Microsoft.Extensions.Logging;
 using NBitcoin;
 using NTumbleBit.ClassicTumbler;
@@ -161,6 +160,7 @@ namespace Breeze.TumbleBit.Client
 
         public async Task<bool> BlockGenerate(int numberOfBlocks)
         {
+            // TODO: Move this into the tests
             // TODO: Refactor this to use the same technique used in the StratisRegTest unit tests
 
             if (this.network != Network.RegTest && this.network != Network.StratisRegTest)
@@ -220,6 +220,7 @@ namespace Breeze.TumbleBit.Client
 
         public async Task DummyRegistration(string originWalletName, string originWalletPassword)
         {
+            // TODO: Move this functionality into the tests
             var token = new List<byte>();
 
             // Server ID
@@ -500,9 +501,6 @@ namespace Breeze.TumbleBit.Client
             Wallet originWallet = this.walletManager.GetWallet(originWalletName);
 
             // Check if origin wallet has a balance
-            WalletBalanceModel model = new WalletBalanceModel();
-
-            var originWalletAccounts = this.walletManager.GetAccounts(originWallet.Name).ToList();
             var originConfirmed = new Money(0);
             var originUnconfirmed = new Money(0);
             
@@ -521,7 +519,18 @@ namespace Breeze.TumbleBit.Client
                 throw new Exception("Insufficient funds in origin wallet");
             }
             
-            // TODO: Check if password is valid before starting any cycles
+            // Check if password is valid before starting any cycles
+            try
+            {
+                HdAddress tempAddress = originWallet.GetAccountsByCoinType(this.tumblingState.CoinType).First()
+                    .GetFirstUnusedReceivingAddress();
+                originWallet.GetExtendedPrivateKeyForAddress(originWalletPassword, tempAddress);
+            }
+            catch (Exception)
+            {
+                this.logger.LogDebug("Origin wallet password appears to be invalid");
+                throw new Exception("Origin wallet password appears to be invalid");
+            }
 
             // Update the state and save
             this.tumblingState.DestinationWallet = destinationWallet ?? throw new Exception($"Destination wallet not found. Have you created a wallet with name {destinationWalletName}?");
@@ -570,6 +579,7 @@ namespace Breeze.TumbleBit.Client
                 this.runtime.DestinationWallet =
                     new ClientDestinationWallet(extPubKey, keyPath, this.runtime.Repository, this.runtime.Network);
             this.TumblerParameters = this.runtime.TumblerParameters;
+            
             // Run onlymonitor mode
             this.broadcasterJob = this.runtime.CreateBroadcasterJob();
             this.broadcasterJob.Start();
@@ -579,8 +589,6 @@ namespace Breeze.TumbleBit.Client
             this.stateMachine.Start();
 
             this.State = TumbleState.Tumbling;
-
-            return;
         }
 
         public async Task OnlyMonitorAsync()
@@ -613,9 +621,7 @@ namespace Breeze.TumbleBit.Client
             {
                 var config = new FullNodeTumblerClientConfiguration(this.tumblingState, onlyMonitor: true);
                 this.runtime = await TumblerClientRuntime.FromConfigurationAsync(config).ConfigureAwait(false);
-
                 this.State = TumbleState.OnlyMonitor;
-
                 this.broadcasterJob = this.runtime.CreateBroadcasterJob();
                 this.broadcasterJob.Start();
             }
@@ -624,32 +630,6 @@ namespace Breeze.TumbleBit.Client
         /// <inheritdoc />
         public void ProcessBlock(int height, Block block)
         {
-            try
-            {
-                var watchOnlyWallet = this.tumblingState.WatchOnlyWalletManager.GetWatchOnlyWallet();
-
-                // Force watch only wallet to update watched transactions that appear in this block
-                // Note: Transactions affecting watched addresses get updated by the watch only wallet already
-                // TODO: Move this to the watch only wallet ProcessTransaction method
-                foreach (var tx in block.Transactions)
-                {
-                    watchOnlyWallet.WatchedTransactions.TryGetValue(tx.GetHash().ToString(), out Stratis.Bitcoin.Features.WatchOnlyWallet.TransactionData watchedTransaction);
-
-                    if (watchedTransaction != null)
-                    {
-                        // Update block hash and Merkle proof
-                        watchedTransaction.BlockHash = block.GetHash();
-                        watchedTransaction.MerkleProof = new MerkleBlock(block, new[] {tx.GetHash()}).PartialMerkleTree;
-                    }
-                }
-
-                this.tumblingState.WatchOnlyWalletManager.SaveWatchOnlyWallet();
-            }
-            catch (Exception e)
-            {
-                this.logger.LogError("Error updating watched transactions: " + e);
-            }
-
             this.tumblingState.LastBlockReceivedHeight = height;
             this.tumblingState.Save();
         }
@@ -675,8 +655,8 @@ namespace Breeze.TumbleBit.Client
             {
                 try
                 {
-                    var chainedBlock = this.chain.Tip;
-                    var timespan = DateTimeOffset.UtcNow - chainedBlock.Header.BlockTime;
+                    ChainedBlock chainedBlock = this.chain.Tip;
+                    TimeSpan timespan = DateTimeOffset.UtcNow - chainedBlock.Header.BlockTime;
                     return timespan.Minutes;
                 }
                 catch (Exception)
