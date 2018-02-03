@@ -29,6 +29,7 @@ using NTumbleBit;
 using NTumbleBit.Configuration;
 using Stratis.Bitcoin.Connection;
 using Stratis.Bitcoin.Features.Wallet.Models;
+using TransactionData = Stratis.Bitcoin.Features.Wallet.TransactionData;
 
 namespace Breeze.TumbleBit.Client
 {
@@ -630,6 +631,62 @@ namespace Breeze.TumbleBit.Client
         /// <inheritdoc />
         public void ProcessBlock(int height, Block block)
         {
+            if (this.tumblingState.OriginWallet != null && this.tumblingState.DestinationWallet != null)
+            {
+                // Examine origin wallet for transactions that were erroneously included.
+                // Specifically, those spending inputs that have been spent by transactions
+                // in the destination wallet. This would otherwise frequently happen with
+                // the ClientRedeem transaction in particular.
+
+                HashSet<OutPoint> inputsSpent = new HashSet<OutPoint>();
+                HashSet<TransactionData> txToRemove = new HashSet<TransactionData>();
+
+                // Build cache of prevOuts from confirmed destination wallet transactions
+                // TODO: This can probably be substantially optimised, e.g. make cache persistent between blocks
+                foreach (TransactionData destTx in this.tumblingState.DestinationWallet.GetAllTransactionsByCoinType(
+                    this.tumblingState.CoinType))
+                {
+                    foreach (TxIn input in destTx.Transaction.Inputs)
+                    {
+                        inputsSpent.Add(input.PrevOut);
+                    }
+                }
+
+                // Now check inputs of unconfirmed transactions in origin wallet.
+                // It is implicitly assumed that a confirmed transaction is usually not double spending.
+                foreach (TransactionData originTx in this.tumblingState.OriginWallet.GetAllTransactionsByCoinType(
+                    this.tumblingState.CoinType))
+                {
+                    if (originTx.IsConfirmed())
+                        continue;
+
+                    foreach (TxIn input in originTx.Transaction.Inputs)
+                    {
+                        if (inputsSpent.Contains(input.PrevOut))
+                        {
+                            txToRemove.Add(originTx);
+                        }
+                    }
+                }
+
+                // Now remove the transactions identified as double spends from the origin wallet
+                foreach (TransactionData tx in txToRemove)
+                {
+                    this.logger.LogDebug("Detected double spend transaction in origin wallet, deleting: " + tx.Id);
+
+                    foreach (HdAccount account in this.tumblingState.OriginWallet.GetAccountsByCoinType(
+                        this.tumblingState.CoinType))
+                    {
+                        foreach (HdAddress address in account.FindAddressesForTransaction(transaction =>
+                            transaction.Id == tx.Id))
+                        {
+                            address.Transactions.Remove(tx);
+                        }
+                    }
+                }
+            }
+
+            // TumbleBit housekeeping
             this.tumblingState.LastBlockReceivedHeight = height;
             this.tumblingState.Save();
         }

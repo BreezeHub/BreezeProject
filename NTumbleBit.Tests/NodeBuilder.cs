@@ -1,4 +1,5 @@
-﻿using NBitcoin;
+﻿/*
+using NBitcoin;
 using NBitcoin.Crypto;
 using NBitcoin.DataEncoders;
 using NBitcoin.Protocol;
@@ -619,3 +620,4 @@ namespace NTumbleBit.Tests
 		}
 	}
 }
+*/

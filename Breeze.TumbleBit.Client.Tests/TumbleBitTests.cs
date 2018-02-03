@@ -545,7 +545,7 @@ namespace Breeze.TumbleBit.Client.Tests
                         }
                     }
 
-                    Thread.Sleep(10000);
+                    Thread.Sleep(20000);
                 }
 
                 // Check destination wallet for tumbled coins
@@ -842,7 +842,7 @@ namespace Breeze.TumbleBit.Client.Tests
                         }
                     }*/
 
-                    Thread.Sleep(10000);
+                    Thread.Sleep(20000);
                 }
 
                 // Check destination wallet for tumbled coins

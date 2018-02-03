@@ -1,4 +1,4 @@
-﻿using NBitcoin;
+﻿/*using NBitcoin;
 using NTumbleBit.ClassicTumbler;
 using NTumbleBit.ClassicTumbler.Client;
 using NTumbleBit.Services;
@@ -473,3 +473,4 @@ namespace NTumbleBit.Tests
 		}
 	}
 }
+*/
