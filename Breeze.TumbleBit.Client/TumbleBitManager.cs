@@ -633,6 +633,8 @@ namespace Breeze.TumbleBit.Client
         {
             if (this.tumblingState.OriginWallet != null && this.tumblingState.DestinationWallet != null)
             {
+                Console.WriteLine("Checking origin/destination wallets for double spends");
+
                 // Examine origin wallet for transactions that were erroneously included.
                 // Specifically, those spending inputs that have been spent by transactions
                 // in the destination wallet. This would otherwise frequently happen with
@@ -664,6 +666,7 @@ namespace Breeze.TumbleBit.Client
                     {
                         if (inputsSpent.Contains(input.PrevOut))
                         {
+                            Console.WriteLine("Found double spend in origin wallet " + originTx + " spending " + input.PrevOut.Hash);
                             txToRemove.Add(originTx);
                         }
                     }
@@ -675,6 +678,57 @@ namespace Breeze.TumbleBit.Client
                     this.logger.LogDebug("Detected double spend transaction in origin wallet, deleting: " + tx.Id);
 
                     foreach (HdAccount account in this.tumblingState.OriginWallet.GetAccountsByCoinType(
+                        this.tumblingState.CoinType))
+                    {
+                        foreach (HdAddress address in account.FindAddressesForTransaction(transaction =>
+                            transaction.Id == tx.Id))
+                        {
+                            address.Transactions.Remove(tx);
+                        }
+                    }
+                }
+
+                // Now perform the same operation the other way around - there
+                // can also be unconfirmed transactions in the destination that
+                // double spend transactions in the source wallet
+                inputsSpent.Clear();
+                txToRemove.Clear();
+
+                // Build cache of prevOuts from confirmed origin wallet transactions
+                // TODO: This can probably be substantially optimised, e.g. make cache persistent between blocks
+                foreach (TransactionData originTx in this.tumblingState.OriginWallet.GetAllTransactionsByCoinType(
+                    this.tumblingState.CoinType))
+                {
+                    foreach (TxIn input in originTx.Transaction.Inputs)
+                    {
+                        inputsSpent.Add(input.PrevOut);
+                    }
+                }
+
+                // Now check inputs of unconfirmed transactions in destination wallet.
+                // It is implicitly assumed that a confirmed transaction is usually not double spending.
+                foreach (TransactionData destTx in this.tumblingState.DestinationWallet.GetAllTransactionsByCoinType(
+                    this.tumblingState.CoinType))
+                {
+                    if (destTx.IsConfirmed())
+                        continue;
+
+                    foreach (TxIn input in destTx.Transaction.Inputs)
+                    {
+                        if (inputsSpent.Contains(input.PrevOut))
+                        {
+                            Console.WriteLine("Found double spend in destination wallet " + destTx + " spending " + input.PrevOut.Hash);
+                            txToRemove.Add(destTx);
+                        }
+                    }
+                }
+
+                // Now remove the transactions identified as double spends from the destination wallet
+                foreach (TransactionData tx in txToRemove)
+                {
+                    this.logger.LogDebug("Detected double spend transaction in destination wallet, deleting: " + tx.Id);
+
+                    foreach (HdAccount account in this.tumblingState.DestinationWallet.GetAccountsByCoinType(
                         this.tumblingState.CoinType))
                     {
                         foreach (HdAddress address in account.FindAddressesForTransaction(transaction =>
