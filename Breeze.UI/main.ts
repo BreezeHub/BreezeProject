@@ -115,7 +115,7 @@ function closeBitcoinApi() {
     var http1 = require('http');
     const options1 = {
       hostname: 'localhost',
-      port: 37220,
+      port: 38220,
       path: '/api/node/shutdown',
       method: 'POST'
   };
@@ -132,7 +132,7 @@ function closeStratisApi() {
     var http2 = require('http');
     const options2 = {
       hostname: 'localhost',
-      port: 37221,
+      port: 38221,
       path: '/api/node/shutdown',
       method: 'POST'
     };
