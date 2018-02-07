@@ -27,14 +27,17 @@ namespace Breeze.TumbleBit.Client.Services
             TumblingState = tumblingState ?? throw new ArgumentNullException(nameof(tumblingState));
         }
 
-        public int GetCurrentHeight() => TumblingState.Chain.Height;
+        public int GetCurrentHeight()
+        {
+            return TumblingState.WalletManager.LastBlockHeight();
+        }
 
         public uint256 WaitBlock(uint256 currentBlock, CancellationToken cancellation = default(CancellationToken))
         {
             while (true)
             {
                 cancellation.ThrowIfCancellationRequested();
-                var h = TumblingState.Chain.Tip.HashBlock;
+                var h = TumblingState.WalletManager.LastReceivedBlockHash();
 
                 if (h != currentBlock)
                 {

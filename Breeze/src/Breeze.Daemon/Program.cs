@@ -66,11 +66,11 @@ namespace Breeze.Daemon
                     if (isTestNet)
                         args = args.Append("-addnode=51.141.28.47").ToArray(); // TODO: fix this temp hack
 
-                    nodeSettings = new NodeSettings(network, ProtocolVersion.ALT_PROTOCOL_VERSION, agent).LoadArguments(args);
+                    nodeSettings = new NodeSettings(network, ProtocolVersion.ALT_PROTOCOL_VERSION, agent, args: args, loadConfiguration: false);
                 }
                 else
                 {
-                    nodeSettings = new NodeSettings(agent: agent).LoadArguments(args);
+                    nodeSettings = new NodeSettings(agent: agent, args: args, loadConfiguration: false);
                 }
 
                 IFullNodeBuilder fullNodeBuilder = null;
