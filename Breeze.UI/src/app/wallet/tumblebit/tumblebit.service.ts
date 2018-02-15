@@ -11,7 +11,7 @@ export class TumblebitService {
   // The service to connect to & operate a TumbleBit Server via the
   // TumbleBit.Client.CLI tool
 
-  private tumblerClientUrl = 'http://localhost:38220/api/TumbleBit/';
+  private tumblerClientUrl = 'http://localhost:37220/api/TumbleBit/';
   private headers = new Headers({ 'Content-Type': 'application/json' });
 
   private pollingInterval = 3000;

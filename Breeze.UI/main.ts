@@ -1,4 +1,4 @@
-﻿const electron = require('electron');
+const electron = require('electron');
 
 // Module to control application life.
 const app = electron.app;
@@ -115,7 +115,7 @@ function closeBitcoinApi() {
     var http1 = require('http');
     const options1 = {
       hostname: 'localhost',
-      port: 38220,
+      port: 37220,
       path: '/api/node/shutdown',
       method: 'POST'
   };
@@ -132,7 +132,7 @@ function closeStratisApi() {
     var http2 = require('http');
     const options2 = {
       hostname: 'localhost',
-      port: 38221,
+      port: 37221,
       path: '/api/node/shutdown',
       method: 'POST'
     };
