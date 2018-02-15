@@ -394,7 +394,7 @@ namespace Breeze.TumbleBit.Client
         {
             // Temporary hardcoding for testnet
             if (this.TumblerAddress == null)
-                this.TumblerAddress = "ctb://frspe6yz6en4wbrt.onion?h=525d00d0a9c0f95b2c7421e5d81d0a6af203e7e8";
+                this.TumblerAddress = "ctb://frspe6yz6en4wbrt.onion?h=75dcff7ad3ed4e8e6eb7270c2aba903e6b7feee7";
             
             // If the -ppuri command line option wasn't used to bypass the registration store lookup
             if (this.TumblerAddress == null)
