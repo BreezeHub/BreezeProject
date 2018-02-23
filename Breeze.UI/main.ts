@@ -11,16 +11,21 @@ const url = require('url');
 const os = require('os');
 
 let serve;
-let testnet;
+let testnet = false;
+let bitcoinApiPort = 38220;
+let stratisApiPort = 38221;
 const args = process.argv.slice(1);
-serve = args.some(val => val === "--serve" || val === "-serve");
-testnet = !args.some(val => val === "--testnet" || val === "-testnet");
+serve = args.some(val => val === '--serve' || val === '-serve');
 
-if (args.some(val => val === "--mainnet" || val === "-mainnet")) {
+if (args.some(val => val === '--testnet' || val === '-testnet')) {
+  testnet = true;
+  bitcoinApiPort = 38220;
+  stratisApiPort = 38221;
+} else if (args.some(val => val === '--mainnet' || val === '-mainnet')) {
   testnet = false;
+  bitcoinApiPort = 37220;
+  stratisApiPort = 37221;
 }
-
-testnet = false;
 
 if (serve) {
   require('electron-reload')(__dirname, {
@@ -44,7 +49,7 @@ function createWindow() {
     frame: true,
     minWidth: 1200,
     minHeight: 650,
-    title: "Breeze Wallet"
+    title: 'Breeze Wallet'
   });
 
    // and load the index.html of the app.
@@ -76,15 +81,14 @@ function createWindow() {
 // Some APIs can only be used after this event occurs.
 app.on('ready', function () {
   if (serve) {
-    console.log("Breeze UI was started in development mode. This requires the user to be running the Breeze Daemon himself.")
-  }
-  else {
+    console.log('Breeze UI was started in development mode. This requires the user to be running the Breeze Daemon himself.')
+  } else {
     startBitcoinApi();
     startStratisApi();
   }
   createTray();
   createWindow();
-  if (os.platform() === 'darwin'){
+  if (os.platform() === 'darwin') {
     createMenu();
   }
 });
@@ -114,10 +118,10 @@ app.on('activate', function () {
 function closeBitcoinApi() {
   // if (process.platform !== 'darwin' && !serve) {
     if (!serve) {
-    var http1 = require('http');
+    const http1 = require('http');
     const options1 = {
       hostname: 'localhost',
-      port: 37220,
+      port: bitcoinApiPort,
       path: '/api/node/shutdown',
       method: 'POST'
   };
@@ -131,10 +135,10 @@ function closeBitcoinApi() {
 function closeStratisApi() {
   // if (process.platform !== 'darwin' && !serve) {
     if (process.platform !== 'darwin' && !serve) {
-    var http2 = require('http');
+    const http2 = require('http');
     const options2 = {
       hostname: 'localhost',
-      port: 37221,
+      port: stratisApiPort,
       path: '/api/node/shutdown',
       method: 'POST'
     };
@@ -146,10 +150,10 @@ function closeStratisApi() {
 };
 
 function startBitcoinApi() {
-  var bitcoinProcess;
+  let bitcoinProcess;
   const spawnBitcoin = require('child_process').spawn;
 
-  //Start Breeze Bitcoin Daemon
+  // Start Breeze Bitcoin Daemon
   let apiPath;
   if (os.platform() === 'win32') {
       apiPath = path.resolve(__dirname, '..\\..\\resources\\daemon\\Breeze.Daemon.exe');
@@ -188,10 +192,10 @@ function startBitcoinApi() {
 }
 
 function startStratisApi() {
-  var stratisProcess;
+  let stratisProcess;
   const spawnStratis = require('child_process').spawn;
 
-  //Start Breeze Stratis Daemon
+  // Start Breeze Stratis Daemon
   let apiPath = path.resolve(__dirname, 'assets//daemon//Breeze.Daemon');
   if (os.platform() === 'win32') {
       apiPath = path.resolve(__dirname, '..\\..\\resources\\daemon\\Breeze.Daemon.exe');
@@ -217,7 +221,7 @@ function startStratisApi() {
 }
 
 function createTray() {
-  //Put the app in system tray
+  // Put the app in system tray
   const Menu = electron.Menu;
   const Tray = electron.Tray;
 
@@ -228,7 +232,7 @@ function createTray() {
     trayIcon = nativeImage.createFromPath(path.resolve(__dirname, '../../resources/src/assets/images/breeze-logo-tray.png'));
   }
 
-  let systemTray = new Tray(trayIcon);
+  const systemTray = new Tray(trayIcon);
   const contextMenu = Menu.buildFromTemplate([
     {
       label: 'Hide/Show',
@@ -256,7 +260,7 @@ function createTray() {
   });
 
   app.on('window-all-closed', function () {
-    if (systemTray) systemTray.destroy();
+    if (systemTray) {systemTray.destroy(); }
   });
 };
 
@@ -268,22 +272,22 @@ function createMenu() {
   const Menu = electron.Menu;
 
   // Create the Application's main menu
-  var menuTemplate = [{
-    label: "Application",
+  const menuTemplate = [{
+    label: 'Application',
     submenu: [
-        { label: "About Application", selector: "orderFrontStandardAboutPanel:" },
-        { type: "separator" },
-        { label: "Quit", accelerator: "Command+Q", click: function() { app.quit(); }}
+        { label: 'About Application', selector: 'orderFrontStandardAboutPanel:' },
+        { type: 'separator' },
+        { label: 'Quit', accelerator: 'Command+Q', click: function() { app.quit(); }}
     ]}, {
-    label: "Edit",
+    label: 'Edit',
     submenu: [
-        { label: "Undo", accelerator: "CmdOrCtrl+Z", selector: "undo:" },
-        { label: "Redo", accelerator: "Shift+CmdOrCtrl+Z", selector: "redo:" },
-        { type: "separator" },
-        { label: "Cut", accelerator: "CmdOrCtrl+X", selector: "cut:" },
-        { label: "Copy", accelerator: "CmdOrCtrl+C", selector: "copy:" },
-        { label: "Paste", accelerator: "CmdOrCtrl+V", selector: "paste:" },
-        { label: "Select All", accelerator: "CmdOrCtrl+A", selector: "selectAll:" }
+        { label: 'Undo', accelerator: 'CmdOrCtrl+Z', selector: 'undo:' },
+        { label: 'Redo', accelerator: 'Shift+CmdOrCtrl+Z', selector: 'redo:' },
+        { type: 'separator' },
+        { label: 'Cut', accelerator: 'CmdOrCtrl+X', selector: 'cut:' },
+        { label: 'Copy', accelerator: 'CmdOrCtrl+C', selector: 'copy:' },
+        { label: 'Paste', accelerator: 'CmdOrCtrl+V', selector: 'paste:' },
+        { label: 'Select All', accelerator: 'CmdOrCtrl+A', selector: 'selectAll:' }
     ]}
   ];
 
