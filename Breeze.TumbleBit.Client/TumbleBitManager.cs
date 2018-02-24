@@ -30,6 +30,7 @@ using NTumbleBit.Configuration;
 using Stratis.Bitcoin.Connection;
 using Stratis.Bitcoin.Features.Wallet.Models;
 using TransactionData = Stratis.Bitcoin.Features.Wallet.TransactionData;
+using Breeze.Registration;
 
 namespace Breeze.TumbleBit.Client
 {
@@ -392,10 +393,6 @@ namespace Breeze.TumbleBit.Client
         /// <inheritdoc />
         public async Task<Result<ClassicTumblerParameters>> ConnectToTumblerAsync()
         {
-            // Temporary hardcoding for testnet
-            if (this.TumblerAddress == null)
-                this.TumblerAddress = "ctb://frspe6yz6en4wbrt.onion?h=75dcff7ad3ed4e8e6eb7270c2aba903e6b7feee7";
-            
             // If the -ppuri command line option wasn't used to bypass the registration store lookup
             if (this.TumblerAddress == null)
             {
@@ -407,22 +404,22 @@ namespace Breeze.TumbleBit.Client
                     return null;
                 }
 
-                RegistrationRecord record = null;
-                RegistrationToken registrationToken = null;
                 bool validRegistrationFound = false;
                 
-                // TODO: Search the registration store more robustly
-                for (int i = 1; i < 10; i++)
-                {
-                    record = registrations[random.Next(registrations.Count)];
-                    registrationToken = record.Record;
+				registrations.Shuffle();
 
+                // Since the list is shuffled, we can simply iterate through it and try each server until one is valid
+                foreach (RegistrationRecord record in registrations)
+                {
                     // Implicitly, the registration feature will have deleted the registration if the collateral
                     // requirement was not met within 30 blocks
-                    if ((this.walletManager.LastBlockHeight() - record.BlockReceived) >= 32)
+                    if ((this.walletManager.LastBlockHeight() - record.BlockReceived) >= (RegistrationManager.WINDOW_PERIOD_BLOCK_COUNT + 2))
                     {
                         validRegistrationFound = true;
-                        break;
+						
+	                    this.TumblerAddress = "ctb://" + record.Record.OnionAddress + ".onion?h=" + record.Record.ConfigurationHash;
+						
+						break;
                     }
                 }
                 
@@ -431,8 +428,6 @@ namespace Breeze.TumbleBit.Client
                     this.logger.LogDebug("Did not find a valid registration");
                     return Result.Fail<ClassicTumblerParameters>("Did not find a valid registration");
                 }
-                
-                this.TumblerAddress = "ctb://" + registrationToken.OnionAddress + ".onion?h=" + registrationToken.ConfigurationHash;
             }
 
             this.tumblingState.TumblerUri = new Uri(this.TumblerAddress);
@@ -502,10 +497,10 @@ namespace Breeze.TumbleBit.Client
             Wallet originWallet = this.walletManager.GetWallet(originWalletName);
 
             // Check if origin wallet has a balance
-            var originConfirmed = new Money(0);
-            var originUnconfirmed = new Money(0);
+            Money originConfirmed = new Money(0);
+            Money originUnconfirmed = new Money(0);
             
-            foreach (var originAccount in originWallet.GetAccountsByCoinType(this.tumblingState.CoinType))
+            foreach (HdAccount originAccount in originWallet.GetAccountsByCoinType(this.tumblingState.CoinType))
             {
                 var result = originAccount.GetSpendableAmount();
 
@@ -542,16 +537,10 @@ namespace Breeze.TumbleBit.Client
 
             var accounts = this.tumblingState.DestinationWallet.GetAccountsByCoinType(this.tumblingState.CoinType);
             // TODO: Possibly need to preserve destination account name in tumbling state. Default to first account for now
-            string accountName = null;
-            foreach (var account in accounts)
-            {
-                if (account.Index == 0)
-                    accountName = account.Name;
-            }
-            var destAccount = this.tumblingState.DestinationWallet.GetAccountByCoinType(accountName, this.tumblingState.CoinType);
-
-            var key = destAccount.ExtendedPubKey;
-            var keyPath = new KeyPath("0");
+            string accountName = accounts.First().Name;
+            HdAccount destAccount = this.tumblingState.DestinationWallet.GetAccountByCoinType(accountName, this.tumblingState.CoinType);
+            string key = destAccount.ExtendedPubKey;
+            KeyPath keyPath = new KeyPath("0");
 
             // Stop and dispose onlymonitor
             if (this.broadcasterJob != null && this.broadcasterJob.Started)
@@ -575,7 +564,7 @@ namespace Breeze.TumbleBit.Client
 
             this.runtime = await TumblerClientRuntime.FromConfigurationAsync(config).ConfigureAwait(false);
 
-            var extPubKey = new BitcoinExtPubKey(key, this.runtime.Network);
+            BitcoinExtPubKey extPubKey = new BitcoinExtPubKey(key, this.runtime.Network);
             if (key != null)
                 this.runtime.DestinationWallet =
                     new ClientDestinationWallet(extPubKey, keyPath, this.runtime.Repository, this.runtime.Network);
@@ -612,7 +601,6 @@ namespace Breeze.TumbleBit.Client
             {
                 return 0;
             }
-            
         }
         
         public async Task Initialize()
@@ -631,9 +619,10 @@ namespace Breeze.TumbleBit.Client
         /// <inheritdoc />
         public void ProcessBlock(int height, Block block)
         {
+	        // TODO: This double spend removal logic should be incorporated into the wallet
             if (this.tumblingState.OriginWallet != null && this.tumblingState.DestinationWallet != null)
             {
-                Console.WriteLine("Checking origin/destination wallets for double spends");
+                this.logger.LogDebug("Checking origin/destination wallets for double spends");
 
                 // Examine origin wallet for transactions that were erroneously included.
                 // Specifically, those spending inputs that have been spent by transactions
@@ -666,7 +655,7 @@ namespace Breeze.TumbleBit.Client
                     {
                         if (inputsSpent.Contains(input.PrevOut))
                         {
-                            Console.WriteLine("Found double spend in origin wallet " + originTx + " spending " + input.PrevOut.Hash);
+                            this.logger.LogDebug("Found double spend in origin wallet " + originTx + " spending " + input.PrevOut.Hash);
                             txToRemove.Add(originTx);
                         }
                     }
@@ -717,7 +706,7 @@ namespace Breeze.TumbleBit.Client
                     {
                         if (inputsSpent.Contains(input.PrevOut))
                         {
-                            Console.WriteLine("Found double spend in destination wallet " + destTx + " spending " + input.PrevOut.Hash);
+	                        this.logger.LogDebug("Found double spend in destination wallet " + destTx + " spending " + input.PrevOut.Hash);
                             txToRemove.Add(destTx);
                         }
                     }
@@ -776,5 +765,26 @@ namespace Breeze.TumbleBit.Client
                 }
             }
         }
-    }
+	}
+
+	static class List
+	{
+		private static Random rng = new Random();
+
+		/// <summary>
+		/// Shuffles a list randomly
+		/// </summary>
+		public static void Shuffle<T>(this IList<T> list)
+		{
+			int n = list.Count;
+			while (n > 1)
+			{
+				n--;
+				int k = rng.Next(n + 1);
+				T value = list[k];
+				list[k] = list[n];
+				list[n] = value;
+			}
+		}
+	}
 }
