@@ -11,6 +11,22 @@ export class GlobalService {
 
   constructor() {}
 
+  get bitcoinApiPort() {
+    if (this.network.toLowerCase() === 'testnet') {
+      return 38220;
+    } else {
+      return 37220;
+    }
+  }
+
+  get stratisApiPort() {
+    if (this.network.toLowerCase() === 'testnet') {
+      return 38221;
+    } else {
+      return 37221;
+    }
+  }
+
   getWalletPath() {
     return this.walletPath;
   }

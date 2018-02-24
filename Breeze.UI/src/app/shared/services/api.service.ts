@@ -27,9 +27,9 @@ export class ApiService {
 
     private headers = new Headers({'Content-Type': 'application/json'});
     private pollingInterval = 3000;
-    private bitcoinApiUrl = `http://localhost:${bitcoinApiPort}/api`;
-    private stratisApiUrl = `http://localhost:${stratisApiPort}/api`;
-    private currentApiUrl = `http://localhost:${bitcoinApiPort}/api`;
+    private bitcoinApiUrl = `http://localhost:${this.globalService.bitcoinApiPort}/api`;
+    private stratisApiUrl = `http://localhost:${this.globalService.stratisApiPort}/api`;
+    private currentApiUrl = `http://localhost:${this.globalService.bitcoinApiPort}/api`;
 
     constructor(private http: Http, private globalService: GlobalService) {};
 
