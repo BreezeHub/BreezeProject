@@ -34,8 +34,6 @@ namespace NTumbleBit
 			get { return this.PhaseEnum.ToString(); }
 		}
 
-
-
 		public CycleProgressInfo(CyclePeriod period, int height, int blocksLeft, int start, PaymentStateMachineStatus status, CyclePhase phase, string asciiArt)
 		{
 			this.Period = period;
@@ -51,10 +49,24 @@ namespace NTumbleBit
 
 	    private void CheckForFailedState()
 	    {
-	        if (this.PhaseEnum > CyclePhase.TumblerChannelEstablishment &&
-	            this.StatusEnum == PaymentStateMachineStatus.Registered)
+            //CyclePhases
+            //
+	        //Registration,
+	        //ClientChannelEstablishment,
+	        //TumblerChannelEstablishment,
+	        //PaymentPhase,
+	        //TumblerCashoutPhase,
+	        //ClientCashoutPhase
+
+            if (this.PhaseEnum > CyclePhase.TumblerChannelEstablishment && this.StatusEnum == PaymentStateMachineStatus.Registered)
 	            this.Failed = true;
-	    }
+	        if (this.PhaseEnum > CyclePhase.PaymentPhase && this.StatusEnum < PaymentStateMachineStatus.TumblerChannelConfirmed)
+	            this.Failed = true;
+	        if (this.PhaseEnum > CyclePhase.TumblerCashoutPhase && this.StatusEnum < PaymentStateMachineStatus.PuzzleSolutionObtained)
+	            this.Failed = true;
+	        if (this.PhaseEnum == CyclePhase.ClientCashoutPhase && this.StatusEnum < PaymentStateMachineStatus.PuzzleSolutionObtained)
+	            this.Failed = true;
+        }
     }
 
 	public class ProgressInfo
