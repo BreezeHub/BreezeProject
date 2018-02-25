@@ -69,16 +69,22 @@ namespace NTumbleBit
 	    }
 
 	    public void Save()
-        {   
-		    if (!Directory.Exists(ProgressInfo.Folder)) Directory.CreateDirectory(ProgressInfo.Folder);
-		    string filename = Path.Combine(ProgressInfo.Folder, "tb_progress.json");
+        {
+            try
+            {
+                if (!Directory.Exists(ProgressInfo.Folder)) Directory.CreateDirectory(ProgressInfo.Folder);
+                string filename = Path.Combine(ProgressInfo.Folder, "tb_progress.json");
 
-		    using (var file = File.CreateText(filename))
-			{
-				JsonSerializer serializer = new JsonSerializer();
-			    serializer.Serialize(file, this);
-			}
-		}
+                using (var file = File.CreateText(filename))
+                {
+                    JsonSerializer serializer = new JsonSerializer();
+                    serializer.Serialize(file, this);
+                }
+            }
+            //if any issue with the save we isolate it here
+            //so there is no interference with tumbling
+            catch (Exception){}
+        }
 
 	    public static void RemoveProgressFile()
 	    {
