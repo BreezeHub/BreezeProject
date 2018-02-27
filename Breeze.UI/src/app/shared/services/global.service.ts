@@ -3,8 +3,6 @@ import { remote } from 'electron';
 
 @Injectable()
 export class GlobalService {
-  private currentBitcoinApiPort = <number>(remote.getGlobal('bitcoinApiPort'));
-  private currentStratisApiPort = <number>(remote.getGlobal('stratisApiPort'));
   private walletPath: string;
   private currentWalletName: string;
   private coinType: number;
@@ -16,11 +14,11 @@ export class GlobalService {
   }
 
   get bitcoinApiPort() {
-    return this.currentBitcoinApiPort;
+    return remote.getGlobal('bitcoinApiPort');
   }
 
   get stratisApiPort() {
-    return this.currentStratisApiPort;
+    return remote.getGlobal('stratisApiPort');
   }
 
   getWalletPath() {
@@ -37,13 +35,6 @@ export class GlobalService {
 
   setNetwork(network: string) {
     this.network = network;
-    if (!!network && network.toLowerCase() === 'testnet') {
-      this.currentBitcoinApiPort = 38220;
-      this.currentStratisApiPort = 38221;
-    } else {
-      this.currentBitcoinApiPort = 37220;
-      this.currentStratisApiPort = 37221;
-    }
   }
 
   getWalletName() {

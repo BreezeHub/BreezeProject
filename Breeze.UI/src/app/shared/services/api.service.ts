@@ -25,21 +25,35 @@ import { TransactionSending } from '../classes/transaction-sending';
 @Injectable()
 export class ApiService {
 
+    private _currentApiUrl;
     private headers = new Headers({'Content-Type': 'application/json'});
     private pollingInterval = 3000;
-    private bitcoinApiUrl = `http://localhost:${this.globalService.bitcoinApiPort}/api`;
-    private stratisApiUrl = `http://localhost:${this.globalService.stratisApiPort}/api`;
-    private currentApiUrl = `http://localhost:${this.globalService.bitcoinApiPort}/api`;
 
     constructor(private http: Http, private globalService: GlobalService) {};
 
     private getCurrentCoin() {
       const currentCoin = this.globalService.getCoinName();
       if (currentCoin === 'Bitcoin' || currentCoin === 'TestBitcoin') {
-        this.currentApiUrl = this.bitcoinApiUrl;
+        this._currentApiUrl = this.bitcoinApiUrl;
       } else if (currentCoin === 'Stratis' || currentCoin === 'TestStratis') {
-        this.currentApiUrl = this.stratisApiUrl;
+        this._currentApiUrl = this.stratisApiUrl;
       }
+    }
+
+    get bitcoinApiUrl() {
+      return `http://localhost:${this.globalService.bitcoinApiPort}/api`;
+    }
+
+    get stratisApiUrl() {
+      return `http://localhost:${this.globalService.stratisApiPort}/api`;
+    }
+
+    get currentApiUrl() {
+      if (!this._currentApiUrl) {
+        this._currentApiUrl = `http://localhost:${this.globalService.bitcoinApiPort}/api`;
+      }
+
+      return this._currentApiUrl;
     }
 
     /**
