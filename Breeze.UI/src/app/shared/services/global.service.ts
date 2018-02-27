@@ -1,4 +1,4 @@
-import {Injectable} from '@angular/core';
+import { Injectable } from '@angular/core';
 import { remote } from 'electron';
 
 @Injectable()
@@ -49,7 +49,7 @@ export class GlobalService {
     return this.coinType;
   }
 
-  setCoinType (coinType: number) {
+  setCoinType(coinType: number) {
     this.coinType = coinType;
   }
 

@@ -12,8 +12,8 @@ const os = require('os');
 
 let serve;
 let testnet = false;
-(<any>global).bitcoinApiPort = 38220;
-(<any>global).stratisApiPort = 38221;
+(<any>global).bitcoinApiPort = 37220;
+(<any>global).stratisApiPort = 37221;
 const args = process.argv.slice(1);
 serve = args.some(val => val === '--serve' || val === '-serve');
 
