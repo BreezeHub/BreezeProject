@@ -1,9 +1,10 @@
 import {Injectable} from '@angular/core';
+import { remote } from 'electron';
 
 @Injectable()
 export class GlobalService {
-  private currentBitcoinApiPort = 37220;
-  private currentStratisApiPort = 37221;
+  private currentBitcoinApiPort = <number>(remote.getGlobal('bitcoinApiPort'));
+  private currentStratisApiPort = <number>(remote.getGlobal('stratisApiPort'));
   private walletPath: string;
   private currentWalletName: string;
   private coinType: number;
@@ -11,7 +12,8 @@ export class GlobalService {
   private coinUnit: string;
   private network: string;
 
-  constructor() {}
+  constructor() {
+  }
 
   get bitcoinApiPort() {
     return this.currentBitcoinApiPort;
