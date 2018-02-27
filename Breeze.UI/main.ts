@@ -4,7 +4,7 @@ const electron = require('electron');
 const app = electron.app;
 // Module to create native browser window.
 const BrowserWindow = electron.BrowserWindow;
-const nativeImage = require('electron').nativeImage;
+const nativeImage = require('electron').nativeImage
 
 const path = require('path');
 const url = require('url');
@@ -12,19 +12,19 @@ const os = require('os');
 
 let serve;
 let testnet = false;
-(<any>global).bitcoinApiPort = 38220;
-(<any>global).stratisApiPort = 38221;
+let bitcoinApiPort = 37220;
+let stratisApiPort = 37221;
 const args = process.argv.slice(1);
 serve = args.some(val => val === '--serve' || val === '-serve');
 
 if (args.some(val => val === '--testnet' || val === '-testnet')) {
   testnet = true;
-  (<any>global).bitcoinApiPort = 38220;
-  (<any>global).stratisApiPort = 38221;
+  bitcoinApiPort = 38220;
+  stratisApiPort = 38221;
 } else if (args.some(val => val === '--mainnet' || val === '-mainnet')) {
   testnet = false;
-  (<any>global).bitcoinApiPort = 37220;
-  (<any>global).stratisApiPort = 37221;
+  bitcoinApiPort = 37220;
+  stratisApiPort = 37221;
 }
 
 if (serve) {
@@ -121,7 +121,7 @@ function closeBitcoinApi() {
     const http1 = require('http');
     const options1 = {
       hostname: 'localhost',
-      port: (<any>global).bitcoinApiPort,
+      port: bitcoinApiPort,
       path: '/api/node/shutdown',
       method: 'POST'
   };
@@ -138,7 +138,7 @@ function closeStratisApi() {
     const http2 = require('http');
     const options2 = {
       hostname: 'localhost',
-      port: (<any>global).stratisApiPort,
+      port: stratisApiPort,
       path: '/api/node/shutdown',
       method: 'POST'
     };
