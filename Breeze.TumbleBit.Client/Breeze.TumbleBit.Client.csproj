@@ -22,6 +22,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Breeze.Registration\Breeze.Registration.csproj" />
     <ProjectReference Include="..\BreezeCommon\BreezeCommon.csproj" />
     <ProjectReference Include="..\NTumbleBit\NTumbleBit.csproj" />
     <ProjectReference Include="..\StratisBitcoinFullNode\src\NBitcoin\NBitcoin.csproj" />
