@@ -3,8 +3,7 @@
   "description": "Graphical User Interface for Breeze Wallet.",
   "version": "0.3.17",
   "author": {
-    "name": "Pieterjan Vanhoof",
-    "email": "pieterjan.vanhoof@stratisplatform.com"
+    "name": "Breeze Team"
   },
   "license": "MIT",
   "homepage": "https://github.com/stratisproject/breeze",
