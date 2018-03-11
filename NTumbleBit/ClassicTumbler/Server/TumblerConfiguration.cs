@@ -155,7 +155,7 @@ namespace NTumbleBit.ClassicTumbler.Server
 			}
 
 			var standardCycles = new StandardCycles(Network);
-			var cycleName = config.GetOrDefault<string>("cycle", standardCycles.Debug ? "shorty2x" : "shorty2x");
+			var cycleName = "kotori"; //config.GetOrDefault<string>("cycle", standardCycles.Debug ? "shorty2x" : "shorty2x");
 
 			Logs.Configuration.LogInformation($"Using cycle {cycleName}");
 			

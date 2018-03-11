@@ -108,33 +108,46 @@ namespace Breeze.Registration
                 // Perform watch-only wallet housekeeping - iterate through known servers
                 foreach (RegistrationRecord record in this.registrationStore.GetAll())
                 {
-                    Script scriptToCheck = BitcoinAddress.Create(record.Record.ServerId, this.network).ScriptPubKey;
-                    
-                    this.logger.LogDebug("Recalculating collateral balance for server: " + record.Record.ServerId);
+	                try
+	                {
+		                Script scriptToCheck = BitcoinAddress.Create(record.Record.ServerId, this.network).ScriptPubKey;
 
-                    if (!watchOnlyWallet.WatchedAddresses.ContainsKey(scriptToCheck.ToString()))
-                    {
-                        this.logger.LogDebug("Server address missing from watch-only wallet. Deleting stored registrations for server: " + record.Record.ServerId);
-                        this.registrationStore.DeleteAllForServer(record.Record.ServerId);
-                        continue;
-                    }
+		                this.logger.LogDebug("Recalculating collateral balance for server: " + record.Record.ServerId);
 
-                    Money serverCollateralBalance = this.watchOnlyWalletManager.GetRelativeBalance(scriptToCheck.ToString());
-                        
-                    this.logger.LogDebug("Collateral balance for server " + record.Record.ServerId + " is " + serverCollateralBalance.ToString() + ", original registration height " + record.BlockReceived + ", current height " + height);
+		                if (!watchOnlyWallet.WatchedAddresses.ContainsKey(scriptToCheck.ToString()))
+		                {
+			                this.logger.LogDebug(
+				                "Server address missing from watch-only wallet. Deleting stored registrations for server: " +
+				                record.Record.ServerId);
+			                this.registrationStore.DeleteAllForServer(record.Record.ServerId);
+			                continue;
+		                }
 
-                    if ((serverCollateralBalance < MASTERNODE_COLLATERAL_THRESHOLD) && ((height - record.BlockReceived) > WINDOW_PERIOD_BLOCK_COUNT))
-                    {
-                        // Remove server registrations as funding has not been performed timeously,
-                        // or funds have been removed from the collateral address subsequent to the
-                        // registration being performed
-                        this.logger.LogDebug("Insufficient collateral within window period for server: " + record.Record.ServerId);
-                        this.logger.LogDebug("Deleting registration records for server: " + record.Record.ServerId);
-                        this.registrationStore.DeleteAllForServer(record.Record.ServerId);
+		                Money serverCollateralBalance =
+			                this.watchOnlyWalletManager.GetRelativeBalance(record.Record.ServerId);
 
-                        // TODO: Remove unneeded transactions from the watch-only wallet?
-                        // TODO: Need to make the TumbleBitFeature change its server address if this is the address it was using
-                    }
+		                this.logger.LogDebug("Collateral balance for server " + record.Record.ServerId + " is " +
+		                                     serverCollateralBalance.ToString() + ", original registration height " +
+		                                     record.BlockReceived + ", current height " + height);
+
+		                if ((serverCollateralBalance < MASTERNODE_COLLATERAL_THRESHOLD) &&
+		                    ((height - record.BlockReceived) > WINDOW_PERIOD_BLOCK_COUNT))
+		                {
+			                // Remove server registrations as funding has not been performed timeously,
+			                // or funds have been removed from the collateral address subsequent to the
+			                // registration being performed
+			                this.logger.LogDebug("Insufficient collateral within window period for server: " + record.Record.ServerId);
+			                this.logger.LogDebug("Deleting registration records for server: " + record.Record.ServerId);
+			                this.registrationStore.DeleteAllForServer(record.Record.ServerId);
+
+			                // TODO: Remove unneeded transactions from the watch-only wallet?
+			                // TODO: Need to make the TumbleBitFeature change its server address if this is the address it was using
+		                }
+	                }
+	                catch (Exception e)
+	                {
+		                this.logger.LogError("Error calculating server collateral balance: " + e);
+					}
                 }
 
                 this.watchOnlyWalletManager.SaveWatchOnlyWallet();

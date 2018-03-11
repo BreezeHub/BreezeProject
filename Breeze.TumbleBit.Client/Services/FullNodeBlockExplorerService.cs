@@ -37,7 +37,7 @@ namespace Breeze.TumbleBit.Client.Services
             while (true)
             {
                 cancellation.ThrowIfCancellationRequested();
-                var h = TumblingState.WalletManager.LastReceivedBlockHash();
+                uint256 h = TumblingState.WalletManager.LastReceivedBlockHash();
 
                 if (h != currentBlock)
                 {
