@@ -12,15 +12,19 @@ namespace Breeze.TumbleBit.Client
     public interface ITumbleBitManager : IDisposable
     {
         /// <summary>
-        /// Connects to the tumbler.
+        /// Connects to a masternode running the Breeze Privacy Protocol.
         /// </summary>
-        /// <returns></returns>
         Task<Result<ClassicTumblerParameters>> ConnectToTumblerAsync();
 
-        Task TumbleAsync(string originWalletName, string destinationWalletName, string originWalletPassword);
+		/// <summary>
+		/// Disconnects from the currently connected masternode and attempts to connect to a new one.
+		/// </summary>
+		Task<Result<ClassicTumblerParameters>> ChangeServerAsync();
+
+		Task TumbleAsync(string originWalletName, string destinationWalletName, string originWalletPassword);
 
         /// <summary>
-        /// Flip the tumbler to onlymonitor mode.
+        /// Flip the Breeze Privacy Protocol client runtime to onlymonitor mode.
         /// </summary>
         /// <returns></returns>
         Task OnlyMonitorAsync();
@@ -29,11 +33,10 @@ namespace Breeze.TumbleBit.Client
 
         int RegistrationCount();
         
-        Task<bool> BlockGenerate(int numberOfBlocks);
         Task DummyRegistration(string originWalletName, string originWalletPassword);
 
         /// <summary>
-        /// The state of the tumbler
+        /// The state of the connection with the masternode server.
         /// </summary>
         TumbleBitManager.TumbleState State { get; }
 

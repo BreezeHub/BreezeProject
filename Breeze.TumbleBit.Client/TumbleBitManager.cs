@@ -11,7 +11,6 @@ using Stratis.Bitcoin.Builder;
 using Stratis.Bitcoin.Configuration;
 using Stratis.Bitcoin.Features.BlockStore;
 using Stratis.Bitcoin.Features.MemoryPool;
-using Stratis.Bitcoin.Features.Miner;
 using Stratis.Bitcoin.Features.Wallet;
 using Stratis.Bitcoin.Features.WatchOnlyWallet;
 using Stratis.Bitcoin.Signals;
@@ -35,7 +34,7 @@ using Breeze.Registration;
 namespace Breeze.TumbleBit.Client
 {
     /// <summary>
-    /// An implementation of a tumbler manager.
+    /// Manages the logic of the Breeze Privacy Protocol
     /// </summary>
     /// <seealso cref="Breeze.TumbleBit.Client.ITumbleBitManager" />
     public class TumbleBitManager : ITumbleBitManager
@@ -156,68 +155,14 @@ namespace Breeze.TumbleBit.Client
 
             this.tumblingState.Save();
 
+			// If there was a server address saved, that means we were previously
+			// connected to it, and should try to reconnect to it by default when
+	        // the connect method is invoked by the UI
+	        if ((this.TumblerAddress == null) && (this.tumblingState.TumblerUri != null))
+		        this.TumblerAddress = this.tumblingState.TumblerUri.ToString();
+
 			// Remove the progress file from previous session as it is now stale
 			ProgressInfo.RemoveProgressFile();
-        }
-
-        public async Task<bool> BlockGenerate(int numberOfBlocks)
-        {
-            // TODO: Move this into the tests
-            // TODO: Refactor this to use the same technique used in the StratisRegTest unit tests
-
-            if (this.network != Network.RegTest && this.network != Network.StratisRegTest)
-            {
-                this.logger.LogError("Can only generate blocks on regtest");
-                return false;
-            }
-
-            var wallet = this.tumblingState.WalletManager;
-            var w = wallet.GetWalletsNames().FirstOrDefault();
-            if (w == null)
-            {
-                this.logger.LogError("No wallet found");
-                throw new Exception("No wallet found");
-            }
-            var acc = wallet.GetAccounts(w).FirstOrDefault();
-            if (acc == null)
-            {
-                this.logger.LogError("No account found in wallet");
-                throw new Exception("No account found in wallet");
-            }
-            var account = new WalletAccountReference(w, acc.Name);
-            var address = wallet.GetUnusedAddress(account);
-
-            try
-            {
-                PowMining powMining = this.fullNode.NodeService<PowMining>();
-
-                if (this.network == Network.Main || this.network == Network.TestNet || this.network == Network.RegTest)
-                {
-                    // Bitcoin PoW
-                    await Task.Run(() =>
-                    {
-                        powMining.GenerateBlocks(new ReserveScript(address.Pubkey), (ulong) numberOfBlocks,
-                            int.MaxValue);
-                    });
-                }
-
-                if (this.network == Network.StratisMain || this.network == Network.StratisTest || this.network == Network.StratisRegTest)
-                {
-                    // Stratis PoW
-                    await Task.Run(() =>
-                    {
-                        powMining.GenerateBlocks(new ReserveScript {ReserveFullNodeScript = address.ScriptPubKey},
-                            (ulong) numberOfBlocks, int.MaxValue);
-                    });
-                }
-
-                return true;
-            }
-            catch (Exception e)
-            {
-                this.logger.LogError("Error generating block(s): " + e);
-                return false;
-            }
         }
 
         public async Task DummyRegistration(string originWalletName, string originWalletPassword)
@@ -390,92 +335,148 @@ namespace Breeze.TumbleBit.Client
             this.logger.LogDebug("Uncertain if transaction was propagated: " + sendTx.GetHash());
         }
 
-        /// <inheritdoc />
-        public async Task<Result<ClassicTumblerParameters>> ConnectToTumblerAsync()
-        {
-            // If the -ppuri command line option wasn't used to bypass the registration store lookup
-            if (this.TumblerAddress == null)
-            {
-                List<RegistrationRecord> registrations = this.registrationStore.GetAll();
+		/// <inheritdoc />
+		public async Task<Result<ClassicTumblerParameters>> ConnectToTumblerAsync()
+		{
+			// Assumptions about the current state coming into this method:
+			// - If this is a first connection, this.TumblerAddress will be null
+			// - If we were previously connected to a server, its URI would have been stored in the
+			//   tumbling_state.json, and will have been loaded into this.TumblerAddress already
 
-                if (registrations.Count < MINIMUM_MASTERNODE_COUNT)
-                {
-                    this.logger.LogDebug("Not enough masternode registrations downloaded yet: " + registrations.Count);
-                    return null;
-                }
+			// If the -ppuri command line option wasn't used to bypass the registration store lookup
+			if (this.TumblerAddress == null)
+			{
+				List<RegistrationRecord> registrations = this.registrationStore.GetAll();
 
-                bool validRegistrationFound = false;
-                
+				if (registrations.Count < MINIMUM_MASTERNODE_COUNT)
+				{
+					this.logger.LogDebug("Not enough masternode registrations downloaded yet: " + registrations.Count);
+					return Result.Fail<ClassicTumblerParameters>("Not enough masternode registrations downloaded yet");
+				}
+				
 				registrations.Shuffle();
 
-                // Since the list is shuffled, we can simply iterate through it and try each server until one is valid
-                foreach (RegistrationRecord record in registrations)
-                {
-                    // Implicitly, the registration feature will have deleted the registration if the collateral
-                    // requirement was not met within 30 blocks
-                    if ((this.walletManager.LastBlockHeight() - record.BlockReceived) >= (RegistrationManager.WINDOW_PERIOD_BLOCK_COUNT + 2))
-                    {
-                        validRegistrationFound = true;
-						
-	                    this.TumblerAddress = "ctb://" + record.Record.OnionAddress + ".onion?h=" + record.Record.ConfigurationHash;
-						
-						break;
-                    }
-                }
-                
-                if (!validRegistrationFound)
-                {
-                    this.logger.LogDebug("Did not find a valid registration");
-                    return Result.Fail<ClassicTumblerParameters>("Did not find a valid registration");
-                }
-            }
+				// Since the list is shuffled, we can simply iterate through it and try each server until one is valid & reachable
+				foreach (RegistrationRecord record in registrations)
+				{
+					// Implicitly, the registration feature will have deleted the registration if the collateral
+					// requirement was not met within WINDOW_PERIOD_BLOCK_COUNT blocks
+					if ((this.walletManager.LastBlockHeight() - record.BlockReceived) >= (RegistrationManager.WINDOW_PERIOD_BLOCK_COUNT + 2))
+					{
+						this.TumblerAddress = "ctb://" + record.Record.OnionAddress + ".onion?h=" + record.Record.ConfigurationHash;
 
-            this.tumblingState.TumblerUri = new Uri(this.TumblerAddress);
+						var attemptConnection = await TryUseServer();
 
-            FullNodeTumblerClientConfiguration config;
-            if (this.TumblerAddress.Contains("127.0.0.1"))
-            {
-                config = new FullNodeTumblerClientConfiguration(this.tumblingState, onlyMonitor: false,
-                    connectionTest: true, useProxy: false);
-            }
-            else
-            {
-                config = new FullNodeTumblerClientConfiguration(this.tumblingState, onlyMonitor: false,
-                    connectionTest: true, useProxy: true);
-            }
+						if (!attemptConnection.Failure)
+						{
+							return attemptConnection;
+						}
+					}
+				}
 
-            TumblerClientRuntime rt = null;
-            try
-            {
-                rt = await TumblerClientRuntime.FromConfigurationAsync(config, connectionTest: true)
-                    .ConfigureAwait(false);
+				// If we reach this point, no servers were reachable
+				this.logger.LogDebug("Did not find a valid registration");
+				return Result.Fail<ClassicTumblerParameters>("Did not find a valid registration");
+			}
+			else
+			{
+				return await TryUseServer();
+			}
+		}
 
-                // This is overwritten by the tumble method, but it is needed at the beginning of that method for the balance check
-                this.TumblerParameters = rt.TumblerParameters;
+	    /// <inheritdoc />
+	    public async Task<Result<ClassicTumblerParameters>> ChangeServerAsync()
+	    {
+		    // First stop the state machine if applicable
+		    if (this.stateMachine != null && this.stateMachine.Started)
+		    {
+			    await this.stateMachine.Stop().ConfigureAwait(false);
+		    }
 
-                return Result.Ok(rt.TumblerParameters);
-            }
-            catch (Exception cex) when (cex is PrivacyProtocolConfigException || cex is ConfigException) 
-            {
-                this.logger.LogError("Error obtaining tumbler parameters: " + cex);
-                return Result.Fail<ClassicTumblerParameters>(
-                    cex is PrivacyProtocolConfigException
-                        ? "Tor is required for connectivity to an active Stratis Masternode. Please restart Breeze Wallet with Privacy Protocol and ensure that an instance of Tor is running."
-                        : cex.Message);
-            }
-            catch (Exception e)
-            {
-                this.logger.LogError("Error obtaining tumbler parameters: " + e);
-                return Result.Fail<ClassicTumblerParameters>("Error obtaining tumbler parameters"); 
-            }
-            finally
-            {
-                rt?.Dispose();
-            }
-        }
+		    this.State = TumbleState.OnlyMonitor;
 
-        /// <inheritdoc />
-        public async Task TumbleAsync(string originWalletName, string destinationWalletName, string originWalletPassword)
+			// Now select a different masternode
+		    List<RegistrationRecord> registrations = this.registrationStore.GetAll();
+
+		    if (registrations.Count < MINIMUM_MASTERNODE_COUNT)
+		    {
+			    this.logger.LogDebug("Not enough masternode registrations downloaded yet: " + registrations.Count);
+			    return Result.Fail<ClassicTumblerParameters>("Not enough masternode registrations downloaded yet");
+		    }
+
+		    registrations.Shuffle();
+
+		    // Since the list is shuffled, we can simply try the first one in the list.
+			// Unlike the connect method, we only try one server here. That is because
+			// a timeout can take in the order of minutes for each server tried.
+		    RegistrationRecord record = registrations.First();
+			// Implicitly, the registration feature will have deleted the registration if the collateral
+			// requirement was not met within WINDOW_PERIOD_BLOCK_COUNT blocks
+			if ((this.walletManager.LastBlockHeight() - record.BlockReceived) >= (RegistrationManager.WINDOW_PERIOD_BLOCK_COUNT + 2))
+			{
+				this.TumblerAddress = "ctb://" + record.Record.OnionAddress + ".onion?h=" + record.Record.ConfigurationHash;
+
+				var attemptConnection = await TryUseServer();
+
+				if (!attemptConnection.Failure)
+				{
+					return attemptConnection;
+				}
+			}
+
+		    // If we reach this point, the server was unreachable
+		    this.logger.LogDebug("Failed to connect to server, try another");
+		    return Result.Fail<ClassicTumblerParameters>("Failed to connect to server, try another");
+		}
+
+		private async Task<Result<ClassicTumblerParameters>> TryUseServer()
+		{
+			this.tumblingState.TumblerUri = new Uri(this.TumblerAddress);
+
+			FullNodeTumblerClientConfiguration config;
+			if (this.TumblerAddress.Contains("127.0.0.1"))
+			{
+				config = new FullNodeTumblerClientConfiguration(this.tumblingState, onlyMonitor: false,
+					connectionTest: true, useProxy: false);
+			}
+			else
+			{
+				config = new FullNodeTumblerClientConfiguration(this.tumblingState, onlyMonitor: false,
+					connectionTest: true, useProxy: true);
+			}
+
+			TumblerClientRuntime rt = null;
+			try
+			{
+				rt = await TumblerClientRuntime.FromConfigurationAsync(config, connectionTest: true)
+					.ConfigureAwait(false);
+
+				// This is overwritten by the tumble method, but it is needed at the beginning of that method for the balance check
+				this.TumblerParameters = rt.TumblerParameters;
+
+				return Result.Ok(rt.TumblerParameters);
+			}
+			catch (Exception cex) when (cex is PrivacyProtocolConfigException || cex is ConfigException)
+			{
+				this.logger.LogError("Error obtaining tumbler parameters: " + cex);
+				return Result.Fail<ClassicTumblerParameters>(
+					cex is PrivacyProtocolConfigException
+						? "Tor is required for connectivity to an active Stratis Masternode. Please restart Breeze Wallet with Privacy Protocol and ensure that an instance of Tor is running."
+						: cex.Message);
+			}
+			catch (Exception e)
+			{
+				this.logger.LogError("Error obtaining tumbler parameters: " + e);
+				return Result.Fail<ClassicTumblerParameters>("Error obtaining tumbler parameters");
+			}
+			finally
+			{
+				rt?.Dispose();
+			}
+		}
+
+		/// <inheritdoc />
+		public async Task TumbleAsync(string originWalletName, string destinationWalletName, string originWalletPassword)
         {
             // Make sure it won't start new tumbling round if already started
             if (this.State == TumbleState.Tumbling)

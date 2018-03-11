@@ -35,13 +35,13 @@ namespace Breeze.TumbleBit.Controllers
         }
 
         /// <summary>
-        /// Connect to a tumbler.
+        /// Connect to a masternode running the Breeze Privacy Protocol.
         /// </summary>
         [Route("connect")]
         [HttpGet]
         public async Task<IActionResult> ConnectAsync()
         {
-            // checks the request is valid
+            // Checks the request is valid
             if (!this.ModelState.IsValid)
             {
                 var errors = this.ModelState.Values.SelectMany(e => e.Errors.Select(m => m.ErrorMessage));
@@ -65,7 +65,8 @@ namespace Breeze.TumbleBit.Controllers
                     ["denomination"] = tumblerParameters.Value.Denomination.ToString(),
                     ["fee"] = tumblerParameters.Value.Fee.ToString(),
                     ["network"] = tumblerParameters.Value.Network.Name,
-                    ["estimate"] = cycleLengthSeconds.ToString()
+                    ["estimate"] = cycleLengthSeconds.ToString(),
+					["parameters_are_standard"] = tumblerParameters.Value.IsStandard().ToString()
                 };
 
                 return this.Json(parameterDictionary);
@@ -77,7 +78,7 @@ namespace Breeze.TumbleBit.Controllers
         }
 
         /// <summary>
-        /// Connect to a tumbler.
+        /// Initiate the Breeze Privacy Protocol.
         /// </summary>
         [Route("tumble")]
         [HttpPost]
@@ -106,10 +107,53 @@ namespace Breeze.TumbleBit.Controllers
             }
         }
 
-        /// <summary>
-        /// Is tumbler tumbling.
-        /// </summary>
-        [Route("tumbling-state")]
+		/// <summary>
+		/// Disconnects from the currently connected masternode and attempts to connect to a new one.
+		/// </summary>
+		[Route("changeserver")]
+		[HttpGet]
+		public async Task<IActionResult> ChangeServerAsync()
+		{
+			// Checks the request is valid
+			if (!this.ModelState.IsValid)
+			{
+				var errors = this.ModelState.Values.SelectMany(e => e.Errors.Select(m => m.ErrorMessage));
+				return Client.ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, "Formatting error", string.Join(Environment.NewLine, errors));
+			}
+
+			try
+			{
+				var tumblerParameters = await this.tumbleBitManager.ChangeServerAsync().ConfigureAwait(false);
+
+				if (tumblerParameters.Failure)
+					return Client.ErrorHelpers.BuildErrorResponse(HttpStatusCode.InternalServerError, tumblerParameters.Message, tumblerParameters.Message);
+
+				var periods = tumblerParameters.Value.CycleGenerator.FirstCycle.GetPeriods();
+				var lengthBlocks = periods.Total.End - periods.Total.Start;
+				var cycleLengthSeconds = lengthBlocks * 10 * 60;
+
+				var parameterDictionary = new Dictionary<string, string>()
+				{
+					["tumbler"] = this.tumbleBitManager.TumblerAddress,
+					["denomination"] = tumblerParameters.Value.Denomination.ToString(),
+					["fee"] = tumblerParameters.Value.Fee.ToString(),
+					["network"] = tumblerParameters.Value.Network.Name,
+					["estimate"] = cycleLengthSeconds.ToString(),
+					["parameters_are_standard"] = tumblerParameters.Value.IsStandard().ToString()
+				};
+
+				return this.Json(parameterDictionary);
+			}
+			catch (Exception e)
+			{
+				return Client.ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, $"An error occured connecting to the tumbler with uri {this.tumbleBitManager.TumblerAddress}.", e.ToString());
+			}
+		}
+
+		/// <summary>
+		/// Is tumbler tumbling.
+		/// </summary>
+		[Route("tumbling-state")]
         [HttpGet]
         public async Task<IActionResult> GetTumblingStateAsync()
         {
@@ -205,22 +249,6 @@ namespace Breeze.TumbleBit.Controllers
         {
             this.tumbleBitManager.DummyRegistration(request.OriginWallet, request.OriginWalletPassword);
             return this.Ok();
-        }
-
-        [Route("block-generate")]
-        [HttpPost]
-        public async Task<IActionResult> BlockGenerate([FromQuery] BlockGenerateRequest request)
-        {
-            bool result = await this.tumbleBitManager.BlockGenerate(request.NumberOfBlocks);
-
-            if (result)
-            {
-                return this.Ok();
-            }
-            else
-            {
-                return Client.ErrorHelpers.BuildErrorResponse(HttpStatusCode.InternalServerError, "Unable to generate block", "Unable to generate block");
-            }
         }
 
 	    /// <summary>
