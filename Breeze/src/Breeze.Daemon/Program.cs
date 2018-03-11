@@ -59,8 +59,8 @@ namespace Breeze.Daemon
 
                 if (isStratis)
                 {
-                    if (NodeSettings.PrintHelp(args, Network.StratisMain))
-                        return;
+                    //if (NodeSettings.PrintHelp(args, Network.StratisMain))
+                    //    return;
 
                     Network network = isTestNet ? Network.StratisTest : Network.StratisMain;
                     if (isTestNet)
@@ -91,18 +91,23 @@ namespace Breeze.Daemon
                         .UseNodeSettings(nodeSettings);
 
                     if (args.Contains("stratis"))
-                        fullNodeBuilder.UseStratisConsensus();
+                        fullNodeBuilder.UsePosConsensus();
                     else
-                        fullNodeBuilder.UseConsensus();
+                        fullNodeBuilder.UsePowConsensus();
 
-                    fullNodeBuilder.UseBlockStore()
-                        .UseMempool()
-                        .UseBlockNotification()
-                        .UseTransactionNotification()
-                        .UseWallet()
-                        .UseWatchOnlyWallet()
-                        .AddMining()
-                        .AddRPC()
+	                fullNodeBuilder.UseBlockStore()
+		                .UseMempool()
+		                .UseBlockNotification()
+		                .UseTransactionNotification()
+		                .UseWallet()
+		                .UseWatchOnlyWallet();
+
+	                if (args.Contains("stratis"))
+		                fullNodeBuilder.AddPowPosMining();
+	                else
+		                fullNodeBuilder.AddMining();
+					
+					fullNodeBuilder.AddRPC()
                         .UseApi();
                 }
 
