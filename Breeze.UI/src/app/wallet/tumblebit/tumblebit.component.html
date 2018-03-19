@@ -52,7 +52,10 @@
           <table class="table">
             <thead>
               <tr>
-                <th *ngIf="isConnected">Connection <span class="badge badge-success float-right">Online</span></th>
+                <th *ngIf="isConnected">
+                  Connection <span class="badge badge-success float-right">Online</span>
+                  <a class="btn btn-sm btn-secondary" (click)="markAsServerChangeRequired()">Change server</a>
+                </th>
                 <th *ngIf="!isConnected">Connection <span class="badge badge-danger float-right">Offline</span></th>
               </tr>
             </thead>

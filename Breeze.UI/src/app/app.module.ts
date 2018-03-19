@@ -14,6 +14,7 @@ import { AppComponent } from './app.component';
 import { LoginComponent } from './login/login.component';
 import { GenericModalComponent } from './shared/components/generic-modal/generic-modal.component';
 import { ConfirmDialogComponent } from './shared/components/confirm-dialog/confirm-dialog.component';
+import { ConnectionModalComponent } from './shared/components/connection-modal/connection-modal.component';
 
 import { ApiService } from './shared/services/api.service';
 import { GlobalService } from './shared/services/global.service';
@@ -44,6 +45,7 @@ import { LogoutConfirmationComponent } from './wallet/logout-confirmation/logout
   declarations: [
     AppComponent,
     GenericModalComponent,
+    ConnectionModalComponent,
     ConfirmDialogComponent,
     LoginComponent,
     LogoutConfirmationComponent,
@@ -56,6 +58,7 @@ import { LogoutConfirmationComponent } from './wallet/logout-confirmation/logout
   entryComponents: [
     PasswordConfirmationComponent,
     GenericModalComponent,
+    ConnectionModalComponent,
     ConfirmDialogComponent,
     SendComponent,
     SendConfirmationComponent,
