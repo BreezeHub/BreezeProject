@@ -22,7 +22,12 @@ export class ModalService {
       this.modalRef.dismiss();
     }
 
-    this.modalRef = this.modalService.open(GenericModalComponent);
+    if (!!options && !!options.modalOptions) {
+      this.modalRef = this.modalService.open(GenericModalComponent, options.modalOptions);
+    } else {
+      this.modalRef = this.modalService.open(GenericModalComponent);
+    }
+
     if (!options) { return; }
     if (!!options.title) {
       this.modalRef.componentInstance.title = options.title;

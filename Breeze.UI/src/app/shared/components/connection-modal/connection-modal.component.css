@@ -20,3 +20,7 @@
   margin: 0 auto;
   text-align: center;
 }
+
+.nomargin {
+  margin-bottom: 0;
+}

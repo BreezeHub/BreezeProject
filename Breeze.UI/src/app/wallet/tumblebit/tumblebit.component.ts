@@ -1,6 +1,6 @@
 import { Router } from '@angular/router';
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { NgbModal, NgbActiveModal, NgbDropdown } from '@ng-bootstrap/ng-bootstrap';
+import { NgbModal, NgbActiveModal, NgbDropdown, NgbModalRef, NgbModalOptions } from '@ng-bootstrap/ng-bootstrap';
 import { FormGroup, FormControl, Validators, FormBuilder } from '@angular/forms';
 
 import { PasswordConfirmationComponent } from './password-confirmation/password-confirmation.component';
@@ -60,6 +60,7 @@ export class TumblebitComponent implements OnInit, OnDestroy {
   public connectionInProgress = false;
   public operation: 'connect' | 'changeserver' = 'connect';
   private timer: any;
+  private connectionModal: NgbModalRef;
 
   tumbleFormErrors = {
     'selectWallet': ''
@@ -114,6 +115,8 @@ export class TumblebitComponent implements OnInit, OnDestroy {
     if (this.connectionSubscription) {
       this.connectionSubscription.unsubscribe();
     }
+
+    this.stopConnectionRequest();
   };
 
   private buildTumbleForm(): void {
@@ -248,13 +251,20 @@ export class TumblebitComponent implements OnInit, OnDestroy {
             this.fee = this.tumblerParameters.fee * 100;
             this.denomination = this.tumblerParameters.denomination;
 
-            const modalRef = this.modalService.open(ConnectionModalComponent);
-            modalRef.componentInstance.server = this.tumblerAddress;
-            modalRef.componentInstance.denomination = this.denomination;
-            modalRef.componentInstance.fees = this.fee;
-            modalRef.componentInstance.estimatedTime = this.estimate;
-            modalRef.componentInstance.coinUnit = this.coinUnit;
-            modalRef.result.then(result => {
+            if (!!this.connectionModal) {
+              this.connectionModal.dismiss();
+            }
+            const ngbModalOptions: NgbModalOptions = {
+              backdrop : 'static',
+              keyboard : false
+            };
+            this.connectionModal = this.modalService.open(ConnectionModalComponent, ngbModalOptions);
+            this.connectionModal.componentInstance.server = this.tumblerAddress;
+            this.connectionModal.componentInstance.denomination = this.denomination;
+            this.connectionModal.componentInstance.fees = this.fee;
+            this.connectionModal.componentInstance.estimatedTime = this.estimate;
+            this.connectionModal.componentInstance.coinUnit = this.coinUnit;
+            this.connectionModal.result.then(result => {
               this.stopConnectionRequest();
               if (result === 'skip') {
                 this.markAsServerChangeRequired();
@@ -334,6 +344,7 @@ export class TumblebitComponent implements OnInit, OnDestroy {
   private markAsServerChangeRequired() {
     this.isConnected = false;
     this.operation = 'changeserver';
+    this.tumblerAddress = 'Changing server...';
   }
 
   private markAsConnected() {
@@ -534,7 +545,7 @@ export class TumblebitComponent implements OnInit, OnDestroy {
     this.connectionInProgress = true;
     this.timer = setTimeout(() =>  {
       this.connectionInProgress = false;
-    }, 60 * 1000);
+    }, 600 * 1000);
   }
 
   private stopConnectionRequest() {
