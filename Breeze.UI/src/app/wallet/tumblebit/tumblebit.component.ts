@@ -295,6 +295,10 @@ export class TumblebitComponent implements OnInit, OnDestroy {
   }
 
   private startTumbling() {
+    if (!this.destinationWalletName) {
+      return;
+    }
+
     if (!this.isConnected) {
       this.genericModalService.openModal({ body: 'Can\'t start tumbling when you\'re not connected to a server. Please try again later.'});
     } else {
