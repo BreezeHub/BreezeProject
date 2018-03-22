@@ -1,0 +1,40 @@
+<div id="modalGeneric" tabindex="-1">
+    <div class="modal-dialog modalBg">
+      <div>
+        <div class="modal-header">
+          <div class="bubble"><i class="ico-info"></i></div>
+        </div>
+        <div class="modal-body">
+          <h5 class="modal-title text-uppercase" id="modalReceive">CONFIRM CONNECTION</h5>
+          <div class="modal-body-container">
+            <div class="form-group row">
+              <label class="col-sm-12 col-form-label">Server:</label>
+              <code class="col-sm-12">{{server}}</code>
+            </div>
+            <div class="form-group row">
+              <span class="badge badge-success center server-tag">Standard Server</span>
+            </div>
+            <div class="form-group row nomargin">
+              <label class="col-sm-4 col-form-label">Denomination:</label>
+              <span class="form-control-static col-sm-8"><b>{{ denomination }} {{ coinUnit }}</b></span>
+            </div>
+            <div class="form-group row nomargin">
+              <label class="col-sm-4 col-form-label">Fees:</label>
+              <span class="form-control-static col-sm-8"><b>{{ fees | number:'1.2-2' }}%</b></span>
+            </div>
+            <div class="form-group row">
+              <label class="col-sm-4 col-form-label">Estimated Time:</label>
+              <span class="form-control-static col-sm-8"><b>{{ estimatedTime | number:'1.2-2' }} Hours</b></span>
+            </div>
+
+            <div class="form-group row center">
+              <div class="buttons">
+                <a class="btn btn-secondary" (click)="skip()">Skip</a>&nbsp;
+                <a class="btn btn-primary" (click)="connect()">Connect</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>

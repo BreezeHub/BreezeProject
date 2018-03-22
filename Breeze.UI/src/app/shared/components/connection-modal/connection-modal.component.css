@@ -1,0 +1,26 @@
+.help-url {
+    padding-top: 10px;
+}
+
+.server-tag {
+  width: 200px;
+  margin: 0 auto;
+}
+
+.server-address {
+  background-color: #eee;
+}
+
+.modal-body-container {
+  padding: 20px;
+}
+
+.buttons {
+  width: 220px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.nomargin {
+  margin-bottom: 0;
+}

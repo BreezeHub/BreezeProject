@@ -5,24 +5,33 @@ import 'rxjs/add/operator/map';
 
 import { TumblerConnectionRequest } from './classes/tumbler-connection-request';
 import { TumbleRequest } from './classes/tumble-request';
+import { GlobalService } from '../../shared/services/global.service';
 
 @Injectable()
 export class TumblebitService {
   // The service to connect to & operate a TumbleBit Server via the
   // TumbleBit.Client.CLI tool
-
-  private tumblerClientUrl = 'http://localhost:37220/api/TumbleBit/';
   private headers = new Headers({ 'Content-Type': 'application/json' });
 
   private pollingInterval = 3000;
 
-  constructor(private http: Http) { };
+  constructor(private http: Http, private globalService: GlobalService) { };
+
+  get tumblerClientUrl() {
+    return `http://localhost:${this.globalService.bitcoinApiPort}/api/TumbleBit/`;
+  }
 
   // Might make sense to populate tumblerParams here because services are singletons
 
-  connectToTumbler(): Observable<any> {
+  connectToTumbler(operation: 'connect' | 'changeserver'): Observable<any> {
     return this.http
-      .get(this.tumblerClientUrl + 'connect')
+      .get(`${this.tumblerClientUrl}${operation}`)
+      .map((response: Response) => response);
+  };
+
+  changeTumblerServer(): Observable<any> {
+    return this.http
+      .get(`${this.tumblerClientUrl}changeserver`)
       .map((response: Response) => response);
   };
 
@@ -30,19 +39,19 @@ export class TumblebitService {
     return Observable
       .interval(1000)
       .startWith(0)
-      .switchMap(() => this.http.get(this.tumblerClientUrl + 'tumbling-state'))
+      .switchMap(() => this.http.get(`${this.tumblerClientUrl}tumbling-state`))
       .map((response: Response) => response);
   }
 
   startTumbling(body: TumbleRequest): Observable<any> {
     return this.http
-      .post(this.tumblerClientUrl + 'tumble', JSON.stringify(body), {headers: this.headers})
+      .post(`${this.tumblerClientUrl}tumble`, JSON.stringify(body), {headers: this.headers})
       .map((response: Response) => response);
   };
 
   stopTumbling(): Observable<any> {
     return this.http
-      .get(this.tumblerClientUrl + 'onlymonitor')
+      .get(`${this.tumblerClientUrl}onlymonitor`)
       .map((response: Response) => response);
   }
 
@@ -50,7 +59,7 @@ export class TumblebitService {
     return Observable
       .interval(this.pollingInterval)
       .startWith(0)
-      .switchMap(() => this.http.get(this.tumblerClientUrl + 'progress'))
+      .switchMap(() => this.http.get(`${this.tumblerClientUrl}progress`))
       .map((response: Response) => response);
   }
 

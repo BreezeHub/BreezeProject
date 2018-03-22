@@ -1,9 +1,11 @@
 import { Router } from '@angular/router';
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { NgbModal, NgbActiveModal, NgbDropdown } from '@ng-bootstrap/ng-bootstrap';
+import { NgbModal, NgbActiveModal, NgbDropdown, NgbModalRef, NgbModalOptions } from '@ng-bootstrap/ng-bootstrap';
 import { FormGroup, FormControl, Validators, FormBuilder } from '@angular/forms';
 
 import { PasswordConfirmationComponent } from './password-confirmation/password-confirmation.component';
+import { ConnectionModalComponent } from '../../shared/components/connection-modal/connection-modal.component';
+
 import { ApiService } from '../../shared/services/api.service';
 import { GlobalService } from '../../shared/services/global.service';
 import { WalletInfo } from '../../shared/classes/wallet-info';
@@ -18,6 +20,7 @@ import { Observable } from 'rxjs/Rx';
 import { Subscription } from 'rxjs/Subscription';
 
 @Component({
+  // tslint:disable-next-line:component-selector
   selector: 'tumblebit-component',
   providers: [TumblebitService],
   templateUrl: './tumblebit.component.html',
@@ -54,6 +57,11 @@ export class TumblebitComponent implements OnInit, OnDestroy {
   public wallets: [string];
   public tumblerAddress = 'Connecting...';
   public hasRegistrations: Boolean = false;
+  public connectionInProgress = false;
+  public operation: 'connect' | 'changeserver' = 'connect';
+  private timer: any;
+  private connectionModal: NgbModalRef;
+
   tumbleFormErrors = {
     'selectWallet': ''
   }
@@ -107,6 +115,8 @@ export class TumblebitComponent implements OnInit, OnDestroy {
     if (this.connectionSubscription) {
       this.connectionSubscription.unsubscribe();
     }
+
+    this.stopConnectionRequest();
   };
 
   private buildTumbleForm(): void {
@@ -224,13 +234,13 @@ export class TumblebitComponent implements OnInit, OnDestroy {
   }
 
   private connectToTumbler() {
-    const connection = new TumblerConnectionRequest(
-      this.tumblerAddress,
-      this.globalService.getNetwork()
-    );
+    if (this.connectionInProgress) {
+      return;
+    }
 
+    this.startConnectionRequest();
     this.connectionSubscription = this.tumblebitService
-      .connectToTumbler()
+      .connectToTumbler(this.operation)
       .subscribe(
         // TODO abstract into shared utility method
         response => {
@@ -240,10 +250,32 @@ export class TumblebitComponent implements OnInit, OnDestroy {
             this.estimate = this.tumblerParameters.estimate / 3600;
             this.fee = this.tumblerParameters.fee * 100;
             this.denomination = this.tumblerParameters.denomination;
-            this.isConnected = true;
+
+            if (!!this.connectionModal) {
+              this.connectionModal.dismiss();
+            }
+            const ngbModalOptions: NgbModalOptions = {
+              backdrop : 'static',
+              keyboard : false
+            };
+            this.connectionModal = this.modalService.open(ConnectionModalComponent, ngbModalOptions);
+            this.connectionModal.componentInstance.server = this.tumblerAddress;
+            this.connectionModal.componentInstance.denomination = this.denomination;
+            this.connectionModal.componentInstance.fees = this.fee;
+            this.connectionModal.componentInstance.estimatedTime = this.estimate;
+            this.connectionModal.componentInstance.coinUnit = this.coinUnit;
+            this.connectionModal.result.then(result => {
+              this.stopConnectionRequest();
+              if (result === 'skip') {
+                this.markAsServerChangeRequired();
+              } else {
+                this.markAsConnected();
+              }
+            });
           }
         },
         error => {
+          this.stopConnectionRequest();
           console.error(error);
           this.isConnected = false;
           if (error.status === 0) {
@@ -263,6 +295,10 @@ export class TumblebitComponent implements OnInit, OnDestroy {
   }
 
   private startTumbling() {
+    if (!this.destinationWalletName) {
+      return;
+    }
+
     if (!this.isConnected) {
       this.genericModalService.openModal({ body: 'Can\'t start tumbling when you\'re not connected to a server. Please try again later.'});
     } else {
@@ -280,7 +316,8 @@ export class TumblebitComponent implements OnInit, OnDestroy {
     this.genericModalService.confirm(
       {
         title: 'Are you sure you want to proceed?',
-        body: 'By stopping all current cycles, any current funds that are mid-cycle may take up to 12 hours to reimburse depending on the phase.'
+        body:
+         'By stopping all current cycles, any current funds that are mid-cycle may take up to 12 hours to reimburse depending on the phase.'
       },
       () => {
         this.tumblebitService.stopTumbling()
@@ -306,6 +343,17 @@ export class TumblebitComponent implements OnInit, OnDestroy {
             }
           );
         });
+  }
+
+  private markAsServerChangeRequired() {
+    this.isConnected = false;
+    this.operation = 'changeserver';
+    this.tumblerAddress = 'Changing server...';
+  }
+
+  private markAsConnected() {
+    this.isConnected = true;
+    this.operation = 'connect';
   }
 
   private getProgress() {
@@ -495,6 +543,21 @@ export class TumblebitComponent implements OnInit, OnDestroy {
         }
       )
     ;
+  }
+
+  private startConnectionRequest() {
+    this.connectionInProgress = true;
+    this.timer = setTimeout(() =>  {
+      this.connectionInProgress = false;
+    }, 600 * 1000);
+  }
+
+  private stopConnectionRequest() {
+    if (!!this.timer) {
+      clearTimeout(this.timer);
+    }
+
+    this.connectionInProgress = false;
   }
 
   private updateWalletFileDisplay(walletName: string) {
