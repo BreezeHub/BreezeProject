@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging.Console.Internal;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
@@ -346,6 +347,30 @@ namespace NTumbleBit.Logging
 
 			Console.Write(message.Message, message.MessageColor, message.MessageColor);
 			Console.Flush();
+
+			try { 
+				// This is a hack, but it avoids having to rewrite the NTB logging subsystem completely
+				WriteMessageToDisk($"{dateTime} {message.LevelString} {message.Message}");
+			}
+			catch (Exception) { }
+		}
+
+		public void WriteMessageToDisk(string message)
+		{
+			string logFilePath;
+			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+				logFilePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "StratisNode\\bitcoin\\NTBLogs");
+			else
+				logFilePath = Path.Combine(Environment.GetEnvironmentVariable("HOME"), ".stratisnode", "bitcoin", "NTBLogs");
+
+			// TODO: Split log daily or rotate
+			if (!Directory.Exists(logFilePath)) Directory.CreateDirectory(logFilePath);
+			string filePath = Path.Combine(logFilePath, "NTumbleBit.txt");
+
+			using (var file = File.AppendText(filePath))
+			{
+				file.WriteLine(message);
+			}
 		}
 
 		private void ProcessLogQueue()
