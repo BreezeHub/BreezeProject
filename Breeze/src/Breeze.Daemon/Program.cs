@@ -123,9 +123,6 @@ namespace Breeze.Daemon
                 // Start NTumbleBit logging to the console
                 SetupTumbleBitConsoleLogs(nodeSettings);
 
-                // Add logging to NLog
-                //SetupTumbleBitNLogs(nodeSettings);
-
                 // Currently TumbleBit is bitcoin only
                 if (args.Contains("-tumblebit"))
                 {
@@ -135,9 +132,11 @@ namespace Breeze.Daemon
                 
                 IFullNode node = fullNodeBuilder.Build();
 
-                // Start Full Node - this will also start the API.
-                await node.RunAsync();
+	            // Add logging to NLog
+	            SetupTumbleBitNLogs(nodeSettings);
 
+				// Start Full Node - this will also start the API.
+				await node.RunAsync();
             }
             catch (Exception ex)
             {
@@ -155,7 +154,8 @@ namespace Breeze.Daemon
                 {"Microsoft", Microsoft.Extensions.Logging.LogLevel.Warning},
                 {"Microsoft.AspNetCore", Microsoft.Extensions.Logging.LogLevel.Error},
                 {"Stratis.Bitcoin", Microsoft.Extensions.Logging.LogLevel.Information},
-                {"Breeze.TumbleBit.Client", Microsoft.Extensions.Logging.LogLevel.Debug},
+	            {"Stratis.Bitcoin.Features.WatchOnlyWallet.WatchOnlyWalletManager", Microsoft.Extensions.Logging.LogLevel.Information},
+				{"Breeze.TumbleBit.Client", Microsoft.Extensions.Logging.LogLevel.Debug},
                 {"Breeze.Registration", Microsoft.Extensions.Logging.LogLevel.Debug}
             };
             
@@ -179,10 +179,36 @@ namespace Breeze.Daemon
             tbTarget.Layout = "[${longdate:universalTime=true} ${threadid}${mdlc:item=id}] ${level:uppercase=true}: ${callsite} ${message}";
             tbTarget.Encoding = Encoding.UTF8;
 
-            var ruleTb = new LoggingRule("*", NLog.LogLevel.Debug, tbTarget);
-            config.LoggingRules.Add(ruleTb);
+			// Attempt to log all information that is pertinent for debugging.
+			// In particular, suppress the watch only wallet's debug-level entries as they are highly verbose.
+	        config.LoggingRules.Add(new LoggingRule("Stratis.Bitcoin.Features.Api.*", NLog.LogLevel.Debug, tbTarget));
+	        //config.LoggingRules.Add(new LoggingRule("Stratis.Bitcoin.Features.BlockStore.*", NLog.LogLevel.Error, tbTarget));
+	        //config.LoggingRules.Add(new LoggingRule("Stratis.Bitcoin.Features.Consensus.*", NLog.LogLevel.Error, tbTarget));
+	        config.LoggingRules.Add(new LoggingRule("Stratis.Bitcoin.Features.LightWallet.*", NLog.LogLevel.Debug, tbTarget));
+	        //config.LoggingRules.Add(new LoggingRule("Stratis.Bitcoin.Features.MemoryPool.*", NLog.LogLevel.Error, tbTarget));
+	        //config.LoggingRules.Add(new LoggingRule("Stratis.Bitcoin.Features.Notifications.*", NLog.LogLevel.Error, tbTarget));
+	        config.LoggingRules.Add(new LoggingRule("Stratis.Bitcoin.Features.RPC.*", NLog.LogLevel.Error, tbTarget));
+	        config.LoggingRules.Add(new LoggingRule("Stratis.Bitcoin.Features.Wallet.*", NLog.LogLevel.Debug, tbTarget));
+	        config.LoggingRules.Add(new LoggingRule("Stratis.Bitcoin.Features.WatchOnlyWallet.*", NLog.LogLevel.Info, tbTarget));
+	        
+	        config.LoggingRules.Add(new LoggingRule("Stratis.Bitcoin.BlockPulling.*", NLog.LogLevel.Info, tbTarget)); // Has quite verbose Trace logs
+			config.LoggingRules.Add(new LoggingRule("Stratis.Bitcoin.Connection.*", NLog.LogLevel.Info, tbTarget));
+			config.LoggingRules.Add(new LoggingRule("Stratis.Bitcoin.FullNode", NLog.LogLevel.Info, tbTarget));
+			config.LoggingRules.Add(new LoggingRule("Stratis.Bitcoin.P2P.*", NLog.LogLevel.Debug, tbTarget)); // Quite verbose Trace logs
+			config.LoggingRules.Add(new LoggingRule("Stratis.Bitcoin.Utilities.*", NLog.LogLevel.Info, tbTarget));
 
-            config.AddTarget(tbTarget);
+	        config.LoggingRules.Add(new LoggingRule("api.request.logger", NLog.LogLevel.Trace, tbTarget)); // Shows incoming API requests. Errors should be trapped by feature logs
+
+			// The log rules specific to Breeze Privacy Protocol and masternode functionality.
+			// Note however that the NTB runtime performs its own logging internally, and it is non-trivial to override it.
+			config.LoggingRules.Add(new LoggingRule("Breeze.TumbleBit.Client.*", NLog.LogLevel.Debug, tbTarget));
+	        config.LoggingRules.Add(new LoggingRule("Breeze.Registration.*", NLog.LogLevel.Debug, tbTarget));
+	        config.LoggingRules.Add(new LoggingRule("BreezeCommon.*", NLog.LogLevel.Debug, tbTarget));
+
+			// Catch all for any remaining warnings/errors that slip through the filters
+			config.LoggingRules.Add(new LoggingRule("*", NLog.LogLevel.Warn, tbTarget));
+
+			config.AddTarget(tbTarget);
 
             // Apply new rules.
             LogManager.ReconfigExistingLoggers();
