@@ -359,18 +359,13 @@ namespace Breeze.TumbleBit.Client
 				// Since the list is shuffled, we can simply iterate through it and try each server until one is valid & reachable
 				foreach (RegistrationRecord record in registrations)
 				{
-					// Implicitly, the registration feature will have deleted the registration if the collateral
-					// requirement was not met within WINDOW_PERIOD_BLOCK_COUNT blocks
-					if ((this.walletManager.LastBlockHeight() - record.BlockReceived) >= (RegistrationManager.WINDOW_PERIOD_BLOCK_COUNT + 2))
+					this.TumblerAddress = "ctb://" + record.Record.OnionAddress + ".onion?h=" + record.Record.ConfigurationHash;
+
+					var attemptConnection = await TryUseServer();
+
+					if (!attemptConnection.Failure)
 					{
-						this.TumblerAddress = "ctb://" + record.Record.OnionAddress + ".onion?h=" + record.Record.ConfigurationHash;
-
-						var attemptConnection = await TryUseServer();
-
-						if (!attemptConnection.Failure)
-						{
-							return attemptConnection;
-						}
+						return attemptConnection;
 					}
 				}
 
