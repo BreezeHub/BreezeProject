@@ -111,8 +111,8 @@ namespace NTumbleBit.Configuration
 				Logs.Configuration.LogError("The RPC server is not using the chain " + network.Name);
 				throw new ConfigException();
 			}
-			var getInfo = rpcClient.SendCommand(RPCOperations.getinfo);
-			var version = ((JObject)getInfo.Result)["version"].Value<int>();
+			var getNetworkInfo = rpcClient.SendCommand(RPCOperations.getnetworkinfo);
+			var version = ((JObject)getNetworkInfo.Result)["version"].Value<int>();
 			if(version < MIN_CORE_VERSION)
 			{
 				Logs.Configuration.LogError($"The minimum Bitcoin Core version required is {MIN_CORE_VERSION} (detected: {version})");
