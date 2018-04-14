@@ -723,10 +723,84 @@ namespace Breeze.TumbleBit.Client
                         }
                     }
                 }
-            }
 
-            // TumbleBit housekeeping
-            this.tumblingState.LastBlockReceivedHeight = height;
+				// Now check for other transactions within the same wallet that spend the same input as each transaction
+
+				txToRemove.Clear();
+
+				foreach (TransactionData originTx in this.tumblingState.OriginWallet.GetAllTransactionsByCoinType(CoinType.Bitcoin))
+				{
+					if (originTx.IsConfirmed())
+						continue;
+
+					foreach (TransactionData comparedTx in this.tumblingState.OriginWallet.GetAllTransactionsByCoinType(CoinType.Bitcoin))
+					{
+						if (originTx.Id == comparedTx.Id)
+							continue;
+
+						foreach (TxIn input in originTx.Transaction.Inputs)
+						{
+							foreach (TxIn comparedTxInput in originTx.Transaction.Inputs)
+							{
+								if (input.PrevOut == comparedTxInput.PrevOut)
+								{
+									txToRemove.Add(originTx);
+								}
+							}
+						}
+					}
+				}
+
+				foreach (TransactionData tx in txToRemove)
+				{
+					foreach (HdAccount account in this.tumblingState.OriginWallet.GetAccountsByCoinType(CoinType.Bitcoin))
+					{
+						foreach (HdAddress address in account.FindAddressesForTransaction(transaction => transaction.Id == tx.Id))
+						{
+							address.Transactions.Remove(tx);
+						}
+					}
+				}
+
+				txToRemove.Clear();
+
+				foreach (TransactionData destTx in this.tumblingState.DestinationWallet.GetAllTransactionsByCoinType(CoinType.Bitcoin))
+				{
+					if (destTx.IsConfirmed())
+						continue;
+
+					foreach (TransactionData comparedTx in this.tumblingState.DestinationWallet.GetAllTransactionsByCoinType(CoinType.Bitcoin))
+					{
+						if (destTx.Id == comparedTx.Id)
+							continue;
+
+						foreach (TxIn input in destTx.Transaction.Inputs)
+						{
+							foreach (TxIn comparedTxInput in destTx.Transaction.Inputs)
+							{
+								if (input.PrevOut == comparedTxInput.PrevOut)
+								{
+									txToRemove.Add(destTx);
+								}
+							}
+						}
+					}
+				}
+
+				foreach (TransactionData tx in txToRemove)
+				{
+					foreach (HdAccount account in this.tumblingState.DestinationWallet.GetAccountsByCoinType(CoinType.Bitcoin))
+					{
+						foreach (HdAddress address in account.FindAddressesForTransaction(transaction => transaction.Id == tx.Id))
+						{
+							address.Transactions.Remove(tx);
+						}
+					}
+				}
+			}
+
+			// TumbleBit housekeeping
+			this.tumblingState.LastBlockReceivedHeight = height;
             this.tumblingState.Save();
         }
 
