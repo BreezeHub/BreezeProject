@@ -728,12 +728,12 @@ namespace Breeze.TumbleBit.Client
 
 				txToRemove.Clear();
 
-				foreach (TransactionData originTx in this.tumblingState.OriginWallet.GetAllTransactionsByCoinType(CoinType.Bitcoin))
+				foreach (TransactionData originTx in this.tumblingState.OriginWallet.GetAllTransactionsByCoinType(this.tumblingState.CoinType))
 				{
 					if (originTx.IsConfirmed())
 						continue;
 
-					foreach (TransactionData comparedTx in this.tumblingState.OriginWallet.GetAllTransactionsByCoinType(CoinType.Bitcoin))
+					foreach (TransactionData comparedTx in this.tumblingState.OriginWallet.GetAllTransactionsByCoinType(this.tumblingState.CoinType))
 					{
 						if (originTx.Id == comparedTx.Id)
 							continue;
@@ -753,7 +753,7 @@ namespace Breeze.TumbleBit.Client
 
 				foreach (TransactionData tx in txToRemove)
 				{
-					foreach (HdAccount account in this.tumblingState.OriginWallet.GetAccountsByCoinType(CoinType.Bitcoin))
+					foreach (HdAccount account in this.tumblingState.OriginWallet.GetAccountsByCoinType(this.tumblingState.CoinType))
 					{
 						foreach (HdAddress address in account.FindAddressesForTransaction(transaction => transaction.Id == tx.Id))
 						{
@@ -764,12 +764,12 @@ namespace Breeze.TumbleBit.Client
 
 				txToRemove.Clear();
 
-				foreach (TransactionData destTx in this.tumblingState.DestinationWallet.GetAllTransactionsByCoinType(CoinType.Bitcoin))
+				foreach (TransactionData destTx in this.tumblingState.DestinationWallet.GetAllTransactionsByCoinType(this.tumblingState.CoinType))
 				{
 					if (destTx.IsConfirmed())
 						continue;
 
-					foreach (TransactionData comparedTx in this.tumblingState.DestinationWallet.GetAllTransactionsByCoinType(CoinType.Bitcoin))
+					foreach (TransactionData comparedTx in this.tumblingState.DestinationWallet.GetAllTransactionsByCoinType(this.tumblingState.CoinType))
 					{
 						if (destTx.Id == comparedTx.Id)
 							continue;
@@ -789,7 +789,7 @@ namespace Breeze.TumbleBit.Client
 
 				foreach (TransactionData tx in txToRemove)
 				{
-					foreach (HdAccount account in this.tumblingState.DestinationWallet.GetAccountsByCoinType(CoinType.Bitcoin))
+					foreach (HdAccount account in this.tumblingState.DestinationWallet.GetAccountsByCoinType(this.tumblingState.CoinType))
 					{
 						foreach (HdAddress address in account.FindAddressesForTransaction(transaction => transaction.Id == tx.Id))
 						{
