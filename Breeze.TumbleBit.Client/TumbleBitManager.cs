@@ -405,18 +405,14 @@ namespace Breeze.TumbleBit.Client
 			// Unlike the connect method, we only try one server here. That is because
 			// a timeout can take in the order of minutes for each server tried.
 		    RegistrationRecord record = registrations.First();
-			// Implicitly, the registration feature will have deleted the registration if the collateral
-			// requirement was not met within WINDOW_PERIOD_BLOCK_COUNT blocks
-			if ((this.walletManager.LastBlockHeight() - record.BlockReceived) >= (RegistrationManager.WINDOW_PERIOD_BLOCK_COUNT + 2))
+
+		    this.TumblerAddress = "ctb://" + record.Record.OnionAddress + ".onion?h=" + record.Record.ConfigurationHash;
+
+			var attemptConnection = await TryUseServer();
+
+			if (!attemptConnection.Failure)
 			{
-				this.TumblerAddress = "ctb://" + record.Record.OnionAddress + ".onion?h=" + record.Record.ConfigurationHash;
-
-				var attemptConnection = await TryUseServer();
-
-				if (!attemptConnection.Failure)
-				{
-					return attemptConnection;
-				}
+				return attemptConnection;
 			}
 
 		    // If we reach this point, the server was unreachable
