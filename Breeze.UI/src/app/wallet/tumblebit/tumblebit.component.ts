@@ -254,6 +254,12 @@ export class TumblebitComponent implements OnInit, OnDestroy {
             if (!!this.connectionModal) {
               this.connectionModal.dismiss();
             }
+
+            if (this.tumbling) {
+              this.markAsConnected();
+              return;
+            }
+
             const ngbModalOptions: NgbModalOptions = {
               backdrop : 'static',
               keyboard : false
@@ -285,8 +291,10 @@ export class TumblebitComponent implements OnInit, OnDestroy {
             if (!error.json().errors[0]) {
               console.error(error);
             } else {
-              this.router.navigate(['/wallet']);
-              this.genericModalService.openModal(Error.toDialogOptions(error, null));
+              // this.router.navigate(['/wallet']);
+              this.genericModalService.openModal(Error.toDialogOptions(`${error}. Attempting server change...`, null));
+              this.markAsServerChangeRequired();
+              this.connectToTumbler();
             }
           }
         }
