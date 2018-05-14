@@ -103,7 +103,7 @@ namespace Breeze.TumbleBit.Controllers
             }
             catch (Exception e)
             {
-                return Client.ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, "An error occured starting tumbling session.", e.ToString());
+                return Client.ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, "An error occured starting tumbling session.", e.Message);
             }
         }
 
