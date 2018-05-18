@@ -3,8 +3,16 @@ import { DialogOptions } from '../classes/dialog-options';
 
 export class Error {
     static getMessage(error: any): string {
-        const firstError = Error.getFirstError(error);
-        return firstError.description || firstError.message;
+      if (!error) {
+        return null;
+      }
+
+      if (typeof error === 'string' || error instanceof String) {
+        return error.toString();
+      }
+
+      const firstError = Error.getFirstError(error);
+      return firstError.description || firstError.message;
     }
 
     static getHelpUrl(error: any): string {
@@ -13,7 +21,7 @@ export class Error {
 
     static getFirstError(error: any) {
         if (!error.json().errors || error.json().errors.length === 0) {
-            return {};
+            return { message: error.message };
         }
 
         return error.json().errors[0];

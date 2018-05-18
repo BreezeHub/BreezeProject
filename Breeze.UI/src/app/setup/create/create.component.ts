@@ -13,6 +13,7 @@ import { Mnemonic } from '../../shared/classes/mnemonic';
 import { Error } from '../../shared/classes/error';
 
 @Component({
+  // tslint:disable-next-line:component-selector
   selector: 'create-component',
   templateUrl: './create.component.html',
   styleUrls: ['./create.component.css'],
@@ -139,7 +140,8 @@ export class CreateComponent implements OnInit {
         error => {
           console.log(error);
           if (error.status === 0) {
-            this.genericModalService.openModal(null);
+            this.genericModalService.openModal(
+              Error.toDialogOptions('Failed to get new mnemonic. Reason: API is not responding or timing out.', null));
           } else if (error.status >= 400) {
             if (!error.json().errors[0]) {
               console.log(error);

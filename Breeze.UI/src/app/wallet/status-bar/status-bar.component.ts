@@ -11,6 +11,7 @@ import { WalletInfo } from '../../shared/classes/wallet-info';
 import { Error } from '../../shared/classes/error';
 
 @Component({
+  // tslint:disable-next-line:component-selector
   selector: 'status-bar',
   templateUrl: './status-bar.component.html',
   styleUrls: ['./status-bar.component.css']
@@ -66,7 +67,8 @@ export class StatusBarComponent implements OnInit, OnDestroy {
           console.log(error);
           if (error.status === 0) {
             this.cancelSubscriptions();
-            this.genericModalService.openModal(null);
+            this.genericModalService.openModal(
+              Error.toDialogOptions('Failed to get wallet general information. Reason: API is not responding or timing out.', null));
           } else if (error.status >= 400) {
             if (!error.json().errors[0]) {
               console.log(error);

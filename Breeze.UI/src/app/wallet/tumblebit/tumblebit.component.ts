@@ -172,7 +172,8 @@ export class TumblebitComponent implements OnInit, OnDestroy {
         error => {
           console.log(error);
           if (error.status === 0) {
-            this.genericModalService.openModal(null);
+            this.genericModalService.openModal(
+              Error.toDialogOptions('Failed to get general wallet information. Reason: API is not responding or timing out.', null));
           } else if (error.status >= 400) {
             if (!error.json().errors[0]) {
               console.log(error);
@@ -220,7 +221,7 @@ export class TumblebitComponent implements OnInit, OnDestroy {
           console.error(error);
           if (error.status === 0) {
             this.genericModalService.openModal(
-              { body: 'Something went wrong while connecting to the TumbleBit Client. Please restart the application.' });
+              Error.toDialogOptions('Failed to get tumbling state. Reason: API is not responding or timing out.', null));
           } else if (error.status >= 400) {
             if (!error.json().errors[0]) {
               console.error(error);
@@ -286,7 +287,7 @@ export class TumblebitComponent implements OnInit, OnDestroy {
           this.isConnected = false;
           if (error.status === 0) {
             this.genericModalService.openModal(
-              { body: 'Something went wrong while connecting to the TumbleBit Client. Please restart the application.' });
+              Error.toDialogOptions('Failed to connect to tumbler. Reason: API is not responding or timing out.', null));
           } else if (error.status >= 400) {
             if (!error.json().errors[0]) {
               console.error(error);
@@ -338,7 +339,7 @@ export class TumblebitComponent implements OnInit, OnDestroy {
               console.error(error);
               if (error.status === 0) {
                 this.genericModalService.openModal(
-                  { body: 'Something went wrong while connecting to the TumbleBit Client. Please restart the application.'});
+                  Error.toDialogOptions('Failed to stop tumbler. Reason: API is not responding or timing out.', null));
               } else if (error.status >= 400) {
                 if (!error.json().errors[0]) {
                   console.error(error);
@@ -408,7 +409,7 @@ export class TumblebitComponent implements OnInit, OnDestroy {
           console.error(error);
           if (error.status === 0) {
             this.genericModalService.openModal(
-              { body: 'Something went wrong while connecting to the TumbleBit Client. Please restart the application.'});
+              Error.toDialogOptions('Failed to get tumbling progress. Reason: API is not responding or timing out.', null));
           } else if (error.status >= 400) {
             if (!error.json().errors[0]) {
               console.error(error);
@@ -471,7 +472,8 @@ export class TumblebitComponent implements OnInit, OnDestroy {
         error => {
           console.log(error);
           if (error.status === 0) {
-            this.genericModalService.openModal(null);
+            this.genericModalService.openModal(
+              Error.toDialogOptions('Failed to get wallet balance. Reason: API is not responding or timing out.', null));
           } else if (error.status >= 400) {
             if (!error.json().errors[0]) {
               console.log(error);
@@ -501,7 +503,9 @@ export class TumblebitComponent implements OnInit, OnDestroy {
         error => {
           console.log(error);
           if (error.status === 0) {
-            this.genericModalService.openModal(null);
+            this.genericModalService.openModal(
+              Error.toDialogOptions(
+                'Failed to get general wallet informationdestination wallet balance. Reason: API is not responding or timing out.', null));
           } else if (error.status >= 400) {
             if (!error.json().errors[0]) {
               console.log(error);
@@ -534,7 +538,8 @@ export class TumblebitComponent implements OnInit, OnDestroy {
         },
         error => {
           if (error.status === 0) {
-            this.genericModalService.openModal(null);
+            this.genericModalService.openModal(
+              Error.toDialogOptions('Failed to get wallet files. Reason: API is not responding or timing out.', null));
           } else if (error.status >= 400) {
             if (!error.json().errors[0]) {
               console.log(error);

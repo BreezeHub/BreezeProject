@@ -169,7 +169,8 @@ export class ConfirmMnemonicComponent implements OnInit {
           console.log(error);
           this.isCreating = false;
           if (error.status === 0) {
-            this.genericModalService.openModal(null);
+            this.genericModalService.openModal(
+              Error.toDialogOptions('Failed to create Bitcoin wallet. Reason: API is not responding or timing out.', null));
           } else if (error.status >= 400) {
             if (!error.json().errors[0]) {
               console.log(error);
@@ -202,7 +203,8 @@ export class ConfirmMnemonicComponent implements OnInit {
           this.isCreating = false;
           console.log(error);
           if (error.status === 0) {
-            this.genericModalService.openModal(null);
+            this.genericModalService.openModal(
+              Error.toDialogOptions('Failed to create Stratis wallet. Reason: API is not responding or timing out.', null));
           } else if (error.status >= 400) {
             if (!error.json().errors[0]) {
               console.log(error);

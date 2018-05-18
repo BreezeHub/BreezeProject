@@ -26,12 +26,34 @@ export class TumblebitService {
   connectToTumbler(operation: 'connect' | 'changeserver'): Observable<any> {
     return this.http
       .get(`${this.tumblerClientUrl}${operation}`)
+      .retryWhen(e => {
+        return e
+           .flatMap((error: any) => {
+              if (error.status  === 0) {
+                return Observable.of(error.status).delay(5000)
+              }
+              return Observable.throw(error);
+           })
+           .take(5)
+           .concat(Observable.throw(e));
+      })
       .map((response: Response) => response);
   };
 
   changeTumblerServer(): Observable<any> {
     return this.http
       .get(`${this.tumblerClientUrl}changeserver`)
+      .retryWhen(e => {
+        return e
+           .flatMap((error: any) => {
+              if (error.status  === 0) {
+                return Observable.of(error.status).delay(5000)
+              }
+              return Observable.throw(error);
+           })
+           .take(5)
+           .concat(Observable.throw(e));
+      })
       .map((response: Response) => response);
   };
 
@@ -39,7 +61,20 @@ export class TumblebitService {
     return Observable
       .interval(1000)
       .startWith(0)
-      .switchMap(() => this.http.get(`${this.tumblerClientUrl}tumbling-state`))
+      .switchMap(
+        () => this.http.get(`${this.tumblerClientUrl}tumbling-state`)
+                      .retryWhen(e => {
+                        return e
+                           .flatMap((error: any) => {
+                              if (error.status  === 0) {
+                                return Observable.of(error.status).delay(5000)
+                              }
+                              return Observable.throw(error);
+                           })
+                           .take(5)
+                           .concat(Observable.throw(e));
+                      })
+      )
       .map((response: Response) => response);
   }
 
@@ -59,7 +94,20 @@ export class TumblebitService {
     return Observable
       .interval(this.pollingInterval)
       .startWith(0)
-      .switchMap(() => this.http.get(`${this.tumblerClientUrl}progress`))
+      .switchMap(
+        () => this.http.get(`${this.tumblerClientUrl}progress`)
+                  .retryWhen(e => {
+                    return e
+                       .flatMap((error: any) => {
+                          if (error.status  === 0) {
+                            return Observable.of(error.status).delay(5000)
+                          }
+                          return Observable.throw(error);
+                       })
+                       .take(5)
+                       .concat(Observable.throw(e));
+                  })
+      )
       .map((response: Response) => response);
   }
 
