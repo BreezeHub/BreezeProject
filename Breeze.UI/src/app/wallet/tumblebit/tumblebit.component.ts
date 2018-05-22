@@ -544,7 +544,9 @@ export class TumblebitComponent implements OnInit, OnDestroy {
             if (!error.json().errors[0]) {
               console.log(error);
             } else {
-              this.genericModalService.openModal(Error.toDialogOptions(error, null));
+              this.genericModalService.openModal(
+                  Error.toDialogOptionsWithFallbackMsg(
+                    error, null, 'Failed to get wallet files. Reason: API returned a bad request but message was not specified.'));
             }
           }
         },

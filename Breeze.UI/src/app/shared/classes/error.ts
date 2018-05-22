@@ -37,6 +37,16 @@ export class Error {
         };
     }
 
+    static toDialogOptionsWithFallbackMsg(error: any, optionalTitle: string, fallbackMessage: string): DialogOptions {
+        if (!error) { return null; }
+
+        return {
+            title: optionalTitle,
+            body: Error.getMessage(error) || fallbackMessage,
+            helpUrl: Error.getHelpUrl(error)
+        };
+    }
+
     static logError(error: any) {
         Log.error(error);
     }
