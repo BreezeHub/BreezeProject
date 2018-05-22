@@ -147,7 +147,7 @@ namespace Breeze.TumbleBit.Client.Tests
                 CoreNode node1 = builder.CreateStratisPowNode(true, fullNodeBuilder =>
                 {
                     fullNodeBuilder
-                        .UseConsensus()
+                        .UsePosConsensus()
                         .UseBlockStore()
                         .UseMempool()
                         .UseBlockNotification()
@@ -406,7 +406,7 @@ namespace Breeze.TumbleBit.Client.Tests
                 CoreNode node1 = builder.CreateStratisPowNode(true, fullNodeBuilder =>
                 {
                     fullNodeBuilder
-                        .UseConsensus()
+                        .UsePosConsensus()
                         .UseBlockStore()
                         .UseMempool()
                         .UseBlockNotification()
@@ -661,7 +661,7 @@ namespace Breeze.TumbleBit.Client.Tests
                 CoreNode node1 = builder.CreateStratisPowNode(false, fullNodeBuilder =>
                 {
                     fullNodeBuilder
-                        .UseConsensus()
+                        .UsePosConsensus()
                         .UseBlockStore()
                         .UseMempool()
                         .UseBlockNotification()
@@ -679,7 +679,7 @@ namespace Breeze.TumbleBit.Client.Tests
                 CoreNode node2 = builder.CreateStratisPowNode(false, fullNodeBuilder =>
                 {
                     fullNodeBuilder
-                        .UseConsensus()
+                        .UsePosConsensus()
                         .UseBlockStore()
                         .UseMempool()
                         .UseBlockNotification()

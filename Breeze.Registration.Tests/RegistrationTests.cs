@@ -4,17 +4,9 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
-using Breeze.BreezeServer;
 using BreezeCommon;
 using NBitcoin;
-using NBitcoin.RPC;
-using Newtonsoft.Json.Linq;
-using NLog.Targets;
 using NTumbleBit;
-using Stratis.Bitcoin;
-using Stratis.Bitcoin.Broadcasting;
-using Stratis.Bitcoin.Features.Api;
 using Stratis.Bitcoin.Features.BlockStore;
 using Stratis.Bitcoin.Features.Consensus;
 using Stratis.Bitcoin.Features.MemoryPool;
@@ -22,11 +14,10 @@ using Stratis.Bitcoin.Features.Miner;
 using Stratis.Bitcoin.Features.Notifications;
 using Stratis.Bitcoin.Features.RPC;
 using Stratis.Bitcoin.Features.Wallet;
-using Stratis.Bitcoin.Features.Wallet.Broadcasting;
 using Stratis.Bitcoin.Features.Wallet.Interfaces;
 using Stratis.Bitcoin.Features.WatchOnlyWallet;
 using Stratis.Bitcoin.IntegrationTests;
-using Stratis.Bitcoin.Interfaces;
+using Stratis.Bitcoin.IntegrationTests.EnvironmentMockUpHelpers;
 using Xunit;
 
 namespace Breeze.Registration.Tests
@@ -41,7 +32,7 @@ namespace Breeze.Registration.Tests
                 CoreNode node1 = builder.CreateStratisPosNode(true, fullNodeBuilder =>
                 {
                     fullNodeBuilder
-                        .UseStratisConsensus()
+                        .UsePosConsensus()
                         .UseBlockStore()
                         .UseMempool()
                         .UseBlockNotification()
@@ -57,7 +48,7 @@ namespace Breeze.Registration.Tests
                 CoreNode node2 = builder.CreateStratisPosNode(true, fullNodeBuilder =>
                 {
                     fullNodeBuilder
-                        .UseStratisConsensus()
+                        .UsePosConsensus()
                         .UseBlockStore()
                         .UseMempool()
                         .UseBlockNotification()
@@ -167,7 +158,6 @@ namespace Breeze.Registration.Tests
                 };
 
                 var tx = wth1.BuildTransaction(context);                
-                node1.AddToStratisPosMempool(tx);
                 
                 TestHelper.WaitLoop(() => rpc1.GetRawMempool().Length > 0);
 
@@ -204,7 +194,7 @@ namespace Breeze.Registration.Tests
                 CoreNode node1 = builder.CreateStratisPosNode(true, fullNodeBuilder =>
                 {
                     fullNodeBuilder
-                        .UseStratisConsensus()
+                        .UsePosConsensus()
                         .UseBlockStore()
                         .UseMempool()
                         .UseBlockNotification()
