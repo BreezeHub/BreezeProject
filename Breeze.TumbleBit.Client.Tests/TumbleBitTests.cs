@@ -10,15 +10,12 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using Xunit;
 
 using NBitcoin;
-using Stratis.Bitcoin;
 using Stratis.Bitcoin.Features.Api;
 using Stratis.Bitcoin.Features.BlockStore;
 using Stratis.Bitcoin.Features.Consensus;
-using Stratis.Bitcoin.Features.LightWallet;
 using Stratis.Bitcoin.Features.MemoryPool;
 using Stratis.Bitcoin.Features.Miner;
 using Stratis.Bitcoin.Features.Notifications;
@@ -29,7 +26,6 @@ using Stratis.Bitcoin.Features.WatchOnlyWallet;
 using Stratis.Bitcoin.IntegrationTests;
 
 using Breeze.BreezeServer;
-using Breeze.BreezeServer.Services;
 using Breeze.TumbleBit.Models;
 using BreezeCommon;
 using NTumbleBit.Logging;
@@ -147,7 +143,7 @@ namespace Breeze.TumbleBit.Client.Tests
                 CoreNode node1 = builder.CreateStratisPowNode(true, fullNodeBuilder =>
                 {
                     fullNodeBuilder
-                        .UsePosConsensus()
+                        .UsePowConsensus()
                         .UseBlockStore()
                         .UseMempool()
                         .UseBlockNotification()
@@ -406,7 +402,7 @@ namespace Breeze.TumbleBit.Client.Tests
                 CoreNode node1 = builder.CreateStratisPowNode(true, fullNodeBuilder =>
                 {
                     fullNodeBuilder
-                        .UsePosConsensus()
+                        .UsePowConsensus()
                         .UseBlockStore()
                         .UseMempool()
                         .UseBlockNotification()
@@ -661,7 +657,7 @@ namespace Breeze.TumbleBit.Client.Tests
                 CoreNode node1 = builder.CreateStratisPowNode(false, fullNodeBuilder =>
                 {
                     fullNodeBuilder
-                        .UsePosConsensus()
+                        .UsePowConsensus()
                         .UseBlockStore()
                         .UseMempool()
                         .UseBlockNotification()
@@ -679,7 +675,7 @@ namespace Breeze.TumbleBit.Client.Tests
                 CoreNode node2 = builder.CreateStratisPowNode(false, fullNodeBuilder =>
                 {
                     fullNodeBuilder
-                        .UsePosConsensus()
+                        .UsePowConsensus()
                         .UseBlockStore()
                         .UseMempool()
                         .UseBlockNotification()
