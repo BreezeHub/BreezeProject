@@ -12,7 +12,14 @@ export class Error {
       }
 
       const firstError = Error.getFirstError(error);
-      return firstError.description || firstError.message;
+
+      // TODO: at the moment we have to check if detailed description contains word "Exception"
+      // as fullnode code abuses Description property for both exception stacktrace and detailed messages
+      // once this is fixed in fullnode this check can be removed. This has been discussed between
+      // Igor and Carlton on 2018-05-23
+      return !!firstError.description && firstError.description.indexOf('Exception:') < 0
+                ? firstError.description
+                : firstError.message;
     }
 
     static getHelpUrl(error: any): string {
