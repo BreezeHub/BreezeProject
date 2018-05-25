@@ -136,7 +136,8 @@ export class RecoverComponent implements OnInit {
           this.isRecovering = false;
           console.log(error);
           if (error.status === 0) {
-            this.genericModalService.openModal(null);
+            this.genericModalService.openModal(
+              Error.toDialogOptions('Failed to recover Bitcoin wallet. Reason: API is not responding or timing out.', null));
           } else if (error.status >= 400) {
             if (!error.json().errors[0]) {
               console.log(error);
@@ -150,7 +151,7 @@ export class RecoverComponent implements OnInit {
     ;
   }
 
-  private recoverStratisWallet(recoverWallet: WalletRecovery, bitcoinErrorMessage: string){
+  private recoverStratisWallet(recoverWallet: WalletRecovery, bitcoinErrorMessage: string) {
     let stratisErrorMessage = '';
     this.apiService
       .recoverStratisWallet(recoverWallet)
@@ -168,7 +169,8 @@ export class RecoverComponent implements OnInit {
           this.isRecovering = false;
           console.log(error);
           if (error.status === 0) {
-            this.genericModalService.openModal(null);
+            this.genericModalService.openModal(
+              Error.toDialogOptions('Failed to recover Stratis wallet. Reason: API is not responding or timing out.', null));
           } else if (error.status >= 400) {
             if (!error.json().errors[0]) {
               console.log(error);

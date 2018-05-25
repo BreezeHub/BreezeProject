@@ -96,7 +96,8 @@ export class PasswordConfirmationComponent implements OnInit {
           console.error(error);
           if (error.status === 0) {
             this.startingTumble = false;
-            alert('Something went wrong while connecting to the TumbleBit Client. Please restart the application.');
+            this.genericModalService.openModal(
+                Error.toDialogOptions('Failed to start tumbling. Reason: API is not responding or timing out.', null));
           } else if (error.status >= 400) {
             if (!error.json().errors[0]) {
               console.error(error);

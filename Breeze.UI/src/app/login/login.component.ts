@@ -98,12 +98,15 @@ export class LoginComponent implements OnInit {
         },
         error => {
           if (error.status === 0) {
-            this.genericModalService.openModal(null);
+            this.genericModalService.openModal(
+              Error.toDialogOptions('Failed to get wallet files. Reason: API is not responding or timing out.', null));
           } else if (error.status >= 400) {
             if (!error.json().errors[0]) {
               console.log(error);
             } else {
-              this.genericModalService.openModal(Error.toDialogOptions(error, null));
+              this.genericModalService.openModal(
+                  Error.toDialogOptionsWithFallbackMsg(
+                      error, null, 'Failed to get wallet files. Reason: API returned a bad request but message was not specified.'));
             }
           }
         }
@@ -147,7 +150,8 @@ export class LoginComponent implements OnInit {
         error => {
           this.isDecrypting = false;
           if (error.status === 0) {
-            this.genericModalService.openModal(null);
+            this.genericModalService.openModal(
+              Error.toDialogOptions('Failed to load Bitcoin wallet. Reason: API is not responding or timing out.', null));
           } else if (error.status >= 400) {
             if (!error.json().errors[0]) {
               console.log(error);
@@ -173,7 +177,8 @@ export class LoginComponent implements OnInit {
         error => {
           this.isDecrypting = false;
           if (error.status === 0) {
-            this.genericModalService.openModal(null);
+            this.genericModalService.openModal(
+              Error.toDialogOptions('Failed to load Stratis wallet. Reason: API is not responding or timing out.', null));
           } else if (error.status >= 400) {
             if (!error.json().errors[0]) {
               console.log(error);
@@ -205,7 +210,8 @@ export class LoginComponent implements OnInit {
         },
         error => {
           if (error.status === 0) {
-            this.genericModalService.openModal(null);
+            this.genericModalService.openModal(
+              Error.toDialogOptions('Failed to get general wallet information. Reason: API is not responding or timing out.', null));
           } else if (error.status >= 400) {
             if (!error.json().errors[0]) {
               console.log(error);

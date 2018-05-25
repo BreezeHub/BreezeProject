@@ -15,6 +15,7 @@ import { Subscription } from 'rxjs/Subscription';
 import { TransactionDetailsComponent } from '../transaction-details/transaction-details.component';
 
 @Component({
+  // tslint:disable-next-line:component-selector
   selector: 'history-component',
   templateUrl: './history.component.html',
   styleUrls: ['./history.component.css'],
@@ -64,7 +65,8 @@ export class HistoryComponent implements OnInit, OnDestroy {
           console.log(error);
           if (error.status === 0) {
             this.cancelSubscriptions();
-            this.genericModalService.openModal(null);
+            this.genericModalService.openModal(
+              Error.toDialogOptions('Failed to get wallet history. Reason: API is not responding or timing out.', null));
           } else if (error.status >= 400) {
             if (!error.json().errors[0]) {
               console.log(error);

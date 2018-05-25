@@ -10,6 +10,7 @@ import { Error } from '../../shared/classes/error';
 import { NgbModal, NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 
 @Component({
+  // tslint:disable-next-line:component-selector
   selector: 'receive-component',
   templateUrl: './receive.component.html',
   styleUrls: ['./receive.component.css'],
@@ -46,7 +47,8 @@ export class ReceiveComponent implements OnInit {
         error => {
           console.log(error);
           if (error.status === 0) {
-            this.genericModalService.openModal(null);
+            this.genericModalService.openModal(
+              Error.toDialogOptions('Failed to get unused receive addresses. Reason: API is not responding or timing out.', null));
           } else if (error.status >= 400) {
             if (!error.json().errors[0]) {
               console.log(error);

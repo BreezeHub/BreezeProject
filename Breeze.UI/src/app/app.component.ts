@@ -16,30 +16,37 @@ import 'rxjs/add/operator/delay';
 })
 
 export class AppComponent implements OnInit {
-  constructor(private router: Router, private apiService: ApiService, private titleService: Title) {}
   private errorMessage: any;
   private responseMessage: any;
-  public loading: boolean = true;
+  public isLoading = true;
+
+  constructor(private router: Router, private apiService: ApiService, private titleService: Title) {}
 
   ngOnInit() {
     this.setTitle();
-    this.apiService.getWalletFiles().retryWhen(errors => errors.delay(2000)).subscribe(() => this.checkStratisDaemon());
+    this.apiService
+        .getWalletFiles()
+        .retryWhen(errors => errors.delay(2000))
+        .subscribe(() => this.checkStratisDaemon());
   }
 
   private checkStratisDaemon() {
-    this.apiService.getStratisWalletFiles().retryWhen(errors => errors.delay(2000)).subscribe(() => this.startApp());
+    this.apiService
+        .getStratisWalletFiles()
+        .retryWhen(errors => errors.delay(2000))
+        .subscribe(() => this.startApp());
   }
 
   private startApp() {
-    this.loading = false;
+    this.isLoading = false;
     this.router.navigate(['/login']);
   }
 
   private setTitle() {
-    let applicationName = "Breeze Wallet";
-    let applicationVersion = remote.app.getVersion();
-    let releaseCycle = "beta";
-    let newTitle = applicationName + " v" + applicationVersion + " " + releaseCycle;
+    const applicationName = 'Breeze Wallet';
+    const applicationVersion = remote.app.getVersion();
+    const releaseCycle = 'beta';
+    const newTitle = `${applicationName} v${applicationVersion} ${releaseCycle}`;
     this.titleService.setTitle(newTitle);
   }
 }
