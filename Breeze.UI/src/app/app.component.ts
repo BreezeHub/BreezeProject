@@ -18,7 +18,7 @@ import 'rxjs/add/operator/delay';
 export class AppComponent implements OnInit {
   private errorMessage: any;
   private responseMessage: any;
-  public loading = true;
+  public isLoading = true;
 
   constructor(private router: Router, private apiService: ApiService, private titleService: Title) {}
 
@@ -38,7 +38,7 @@ export class AppComponent implements OnInit {
   }
 
   private startApp() {
-    this.loading = false;
+    this.isLoading = false;
     this.router.navigate(['/login']);
   }
 
