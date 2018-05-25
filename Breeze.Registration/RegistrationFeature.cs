@@ -19,22 +19,20 @@ namespace Breeze.Registration
 	    private const int SyncHeightMain = 772272;
 	    private const int SyncHeightTest = 335760;
 	    private const int SyncHeightRegTest = 0;
-	    private ILogger logger;
-        private NodeSettings nodeSettings;
-		private RegistrationStore registrationStore;
+	    private readonly ILogger logger;
+		private readonly RegistrationStore registrationStore;
         private readonly ConcurrentChain chain;
         private readonly Signals signals;
-        private IWatchOnlyWalletManager watchOnlyWalletManager;
+        private readonly IWatchOnlyWalletManager watchOnlyWalletManager;
 	    private readonly IBlockNotification blockNotification;
-	    private IWalletSyncManager walletSyncManager;
+	    private readonly IWalletSyncManager walletSyncManager;
 
-        private ILoggerFactory loggerFactory;
+        private readonly ILoggerFactory loggerFactory;
         private readonly IRegistrationManager registrationManager;
         private IDisposable blockSubscriberdDisposable;
-        //private IDisposable transactionSubscriberdDisposable;
 
-        private bool isBitcoin;
-        private Network network;
+        private readonly bool isBitcoin;
+        private readonly Network network;
 
         public RegistrationFeature(ILoggerFactory loggerFactory,
             NodeSettings nodeSettings,
@@ -48,7 +46,6 @@ namespace Breeze.Registration
 		{
             this.loggerFactory = loggerFactory;
             this.logger = loggerFactory.CreateLogger(this.GetType().FullName);
-            this.nodeSettings = nodeSettings;
             this.registrationManager = registrationManager;
 			this.registrationStore = registrationStore;
             this.chain = chain;
@@ -69,7 +66,7 @@ namespace Breeze.Registration
                 this.isBitcoin = false;
 
                 // Force registration store to be kept in same folder as other node data
-                this.registrationStore.SetStorePath(this.nodeSettings.DataDir);
+                this.registrationStore.SetStorePath(nodeSettings.DataDir);
             }
 		}
 
@@ -78,11 +75,7 @@ namespace Breeze.Registration
 		    if (!this.isBitcoin)
                 this.InitializeStratis();
 
-            this.registrationManager.Initialize(this.loggerFactory, 
-                this.registrationStore, 
-                this.isBitcoin, 
-                this.network, 
-                this.watchOnlyWalletManager);
+            this.registrationManager.Initialize(this.loggerFactory, this.registrationStore, this.isBitcoin, this.network, this.watchOnlyWalletManager);
         }
 
         public override void Dispose()
@@ -97,12 +90,12 @@ namespace Breeze.Registration
             IList<RegistrationRecord> registrationRecords = this.registrationStore.GetAll();
 
             // If there are no registrations then revert back to the block height of when the MasterNodes were set-up.
-            if (registrationRecords.Count == 0)
-                RevertRegistrations();
-            else
+	        if (registrationRecords.Count == 0)
+	            RevertRegistrations();
+	        else
                 VerifyRegistrationStore(registrationRecords);
 
-            // Only need to subscribe to receive blocks and transactions on the Stratis network
+	        // Only need to subscribe to receive blocks and transactions on the Stratis network
             this.blockSubscriberdDisposable = this.signals.SubscribeForBlocks(new RegistrationBlockObserver(this.chain, this.registrationManager));
 
             this.logger.LogTrace("(-)");
@@ -110,26 +103,39 @@ namespace Breeze.Registration
 
 	    private void RevertRegistrations()
 	    {
+	        this.logger.LogTrace("()");
+
 	        this.logger.LogTrace("Registrations missing");
 
-	        // For regtest, it is not clear that re-issuing a sync command will be beneficial. Generally you want to sync from genesis in that case.
+	        // For RegTest, it is not clear that re-issuing a sync command will be beneficial. Generally you want to sync from genesis in that case.
 	        var syncHeight = this.network == Network.StratisMain ? SyncHeightMain :
 	            this.network == Network.StratisTest ? SyncHeightTest : SyncHeightRegTest;
 
 	        this.logger.LogTrace("Sync wallet from : {0}", syncHeight);
 
 	        this.walletSyncManager.SyncFromHeight(syncHeight);
-	    }
+
+	        this.logger.LogTrace("(-)");
+        }
 
 	    private void VerifyRegistrationStore(IList<RegistrationRecord> list)
 	    {
-	        // Verify that the registration store is in a consistent state on start-up.  The signatures of all the records need to be validated
-	        foreach (var registrationRecord in list)
+	        this.logger.LogTrace("()");
+
+            this.logger.LogTrace("VerifyRegistrationStore");
+
+            // Verify that the registration store is in a consistent state on start-up.  The signatures of all the records need to be validated
+            foreach (var registrationRecord in list)
 	        {
-	            if (!registrationRecord.Record.Validate(this.network))
-	                this.registrationStore.Delete(registrationRecord.RecordGuid);
+	            if (registrationRecord.Record.Validate(this.network)) continue;
+
+	            this.logger.LogTrace("Deleting invalid registration : {0}", registrationRecord.RecordGuid);
+
+	            this.registrationStore.Delete(registrationRecord.RecordGuid);
 	        }
-	    }
+
+	        this.logger.LogTrace("(-)");
+        }
     }
 
     public static class RegistrationFeatureExtension
@@ -146,6 +152,7 @@ namespace Breeze.Registration
                         services.AddSingleton<RegistrationManager>();
                     });
 			});
+
 			return fullNodeBuilder;
 		}
 	}
