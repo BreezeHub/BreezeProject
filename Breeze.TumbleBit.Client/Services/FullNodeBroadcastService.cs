@@ -124,8 +124,8 @@ namespace Breeze.TumbleBit.Client.Services
                 var bcResult = TumblingState.BroadcasterManager.GetTransaction(tx.Transaction.GetHash()).State;
                 switch (bcResult)
                 {
-                    case Stratis.Bitcoin.Broadcasting.State.Broadcasted:
-                    case Stratis.Bitcoin.Broadcasting.State.Propagated:
+                    case Stratis.Bitcoin.Features.Wallet.Broadcasting.State.Broadcasted:
+                    case Stratis.Bitcoin.Features.Wallet.Broadcasting.State.Propagated:
                         await Cache.ImportUnconfirmedTransaction(tx.Transaction);
                         foreach (var output in tx.Transaction.Outputs)
                         {
@@ -134,7 +134,7 @@ namespace Breeze.TumbleBit.Client.Services
                         Logs.Broadcasters.LogDebug("Broadcasted transaction: " + tx.Transaction.GetHash());
                         return true;
                         break;
-                    case Stratis.Bitcoin.Broadcasting.State.ToBroadcast:
+                    case Stratis.Bitcoin.Features.Wallet.Broadcasting.State.ToBroadcast:
                         // Wait for propagation
                         var waited = TimeSpan.Zero;
                         var period = TimeSpan.FromSeconds(1);
@@ -142,7 +142,7 @@ namespace Breeze.TumbleBit.Client.Services
                         {
                             // Check BroadcasterManager for broadcast success
                             var transactionEntry = this.TumblingState.BroadcasterManager.GetTransaction(tx.Transaction.GetHash());
-                            if (transactionEntry != null && transactionEntry.State == Stratis.Bitcoin.Broadcasting.State.Propagated)
+                            if (transactionEntry != null && transactionEntry.State == Stratis.Bitcoin.Features.Wallet.Broadcasting.State.Propagated)
                             {
                                 Logs.Broadcasters.LogDebug("Propagated transaction: " + tx.Transaction.GetHash());
                                 // Have to presume propagated = broadcasted when we are operating as a light wallet (or on regtest)
@@ -152,7 +152,7 @@ namespace Breeze.TumbleBit.Client.Services
                             waited += period;
                         }
                         break;
-                    case Stratis.Bitcoin.Broadcasting.State.CantBroadcast:
+                    case Stratis.Bitcoin.Features.Wallet.Broadcasting.State.CantBroadcast:
                         Logs.Broadcasters.LogDebug("Could not broadcast transaction: " + tx.Transaction.GetHash());
                         // Do nothing
                         break;

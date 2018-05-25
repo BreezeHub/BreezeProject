@@ -305,11 +305,11 @@ namespace Breeze.TumbleBit.Client
             var bcResult = this.broadcasterManager.GetTransaction(sendTx.GetHash()).State;
             switch (bcResult)
             {
-                case Stratis.Bitcoin.Broadcasting.State.Broadcasted:
-                case Stratis.Bitcoin.Broadcasting.State.Propagated:
+                case Stratis.Bitcoin.Features.Wallet.Broadcasting.State.Broadcasted:
+                case Stratis.Bitcoin.Features.Wallet.Broadcasting.State.Propagated:
                     this.logger.LogDebug("Broadcasted transaction: " + sendTx.GetHash());
                     break;
-                case Stratis.Bitcoin.Broadcasting.State.ToBroadcast:
+                case Stratis.Bitcoin.Features.Wallet.Broadcasting.State.ToBroadcast:
                     // Wait for propagation
                     var waited = TimeSpan.Zero;
                     var period = TimeSpan.FromSeconds(1);
@@ -318,7 +318,7 @@ namespace Breeze.TumbleBit.Client
                         // Check BroadcasterManager for broadcast success
                         var transactionEntry = this.broadcasterManager.GetTransaction(sendTx.GetHash());
                         if (transactionEntry != null &&
-                            transactionEntry.State == Stratis.Bitcoin.Broadcasting.State.Propagated)
+                            transactionEntry.State == Stratis.Bitcoin.Features.Wallet.Broadcasting.State.Propagated)
                         {
                             // TODO: This is cluttering up the console, only need to log it once
                             this.logger.LogDebug("Propagated transaction: " + sendTx.GetHash());
@@ -327,7 +327,7 @@ namespace Breeze.TumbleBit.Client
                         waited += period;
                     }
                     break;
-                case Stratis.Bitcoin.Broadcasting.State.CantBroadcast:
+                case Stratis.Bitcoin.Features.Wallet.Broadcasting.State.CantBroadcast:
                     // Do nothing
                     break;
             }
@@ -821,8 +821,8 @@ namespace Breeze.TumbleBit.Client
             {
                 try
                 {
-                    ChainedBlock chainedBlock = this.chain.Tip;
-                    TimeSpan timespan = DateTimeOffset.UtcNow - chainedBlock.Header.BlockTime;
+                    ChainedHeader chainedHeader = this.chain.Tip;
+                    TimeSpan timespan = DateTimeOffset.UtcNow - chainedHeader.Header.BlockTime;
                     return timespan.Minutes;
                 }
                 catch (Exception)

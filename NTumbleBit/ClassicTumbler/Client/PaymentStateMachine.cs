@@ -58,9 +58,9 @@ namespace NTumbleBit.ClassicTumbler.Client
 				ClientChannelNegotiation = new ClientChannelNegotiation(runtime.TumblerParameters, state.NegotiationClientState);
 			}
 			if(state.PromiseClientState != null)
-				PromiseClientSession = new PromiseClientSession(runtime.TumblerParameters.CreatePromiseParamaters(), state.PromiseClientState);
+				PromiseClientSession = new PromiseClientSession(runtime.Network, runtime.TumblerParameters.CreatePromiseParamaters(), state.PromiseClientState);
 			if(state.SolverClientState != null)
-				SolverClientSession = new SolverClientSession(runtime.TumblerParameters.CreateSolverParamaters(), state.SolverClientState);
+				SolverClientSession = new SolverClientSession(runtime.TumblerParameters.CreateSolverParamaters(), state.SolverClientState, runtime.Network);
 			Status = state.Status;
 		}
 

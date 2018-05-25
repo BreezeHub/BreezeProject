@@ -1,17 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices.ComTypes;
 using System.Threading.Tasks;
 using NBitcoin;
-using NBitcoin.RPC;
-using Newtonsoft.Json.Linq;
-using NTumbleBit.PuzzlePromise;
-using NBitcoin.DataEncoders;
 using NTumbleBit.Services;
-using Stratis.Bitcoin;
 using Stratis.Bitcoin.Features.Wallet;
-using Stratis.Bitcoin.Features.WatchOnlyWallet;
 using NTumbleBit;
 
 namespace Breeze.TumbleBit.Client.Services
@@ -114,7 +106,7 @@ namespace Breeze.TumbleBit.Client.Services
             tx.Outputs[0].Value -= feeRate.GetFee(tx) - currentFee;
 
             var txin2 = tx.Inputs[0];
-            var signature = tx.SignInput(input.EscrowKey, input.EscrowedCoin);
+            var signature = tx.SignInput(TumblingState.TumblerNetwork, input.EscrowKey, input.EscrowedCoin);
             txin2.ScriptSig = new Script(
             Op.GetPushOp(input.ClientSignature.ToBytes()),
             Op.GetPushOp(signature.ToBytes()),
@@ -128,11 +120,11 @@ namespace Breeze.TumbleBit.Client.Services
             var bcResult = TumblingState.BroadcasterManager.GetTransaction(tx.GetHash()).State;
             switch (bcResult)
             {
-                case Stratis.Bitcoin.Broadcasting.State.Broadcasted:
-                case Stratis.Bitcoin.Broadcasting.State.Propagated:
-                    //LogDebug("Broadcasted transaction: " + tx.GetHash());
+                case Stratis.Bitcoin.Features.Wallet.Broadcasting.State.Broadcasted:
+                case Stratis.Bitcoin.Features.Wallet.Broadcasting.State.Propagated:
+                    //LogDebug("Broadcast transaction: " + tx.GetHash());
                     break;
-                case Stratis.Bitcoin.Broadcasting.State.ToBroadcast:
+                case Stratis.Bitcoin.Features.Wallet.Broadcasting.State.ToBroadcast:
                     // Wait for propagation
                     var waited = TimeSpan.Zero;
                     var period = TimeSpan.FromSeconds(1);
@@ -140,7 +132,7 @@ namespace Breeze.TumbleBit.Client.Services
                     {
                         // Check BroadcasterManager for broadcast success
                         var transactionEntry = this.TumblingState.BroadcasterManager.GetTransaction(tx.GetHash());
-                        if (transactionEntry != null && transactionEntry.State == Stratis.Bitcoin.Broadcasting.State.Propagated)
+                        if (transactionEntry != null && transactionEntry.State == Stratis.Bitcoin.Features.Wallet.Broadcasting.State.Propagated)
                         {
                             //LogDebug("Propagated transaction: " + tx.GetHash());
                         }
@@ -148,7 +140,7 @@ namespace Breeze.TumbleBit.Client.Services
                         waited += period;
                     }
                     break;
-                case Stratis.Bitcoin.Broadcasting.State.CantBroadcast:
+                case Stratis.Bitcoin.Features.Wallet.Broadcasting.State.CantBroadcast:
                     // Do nothing
                     break;
             }
