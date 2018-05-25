@@ -17,7 +17,7 @@ export class Error {
       // as fullnode code abuses Description property for both exception stacktrace and detailed messages
       // once this is fixed in fullnode this check can be removed. This has been discussed between
       // Igor and Carlton on 2018-05-23
-      return !!firstError.description && firstError.description.indexOf('Exception:') < 0
+      return !!firstError.description && !firstError.description.includes('Exception:')
                 ? firstError.description
                 : firstError.message;
     }
