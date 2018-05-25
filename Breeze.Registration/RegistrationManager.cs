@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using System.Collections.Generic;
-using System.Linq;
-
 using BreezeCommon;
 using NBitcoin;
 using Stratis.Bitcoin.Features.WatchOnlyWallet;
@@ -24,11 +20,6 @@ namespace Breeze.Registration
 
         private ILogger logger;
 
-        public RegistrationManager()
-        {
-
-        }
-
         public void Initialize(ILoggerFactory loggerFactory, RegistrationStore registrationStore, bool isBitcoin, Network network, IWatchOnlyWalletManager watchOnlyWalletManager)
         {
             this.loggerFactory = loggerFactory;
@@ -48,6 +39,8 @@ namespace Breeze.Registration
         /// <inheritdoc />
         public void ProcessBlock(int height, Block block)
         {
+            this.logger.LogTrace("()");
+
             // Check for any server registration transactions
             if (block.Transactions != null)
             {
@@ -58,46 +51,48 @@ namespace Breeze.Registration
                         continue;
 
                     // Check if the transaction has the Breeze registration marker output (literal text BREEZE_REGISTRATION_MARKER)
-                    if (tx.Outputs[0].ScriptPubKey.ToHex().ToLower().Equals("6a1a425245455a455f524547495354524154494f4e5f4d41524b4552"))
+                    if (!tx.Outputs[0].ScriptPubKey.ToHex().ToLower()
+                        .Equals("6a1a425245455a455f524547495354524154494f4e5f4d41524b4552")) continue;
+
+                    this.logger.LogDebug("Received a new registration transaction: " + tx.GetHash());
+
+                    try
                     {
-                        this.logger.LogDebug("Received a new registration transaction: " + tx.GetHash());
+                        var registrationToken = new RegistrationToken();
+                        registrationToken.ParseTransaction(tx, this.network);
 
-                        try
+                        if (!registrationToken.Validate(this.network))
                         {
-                            RegistrationToken registrationToken = new RegistrationToken();
-                            registrationToken.ParseTransaction(tx, this.network);
+                            this.logger.LogDebug("Registration token failed validation");
+                            continue;
+                        }
 
-                            if (!registrationToken.Validate(this.network))
-                            {
-                                this.logger.LogDebug("Registration token failed validation");
-                                continue;
-                            }
-
-                            MerkleBlock merkleBlock = new MerkleBlock(block, new uint256[] { tx.GetHash() });
-                            RegistrationRecord registrationRecord = new RegistrationRecord(DateTime.Now, Guid.NewGuid(), tx.GetHash().ToString(), tx.ToHex(), registrationToken, merkleBlock.PartialMerkleTree, height);
+                        var merkleBlock = new MerkleBlock(block, new[] { tx.GetHash() });
+                        var registrationRecord = new RegistrationRecord(DateTime.Now, Guid.NewGuid(), tx.GetHash().ToString(), tx.ToHex(), registrationToken, merkleBlock.PartialMerkleTree, height);
                             
-                            // Ignore protocol versions outside the accepted bounds
-                            if ((registrationRecord.Record.ProtocolVersion < MIN_PROTOCOL_VERSION) ||
-                                (registrationRecord.Record.ProtocolVersion > MAX_PROTOCOL_VERSION))
-                            {
-                                this.logger.LogDebug("Registration protocol version out of bounds " + tx.GetHash());
-                                continue;
-                            }
-
-                            // If there were other registrations for this server previously, remove them and add the new one
-                            this.registrationStore.AddWithReplace(registrationRecord);
-
-                            this.logger.LogDebug("Registration transaction for server collateral address: " + registrationRecord.Record.ServerId);
-                            this.logger.LogDebug("Server Onion address: " + registrationRecord.Record.OnionAddress);
-                            this.logger.LogDebug("Server configuration hash: " + registrationRecord.Record.ConfigurationHash);
-
-                            // Add collateral address to watch only wallet so that any funding transactions can be detected
-                            this.watchOnlyWalletManager.WatchAddress(registrationRecord.Record.ServerId);
-                        }
-                        catch (Exception e)
+                        // Ignore protocol versions outside the accepted bounds
+                        if ((registrationRecord.Record.ProtocolVersion < MIN_PROTOCOL_VERSION) ||
+                            (registrationRecord.Record.ProtocolVersion > MAX_PROTOCOL_VERSION))
                         {
-                            this.logger.LogDebug("Failed to parse registration transaction, exception: " + e);
+                            this.logger.LogDebug("Registration protocol version out of bounds " + tx.GetHash());
+                            continue;
                         }
+
+                        // If there were other registrations for this server previously, remove them and add the new one                         
+                        this.logger.LogTrace("Registrations - AddWithReplace");
+
+                        this.registrationStore.AddWithReplace(registrationRecord);
+
+                        this.logger.LogTrace("Registration transaction for server collateral address: " + registrationRecord.Record.ServerId);
+                        this.logger.LogTrace("Server Onion address: " + registrationRecord.Record.OnionAddress);
+                        this.logger.LogTrace("Server configuration hash: " + registrationRecord.Record.ConfigurationHash);
+
+                        // Add collateral address to watch only wallet so that any funding transactions can be detected
+                        this.watchOnlyWalletManager.WatchAddress(registrationRecord.Record.ServerId);
+                    }
+                    catch (Exception e)
+                    {
+                        this.logger.LogDebug("Failed to parse registration transaction, exception: " + e);
                     }
                 }
 
@@ -150,8 +145,12 @@ namespace Breeze.Registration
 					}
                 }
 
+                this.logger.LogTrace("SaveWatchOnlyWallet");
+
                 this.watchOnlyWalletManager.SaveWatchOnlyWallet();
             }
+
+            this.logger.LogTrace("(-)");
         }
 
         public void Dispose()
