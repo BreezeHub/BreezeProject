@@ -488,20 +488,12 @@ namespace Breeze.TumbleBit.Client
             Wallet destinationWallet = this.walletManager.GetWallet(destinationWalletName);
             Wallet originWallet = this.walletManager.GetWallet(originWalletName);
 
-            // Check if origin wallet has a balance
-            Money originConfirmed = new Money(0);
-            Money originUnconfirmed = new Money(0);
-            
-            foreach (HdAccount originAccount in originWallet.GetAccountsByCoinType(this.tumblingState.CoinType))
-            {
-                var result = originAccount.GetSpendableAmount();
+			// Check if origin wallet has a sufficient balance to begin tumbling at least 1 cycle
+	        Money originBalance = this.walletManager.GetSpendableTransactionsInWallet(this.tumblingState.OriginWalletName)
+		        .Sum(s => s.Transaction.Amount);
 
-                originConfirmed += result.ConfirmedAmount;
-                originUnconfirmed += result.UnConfirmedAmount;
-            }
-            
-            // Should ideally take network transaction fee into account too, but that is dynamic
-            if ((originConfirmed + originUnconfirmed) <= (this.TumblerParameters.Denomination + this.TumblerParameters.Fee))
+            // Should ideally take network's transaction fee into account too, but that is dynamic
+            if (originBalance <= (this.TumblerParameters.Denomination + this.TumblerParameters.Fee))
             {
                 this.logger.LogDebug("Insufficient funds in origin wallet");
                 throw new Exception("Insufficient funds in origin wallet");

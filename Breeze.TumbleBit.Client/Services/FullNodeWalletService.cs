@@ -67,9 +67,9 @@ namespace Breeze.TumbleBit.Client.Services
                     }
                     .ToList(), TumblingState.OriginWalletPassword)
                 {
-                    // To avoid using un-propagated (and hence unconfirmed) transactions we require at least 1 confirmation
+                    // To avoid using un-propagated (and hence unconfirmed) transactions we require at least 1 confirmation.
                     // If a transaction is somehow invalid, all transactions using it as an input are invalidated. This
-                    // tries to guard against that.
+                    // tries to guard against that when using a light wallet, which has no ability to correct it.
                     MinConfirmations = 1,
                     OverrideFeeRate = feeRate,
                     Sign = true
@@ -157,5 +157,15 @@ namespace Breeze.TumbleBit.Client.Services
 
             return tx;
         }
+
+		/// <summary>
+		/// Retrieves the remaining unspent balance in the origin wallet. Includes unconfirmed transactions.
+		/// </summary>
+	    public Money GetBalance()
+	    {
+		    var unspentOutputs = this.TumblingState.WalletManager.GetSpendableTransactionsInWallet(this.TumblingState.OriginWalletName);
+
+		    return new Money(unspentOutputs.Sum(s => s.Transaction.Amount));
+	    }
     }
 }

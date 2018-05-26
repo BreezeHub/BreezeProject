@@ -50,14 +50,21 @@ namespace NTumbleBit.ClassicTumbler.Client
 						var cycle = Runtime.TumblerParameters.CycleGenerator.GetRegisteringCycle(height);
 						if(lastCycle != cycle.Start)
 						{
-							lastCycle = cycle.Start;
-							Logs.Client.LogInformation("New Cycle: " + cycle.Start);
-							PaymentStateMachine.State state = GetPaymentStateMachineState(cycle);
-							if(state == null)
+							// Only start a new cycle if there are sufficient wallet funds
+							Money walletBalance = this.Runtime.Services.WalletService.GetBalance();
+							Money minimumBalance = this.Runtime.TumblerParameters.Denomination + this.Runtime.TumblerParameters.Fee;
+
+							if (walletBalance >= minimumBalance)
 							{
-								var stateMachine = new PaymentStateMachine(Runtime, null);
-								stateMachine.NeedSave = true;
-								Save(stateMachine, cycle.Start);
+								lastCycle = cycle.Start;
+								Logs.Client.LogInformation("New Cycle: " + cycle.Start);
+								PaymentStateMachine.State state = GetPaymentStateMachineState(cycle);
+								if (state == null)
+								{
+									var stateMachine = new PaymentStateMachine(Runtime, null);
+									stateMachine.NeedSave = true;
+									Save(stateMachine, cycle.Start);
+								}
 							}
 						}
 
