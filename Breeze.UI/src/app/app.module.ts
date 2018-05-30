@@ -5,9 +5,9 @@ import { HttpModule } from '@angular/http';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { ClipboardModule } from 'ngx-clipboard';
+import { RouterModule, RouteReuseStrategy } from '@angular/router';
 
 import { SharedModule } from './shared/shared.module';
-
 import { AppRoutingModule } from './app-routing.module';
 
 import { AppComponent } from './app.component';
@@ -29,6 +29,7 @@ import { TransactionDetailsComponent } from './wallet/transaction-details/transa
 import { PasswordConfirmationComponent } from './wallet/tumblebit/password-confirmation/password-confirmation.component';
 import { LogoutConfirmationComponent } from './wallet/logout-confirmation/logout-confirmation.component';
 
+import { CustomReuseStrategy } from './reuse-strategy';
 
 @NgModule({
   imports: [
@@ -39,6 +40,7 @@ import { LogoutConfirmationComponent } from './wallet/logout-confirmation/logout
     ReactiveFormsModule,
     FormsModule,
     HttpModule,
+    RouterModule,
     NgbModule.forRoot(),
     SharedModule.forRoot()
   ],
@@ -66,7 +68,8 @@ import { LogoutConfirmationComponent } from './wallet/logout-confirmation/logout
     TransactionDetailsComponent,
     LogoutConfirmationComponent
   ],
-  providers: [ ApiService, GlobalService, ModalService, Title, TumblebitService ],
+  providers: [ ApiService, GlobalService, ModalService, Title, TumblebitService,
+    { provide: RouteReuseStrategy, useClass: CustomReuseStrategy } ],
   bootstrap: [ AppComponent ]
 })
 
