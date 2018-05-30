@@ -12,9 +12,9 @@ const routes: Routes = [
   { path: '', component: WalletComponent,
     children: [
       { path: '', redirectTo:'dashboard', pathMatch:'full' },
-      { path: 'dashboard', component: DashboardComponent},
-      { path: 'privacy', component: TumblebitComponent},
-      { path: 'history', component: HistoryComponent}
+      { path: 'dashboard', component: DashboardComponent, data: { shouldReuse: true } },
+      { path: 'privacy', component: TumblebitComponent, data: { shouldReuse: true } },
+      { path: 'history', component: HistoryComponent, data: { shouldReuse: true } }
     ]
   },
   { path: 'stratis-wallet', component: WalletComponent,
