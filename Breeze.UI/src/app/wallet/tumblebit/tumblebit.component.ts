@@ -519,9 +519,9 @@ export class TumblebitComponent implements OnInit, OnDestroy {
   };
 
   private removeSourceWallet() {
-    const index = this.wallets.indexOf(this.globalService.getWalletName());
-    if (index >= 0) {
-      this.wallets.splice(index, 1);
+    const sourceWalletIndex = this.wallets.indexOf(this.globalService.getWalletName());
+    if (sourceWalletIndex >= 0) {
+      this.wallets.splice(sourceWalletIndex, 1);
     }
   }
 
