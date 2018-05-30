@@ -1,7 +1,9 @@
-import { Router } from '@angular/router';
+import { Router, NavigationEnd } from '@angular/router';
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { NgbModal, NgbActiveModal, NgbDropdown, NgbModalRef, NgbModalOptions } from '@ng-bootstrap/ng-bootstrap';
 import { FormGroup, FormControl, Validators, FormBuilder } from '@angular/forms';
+import { Observable } from 'rxjs/Rx';
+import { Subscription } from 'rxjs/Subscription';
 
 import { PasswordConfirmationComponent } from './password-confirmation/password-confirmation.component';
 import { ConnectionModalComponent } from '../../shared/components/connection-modal/connection-modal.component';
@@ -15,9 +17,7 @@ import { TumblerConnectionRequest } from './classes/tumbler-connection-request';
 import { TumbleRequest } from './classes/tumble-request';
 import { CycleInfo } from './classes/cycle-info';
 import { ModalService } from '../../shared/services/modal.service';
-
-import { Observable } from 'rxjs/Rx';
-import { Subscription } from 'rxjs/Subscription';
+import { CompositeDisposable } from '../../shared/classes/composite-disposable';
 
 @Component({
   // tslint:disable-next-line:component-selector
@@ -27,7 +27,7 @@ import { Subscription } from 'rxjs/Subscription';
   styleUrls: ['./tumblebit.component.css'],
 })
 
-export class TumblebitComponent implements OnInit, OnDestroy {
+export class TumblebitComponent implements OnDestroy {
   public coinUnit: string;
   public confirmedBalance: number;
   public unconfirmedBalance: number;
@@ -61,6 +61,9 @@ export class TumblebitComponent implements OnInit, OnDestroy {
   public operation: 'connect' | 'changeserver' = 'connect';
   private timer: any;
   private connectionModal: NgbModalRef;
+  private router$: Subscription;
+  private readonly routerPath = '/wallet/privacy';
+  private subscriptions: CompositeDisposable;
 
   tumbleFormErrors = {
     'selectWallet': ''
@@ -80,16 +83,11 @@ export class TumblebitComponent implements OnInit, OnDestroy {
     private genericModalService: ModalService,
     private fb: FormBuilder,
     private router: Router) {
-    this.buildTumbleForm();
-  }
 
-  ngOnInit() {
-    this.checkWalletStatus();
-    this.checkTumblingStatus();
-    this.getWalletFiles();
-    this.getWalletBalance();
-    this.coinUnit = this.globalService.getCoinUnit();
-  };
+    this.buildTumbleForm();
+
+    this.subscribeToRouter();
+  }
 
   ngOnDestroy() {
     if (this.walletBalanceSubscription) {
@@ -117,7 +115,47 @@ export class TumblebitComponent implements OnInit, OnDestroy {
     }
 
     this.stopConnectionRequest();
+
+    if (this.subscriptions) {
+      this.subscriptions.unsubscribe();
+    }
+
+    if (this.router$) {
+      this.router$.unsubscribe();
+      this.router$ = null;
+    }
   };
+
+  private subscribeToRouter(): void {
+    if (this.router$) {
+      this.router$.unsubscribe();
+    }
+    this.router$ = this.router.events.subscribe(event => {
+      if (event instanceof NavigationEnd) {
+        if (event.url === this.routerPath) {
+          
+          if (this.subscriptions) {
+            this.subscriptions.unsubscribe();
+          }
+          this.subscriptions = new CompositeDisposable([
+            this.checkTumblingStatus(),
+            this.checkWalletStatus(),
+            this.getWalletFiles(),
+            this.getWalletBalance()
+          ]);
+          
+          this.coinUnit = this.globalService.getCoinUnit();
+
+          console.info('subscribeToRouter : ' + this.routerPath);
+
+        } else if (this.subscriptions) {
+          this.subscriptions.unsubscribe();
+          this.subscriptions = null;
+          console.info('subscribeToRouter : unsubscribe');
+        }
+      }
+    });
+  }
 
   private buildTumbleForm(): void {
     this.tumbleForm = this.fb.group({
@@ -155,14 +193,14 @@ export class TumblebitComponent implements OnInit, OnDestroy {
     }
   }
 
-  private checkWalletStatus() {
+  private checkWalletStatus(): Subscription {
     const walletInfo = new WalletInfo(this.globalService.getWalletName())
-    this.walletStatusSubscription = this.apiService.getGeneralInfo(walletInfo)
+    return this.apiService.getGeneralInfo(walletInfo)
       .subscribe(
         response =>  {
           if (response.status >= 200 && response.status < 400) {
             const generalWalletInfoResponse = response.json();
-            if (generalWalletInfoResponse.lastBlockSyncedHeight = generalWalletInfoResponse.chainTip) {
+            if (generalWalletInfoResponse.lastBlockSyncedHeight === generalWalletInfoResponse.chainTip) {
               this.isSynced = true;
             } else {
               this.isSynced = false;
@@ -181,14 +219,14 @@ export class TumblebitComponent implements OnInit, OnDestroy {
             }
           }
         }
-      )
-    ;
+      );
   }
 
-  private checkTumblingStatus() {
-    this.tumbleStateSubscription = this.tumblebitService.getTumblingState()
+  private checkTumblingStatus(): Subscription {
+    return this.tumblebitService.getTumblingState()
       .subscribe(
         response => {
+
           if (response.status >= 200 && response.status < 400) {
             if (response.json().registrations >= response.json().minRegistrations) {
               this.hasRegistrations = true;
@@ -229,16 +267,21 @@ export class TumblebitComponent implements OnInit, OnDestroy {
             }
           }
         }
-      )
-    ;
+      );
   }
 
   private connectToTumbler() {
+
     if (this.connectionInProgress) {
       return;
     }
 
     this.startConnectionRequest();
+
+    if (this.connectionSubscription) {
+      this.connectionSubscription.unsubscribe();
+    }
+
     this.connectionSubscription = this.tumblebitService
       .connectToTumbler(this.operation)
       .subscribe(
@@ -456,9 +499,9 @@ export class TumblebitComponent implements OnInit, OnDestroy {
   }
 
   // TODO: move into a shared service
-  private getWalletBalance() {
+  private getWalletBalance(): Subscription {
     const walletInfo = new WalletInfo(this.globalService.getWalletName())
-    this.walletBalanceSubscription = this.apiService.getWalletBalance(walletInfo)
+    return this.apiService.getWalletBalance(walletInfo)
       .subscribe(
         response =>  {
           if (response.status >= 200 && response.status < 400) {
@@ -480,8 +523,7 @@ export class TumblebitComponent implements OnInit, OnDestroy {
             }
           }
         }
-      )
-    ;
+      );
   };
 
   private getDestinationWalletBalance() {
@@ -514,8 +556,8 @@ export class TumblebitComponent implements OnInit, OnDestroy {
     ;
   };
 
-  private getWalletFiles() {
-    this.apiService.getWalletFiles()
+  private getWalletFiles(): Subscription {
+    return this.apiService.getWalletFiles()
       .subscribe(
         response => {
           if (response.status >= 200 && response.status < 400) {
