@@ -518,6 +518,13 @@ export class TumblebitComponent implements OnInit, OnDestroy {
     ;
   };
 
+  private removeSourceWallet() {
+    const index = this.wallets.indexOf(this.globalService.getWalletName());
+    if (index >= 0) {
+      this.wallets.splice(index, 1);
+    }
+  }
+
   private getWalletFiles() {
     this.apiService.getWalletFiles()
       .subscribe(
@@ -531,6 +538,9 @@ export class TumblebitComponent implements OnInit, OnDestroy {
                   this.wallets[wallet] = this.wallets[wallet].slice(0, -12);
                 }
               }
+
+              this.removeSourceWallet();
+
               // this.updateWalletFileDisplay(this.wallets[0]);
             } else {
             }
