@@ -20,7 +20,7 @@ const routes: Routes = [
   { path: 'stratis-wallet', component: WalletComponent,
   children: [
     { path: '', redirectTo:'dashboard', pathMatch:'full' },
-    { path: 'dashboard', component: DashboardComponent, data: { shouldReuse: false },
+    { path: 'dashboard', component: DashboardComponent, data: { shouldReuse: false } },
     { path: 'history', component: HistoryComponent, data: { shouldReuse: false } }
   ]
 }
