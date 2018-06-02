@@ -1,4 +1,4 @@
-import { Subscription } from 'rxJs/Subscription';
+import { Subscription } from 'rxjs/Subscription';
 
 export class CompositeDisposable {
     private _subscriptions: Set<Subscription> = new Set<Subscription>();
