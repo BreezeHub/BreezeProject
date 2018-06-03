@@ -342,8 +342,6 @@ namespace Breeze.TumbleBit.Client
             // - If this is a first connection, this.TumblerAddress will be null
             // - If we were previously connected to a server, its URI would have been stored in the
             //   tumbling_state.json, and will have been loaded into this.TumblerAddress already
-
-            // If the -ppuri command line option wasn't used to bypass the registration store lookup
             if (this.TumblerAddress == null)
             {
                 List<RegistrationRecord> registrations = this.registrationStore.GetAll();
@@ -353,29 +351,46 @@ namespace Breeze.TumbleBit.Client
                     this.logger.LogDebug("Not enough masternode registrations downloaded yet: " + registrations.Count);
                     return Result.Fail<ClassicTumblerParameters>("Not enough masternode registrations downloaded yet");
                 }
-                
+
                 registrations.Shuffle();
 
-                // Since the list is shuffled, we can simply iterate through it and try each server until one is valid & reachable
+                // Since the list is shuffled, we can simply iterate through it and try each server until one is valid & reachable.
                 foreach (RegistrationRecord record in registrations)
                 {
                     this.TumblerAddress = "ctb://" + record.Record.OnionAddress + ".onion?h=" + record.Record.ConfigurationHash;
 
-                    var attemptConnection = await TryUseServer();
-
-                    if (!attemptConnection.Failure)
+                    try
                     {
-                        return attemptConnection;
+                        var attemptConnection = await TryUseServer();
+
+                        if (!attemptConnection.Failure)
+                        {
+                            return attemptConnection;
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        this.logger.LogDebug("Unable to connect to masternode:" + this.TumblerAddress);
                     }
                 }
 
-                // If we reach this point, no servers were reachable
+                // If we reach this point, no servers were reachable.
                 this.logger.LogDebug("Did not find a valid registration");
                 return Result.Fail<ClassicTumblerParameters>("Did not find a valid registration");
             }
             else
             {
-                return await TryUseServer();
+                var attemptConnection = await TryUseServer();
+
+                if (!attemptConnection.Failure)
+                {
+                    return attemptConnection;
+                }
+
+                // The masternode that was being used in a previous run is now unreachable.
+                // Restart the connection process and try to find a working server.
+                this.TumblerAddress = null;
+                return await ConnectToTumblerAsync();
             }
         }
 
