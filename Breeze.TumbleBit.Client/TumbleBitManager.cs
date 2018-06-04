@@ -336,46 +336,77 @@ namespace Breeze.TumbleBit.Client
         }
 
         /// <inheritdoc />
-        public async Task<Result<ClassicTumblerParameters>> ConnectToTumblerAsync()
+        public async Task<Result<ClassicTumblerParameters>> ConnectToTumblerAsync(HashSet<string> masternodeBlacklist = null)
         {
             // Assumptions about the current state coming into this method:
             // - If this is a first connection, this.TumblerAddress will be null
             // - If we were previously connected to a server, its URI would have been stored in the
             //   tumbling_state.json, and will have been loaded into this.TumblerAddress already
-
-            // If the -ppuri command line option wasn't used to bypass the registration store lookup
             if (this.TumblerAddress == null)
             {
                 List<RegistrationRecord> registrations = this.registrationStore.GetAll();
 
                 if (registrations.Count < MINIMUM_MASTERNODE_COUNT)
                 {
-                    this.logger.LogDebug("Not enough masternode registrations downloaded yet: " + registrations.Count);
+                    this.logger.LogDebug($"Not enough masternode registrations downloaded yet: {registrations.Count}");
                     return Result.Fail<ClassicTumblerParameters>("Not enough masternode registrations downloaded yet");
                 }
-                
+
                 registrations.Shuffle();
 
-                // Since the list is shuffled, we can simply iterate through it and try each server until one is valid & reachable
+                // Since the list is shuffled, we can simply iterate through it and try each server until one is valid & reachable.
                 foreach (RegistrationRecord record in registrations)
                 {
-                    this.TumblerAddress = "ctb://" + record.Record.OnionAddress + ".onion?h=" + record.Record.ConfigurationHash;
+                    this.TumblerAddress = $"ctb://{record.Record.OnionAddress}.onion?h={record.Record.ConfigurationHash}";
 
-                    var attemptConnection = await TryUseServer();
+                    //Do not attempt a connection to the Masternode which is blacklisted
+                    if (masternodeBlacklist != null && masternodeBlacklist.Contains(this.TumblerAddress)) {
+                        this.logger.LogDebug($"Skipping connection attempt to blacklisted masternode {this.TumblerAddress}");
+                        continue;
+                    }
 
-                    if (!attemptConnection.Failure)
+                    try
                     {
-                        return attemptConnection;
+                        var tumblerParameterResult = await TryUseServer();
+
+                        if (tumblerParameterResult.Success)
+                        {
+                            return tumblerParameterResult;
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        this.logger.LogDebug(e, $"Unable to connect to masternode: {this.TumblerAddress}");
                     }
                 }
 
-                // If we reach this point, no servers were reachable
-                this.logger.LogDebug("Did not find a valid registration");
+                this.logger.LogDebug($"Attempted connection to {registrations.Count} masternodes and did not find a valid registration");
                 return Result.Fail<ClassicTumblerParameters>("Did not find a valid registration");
             }
             else
             {
-                return await TryUseServer();
+                try
+                {
+                    var tumblerParameterResult = await TryUseServer();
+
+                    if (tumblerParameterResult.Success)
+                    {
+                        return tumblerParameterResult;
+                    }
+                }
+                catch (Exception e)
+                {
+                    this.logger.LogDebug(e, $"Unable to connect to masternode: {this.TumblerAddress}");
+                }
+
+                // Blacklist masternode address which we have just failed to connect to so that
+                // we won't attempt to connect to it again in the next call to ConnectToTumblerAsync.
+                HashSet<string> blacklistedMasternodes = new HashSet<string>() { this.TumblerAddress };
+
+                // The masternode that was being used in a previous run is now unreachable.
+                // Restart the connection process and try to find a working server.
+                this.TumblerAddress = null;
+                return await ConnectToTumblerAsync(blacklistedMasternodes);
             }
         }
 
@@ -422,6 +453,8 @@ namespace Breeze.TumbleBit.Client
 
         private async Task<Result<ClassicTumblerParameters>> TryUseServer()
         {
+            logger.LogInformation($"Attempting connection to the masternode at address {this.TumblerAddress}");
+
             this.tumblingState.TumblerUri = new Uri(this.TumblerAddress);
 
             FullNodeTumblerClientConfiguration config;
