@@ -24,6 +24,7 @@ export class TumblebitService {
   // Might make sense to populate tumblerParams here because services are singletons
 
   connectToTumbler(operation: 'connect' | 'changeserver'): Observable<any> {
+    console.info('connectToTumbler');
     return this.http
       .get(`${this.tumblerClientUrl}${operation}`)
       .retryWhen(e => {

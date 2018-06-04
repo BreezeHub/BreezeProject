@@ -132,6 +132,9 @@ export class TumblebitComponent implements OnDestroy {
     }
     this.router$ = this.router.events.subscribe(event => {
       if (event instanceof NavigationEnd) {
+        
+        this.stopConnectionRequest();
+
         if (event.url === this.routerPath) {
           
           if (this.subscriptions) {
