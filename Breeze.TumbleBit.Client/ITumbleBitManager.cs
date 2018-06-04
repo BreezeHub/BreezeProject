@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Breeze.TumbleBit.Client.Models;
 using NBitcoin;
@@ -14,7 +15,7 @@ namespace Breeze.TumbleBit.Client
         /// <summary>
         /// Connects to a masternode running the Breeze Privacy Protocol.
         /// </summary>
-        Task<Result<ClassicTumblerParameters>> ConnectToTumblerAsync();
+        Task<Result<ClassicTumblerParameters>> ConnectToTumblerAsync(List<String> masternodeBlacklist = null);
 
 		/// <summary>
 		/// Disconnects from the currently connected masternode and attempts to connect to a new one.
