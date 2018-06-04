@@ -15,7 +15,7 @@ namespace Breeze.TumbleBit.Client
         /// <summary>
         /// Connects to a masternode running the Breeze Privacy Protocol.
         /// </summary>
-        Task<Result<ClassicTumblerParameters>> ConnectToTumblerAsync(List<String> masternodeBlacklist = null);
+        Task<Result<ClassicTumblerParameters>> ConnectToTumblerAsync(HashSet<String> masternodeBlacklist = null);
 
 		/// <summary>
 		/// Disconnects from the currently connected masternode and attempts to connect to a new one.

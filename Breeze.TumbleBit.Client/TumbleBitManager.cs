@@ -336,7 +336,7 @@ namespace Breeze.TumbleBit.Client
         }
 
         /// <inheritdoc />
-        public async Task<Result<ClassicTumblerParameters>> ConnectToTumblerAsync(List<String> masternodeBlacklist = null)
+        public async Task<Result<ClassicTumblerParameters>> ConnectToTumblerAsync(HashSet<String> masternodeBlacklist = null)
         {
             // Assumptions about the current state coming into this method:
             // - If this is a first connection, this.TumblerAddress will be null
@@ -402,7 +402,7 @@ namespace Breeze.TumbleBit.Client
 
                 // Blacklist masternode address which we have just failed to connect to so that
                 // we won't attempt to connect to it again in the next call to ConnectToTumblerAsync.
-                List<String> blacklistedMasternodes = new List<String>() { this.TumblerAddress };
+                HashSet<String> blacklistedMasternodes = new HashSet<String>() { this.TumblerAddress };
 
                 // The masternode that was being used in a previous run is now unreachable.
                 // Restart the connection process and try to find a working server.
