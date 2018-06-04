@@ -93,18 +93,11 @@ app.on('ready', function () {
   }
 });
 
-app.on('before-quit', function () {
-  closeBitcoinApi(),
-  closeStratisApi();
-});
-
 // Quit when all windows are closed.
 app.on('window-all-closed', function () {
-  // On OS X it is common for applications and their menu bar
-  // to stay active until the user quits explicitly with Cmd + Q
-  if (process.platform !== 'darwin') {
-    app.quit();
-  }
+  //The user doesn't have the option to create another window/wallet from the Electron menu, so there's 
+  //no point in keeping it there, so we simply quit the app.
+  quit();
 });
 
 app.on('activate', function () {
@@ -116,25 +109,22 @@ app.on('activate', function () {
 });
 
 function closeBitcoinApi() {
-  // if (process.platform !== 'darwin' && !serve) {
-    if (!serve) {
+  if (!serve) {
     const http1 = require('http');
     const options1 = {
       hostname: 'localhost',
       port: (<any>global).bitcoinApiPort,
       path: '/api/node/shutdown',
       method: 'POST'
-  };
-
-  const req = http1.request(options1, (res) => {});
-  req.write('');
-  req.end();
+    };
+    const req = http1.request(options1, (res) => {});
+    req.write('');
+    req.end();
   }
 };
 
 function closeStratisApi() {
-  // if (process.platform !== 'darwin' && !serve) {
-    if (process.platform !== 'darwin' && !serve) {
+  if (!serve) {
     const http2 = require('http');
     const options2 = {
       hostname: 'localhost',
@@ -142,10 +132,9 @@ function closeStratisApi() {
       path: '/api/node/shutdown',
       method: 'POST'
     };
-
-  const req = http2.request(options2, (res) => {});
-  req.write('');
-  req.end();
+    const req = http2.request(options2, (res) => {});
+    req.write('');
+    req.end();
   }
 };
 
@@ -243,7 +232,7 @@ function createTray() {
     {
       label: 'Exit',
       click: function() {
-        app.quit();
+        quit();
       }
     }
   ]);
@@ -277,7 +266,7 @@ function createMenu() {
     submenu: [
         { label: 'About Application', selector: 'orderFrontStandardAboutPanel:' },
         { type: 'separator' },
-        { label: 'Quit', accelerator: 'Command+Q', click: function() { app.quit(); }}
+        { label: 'Quit', accelerator: 'Command+Q', click: function() { quit(); }}
     ]}, {
     label: 'Edit',
     submenu: [
@@ -292,4 +281,10 @@ function createMenu() {
   ];
 
   Menu.setApplicationMenu(Menu.buildFromTemplate(menuTemplate));
+};
+
+const quit = () => {
+  closeBitcoinApi();
+  closeStratisApi();
+  app.quit();
 };
