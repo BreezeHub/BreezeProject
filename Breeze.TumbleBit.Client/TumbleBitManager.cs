@@ -361,7 +361,7 @@ namespace Breeze.TumbleBit.Client
 
                     //Do not attempt a connection to the Masternode which is blacklisted
                     if (masternodeBlacklist != null && masternodeBlacklist.Contains(this.TumblerAddress)) {
-                        this.logger.LogDebug($"Skiping connection attempt to blacklisted masternode {this.TumblerAddress}");
+                        this.logger.LogDebug($"Skipping connection attempt to blacklisted masternode {this.TumblerAddress}");
                         continue;
                     }
 
@@ -381,7 +381,7 @@ namespace Breeze.TumbleBit.Client
                 }
 
                 // If we reach this point, no servers were reachable.
-                this.logger.LogDebug($"Attepmted connection to {registrations.Count} masternodes and did not find a valid registration");
+                this.logger.LogDebug($"Attempted connection to {registrations.Count} masternodes and did not find a valid registration");
                 return Result.Fail<ClassicTumblerParameters>("Did not find a valid registration");
             }
             else
@@ -454,7 +454,7 @@ namespace Breeze.TumbleBit.Client
 
         private async Task<Result<ClassicTumblerParameters>> TryUseServer()
         {
-            logger.LogWarning($"Attempting connection to the masternode at address {this.TumblerAddress}");
+            logger.LogInformation($"Attempting connection to the masternode at address {this.TumblerAddress}");
 
             this.tumblingState.TumblerUri = new Uri(this.TumblerAddress);
 
