@@ -124,7 +124,7 @@ function closeBitcoinApi() {
 };
 
 function closeStratisApi() {
-  if (process.platform !== 'darwin' && !serve) {
+  if (!serve) {
     const http2 = require('http');
     const options2 = {
       hostname: 'localhost',
