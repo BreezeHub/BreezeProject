@@ -1,9 +1,10 @@
-import { Router, NavigationEnd } from '@angular/router';
+import { Router, NavigationEnd, RouterEvent } from '@angular/router';
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { NgbModal, NgbActiveModal, NgbDropdown, NgbModalRef, NgbModalOptions } from '@ng-bootstrap/ng-bootstrap';
 import { FormGroup, FormControl, Validators, FormBuilder } from '@angular/forms';
 import { Observable } from 'rxjs/Rx';
 import { Subscription } from 'rxjs/Subscription';
+import 'rxjs/add/operator/filter';
 
 import { PasswordConfirmationComponent } from './password-confirmation/password-confirmation.component';
 import { ConnectionModalComponent } from '../../shared/components/connection-modal/connection-modal.component';
@@ -62,8 +63,9 @@ export class TumblebitComponent implements OnDestroy {
   private timer: any;
   private connectionModal: NgbModalRef;
   private router$: Subscription;
+  private started = false;
   private readonly routerPath = '/wallet/privacy';
-  private subscriptions: CompositeDisposable;
+  private startSubscriptions: CompositeDisposable;
 
   tumbleFormErrors = {
     'selectWallet': ''
@@ -86,70 +88,63 @@ export class TumblebitComponent implements OnDestroy {
 
     this.buildTumbleForm();
 
-    this.subscribeToRouter();
+    this.start();
   }
 
   ngOnDestroy() {
-    if (this.walletBalanceSubscription) {
-      this.walletBalanceSubscription.unsubscribe();
+    stop();
+    if (this.router$) {
+      this.router$.unsubscribe();
     }
+  }
 
+  private stop() {
     if (this.destinationWalletBalanceSubscription) {
       this.destinationWalletBalanceSubscription.unsubscribe();
-    }
-
-    if (this.tumbleStateSubscription) {
-      this.tumbleStateSubscription.unsubscribe();
-    }
-
-    if (this.walletStatusSubscription) {
-      this.walletStatusSubscription.unsubscribe();
+      this.destinationWalletBalanceSubscription = null;
     }
 
     if (this.progressSubscription) {
       this.progressSubscription.unsubscribe();
+      this.progressSubscription = null;
     }
 
     if (this.connectionSubscription) {
       this.connectionSubscription.unsubscribe();
+      this.connectionSubscription = null;
+    }
+
+    if (this.startSubscriptions) {
+      this.startSubscriptions.unsubscribe();
+      this.startSubscriptions = null;
     }
 
     this.stopConnectionRequest();
 
-    if (this.subscriptions) {
-      this.subscriptions.unsubscribe();
-    }
+    this.isConnected = false;
 
-    if (this.router$) {
-      this.router$.unsubscribe();
-      this.router$ = null;
-    }
-  };
+    console.log('stopped');
+    this.started = false;
+  }
 
-  private subscribeToRouter(): void {
-    if (this.router$) {
-      this.router$.unsubscribe();
-    }
-    this.router$ = this.router.events.subscribe(event => {
-      if (event instanceof NavigationEnd) {
-        
-        this.stopConnectionRequest();
-        this.isConnected = false;
-        if (this.subscriptions) {
-          this.subscriptions.unsubscribe();
-          this.subscriptions = null;
-        }
+  private start(): void {
+    this.router$ = this.router.events.filter(x => !this.started && x instanceof NavigationEnd && x.url === this.routerPath) 
+                                     .subscribe(_ => {
 
-        if (event.url === this.routerPath) {
-          this.subscriptions = new CompositeDisposable([
-            this.checkTumblingStatus(),
-            this.checkWalletStatus(),
-            this.getWalletFiles(),
-            this.getWalletBalance()
-          ]);
-          this.coinUnit = this.globalService.getCoinUnit();
-        }
-      }
+        this.operation = 'connect';
+        this.tumblerAddress = 'Connecting...';
+
+        this.startSubscriptions = new CompositeDisposable([
+          this.checkTumblingStatus(),
+          this.checkWalletStatus(),
+          this.getWalletFiles(),
+          this.getWalletBalance()
+        ]);
+
+        this.coinUnit = this.globalService.getCoinUnit();
+
+        console.log('started');
+        this.started = true;
     });
   }
 
@@ -190,17 +185,16 @@ export class TumblebitComponent implements OnDestroy {
   }
 
   private checkWalletStatus(): Subscription {
+    
+    this.isSynced = false;
+    
     const walletInfo = new WalletInfo(this.globalService.getWalletName())
     return this.apiService.getGeneralInfo(walletInfo)
       .subscribe(
         response =>  {
           if (response.status >= 200 && response.status < 400) {
             const generalWalletInfoResponse = response.json();
-            if (generalWalletInfoResponse.lastBlockSyncedHeight === generalWalletInfoResponse.chainTip) {
-              this.isSynced = true;
-            } else {
-              this.isSynced = false;
-            }
+            this.isSynced = generalWalletInfoResponse.lastBlockSyncedHeight === generalWalletInfoResponse.chainTip;
           }
         },
         error => {
@@ -220,6 +214,9 @@ export class TumblebitComponent implements OnDestroy {
   }
 
   private checkTumblingStatus(): Subscription {
+    
+    this.hasRegistrations = this.tumbling = false;
+
     return this.tumblebitService.getTumblingState()
       .subscribe(
         response => {
@@ -503,9 +500,9 @@ export class TumblebitComponent implements OnDestroy {
         response =>  {
           if (response.status >= 200 && response.status < 400) {
             const balanceResponse = response.json();
-              this.confirmedBalance = balanceResponse.balances[0].amountConfirmed;
-              this.unconfirmedBalance = balanceResponse.balances[0].amountUnconfirmed;
-              this.totalBalance = this.confirmedBalance + this.unconfirmedBalance;
+            this.confirmedBalance = balanceResponse.balances[0].amountConfirmed;
+            this.unconfirmedBalance = balanceResponse.balances[0].amountUnconfirmed;
+            this.totalBalance = this.confirmedBalance + this.unconfirmedBalance;
           }
         },
         error => {
