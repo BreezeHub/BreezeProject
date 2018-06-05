@@ -7,10 +7,17 @@ using System.Threading;
 using BreezeCommon;
 using NBitcoin;
 using NTumbleBit;
+using Stratis.Bitcoin.Features.BlockStore;
+using Stratis.Bitcoin.Features.Consensus;
+using Stratis.Bitcoin.Features.MemoryPool;
+using Stratis.Bitcoin.Features.Miner;
+using Stratis.Bitcoin.Features.Notifications;
+using Stratis.Bitcoin.Features.RPC;
 using Stratis.Bitcoin.Features.Wallet;
 using Stratis.Bitcoin.Features.Wallet.Interfaces;
-using Stratis.Bitcoin.IntegrationTests;
-using Stratis.Bitcoin.IntegrationTests.EnvironmentMockUpHelpers;
+using Stratis.Bitcoin.Features.WatchOnlyWallet;
+using Stratis.Bitcoin.IntegrationTests.Common;
+using Stratis.Bitcoin.IntegrationTests.Common.EnvironmentMockUpHelpers;
 using Xunit;
 
 namespace Breeze.Registration.Tests
@@ -20,9 +27,9 @@ namespace Breeze.Registration.Tests
         [Fact]
         public void RegistrationTest()
         {
-            using (NodeBuilder builder = NodeBuilder.Create())
+            using (NodeBuilder builder = NodeBuilder.Create(this))
             {   
-                CoreNode node1 = builder.CreateStratisPosNode(true, fullNodeBuilder =>
+                CoreNode node1 = builder.CreateCustomNode(true, fullNodeBuilder =>
                 {
                     fullNodeBuilder
                         .UsePosConsensus()
@@ -33,12 +40,10 @@ namespace Breeze.Registration.Tests
                         .UseWallet()
                         .UseWatchOnlyWallet()
                         .AddPowPosMining()
-                        //.AddMining()
-                        //.UseApi()
                         .AddRPC();
-                });
+                }, Network.RegTest);
                
-                CoreNode node2 = builder.CreateStratisPosNode(true, fullNodeBuilder =>
+                CoreNode node2 = builder.CreateCustomNode(true, fullNodeBuilder =>
                 {
                     fullNodeBuilder
                         .UsePosConsensus()
@@ -49,11 +54,9 @@ namespace Breeze.Registration.Tests
                         .UseWallet()
                         .UseWatchOnlyWallet()
                         .AddPowPosMining()
-                        //.AddMining()
-                        //.UseApi()
                         .AddRPC()
                         .UseRegistration();
-                });
+                }, Network.RegTest);
                 
                 node1.NotInIBD();
                 node2.NotInIBD();
@@ -182,9 +185,9 @@ namespace Breeze.Registration.Tests
         [Fact]
         public void MinimalTest()
         {
-            using (NodeBuilder builder = NodeBuilder.Create())
+            using (NodeBuilder builder = NodeBuilder.Create(this))
             {   
-                CoreNode node1 = builder.CreateStratisPosNode(true, fullNodeBuilder =>
+                CoreNode node1 = builder.CreateCustomNode(true, fullNodeBuilder =>
                 {
                     fullNodeBuilder
                         .UsePosConsensus()
@@ -195,10 +198,8 @@ namespace Breeze.Registration.Tests
                         .UseWallet()
                         .UseWatchOnlyWallet()
                         .AddPowPosMining()
-                        //.AddMining()
-                        //.UseApi()
                         .AddRPC();
-                });
+                }, Network.RegTest);
 		
                 node1.NotInIBD();
 

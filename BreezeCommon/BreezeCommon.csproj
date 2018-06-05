@@ -3,7 +3,10 @@
     <TargetFramework>netcoreapp2.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="NStratis" Version="4.0.0.57" />
+    <PackageReference Include="NStratis.HashLib" Version="1.0.0.1" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\NTumbleBit\NTumbleBit.csproj" />
-    <ProjectReference Include="..\StratisBitcoinFullNode\src\NBitcoin\NBitcoin.csproj" />
   </ItemGroup>
 </Project>

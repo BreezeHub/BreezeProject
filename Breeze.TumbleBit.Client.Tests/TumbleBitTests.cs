@@ -11,25 +11,23 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Threading;
 using Xunit;
-
 using NBitcoin;
 using Stratis.Bitcoin.Features.Api;
-using Stratis.Bitcoin.Features.BlockStore;
-using Stratis.Bitcoin.Features.Consensus;
 using Stratis.Bitcoin.Features.MemoryPool;
-using Stratis.Bitcoin.Features.Miner;
-using Stratis.Bitcoin.Features.Notifications;
-using Stratis.Bitcoin.Features.RPC;
 using Stratis.Bitcoin.Features.Wallet;
 using Stratis.Bitcoin.Features.Wallet.Interfaces;
-using Stratis.Bitcoin.Features.WatchOnlyWallet;
-using Stratis.Bitcoin.IntegrationTests;
-
+using Stratis.Bitcoin.IntegrationTests.Common;
 using Breeze.BreezeServer;
 using Breeze.TumbleBit.Models;
 using BreezeCommon;
 using NTumbleBit.Logging;
-using Stratis.Bitcoin.IntegrationTests.EnvironmentMockUpHelpers;
+using Stratis.Bitcoin.Features.BlockStore;
+using Stratis.Bitcoin.Features.Consensus;
+using Stratis.Bitcoin.Features.Miner;
+using Stratis.Bitcoin.Features.Notifications;
+using Stratis.Bitcoin.Features.RPC;
+using Stratis.Bitcoin.Features.WatchOnlyWallet;
+using Stratis.Bitcoin.IntegrationTests.Common.EnvironmentMockUpHelpers;
 using Stratis.Bitcoin.Utilities.Extensions;
 using LogLevel = Microsoft.Extensions.Logging.LogLevel;
 
@@ -43,7 +41,7 @@ namespace Breeze.TumbleBit.Client.Tests
             // Workaround for segwit not correctly activating
             Network.RegTest.Consensus.BIP9Deployments[BIP9Deployments.Segwit] = new BIP9DeploymentsParameters(1, 0, DateTime.Now.AddDays(50).ToUnixTimestamp());
 
-            using (NodeBuilder builder = NodeBuilder.Create(version: "0.15.1"))
+            using (NodeBuilder builder = NodeBuilder.Create(this))
             {
                 HttpClient client = null;
 
@@ -140,7 +138,7 @@ namespace Breeze.TumbleBit.Client.Tests
                 ConsoleLoggerProcessor loggerProcessor = new ConsoleLoggerProcessor();
                 Logs.Configure(new FuncLoggerFactory(i => new CustomerConsoleLogger(i, Logs.SupportDebug(true), false, loggerProcessor)));
 
-                CoreNode node1 = builder.CreateStratisPowNode(true, fullNodeBuilder =>
+                CoreNode node1 = builder.CreateCustomNode(true, fullNodeBuilder =>
                 {
                     fullNodeBuilder
                         .UsePowConsensus()
@@ -154,7 +152,7 @@ namespace Breeze.TumbleBit.Client.Tests
                         .UseApi()
                         .AddRPC()
                         .UseTumbleBit(configurationOptions);
-                });
+                }, Network.RegTest);
 
                 var apiSettings = node1.FullNode.NodeService<ApiSettings>();
 
@@ -262,7 +260,8 @@ namespace Breeze.TumbleBit.Client.Tests
                     Console.WriteLine("(B) Unconfirmed: " + bob.GetSpendableAmount().UnConfirmedAmount.ToString());
 
                     coreRpc.Generate(1);
-                    builder.SyncNodes();
+
+                    TestHelper.WaitLoop(() => TestHelper.AreNodesSynced(coreNode, node1));
 
                     // Try to ensure the invalid phase error does not occur
                     // (seems to occur when the server has not yet processed a new block and the client has)
@@ -303,7 +302,7 @@ namespace Breeze.TumbleBit.Client.Tests
             // Workaround for segwit not correctly activating
             Network.RegTest.Consensus.BIP9Deployments[BIP9Deployments.Segwit] = new BIP9DeploymentsParameters(1, 0, DateTime.Now.AddDays(50).ToUnixTimestamp());
 
-            using (NodeBuilder builder = NodeBuilder.Create(version: "0.15.1"))
+            using (NodeBuilder builder = NodeBuilder.Create(this))
             {
                 HttpClient client = null;
 
@@ -399,7 +398,7 @@ namespace Breeze.TumbleBit.Client.Tests
                 ConsoleLoggerProcessor loggerProcessor = new ConsoleLoggerProcessor();
                 Logs.Configure(new FuncLoggerFactory(i => new CustomerConsoleLogger(i, Logs.SupportDebug(true), false, loggerProcessor)));
 
-                CoreNode node1 = builder.CreateStratisPowNode(true, fullNodeBuilder =>
+                CoreNode node1 = builder.CreateCustomNode(true, fullNodeBuilder =>
                 {
                     fullNodeBuilder
                         .UsePowConsensus()
@@ -413,7 +412,7 @@ namespace Breeze.TumbleBit.Client.Tests
                         .UseApi()
                         .AddRPC()
                         .UseTumbleBit(configurationOptions);
-                });
+                }, Network.RegTest);
 
                 var apiSettings = node1.FullNode.NodeService<ApiSettings>();
 
@@ -521,7 +520,7 @@ namespace Breeze.TumbleBit.Client.Tests
                     Console.WriteLine("(B) Unconfirmed: " + bob.GetSpendableAmount().UnConfirmedAmount.ToString());
 
                     coreRpc.Generate(1);
-                    builder.SyncNodes();
+                    TestHelper.WaitLoop(() => TestHelper.AreNodesSynced(coreNode, node1));
 
                     // Try to ensure the invalid phase error does not occur
                     // (seems to occur when the server has not yet processed a new block and the client has)
@@ -559,11 +558,11 @@ namespace Breeze.TumbleBit.Client.Tests
         [Fact]
         public void TestDualClientWithoutTor()
         {
-            using (NodeBuilder builder = NodeBuilder.Create(version: "0.15.1"))
+            using (NodeBuilder builder = NodeBuilder.Create(this))
             {
                 HttpClient client = null;
 
-                var coreNode = builder.CreateNode(false);
+                var coreNode = builder.CreateBitcoinCoreNode();
 
                 coreNode.ConfigParameters.AddOrReplace("debug", "1");
                 coreNode.ConfigParameters.AddOrReplace("printtoconsole", "0");
@@ -654,7 +653,7 @@ namespace Breeze.TumbleBit.Client.Tests
                 ConsoleLoggerProcessor loggerProcessor = new ConsoleLoggerProcessor();
                 Logs.Configure(new FuncLoggerFactory(i => new CustomerConsoleLogger(i, Logs.SupportDebug(true), false, loggerProcessor)));
 
-                CoreNode node1 = builder.CreateStratisPowNode(false, fullNodeBuilder =>
+                CoreNode node1 = builder.CreateCustomNode(false, fullNodeBuilder =>
                 {
                     fullNodeBuilder
                         .UsePowConsensus()
@@ -668,11 +667,11 @@ namespace Breeze.TumbleBit.Client.Tests
                         .UseApi()
                         .AddRPC()
                         .UseTumbleBit(configurationOptions);
-                });
+                }, Network.RegTest);
 
                 node1.ConfigParameters.AddOrReplace("apiuri", "http://localhost:37229");
 
-                CoreNode node2 = builder.CreateStratisPowNode(false, fullNodeBuilder =>
+                CoreNode node2 = builder.CreateCustomNode(false, fullNodeBuilder =>
                 {
                     fullNodeBuilder
                         .UsePowConsensus()
@@ -686,7 +685,7 @@ namespace Breeze.TumbleBit.Client.Tests
                         .UseApi()
                         .AddRPC()
                         .UseTumbleBit(configurationOptions);
-                });
+                }, Network.RegTest);
 
                 node2.ConfigParameters.AddOrReplace("apiuri", "http://localhost:37228");
 
@@ -817,7 +816,9 @@ namespace Breeze.TumbleBit.Client.Tests
                 for (int i = 0; i < 80; i++)
                 {
                     rpc3.Generate(1);
-                    builder.SyncNodes();
+                    TestHelper.WaitLoop(() => TestHelper.IsNodeSynced(coreNode));
+                    TestHelper.WaitLoop(() => TestHelper.IsNodeSynced(node1));
+                    TestHelper.WaitLoop(() => TestHelper.IsNodeSynced(node2));                    
 
                     // Try to ensure the invalid phase error does not occur
                     // (seems to occur when the server has not yet processed a new block and the client has)

@@ -5,6 +5,8 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.7.2" />
+    <PackageReference Include="NStratis.HashLib" Version="1.0.0.1" />
+    <PackageReference Include="Stratis.Bitcoin.IntegrationTests.Common" Version="1.1.7-beta" />
     <PackageReference Include="xunit" Version="2.3.1" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.3.1" />
   </ItemGroup>
@@ -12,8 +14,5 @@
     <ProjectReference Include="..\Breeze.BreezeServer\Breeze.BreezeServer.csproj" />
     <ProjectReference Include="..\Breeze.TumbleBit.Client\Breeze.TumbleBit.Client.csproj" />
     <ProjectReference Include="..\NTumbleBit\NTumbleBit.csproj" />
-    <ProjectReference Include="..\StratisBitcoinFullNode\src\NBitcoin\NBitcoin.csproj" />
-    <ProjectReference Include="..\StratisBitcoinFullNode\src\Stratis.Bitcoin.IntegrationTests\Stratis.Bitcoin.IntegrationTests.csproj" />
-    <ProjectReference Include="..\StratisBitcoinFullNode\src\Stratis.Bitcoin\Stratis.Bitcoin.csproj" />
   </ItemGroup>
 </Project>

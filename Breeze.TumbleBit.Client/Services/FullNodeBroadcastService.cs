@@ -1,5 +1,4 @@
-﻿using NBitcoin.RPC;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,12 +7,7 @@ using NBitcoin;
 using NTumbleBit;
 using NTumbleBit.Logging;
 using NTumbleBit.Services;
-using Stratis.Bitcoin;
 using static NTumbleBit.Services.RPC.RPCBroadcastService;
-using System.Net.Http;
-using Newtonsoft.Json.Linq;
-using System.Text;
-using System.Threading;
 
 namespace Breeze.TumbleBit.Client.Services
 {

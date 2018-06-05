@@ -1,11 +1,6 @@
-﻿using NBitcoin.RPC;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using NBitcoin;
-using Newtonsoft.Json.Linq;
 using NTumbleBit.ClassicTumbler.Client;
 using NTumbleBit.Logging;
 using Stratis.Bitcoin.Features.Wallet;
