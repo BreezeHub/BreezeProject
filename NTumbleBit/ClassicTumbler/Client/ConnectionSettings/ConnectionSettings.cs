@@ -1,4 +1,5 @@
 ﻿using NTumbleBit.Configuration;
+using NTumbleBit.Tor;
 using System;
 using System.Collections.Generic;
 using System.Net;
@@ -20,7 +21,7 @@ namespace NTumbleBit.ClassicTumbler.Client.ConnectionSettings
 			}
 			else if(type.Equals("socks", StringComparison.OrdinalIgnoreCase))
 			{
-				SocksConnectionSettings settings = new SocksConnectionSettings();
+                SocksConnectionSettings settings = new SocksConnectionSettings();
 				var server = config.GetOrDefault<IPEndPoint>(prefix + ".proxy.server", new IPEndPoint(IPAddress.Parse("127.0.0.1"), 9050));
 				settings.Proxy = server;
 				return settings;
@@ -28,9 +29,11 @@ namespace NTumbleBit.ClassicTumbler.Client.ConnectionSettings
 			else
 				throw new ConfigException(prefix + ".proxy.type is not supported, should be socks or http");
 		}
-		public virtual HttpMessageHandler CreateHttpHandler()
+		public virtual HttpMessageHandler CreateHttpHandler(TimeSpan? connectTimeout)
 		{
-			return new TCPHttpMessageHandler(new ClientOptions() { IncludeHeaders = false });
+			var handler = new TCPHttpMessageHandler(new ClientOptions() { IncludeHeaders = false });
+            if (connectTimeout != null) handler.Options.ConnectTimeout = connectTimeout.Value;
+            return handler;
 		}
 	}
 }

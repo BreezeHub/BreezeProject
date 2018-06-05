@@ -10,6 +10,8 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 using System.Diagnostics;
+using NTumbleBit.Tor;
+using TCPServer.Client;
 
 namespace NTumbleBit.ClassicTumbler.Client.ConnectionSettings
 {
@@ -80,10 +82,11 @@ namespace NTumbleBit.ClassicTumbler.Client.ConnectionSettings
 			return false;
 		}
 
-		public override HttpMessageHandler CreateHttpHandler()
+		public override HttpMessageHandler CreateHttpHandler(TimeSpan? connectTimeout = null)
 		{
-			var handler = new Tor.SocksMessageHandler(Proxy, new TCPServer.Client.ClientOptions() { IncludeHeaders = false });
-			return handler;
+            var handler = new Tor.SocksMessageHandler(Proxy, new ClientOptions() { IncludeHeaders = false });
+            if (connectTimeout != null) handler.Options.ConnectTimeout = connectTimeout.Value;
+            return handler;
 		}
 	}
 }
