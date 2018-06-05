@@ -71,7 +71,7 @@ namespace NTumbleBit.ClassicTumbler.Client
                 else if (configuration.TorMandatory)
                     throw new ConfigException("The tumbler server should use TOR");
                 var client = CreateTumblerClient(0);
-                TumblerParameters = Retry(3, () => client.GetTumblerParameters());
+                TumblerParameters = Retry(1, () => client.GetTumblerParameters());
                 if (TumblerParameters == null)
                     throw new ConfigException("Unable to download tumbler's parameters");                
                 return;
