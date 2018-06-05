@@ -134,21 +134,19 @@ export class TumblebitComponent implements OnDestroy {
       if (event instanceof NavigationEnd) {
         
         this.stopConnectionRequest();
-
+        this.isConnected = false;
         if (this.subscriptions) {
           this.subscriptions.unsubscribe();
           this.subscriptions = null;
         }
 
         if (event.url === this.routerPath) {
-          
           this.subscriptions = new CompositeDisposable([
             this.checkTumblingStatus(),
             this.checkWalletStatus(),
             this.getWalletFiles(),
             this.getWalletBalance()
           ]);
-          
           this.coinUnit = this.globalService.getCoinUnit();
         }
       }
