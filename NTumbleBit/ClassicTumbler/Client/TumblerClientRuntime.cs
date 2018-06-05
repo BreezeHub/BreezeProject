@@ -70,7 +70,7 @@ namespace NTumbleBit.ClassicTumbler.Client
                     await SetupTorAsync(interaction, configuration.TorPath).ConfigureAwait(false);
                 else if (configuration.TorMandatory)
                     throw new ConfigException("The tumbler server should use TOR");
-                var client = CreateTumblerClient(0);
+                var client = CreateTumblerClient(0, connectTimeout: TimeSpan.FromSeconds(15));
                 TumblerParameters = Retry(1, () => client.GetTumblerParameters());
                 if (TumblerParameters == null)
                     throw new ConfigException("Unable to download tumbler's parameters");                
@@ -200,16 +200,16 @@ namespace NTumbleBit.ClassicTumbler.Client
 			get; set;
 		}
 
-		public TumblerClient CreateTumblerClient(int cycle, Identity? identity = null)
+		public TumblerClient CreateTumblerClient(int cycleId, Identity? identity = null, TimeSpan? connectTimeout = null)
 		{
 			if(identity == null)
 				identity = RandomUtils.GetUInt32() % 2 == 0 ? Identity.Alice : Identity.Bob;
-			return CreateTumblerClient(cycle, identity == Identity.Alice ? AliceSettings : BobSettings);
+			return CreateTumblerClient(cycleId, identity == Identity.Alice ? AliceSettings : BobSettings, connectTimeout);
 		}
 
 		DateTimeOffset previousHandlerCreationDate;
 		TimeSpan CircuitRenewInterval = TimeSpan.FromMinutes(10.0);
-		private TumblerClient CreateTumblerClient(int cycleId, ConnectionSettingsBase settings)
+		private TumblerClient CreateTumblerClient(int cycleId, ConnectionSettingsBase settings, TimeSpan? connectTimeout = null)
 		{
 			if(!AllowInsecure && DateTimeOffset.UtcNow - previousHandlerCreationDate < CircuitRenewInterval)
 			{
@@ -217,7 +217,7 @@ namespace NTumbleBit.ClassicTumbler.Client
 			}
 			previousHandlerCreationDate = DateTime.UtcNow;
 			var client = new TumblerClient(Network, TumblerServer, cycleId);
-			var handler = settings.CreateHttpHandler();
+			var handler = settings.CreateHttpHandler(connectTimeout);
 			if(handler != null)
 				client.SetHttpHandler(handler);
 			return client;

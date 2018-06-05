@@ -61,7 +61,7 @@ namespace NTumbleBit.ClassicTumbler.Client.ConnectionSettings
 			get; set;
 		}
 
-		public override HttpMessageHandler CreateHttpHandler()
+		public override HttpMessageHandler CreateHttpHandler(TimeSpan? connectTimeout = null)
 		{
 			throw new NotSupportedException();
 		}
