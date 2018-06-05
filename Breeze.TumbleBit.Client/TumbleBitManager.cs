@@ -502,7 +502,7 @@ namespace Breeze.TumbleBit.Client
             Wallet originWallet = this.walletManager.GetWallet(originWalletName);
 
             // Check if origin wallet has a sufficient balance to begin tumbling at least 1 cycle
-            Money originBalance = this.walletManager.GetSpendableTransactionsInWallet(this.tumblingState.OriginWalletName)
+            Money originBalance = this.walletManager.GetSpendableTransactionsInWallet(originWalletName)
                 .Sum(s => s.Transaction.Amount);
 
             // Should ideally take network's transaction fee into account too, but that is dynamic
