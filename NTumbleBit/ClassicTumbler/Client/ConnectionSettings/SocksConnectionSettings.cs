@@ -85,7 +85,10 @@ namespace NTumbleBit.ClassicTumbler.Client.ConnectionSettings
 		public override HttpMessageHandler CreateHttpHandler(TimeSpan? connectTimeout = null)
 		{
             var handler = new Tor.SocksMessageHandler(Proxy, new ClientOptions() { IncludeHeaders = false });
-            if (connectTimeout != null) handler.Options.ConnectTimeout = connectTimeout.Value;
+
+            if (connectTimeout != null)
+                handler.Options.ConnectTimeout = connectTimeout.Value;
+
             return handler;
 		}
 	}

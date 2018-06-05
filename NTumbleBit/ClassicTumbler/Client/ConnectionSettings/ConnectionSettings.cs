@@ -32,7 +32,10 @@ namespace NTumbleBit.ClassicTumbler.Client.ConnectionSettings
 		public virtual HttpMessageHandler CreateHttpHandler(TimeSpan? connectTimeout)
 		{
 			var handler = new TCPHttpMessageHandler(new ClientOptions() { IncludeHeaders = false });
-            if (connectTimeout != null) handler.Options.ConnectTimeout = connectTimeout.Value;
+
+            if (connectTimeout != null)
+                handler.Options.ConnectTimeout = connectTimeout.Value;
+
             return handler;
 		}
 	}
