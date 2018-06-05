@@ -112,7 +112,7 @@ namespace Breeze.Registration
             var syncHeight = this.network == Network.StratisMain ? SyncHeightMain :
                 this.network == Network.StratisTest ? SyncHeightTest : SyncHeightRegTest;
 
-            this.logger.LogTrace("Syncing from height {0} in order to get masternode registrations", syncHeight);
+            this.logger.LogInformation("Syncing from height {0} in order to get masternode registrations", syncHeight);
 
             this.walletSyncManager.SyncFromHeight(syncHeight);
 
