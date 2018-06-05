@@ -132,11 +132,16 @@ export class TumblebitComponent implements OnDestroy {
     }
     this.router$ = this.router.events.subscribe(event => {
       if (event instanceof NavigationEnd) {
+        
+        this.stopConnectionRequest();
+
+        if (this.subscriptions) {
+          this.subscriptions.unsubscribe();
+          this.subscriptions = null;
+        }
+
         if (event.url === this.routerPath) {
           
-          if (this.subscriptions) {
-            this.subscriptions.unsubscribe();
-          }
           this.subscriptions = new CompositeDisposable([
             this.checkTumblingStatus(),
             this.checkWalletStatus(),
@@ -145,13 +150,6 @@ export class TumblebitComponent implements OnDestroy {
           ]);
           
           this.coinUnit = this.globalService.getCoinUnit();
-
-          console.info('subscribeToRouter : ' + this.routerPath);
-
-        } else if (this.subscriptions) {
-          this.subscriptions.unsubscribe();
-          this.subscriptions = null;
-          console.info('subscribeToRouter : unsubscribe');
         }
       }
     });
