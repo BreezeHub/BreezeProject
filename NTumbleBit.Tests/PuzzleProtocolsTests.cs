@@ -76,14 +76,11 @@ namespace NTumbleBit.Tests
             StandardCycles cycles = new StandardCycles(Network.Main.Consensus, true);
             Assert.NotNull(cycles.GetStandardCycle("shorty"));
 
-            cycles = new StandardCycles(Network.Main.Consensus, false);
-            Assert.Null(cycles.GetStandardCycle("shorty"));
-
             var kotori = cycles.GetStandardCycle("kotori");
-            Assert.Equal(Money.Coins(1), kotori.Denomination);
+            Assert.Equal(Money.Satoshis(100000), kotori.Denomination);
             Assert.Equal(TimeSpan.FromHours(4), kotori.GetLength(false));
             Assert.Equal(TimeSpan.FromHours(19.5), kotori.GetLength(true));
-            Assert.Equal(Money.Coins(6), kotori.CoinsPerDay());
+            Assert.Equal(Money.Satoshis(600000), kotori.CoinsPerDay());
         }
 
         [Fact]
@@ -241,7 +238,7 @@ namespace NTumbleBit.Tests
                 ServerKey = key.PubKey
             };
             SolverClientSession client = new SolverClientSession(parameters, Network.Main);
-            SolverServerSession server = new SolverServerSession(key, Network.Main);
+            SolverServerSession server = new SolverServerSession(key, parameters, Network.Main);
 
             var clientEscrow = new Key();
             var serverEscrow = new Key();

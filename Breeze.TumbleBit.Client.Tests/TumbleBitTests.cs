@@ -306,7 +306,7 @@ namespace Breeze.TumbleBit.Client.Tests
             {
                 HttpClient client = null;
 
-                var coreNode = builder.CreateBitcoinCoreNode(false);
+                var coreNode = builder.CreateBitcoinCoreNode();
 
                 // This line has no effect currently as the changes to the config get overwritten
                 coreNode.ConfigParameters.AddOrReplace("printtoconsole", "0");

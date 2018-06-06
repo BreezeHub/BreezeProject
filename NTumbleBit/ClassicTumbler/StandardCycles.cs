@@ -230,11 +230,8 @@ namespace NTumbleBit.ClassicTumbler
 		public IEnumerable<StandardCycle> ToEnumerable()
 		{
 			yield return _Kotori;
-			//if(_Debug)
-			//{
-				yield return _Shorty;
-				yield return _Shorty2x;
-			//}
+			yield return _Shorty;
+			yield return _Shorty2x;
 		}
 
 		public StandardCycle GetStandardCycle(ClassicTumblerParameters tumblerParameters)
