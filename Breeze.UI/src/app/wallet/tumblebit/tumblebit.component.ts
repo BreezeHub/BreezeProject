@@ -98,6 +98,10 @@ export class TumblebitComponent implements OnDestroy {
     }
   }
 
+  get connectionRequestTimeoutSeconds(): number {
+    return 600;
+  }
+
   private static isNavigationEnd(event: RouterEvent, path: string): boolean {
     return (event instanceof NavigationEnd && event.url === path);
   }
@@ -615,16 +619,15 @@ export class TumblebitComponent implements OnDestroy {
 
   private startConnectionRequest() {
     this.connectionInProgress = true;
-    this.timer = setTimeout(() =>  {
+    this.timer = setTimeout(() => {
       this.connectionInProgress = false;
-    }, 600 * 1000);
+    }, this.connectionRequestTimeoutSeconds * 1000);
   }
 
   private stopConnectionRequest() {
     if (!!this.timer) {
       clearTimeout(this.timer);
     }
-
     this.connectionInProgress = false;
   }
 

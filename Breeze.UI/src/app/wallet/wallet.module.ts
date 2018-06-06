@@ -15,6 +15,7 @@ import { WalletRoutingModule } from './wallet-routing.module';
 import { SidebarComponent } from './sidebar/sidebar.component';
 import { StatusBarComponent } from './status-bar/status-bar.component';
 import { TransactionDetailsComponent } from './transaction-details/transaction-details.component';
+import { ConnectionProgressComponent } from './tumblebit/connection-progress/connection-progress.component';
 
 @NgModule({
   imports: [
@@ -34,6 +35,7 @@ import { TransactionDetailsComponent } from './transaction-details/transaction-d
     HistoryComponent,
     SidebarComponent,
     StatusBarComponent,
+    ConnectionProgressComponent
   ],
   exports: []
 })
