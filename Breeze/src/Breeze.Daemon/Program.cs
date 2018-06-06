@@ -155,8 +155,8 @@ namespace Breeze.Daemon
                 {"Microsoft.AspNetCore", Microsoft.Extensions.Logging.LogLevel.Error},
                 {"Stratis.Bitcoin", Microsoft.Extensions.Logging.LogLevel.Information},
 	            {"Stratis.Bitcoin.Features.WatchOnlyWallet.WatchOnlyWalletManager", Microsoft.Extensions.Logging.LogLevel.Information},
-				{"Breeze.TumbleBit.Client", Microsoft.Extensions.Logging.LogLevel.Debug},
-                {"Breeze.Registration", Microsoft.Extensions.Logging.LogLevel.Debug}
+				{"Breeze.TumbleBit.Client", Microsoft.Extensions.Logging.LogLevel.Information},
+                {"Breeze.Registration", Microsoft.Extensions.Logging.LogLevel.Information}
             };
             
             ConsoleLoggerSettings settings = nodeSettings.LoggerFactory.GetConsoleSettings();

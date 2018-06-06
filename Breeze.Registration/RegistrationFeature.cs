@@ -108,13 +108,11 @@ namespace Breeze.Registration
         {
             this.logger.LogTrace("()");
 
-            this.logger.LogTrace("Registrations missing");
-
             // For RegTest, it is not clear that re-issuing a sync command will be beneficial. Generally you want to sync from genesis in that case.
             var syncHeight = this.network == Network.StratisMain ? SyncHeightMain :
                 this.network == Network.StratisTest ? SyncHeightTest : SyncHeightRegTest;
 
-            this.logger.LogTrace("Sync wallet from : {0}", syncHeight);
+            this.logger.LogInformation("Syncing from height {0} in order to get masternode registrations", syncHeight);
 
             this.walletSyncManager.SyncFromHeight(syncHeight);
 
@@ -127,7 +125,7 @@ namespace Breeze.Registration
 
             this.logger.LogTrace("VerifyRegistrationStore");
 
-            // Verify that the registration store is in a consistent state on start-up.  The signatures of all the records need to be validated
+            // Verify that the registration store is in a consistent state on start-up. The signatures of all the records need to be validated.
             foreach (var registrationRecord in list)
             {
                 if (registrationRecord.Record.Validate(this.network)) continue;

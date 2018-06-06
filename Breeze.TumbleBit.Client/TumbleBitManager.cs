@@ -421,34 +421,14 @@ namespace Breeze.TumbleBit.Client
 
             this.State = TumbleState.OnlyMonitor;
 
-            // Now select a different masternode
-            List<RegistrationRecord> registrations = this.registrationStore.GetAll();
+            // Blacklist masternode address which we are currently connected to so that
+            // we won't attempt to connect to it again in the next call to ConnectToTumblerAsync.
+            HashSet<string> blacklistedMasternodes = new HashSet<string>() { this.TumblerAddress };
 
-            if (registrations.Count < MINIMUM_MASTERNODE_COUNT)
-            {
-                this.logger.LogDebug("Not enough masternode registrations downloaded yet: " + registrations.Count);
-                return Result.Fail<ClassicTumblerParameters>("Not enough masternode registrations downloaded yet");
-            }
-
-            registrations.Shuffle();
-
-            // Since the list is shuffled, we can simply try the first one in the list.
-            // Unlike the connect method, we only try one server here. That is because
-            // a timeout can take in the order of minutes for each server tried.
-            RegistrationRecord record = registrations.First();
-
-            this.TumblerAddress = "ctb://" + record.Record.OnionAddress + ".onion?h=" + record.Record.ConfigurationHash;
-
-            var attemptConnection = await TryUseServer();
-
-            if (!attemptConnection.Failure)
-            {
-                return attemptConnection;
-            }
-
-            // If we reach this point, the server was unreachable
-            this.logger.LogDebug("Failed to connect to server, try another");
-            return Result.Fail<ClassicTumblerParameters>("Failed to connect to server, try another");
+            // The masternode that was being used in a previous run is now unreachable.
+            // Restart the connection process and try to find a working server.
+            this.TumblerAddress = null;
+            return await ConnectToTumblerAsync(blacklistedMasternodes);
         }
 
         private async Task<Result<ClassicTumblerParameters>> TryUseServer()
@@ -522,7 +502,7 @@ namespace Breeze.TumbleBit.Client
             Wallet originWallet = this.walletManager.GetWallet(originWalletName);
 
             // Check if origin wallet has a sufficient balance to begin tumbling at least 1 cycle
-            Money originBalance = this.walletManager.GetSpendableTransactionsInWallet(this.tumblingState.OriginWalletName)
+            Money originBalance = this.walletManager.GetSpendableTransactionsInWallet(originWalletName)
                 .Sum(s => s.Transaction.Amount);
 
             // Should ideally take network's transaction fee into account too, but that is dynamic
