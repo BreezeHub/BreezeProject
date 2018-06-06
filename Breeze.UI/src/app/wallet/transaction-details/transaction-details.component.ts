@@ -11,6 +11,7 @@ import { Error } from '../../shared/classes/error';
 import { TransactionInfo } from '../../shared/classes/transaction-info';
 
 @Component({
+  // tslint:disable-next-line:component-selector
   selector: 'transaction-details',
   templateUrl: './transaction-details.component.html',
   styleUrls: ['./transaction-details.component.css']
@@ -57,7 +58,8 @@ export class TransactionDetailsComponent implements OnInit, OnDestroy {
         error => {
           console.log(error);
           if (error.status === 0) {
-            this.genericModalService.openModal(null);
+            this.genericModalService.openModal(
+              Error.toDialogOptions('Failed to get wallet general information. Reason: API is not responding or timing out.', null));
           } else if (error.status >= 400) {
             if (!error.json().errors[0]) {
               console.log(error);
@@ -84,7 +86,7 @@ export class TransactionDetailsComponent implements OnInit, OnDestroy {
   }
 
   private cancelSubscriptions() {
-    if(this.generalWalletInfoSubscription) {
+    if (this.generalWalletInfoSubscription) {
       this.generalWalletInfoSubscription.unsubscribe();
     }
   };

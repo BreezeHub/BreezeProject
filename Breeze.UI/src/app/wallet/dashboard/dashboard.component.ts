@@ -16,6 +16,7 @@ import { Observable } from 'rxjs/Rx';
 import { Subscription } from 'rxjs/Subscription';
 
 @Component({
+  // tslint:disable-next-line:component-selector
   selector: 'dashboard-component',
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.css']
@@ -74,7 +75,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
           console.log(error);
           if (error.status === 0) {
             this.cancelSubscriptions();
-            this.genericModalService.openModal(null);
+            this.genericModalService.openModal(
+              Error.toDialogOptions('Failed to get wallet balance. Reason: API is not responding or timing out.', null));
           } else if (error.status >= 400) {
             if (!error.json().errors[0]) {
               console.log(error);
@@ -110,7 +112,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
           console.log(error);
           if (error.status === 0) {
             this.cancelSubscriptions();
-            this.genericModalService.openModal(null);
+            this.genericModalService.openModal(
+              Error.toDialogOptions('Failed to get wallet history. Reason: API is not responding or timing out.', null));
           } else if (error.status >= 400) {
             if (!error.json().errors[0]) {
               console.log(error);

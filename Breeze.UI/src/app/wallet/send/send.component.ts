@@ -129,7 +129,7 @@ export class SendComponent implements OnInit {
         error => {
           console.log(error);
           if (error.status === 0) {
-            this.apiError = 'Something went wrong while connecting to the API. Please restart the application.'
+            this.apiError = 'Failed to get maximum balance. Reason: API is not responding or timing out.';
           } else if (error.status >= 400) {
             if (!error.json().errors[0]) {
               Log.error(error);
@@ -165,7 +165,8 @@ export class SendComponent implements OnInit {
         error => {
           console.log(error);
           if (error.status === 0) {
-            this.genericModalService.openModal(null);
+            this.genericModalService.openModal(
+              Error.toDialogOptions('Failed to estimate fee. Reason: API is not responding or timing out.', null));
           } else if (error.status >= 400) {
             if (!error.json().errors[0]) {
               console.log(error);
@@ -205,7 +206,7 @@ export class SendComponent implements OnInit {
           console.log(error);
           this.isSending = false;
           if (error.status === 0) {
-            this.apiError = 'Something went wrong while connecting to the API. Please restart the application.'
+            this.apiError = 'Failed to build transaction. Reason: API is not responding or timing out.';
           } else if (error.status >= 400) {
             if (!error.json().errors[0]) {
               Log.error(error);
@@ -244,7 +245,7 @@ export class SendComponent implements OnInit {
           console.log(error);
           this.isSending = false;
           if (error.status === 0) {
-            this.apiError = 'Something went wrong while connecting to the API. Please restart the application.'
+            this.apiError = 'Failed to send transaction. Reason: API is not responding or timing out.';
           } else if (error.status >= 400) {
             if (!error.json().errors[0]) {
               Log.error(error);

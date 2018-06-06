@@ -1,7 +1,10 @@
-import { Router } from '@angular/router';
+import { Router, NavigationEnd, RouterEvent } from '@angular/router';
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { NgbModal, NgbActiveModal, NgbDropdown, NgbModalRef, NgbModalOptions } from '@ng-bootstrap/ng-bootstrap';
 import { FormGroup, FormControl, Validators, FormBuilder } from '@angular/forms';
+import { Observable } from 'rxjs/Rx';
+import { Subscription } from 'rxjs/Subscription';
+import 'rxjs/add/operator/filter';
 
 import { PasswordConfirmationComponent } from './password-confirmation/password-confirmation.component';
 import { ConnectionModalComponent } from '../../shared/components/connection-modal/connection-modal.component';
@@ -15,9 +18,7 @@ import { TumblerConnectionRequest } from './classes/tumbler-connection-request';
 import { TumbleRequest } from './classes/tumble-request';
 import { CycleInfo } from './classes/cycle-info';
 import { ModalService } from '../../shared/services/modal.service';
-
-import { Observable } from 'rxjs/Rx';
-import { Subscription } from 'rxjs/Subscription';
+import { CompositeDisposable } from '../../shared/classes/composite-disposable';
 
 @Component({
   // tslint:disable-next-line:component-selector
@@ -27,7 +28,7 @@ import { Subscription } from 'rxjs/Subscription';
   styleUrls: ['./tumblebit.component.css'],
 })
 
-export class TumblebitComponent implements OnInit, OnDestroy {
+export class TumblebitComponent implements OnDestroy {
   public coinUnit: string;
   public confirmedBalance: number;
   public unconfirmedBalance: number;
@@ -61,6 +62,11 @@ export class TumblebitComponent implements OnInit, OnDestroy {
   public operation: 'connect' | 'changeserver' = 'connect';
   private timer: any;
   private connectionModal: NgbModalRef;
+  private started = false;
+  private readonly routerPath = '/wallet/privacy';
+  private readonly loginPath = '/login';
+  private routerSubscriptions: CompositeDisposable;
+  private startSubscriptions: CompositeDisposable;
 
   tumbleFormErrors = {
     'selectWallet': ''
@@ -79,45 +85,82 @@ export class TumblebitComponent implements OnInit, OnDestroy {
     private modalService: NgbModal,
     private genericModalService: ModalService,
     private fb: FormBuilder,
-    private router: Router) {
-    this.buildTumbleForm();
+    private router: Router) { 
+
+      this.buildTumbleForm();
+      this.start();
   }
 
-  ngOnInit() {
-    this.checkWalletStatus();
-    this.checkTumblingStatus();
-    this.getWalletFiles();
-    this.getWalletBalance();
-    this.coinUnit = this.globalService.getCoinUnit();
-  };
-
   ngOnDestroy() {
-    if (this.walletBalanceSubscription) {
-      this.walletBalanceSubscription.unsubscribe();
+    this.stop();
+    if (this.routerSubscriptions) {
+      this.routerSubscriptions.unsubscribe();
     }
+  }
 
+  get connectionRequestTimeoutSeconds(): number {
+    return 600;
+  }
+
+  private static isNavigationEnd(event: RouterEvent, path: string): boolean {
+    return (event instanceof NavigationEnd && event.url === path);
+  }
+
+  private start(): void {
+    const routerEvents = this.router.events;
+    const $1 = routerEvents.filter(x => this.started && TumblebitComponent.isNavigationEnd(<RouterEvent>x, this.loginPath))
+                           .subscribe(_ => this.stop());
+
+    const $2 = routerEvents.filter(x => !this.started && TumblebitComponent.isNavigationEnd(<RouterEvent>x, this.routerPath)) 
+                           .subscribe(_ => {
+
+        this.operation = 'connect';
+        this.tumblerAddress = 'Connecting...';
+        this.coinUnit = this.globalService.getCoinUnit();
+
+        this.startSubscriptions = new CompositeDisposable([
+          this.checkTumblingStatus(),
+          this.checkWalletStatus(),
+          this.getWalletFiles(),
+          this.getWalletBalance()
+        ]);
+
+        console.log('started');
+
+        this.started = true;
+    });
+
+    this.routerSubscriptions = new CompositeDisposable([$1, $2]);
+  }
+
+  private stop() {
     if (this.destinationWalletBalanceSubscription) {
       this.destinationWalletBalanceSubscription.unsubscribe();
-    }
-
-    if (this.tumbleStateSubscription) {
-      this.tumbleStateSubscription.unsubscribe();
-    }
-
-    if (this.walletStatusSubscription) {
-      this.walletStatusSubscription.unsubscribe();
+      this.destinationWalletBalanceSubscription = null;
     }
 
     if (this.progressSubscription) {
       this.progressSubscription.unsubscribe();
+      this.progressSubscription = null;
     }
 
     if (this.connectionSubscription) {
       this.connectionSubscription.unsubscribe();
+      this.connectionSubscription = null;
+    }
+
+    if (this.startSubscriptions) {
+      this.startSubscriptions.unsubscribe();
+      this.startSubscriptions = null;
     }
 
     this.stopConnectionRequest();
-  };
+    this.isConnected = false;
+
+    console.log('stopped');
+    
+    this.started = false;
+  }
 
   private buildTumbleForm(): void {
     this.tumbleForm = this.fb.group({
@@ -155,24 +198,24 @@ export class TumblebitComponent implements OnInit, OnDestroy {
     }
   }
 
-  private checkWalletStatus() {
+  private checkWalletStatus(): Subscription {
+    
+    this.isSynced = false;
+    
     const walletInfo = new WalletInfo(this.globalService.getWalletName())
-    this.walletStatusSubscription = this.apiService.getGeneralInfo(walletInfo)
+    return this.apiService.getGeneralInfo(walletInfo)
       .subscribe(
         response =>  {
           if (response.status >= 200 && response.status < 400) {
             const generalWalletInfoResponse = response.json();
-            if (generalWalletInfoResponse.lastBlockSyncedHeight = generalWalletInfoResponse.chainTip) {
-              this.isSynced = true;
-            } else {
-              this.isSynced = false;
-            }
+            this.isSynced = generalWalletInfoResponse.lastBlockSyncedHeight === generalWalletInfoResponse.chainTip;
           }
         },
         error => {
           console.log(error);
           if (error.status === 0) {
-            this.genericModalService.openModal(null);
+            this.genericModalService.openModal(
+              Error.toDialogOptions('Failed to get general wallet information. Reason: API is not responding or timing out.', null));
           } else if (error.status >= 400) {
             if (!error.json().errors[0]) {
               console.log(error);
@@ -181,14 +224,17 @@ export class TumblebitComponent implements OnInit, OnDestroy {
             }
           }
         }
-      )
-    ;
+      );
   }
 
-  private checkTumblingStatus() {
-    this.tumbleStateSubscription = this.tumblebitService.getTumblingState()
+  private checkTumblingStatus(): Subscription {
+    
+    this.hasRegistrations = this.tumbling = false;
+
+    return this.tumblebitService.getTumblingState()
       .subscribe(
         response => {
+
           if (response.status >= 200 && response.status < 400) {
             if (response.json().registrations >= response.json().minRegistrations) {
               this.hasRegistrations = true;
@@ -220,7 +266,7 @@ export class TumblebitComponent implements OnInit, OnDestroy {
           console.error(error);
           if (error.status === 0) {
             this.genericModalService.openModal(
-              { body: 'Something went wrong while connecting to the TumbleBit Client. Please restart the application.' });
+              Error.toDialogOptions('Failed to get tumbling state. Reason: API is not responding or timing out.', null));
           } else if (error.status >= 400) {
             if (!error.json().errors[0]) {
               console.error(error);
@@ -229,16 +275,21 @@ export class TumblebitComponent implements OnInit, OnDestroy {
             }
           }
         }
-      )
-    ;
+      );
   }
 
   private connectToTumbler() {
+
     if (this.connectionInProgress) {
       return;
     }
 
     this.startConnectionRequest();
+
+    if (this.connectionSubscription) {
+      this.connectionSubscription.unsubscribe();
+    }
+
     this.connectionSubscription = this.tumblebitService
       .connectToTumbler(this.operation)
       .subscribe(
@@ -286,7 +337,7 @@ export class TumblebitComponent implements OnInit, OnDestroy {
           this.isConnected = false;
           if (error.status === 0) {
             this.genericModalService.openModal(
-              { body: 'Something went wrong while connecting to the TumbleBit Client. Please restart the application.' });
+              Error.toDialogOptions('Failed to connect to tumbler. Reason: API is not responding or timing out.', null));
           } else if (error.status >= 400) {
             if (!error.json().errors[0]) {
               console.error(error);
@@ -338,7 +389,7 @@ export class TumblebitComponent implements OnInit, OnDestroy {
               console.error(error);
               if (error.status === 0) {
                 this.genericModalService.openModal(
-                  { body: 'Something went wrong while connecting to the TumbleBit Client. Please restart the application.'});
+                  Error.toDialogOptions('Failed to stop tumbler. Reason: API is not responding or timing out.', null));
               } else if (error.status >= 400) {
                 if (!error.json().errors[0]) {
                   console.error(error);
@@ -408,7 +459,7 @@ export class TumblebitComponent implements OnInit, OnDestroy {
           console.error(error);
           if (error.status === 0) {
             this.genericModalService.openModal(
-              { body: 'Something went wrong while connecting to the TumbleBit Client. Please restart the application.'});
+              Error.toDialogOptions('Failed to get tumbling progress. Reason: API is not responding or timing out.', null));
           } else if (error.status >= 400) {
             if (!error.json().errors[0]) {
               console.error(error);
@@ -456,22 +507,23 @@ export class TumblebitComponent implements OnInit, OnDestroy {
   }
 
   // TODO: move into a shared service
-  private getWalletBalance() {
+  private getWalletBalance(): Subscription {
     const walletInfo = new WalletInfo(this.globalService.getWalletName())
-    this.walletBalanceSubscription = this.apiService.getWalletBalance(walletInfo)
+    return this.apiService.getWalletBalance(walletInfo)
       .subscribe(
         response =>  {
           if (response.status >= 200 && response.status < 400) {
             const balanceResponse = response.json();
-              this.confirmedBalance = balanceResponse.balances[0].amountConfirmed;
-              this.unconfirmedBalance = balanceResponse.balances[0].amountUnconfirmed;
-              this.totalBalance = this.confirmedBalance + this.unconfirmedBalance;
+            this.confirmedBalance = balanceResponse.balances[0].amountConfirmed;
+            this.unconfirmedBalance = balanceResponse.balances[0].amountUnconfirmed;
+            this.totalBalance = this.confirmedBalance + this.unconfirmedBalance;
           }
         },
         error => {
           console.log(error);
           if (error.status === 0) {
-            this.genericModalService.openModal(null);
+            this.genericModalService.openModal(
+              Error.toDialogOptions('Failed to get wallet balance. Reason: API is not responding or timing out.', null));
           } else if (error.status >= 400) {
             if (!error.json().errors[0]) {
               console.log(error);
@@ -480,8 +532,7 @@ export class TumblebitComponent implements OnInit, OnDestroy {
             }
           }
         }
-      )
-    ;
+      );
   };
 
   private getDestinationWalletBalance() {
@@ -501,7 +552,9 @@ export class TumblebitComponent implements OnInit, OnDestroy {
         error => {
           console.log(error);
           if (error.status === 0) {
-            this.genericModalService.openModal(null);
+            this.genericModalService.openModal(
+              Error.toDialogOptions(
+                'Failed to get general wallet informationdestination wallet balance. Reason: API is not responding or timing out.', null));
           } else if (error.status >= 400) {
             if (!error.json().errors[0]) {
               console.log(error);
@@ -514,8 +567,15 @@ export class TumblebitComponent implements OnInit, OnDestroy {
     ;
   };
 
-  private getWalletFiles() {
-    this.apiService.getWalletFiles()
+  private removeSourceWallet() {
+    const sourceWalletIndex = this.wallets.indexOf(this.globalService.getWalletName());
+    if (sourceWalletIndex >= 0) {
+      this.wallets.splice(sourceWalletIndex, 1);
+    }
+  }
+
+  private getWalletFiles(): Subscription {
+    return this.apiService.getWalletFiles()
       .subscribe(
         response => {
           if (response.status >= 200 && response.status < 400) {
@@ -527,6 +587,9 @@ export class TumblebitComponent implements OnInit, OnDestroy {
                   this.wallets[wallet] = this.wallets[wallet].slice(0, -12);
                 }
               }
+
+              this.removeSourceWallet();
+
               // this.updateWalletFileDisplay(this.wallets[0]);
             } else {
             }
@@ -534,12 +597,15 @@ export class TumblebitComponent implements OnInit, OnDestroy {
         },
         error => {
           if (error.status === 0) {
-            this.genericModalService.openModal(null);
+            this.genericModalService.openModal(
+              Error.toDialogOptions('Failed to get wallet files. Reason: API is not responding or timing out.', null));
           } else if (error.status >= 400) {
             if (!error.json().errors[0]) {
               console.log(error);
             } else {
-              this.genericModalService.openModal(Error.toDialogOptions(error, null));
+              this.genericModalService.openModal(
+                  Error.toDialogOptionsWithFallbackMsg(
+                    error, null, 'Failed to get wallet files. Reason: API returned a bad request but message was not specified.'));
             }
           }
         },
@@ -553,16 +619,15 @@ export class TumblebitComponent implements OnInit, OnDestroy {
 
   private startConnectionRequest() {
     this.connectionInProgress = true;
-    this.timer = setTimeout(() =>  {
+    this.timer = setTimeout(() => {
       this.connectionInProgress = false;
-    }, 600 * 1000);
+    }, this.connectionRequestTimeoutSeconds * 1000);
   }
 
   private stopConnectionRequest() {
     if (!!this.timer) {
       clearTimeout(this.timer);
     }
-
     this.connectionInProgress = false;
   }
 

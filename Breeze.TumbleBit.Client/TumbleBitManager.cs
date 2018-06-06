@@ -131,29 +131,29 @@ namespace Breeze.TumbleBit.Client
                 this.connectionManager);
 
             // Load saved state e.g. previously selected server
-	        if (File.Exists(this.tumblingState.GetStateFilePath()))
-	        {
-	            try
-	            {
-	                this.tumblingState.LoadStateFromMemory();
-	            }
-	            catch (NullReferenceException)
-	            {
-	                // The file appears to get corrupted sometimes, not clear why
-	                // May be if the node is not shut down correctly
-	            }
+            if (File.Exists(this.tumblingState.GetStateFilePath()))
+            {
+                try
+                {
+                    this.tumblingState.LoadStateFromMemory();
+                }
+                catch (NullReferenceException)
+                {
+                    // The file appears to get corrupted sometimes, not clear why
+                    // May be if the node is not shut down correctly
+                }
             }
 
             this.tumblingState.Save();
 
-			// If there was a server address saved, that means we were previously
-			// connected to it, and should try to reconnect to it by default when
-	        // the connect method is invoked by the UI
-	        if ((this.TumblerAddress == null) && (this.tumblingState.TumblerUri != null))
-		        this.TumblerAddress = this.tumblingState.TumblerUri.ToString();
+            // If there was a server address saved, that means we were previously
+            // connected to it, and should try to reconnect to it by default when
+            // the connect method is invoked by the UI
+            if ((this.TumblerAddress == null) && (this.tumblingState.TumblerUri != null))
+                this.TumblerAddress = this.tumblingState.TumblerUri.ToString();
 
-			// Remove the progress file from previous session as it is now stale
-			ProgressInfo.RemoveProgressFile();
+            // Remove the progress file from previous session as it is now stale
+            ProgressInfo.RemoveProgressFile();
         }
 
         public async Task DummyRegistration(string originWalletName, string originWalletPassword)
@@ -326,139 +326,152 @@ namespace Breeze.TumbleBit.Client
             this.logger.LogDebug("Uncertain if transaction was propagated: " + sendTx.GetHash());
         }
 
-		/// <inheritdoc />
-		public async Task<Result<ClassicTumblerParameters>> ConnectToTumblerAsync()
-		{
-			// Assumptions about the current state coming into this method:
-			// - If this is a first connection, this.TumblerAddress will be null
-			// - If we were previously connected to a server, its URI would have been stored in the
-			//   tumbling_state.json, and will have been loaded into this.TumblerAddress already
+        /// <inheritdoc />
+        public async Task<Result<ClassicTumblerParameters>> ConnectToTumblerAsync(HashSet<string> masternodeBlacklist = null)
+        {
+            // Assumptions about the current state coming into this method:
+            // - If this is a first connection, this.TumblerAddress will be null
+            // - If we were previously connected to a server, its URI would have been stored in the
+            //   tumbling_state.json, and will have been loaded into this.TumblerAddress already
+            if (this.TumblerAddress == null)
+            {
+                List<RegistrationRecord> registrations = this.registrationStore.GetAll();
 
-			// If the -ppuri command line option wasn't used to bypass the registration store lookup
-			if (this.TumblerAddress == null)
-			{
-				List<RegistrationRecord> registrations = this.registrationStore.GetAll();
+                if (registrations.Count < MINIMUM_MASTERNODE_COUNT)
+                {
+                    this.logger.LogDebug($"Not enough masternode registrations downloaded yet: {registrations.Count}");
+                    return Result.Fail<ClassicTumblerParameters>("Not enough masternode registrations downloaded yet");
+                }
 
-				if (registrations.Count < MINIMUM_MASTERNODE_COUNT)
-				{
-					this.logger.LogDebug("Not enough masternode registrations downloaded yet: " + registrations.Count);
-					return Result.Fail<ClassicTumblerParameters>("Not enough masternode registrations downloaded yet");
-				}
-				
-				registrations.Shuffle();
+                registrations.Shuffle();
 
-				// Since the list is shuffled, we can simply iterate through it and try each server until one is valid & reachable
-				foreach (RegistrationRecord record in registrations)
-				{
-					this.TumblerAddress = "ctb://" + record.Record.OnionAddress + ".onion?h=" + record.Record.ConfigurationHash;
+                // Since the list is shuffled, we can simply iterate through it and try each server until one is valid & reachable.
+                foreach (RegistrationRecord record in registrations)
+                {
+                    this.TumblerAddress = $"ctb://{record.Record.OnionAddress}.onion?h={record.Record.ConfigurationHash}";
 
-					var attemptConnection = await TryUseServer();
+                    //Do not attempt a connection to the Masternode which is blacklisted
+                    if (masternodeBlacklist != null && masternodeBlacklist.Contains(this.TumblerAddress)) {
+                        this.logger.LogDebug($"Skipping connection attempt to blacklisted masternode {this.TumblerAddress}");
+                        continue;
+                    }
 
-					if (!attemptConnection.Failure)
-					{
-						return attemptConnection;
-					}
-				}
+                    try
+                    {
+                        var tumblerParameterResult = await TryUseServer();
 
-				// If we reach this point, no servers were reachable
-				this.logger.LogDebug("Did not find a valid registration");
-				return Result.Fail<ClassicTumblerParameters>("Did not find a valid registration");
-			}
-			else
-			{
-				return await TryUseServer();
-			}
-		}
+                        if (tumblerParameterResult.Success)
+                        {
+                            return tumblerParameterResult;
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        this.logger.LogDebug(e, $"Unable to connect to masternode: {this.TumblerAddress}");
+                    }
+                }
 
-	    /// <inheritdoc />
-	    public async Task<Result<ClassicTumblerParameters>> ChangeServerAsync()
-	    {
-		    // First stop the state machine if applicable
-		    if (this.stateMachine != null && this.stateMachine.Started)
-		    {
-			    await this.stateMachine.Stop().ConfigureAwait(false);
-		    }
+                this.logger.LogDebug($"Attempted connection to {registrations.Count} masternodes and did not find a valid registration");
+                return Result.Fail<ClassicTumblerParameters>("Did not find a valid registration");
+            }
+            else
+            {
+                try
+                {
+                    var tumblerParameterResult = await TryUseServer();
 
-		    this.State = TumbleState.OnlyMonitor;
+                    if (tumblerParameterResult.Success)
+                    {
+                        return tumblerParameterResult;
+                    }
+                }
+                catch (Exception e)
+                {
+                    this.logger.LogDebug(e, $"Unable to connect to masternode: {this.TumblerAddress}");
+                }
 
-			// Now select a different masternode
-		    List<RegistrationRecord> registrations = this.registrationStore.GetAll();
+                // Blacklist masternode address which we have just failed to connect to so that
+                // we won't attempt to connect to it again in the next call to ConnectToTumblerAsync.
+                HashSet<string> blacklistedMasternodes = new HashSet<string>() { this.TumblerAddress };
 
-		    if (registrations.Count < MINIMUM_MASTERNODE_COUNT)
-		    {
-			    this.logger.LogDebug("Not enough masternode registrations downloaded yet: " + registrations.Count);
-			    return Result.Fail<ClassicTumblerParameters>("Not enough masternode registrations downloaded yet");
-		    }
+                // The masternode that was being used in a previous run is now unreachable.
+                // Restart the connection process and try to find a working server.
+                this.TumblerAddress = null;
+                return await ConnectToTumblerAsync(blacklistedMasternodes);
+            }
+        }
 
-		    registrations.Shuffle();
+        /// <inheritdoc />
+        public async Task<Result<ClassicTumblerParameters>> ChangeServerAsync()
+        {
+            // First stop the state machine if applicable
+            if (this.stateMachine != null && this.stateMachine.Started)
+            {
+                await this.stateMachine.Stop().ConfigureAwait(false);
+            }
 
-		    // Since the list is shuffled, we can simply try the first one in the list.
-			// Unlike the connect method, we only try one server here. That is because
-			// a timeout can take in the order of minutes for each server tried.
-		    RegistrationRecord record = registrations.First();
+            this.State = TumbleState.OnlyMonitor;
 
-		    this.TumblerAddress = "ctb://" + record.Record.OnionAddress + ".onion?h=" + record.Record.ConfigurationHash;
+            // Blacklist masternode address which we are currently connected to so that
+            // we won't attempt to connect to it again in the next call to ConnectToTumblerAsync.
+            HashSet<string> blacklistedMasternodes = new HashSet<string>() { this.TumblerAddress };
 
-			var attemptConnection = await TryUseServer();
+            // The masternode that was being used in a previous run is now unreachable.
+            // Restart the connection process and try to find a working server.
+            this.TumblerAddress = null;
+            return await ConnectToTumblerAsync(blacklistedMasternodes);
+        }
 
-			if (!attemptConnection.Failure)
-			{
-				return attemptConnection;
-			}
+        private async Task<Result<ClassicTumblerParameters>> TryUseServer()
+        {
+            logger.LogInformation($"Attempting connection to the masternode at address {this.TumblerAddress}");
 
-		    // If we reach this point, the server was unreachable
-		    this.logger.LogDebug("Failed to connect to server, try another");
-		    return Result.Fail<ClassicTumblerParameters>("Failed to connect to server, try another");
-		}
+            this.tumblingState.TumblerUri = new Uri(this.TumblerAddress);
 
-		private async Task<Result<ClassicTumblerParameters>> TryUseServer()
-		{
-			this.tumblingState.TumblerUri = new Uri(this.TumblerAddress);
+            FullNodeTumblerClientConfiguration config;
+            if (this.TumblerAddress.Contains("127.0.0.1"))
+            {
+                config = new FullNodeTumblerClientConfiguration(this.tumblingState, onlyMonitor: false,
+                    connectionTest: true, useProxy: false);
+            }
+            else
+            {
+                config = new FullNodeTumblerClientConfiguration(this.tumblingState, onlyMonitor: false,
+                    connectionTest: true, useProxy: true);
+            }
 
-			FullNodeTumblerClientConfiguration config;
-			if (this.TumblerAddress.Contains("127.0.0.1"))
-			{
-				config = new FullNodeTumblerClientConfiguration(this.tumblingState, onlyMonitor: false,
-					connectionTest: true, useProxy: false);
-			}
-			else
-			{
-				config = new FullNodeTumblerClientConfiguration(this.tumblingState, onlyMonitor: false,
-					connectionTest: true, useProxy: true);
-			}
+            TumblerClientRuntime rt = null;
+            try
+            {
+                rt = await TumblerClientRuntime.FromConfigurationAsync(config, connectionTest: true)
+                    .ConfigureAwait(false);
 
-			TumblerClientRuntime rt = null;
-			try
-			{
-				rt = await TumblerClientRuntime.FromConfigurationAsync(config, connectionTest: true)
-					.ConfigureAwait(false);
+                // This is overwritten by the tumble method, but it is needed at the beginning of that method for the balance check
+                this.TumblerParameters = rt.TumblerParameters;
 
-				// This is overwritten by the tumble method, but it is needed at the beginning of that method for the balance check
-				this.TumblerParameters = rt.TumblerParameters;
+                return Result.Ok(rt.TumblerParameters);
+            }
+            catch (Exception cex) when (cex is PrivacyProtocolConfigException || cex is ConfigException)
+            {
+                this.logger.LogError("Error obtaining tumbler parameters: " + cex);
+                return Result.Fail<ClassicTumblerParameters>(
+                    cex is PrivacyProtocolConfigException
+                        ? "Tor is required for connectivity to an active Stratis Masternode. Please restart Breeze Wallet with Privacy Protocol and ensure that an instance of Tor is running."
+                        : cex.Message);
+            }
+            catch (Exception e)
+            {
+                this.logger.LogError("Error obtaining tumbler parameters: " + e);
+                return Result.Fail<ClassicTumblerParameters>("Error obtaining tumbler parameters");
+            }
+            finally
+            {
+                rt?.Dispose();
+            }
+        }
 
-				return Result.Ok(rt.TumblerParameters);
-			}
-			catch (Exception cex) when (cex is PrivacyProtocolConfigException || cex is ConfigException)
-			{
-				this.logger.LogError("Error obtaining tumbler parameters: " + cex);
-				return Result.Fail<ClassicTumblerParameters>(
-					cex is PrivacyProtocolConfigException
-						? "Tor is required for connectivity to an active Stratis Masternode. Please restart Breeze Wallet with Privacy Protocol and ensure that an instance of Tor is running."
-						: cex.Message);
-			}
-			catch (Exception e)
-			{
-				this.logger.LogError("Error obtaining tumbler parameters: " + e);
-				return Result.Fail<ClassicTumblerParameters>("Error obtaining tumbler parameters");
-			}
-			finally
-			{
-				rt?.Dispose();
-			}
-		}
-
-		/// <inheritdoc />
-		public async Task TumbleAsync(string originWalletName, string destinationWalletName, string originWalletPassword)
+        /// <inheritdoc />
+        public async Task TumbleAsync(string originWalletName, string destinationWalletName, string originWalletPassword)
         {
             // Make sure it won't start new tumbling round if already started
             if (this.State == TumbleState.Tumbling)
@@ -479,20 +492,12 @@ namespace Breeze.TumbleBit.Client
             Wallet destinationWallet = this.walletManager.GetWallet(destinationWalletName);
             Wallet originWallet = this.walletManager.GetWallet(originWalletName);
 
-            // Check if origin wallet has a balance
-            Money originConfirmed = new Money(0);
-            Money originUnconfirmed = new Money(0);
-            
-            foreach (HdAccount originAccount in originWallet.GetAccountsByCoinType(this.tumblingState.CoinType))
-            {
-                var result = originAccount.GetSpendableAmount();
+            // Check if origin wallet has a sufficient balance to begin tumbling at least 1 cycle
+            Money originBalance = this.walletManager.GetSpendableTransactionsInWallet(originWalletName)
+                .Sum(s => s.Transaction.Amount);
 
-                originConfirmed += result.ConfirmedAmount;
-                originUnconfirmed += result.UnConfirmedAmount;
-            }
-            
-            // Should ideally take network transaction fee into account too, but that is dynamic
-            if ((originConfirmed + originUnconfirmed) <= (this.TumblerParameters.Denomination + this.TumblerParameters.Fee))
+            // Should ideally take network's transaction fee into account too, but that is dynamic
+            if (originBalance <= (this.TumblerParameters.Denomination + this.TumblerParameters.Fee))
             {
                 this.logger.LogDebug("Insufficient funds in origin wallet");
                 throw new Exception("Insufficient funds in origin wallet");
@@ -602,7 +607,7 @@ namespace Breeze.TumbleBit.Client
         /// <inheritdoc />
         public void ProcessBlock(int height, Block block)
         {
-	        // TODO: This double spend removal logic should be incorporated into the wallet
+            // TODO: This double spend removal logic should be incorporated into the wallet
             if (this.tumblingState.OriginWallet != null && this.tumblingState.DestinationWallet != null)
             {
                 this.logger.LogDebug("Checking origin/destination wallets for double spends");
@@ -689,7 +694,7 @@ namespace Breeze.TumbleBit.Client
                     {
                         if (inputsSpent.Contains(input.PrevOut))
                         {
-	                        this.logger.LogDebug("Found double spend in destination wallet " + destTx + " spending " + input.PrevOut.Hash);
+                            this.logger.LogDebug("Found double spend in destination wallet " + destTx + " spending " + input.PrevOut.Hash);
                             txToRemove.Add(destTx);
                         }
                     }
@@ -711,83 +716,83 @@ namespace Breeze.TumbleBit.Client
                     }
                 }
 
-				// Now check for other transactions within the same wallet that spend the same input as each transaction
+                // Now check for other transactions within the same wallet that spend the same input as each transaction
 
-				txToRemove.Clear();
+                txToRemove.Clear();
 
-				foreach (TransactionData originTx in this.tumblingState.OriginWallet.GetAllTransactionsByCoinType(this.tumblingState.CoinType))
-				{
-					if (originTx.IsConfirmed())
-						continue;
+                foreach (TransactionData originTx in this.tumblingState.OriginWallet.GetAllTransactionsByCoinType(this.tumblingState.CoinType))
+                {
+                    if (originTx.IsConfirmed())
+                        continue;
 
-					foreach (TransactionData comparedTx in this.tumblingState.OriginWallet.GetAllTransactionsByCoinType(this.tumblingState.CoinType))
-					{
-						if (originTx.Id == comparedTx.Id)
-							continue;
+                    foreach (TransactionData comparedTx in this.tumblingState.OriginWallet.GetAllTransactionsByCoinType(this.tumblingState.CoinType))
+                    {
+                        if (originTx.Id == comparedTx.Id)
+                            continue;
 
-						foreach (TxIn input in originTx.Transaction.Inputs)
-						{
-							foreach (TxIn comparedTxInput in originTx.Transaction.Inputs)
-							{
-								if (input.PrevOut == comparedTxInput.PrevOut)
-								{
-									txToRemove.Add(originTx);
-								}
-							}
-						}
-					}
-				}
+                        foreach (TxIn input in originTx.Transaction.Inputs)
+                        {
+                            foreach (TxIn comparedTxInput in originTx.Transaction.Inputs)
+                            {
+                                if (input.PrevOut == comparedTxInput.PrevOut)
+                                {
+                                    txToRemove.Add(originTx);
+                                }
+                            }
+                        }
+                    }
+                }
 
-				foreach (TransactionData tx in txToRemove)
-				{
-					foreach (HdAccount account in this.tumblingState.OriginWallet.GetAccountsByCoinType(this.tumblingState.CoinType))
-					{
-						foreach (HdAddress address in account.FindAddressesForTransaction(transaction => transaction.Id == tx.Id))
-						{
-							address.Transactions.Remove(tx);
-						}
-					}
-				}
+                foreach (TransactionData tx in txToRemove)
+                {
+                    foreach (HdAccount account in this.tumblingState.OriginWallet.GetAccountsByCoinType(this.tumblingState.CoinType))
+                    {
+                        foreach (HdAddress address in account.FindAddressesForTransaction(transaction => transaction.Id == tx.Id))
+                        {
+                            address.Transactions.Remove(tx);
+                        }
+                    }
+                }
 
-				txToRemove.Clear();
+                txToRemove.Clear();
 
-				foreach (TransactionData destTx in this.tumblingState.DestinationWallet.GetAllTransactionsByCoinType(this.tumblingState.CoinType))
-				{
-					if (destTx.IsConfirmed())
-						continue;
+                foreach (TransactionData destTx in this.tumblingState.DestinationWallet.GetAllTransactionsByCoinType(this.tumblingState.CoinType))
+                {
+                    if (destTx.IsConfirmed())
+                        continue;
 
-					foreach (TransactionData comparedTx in this.tumblingState.DestinationWallet.GetAllTransactionsByCoinType(this.tumblingState.CoinType))
-					{
-						if (destTx.Id == comparedTx.Id)
-							continue;
+                    foreach (TransactionData comparedTx in this.tumblingState.DestinationWallet.GetAllTransactionsByCoinType(this.tumblingState.CoinType))
+                    {
+                        if (destTx.Id == comparedTx.Id)
+                            continue;
 
-						foreach (TxIn input in destTx.Transaction.Inputs)
-						{
-							foreach (TxIn comparedTxInput in destTx.Transaction.Inputs)
-							{
-								if (input.PrevOut == comparedTxInput.PrevOut)
-								{
-									txToRemove.Add(destTx);
-								}
-							}
-						}
-					}
-				}
+                        foreach (TxIn input in destTx.Transaction.Inputs)
+                        {
+                            foreach (TxIn comparedTxInput in destTx.Transaction.Inputs)
+                            {
+                                if (input.PrevOut == comparedTxInput.PrevOut)
+                                {
+                                    txToRemove.Add(destTx);
+                                }
+                            }
+                        }
+                    }
+                }
 
-				foreach (TransactionData tx in txToRemove)
-				{
-					foreach (HdAccount account in this.tumblingState.DestinationWallet.GetAccountsByCoinType(this.tumblingState.CoinType))
-					{
-						foreach (HdAddress address in account.FindAddressesForTransaction(transaction => transaction.Id == tx.Id))
-						{
-							address.Transactions.Remove(tx);
-						}
-					}
-				}
-			}
+                foreach (TransactionData tx in txToRemove)
+                {
+                    foreach (HdAccount account in this.tumblingState.DestinationWallet.GetAccountsByCoinType(this.tumblingState.CoinType))
+                    {
+                        foreach (HdAddress address in account.FindAddressesForTransaction(transaction => transaction.Id == tx.Id))
+                        {
+                            address.Transactions.Remove(tx);
+                        }
+                    }
+                }
+            }
 
-			// TumbleBit housekeeping
-			this.tumblingState.LastBlockReceivedHeight = height;
+            // TumbleBit housekeeping
+            this.tumblingState.LastBlockReceivedHeight = height;
             this.tumblingState.Save();
         }
 
@@ -822,26 +827,26 @@ namespace Breeze.TumbleBit.Client
                 }
             }
         }
-	}
+    }
 
-	static class List
-	{
-		private static Random rng = new Random();
+    static class List
+    {
+        private static Random rng = new Random();
 
-		/// <summary>
-		/// Shuffles a list randomly
-		/// </summary>
-		public static void Shuffle<T>(this IList<T> list)
-		{
-			int n = list.Count;
-			while (n > 1)
-			{
-				n--;
-				int k = rng.Next(n + 1);
-				T value = list[k];
-				list[k] = list[n];
-				list[n] = value;
-			}
-		}
-	}
+        /// <summary>
+        /// Shuffles a list randomly
+        /// </summary>
+        public static void Shuffle<T>(this IList<T> list)
+        {
+            int n = list.Count;
+            while (n > 1)
+            {
+                n--;
+                int k = rng.Next(n + 1);
+                T value = list[k];
+                list[k] = list[n];
+                list[n] = value;
+            }
+        }
+    }
 }

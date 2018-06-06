@@ -12,16 +12,16 @@ const routes: Routes = [
   { path: '', component: WalletComponent,
     children: [
       { path: '', redirectTo:'dashboard', pathMatch:'full' },
-      { path: 'dashboard', component: DashboardComponent},
-      { path: 'privacy', component: TumblebitComponent},
-      { path: 'history', component: HistoryComponent}
+      { path: 'dashboard', component: DashboardComponent, data: { shouldReuse: false } },
+      { path: 'privacy', component: TumblebitComponent, data: { shouldReuse: true } },
+      { path: 'history', component: HistoryComponent, data: { shouldReuse: false } }
     ]
   },
   { path: 'stratis-wallet', component: WalletComponent,
   children: [
     { path: '', redirectTo:'dashboard', pathMatch:'full' },
-    { path: 'dashboard', component: DashboardComponent},
-    { path: 'history', component: HistoryComponent}
+    { path: 'dashboard', component: DashboardComponent, data: { shouldReuse: false } },
+    { path: 'history', component: HistoryComponent, data: { shouldReuse: false } }
   ]
 }
 ];
