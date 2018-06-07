@@ -54,11 +54,11 @@
               <tr>
                 <th *ngIf="isConnected">
                   Connection <span class="badge badge-success float-right">Online</span>
-                  <a class="btn btn-sm btn-secondary" (click)="markAsServerChangeRequired()">Change server</a>
+                  <a *ngIf="allowChangeServer" class="btn btn-sm btn-secondary" (click)="markAsServerChangeRequired()">Change server</a>
                 </th>
                 <th *ngIf="!isConnected">
                   Connection <span class="badge badge-danger float-right">Offline</span>
-                  <a class="btn btn-sm btn-secondary" (click)="markAsServerChangeRequired()">Change server</a>
+                  <a *ngIf="allowChangeServer" class="btn btn-sm btn-secondary" (click)="markAsServerChangeRequired()">Change server</a>
                 </th>
               </tr>
             </thead>
@@ -110,7 +110,7 @@
                 <td><strong>Estimate</strong>{{ estimate | number:'1.2-2' }} Hours</td>
               </tr>
               <tr>
-                <td><strong>Fee</strong> {{ fee | number:'1.2-2' }}%</td>
+                <td><strong>Fee</strong> {{ fee | number:'1.2-2' }}{{ coinUnit }}</td>
               </tr>
               <tr>
                 <td><strong>Denomination</strong> {{ denomination }} {{ coinUnit }}</td>
