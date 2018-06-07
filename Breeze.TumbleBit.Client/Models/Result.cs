@@ -23,7 +23,8 @@
 
         protected Result(ResultStatus status, string message = null, bool canContinue = true)
 	    {
-	        this.Status = status;
+            this.CanContinue = canContinue;
+            this.Status = status;
 	        this.Message = message;
 	    }
 
@@ -34,7 +35,7 @@
 
 	    public static Result<T> Fail<T>(string message, bool canContinue)
 	    {
-	        return new Result<T>(default(T), ResultStatus.Error, message);
+	        return new Result<T>(default(T), ResultStatus.Error, message, canContinue);
 	    }
 
 	    public static Result Ok()
