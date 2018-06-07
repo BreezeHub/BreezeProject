@@ -132,7 +132,7 @@ export class ConfirmMnemonicComponent implements OnInit {
   public onConfirmClicked() {
     if (this.checkMnemonic()) {
       this.isCreating = true;
-      this.createWallets(this.newWallet);
+      //this.createWallets(this.newWallet);
     }
   }
 

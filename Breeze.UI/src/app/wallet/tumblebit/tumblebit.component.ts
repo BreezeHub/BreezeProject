@@ -217,7 +217,7 @@ export class TumblebitComponent implements OnDestroy {
             this.genericModalService.openModal(
               Error.toDialogOptions('Failed to get general wallet information. Reason: API is not responding or timing out.', null));
           } else if (error.status >= 400) {
-            const firstError = error.json().errors[0];
+            const firstError = Error.getFirstError(error);
             if (!firstError) {
               console.log(error);
             } else if (firstError.description) {
