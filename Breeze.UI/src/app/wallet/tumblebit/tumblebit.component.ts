@@ -40,7 +40,7 @@ export class TumblebitComponent implements OnDestroy {
   public destinationTotalBalance: number;
   public destinationWalletBalanceSubscription: Subscription;
   public connectionSubscription: Subscription;
-  public isConnected: Boolean = false;
+  public isConnected: boolean = false;
   public isSynced: Boolean = false;
   private walletStatusSubscription: Subscription;
   public tumblerAddressCopied = false;
@@ -53,7 +53,7 @@ export class TumblebitComponent implements OnDestroy {
   private progressSubscription: Subscription;
   public progressDataArray: CycleInfo[];
   public tumbleForm: FormGroup;
-  public tumbling: Boolean = false;
+  public tumbling: boolean = false;
   private connectForm: FormGroup;
   public wallets: [string];
   public tumblerAddress = 'Connecting...';
@@ -100,6 +100,10 @@ export class TumblebitComponent implements OnDestroy {
 
   get connectionRequestTimeoutSeconds(): number {
     return 600;
+  }
+
+  get allowChangeServer(): boolean {
+    return !this.tumbling && this.isConnected;
   }
 
   private static isNavigationEnd(event: RouterEvent, path: string): boolean {
@@ -300,7 +304,7 @@ export class TumblebitComponent implements OnDestroy {
             this.tumblerParameters = response.json();
             this.tumblerAddress = this.tumblerParameters.tumbler
             this.estimate = this.tumblerParameters.estimate / 3600;
-            this.fee = this.tumblerParameters.fee * 100;
+            this.fee = this.tumblerParameters.fee;
             this.denomination = this.tumblerParameters.denomination;
 
             if (!!this.connectionModal) {
