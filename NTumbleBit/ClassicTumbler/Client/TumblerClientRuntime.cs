@@ -290,5 +290,15 @@ namespace NTumbleBit.ClassicTumbler.Client
 			get;
 			private set;
 		}
-	}
+
+        public bool HasEnoughFundsForCycle()
+        {
+            Money walletBalance = this.Services.WalletService.GetBalance();
+            Money minimumBalance = this.TumblerParameters.Denomination + this.TumblerParameters.Fee;
+            Logs.Client.LogInformation($"Performing wallet balance check; walletBalance = {walletBalance}, minimumBalance = {this.TumblerParameters.Denomination}(denomination) + {this.TumblerParameters.Fee}(fee)");
+
+            // Should ideally take network's transaction fee into account too, but that is dynamic
+            return walletBalance >= minimumBalance;
+        }
+    }
 }

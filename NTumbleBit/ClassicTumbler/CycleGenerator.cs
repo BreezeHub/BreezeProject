@@ -46,7 +46,7 @@ namespace NTumbleBit.ClassicTumbler
 		public CycleParameters GetRegisteringCycle(int blockHeight)
 		{
 			if(blockHeight < FirstCycle.Start)
-				throw new InvalidOperationException("cycle generation starts at " + FirstCycle.Start);
+				throw new InvalidOperationException("Cycle generation starts at " + FirstCycle.Start);
 
 			var registrationLength = FirstCycle.RegistrationDuration - RegistrationOverlap;
 			var cycleCount = (blockHeight - FirstCycle.Start) / registrationLength;
@@ -59,7 +59,7 @@ namespace NTumbleBit.ClassicTumbler
 		public CycleParameters GetCycle(int startHeight)
 		{
 			if(startHeight < FirstCycle.Start)
-				throw new InvalidOperationException("cycle generation starts at " + FirstCycle.Start + "(actual " + startHeight + ")");
+				throw new InvalidOperationException("Cycle generation starts at " + FirstCycle.Start + "(actual " + startHeight + ")");
 
 			var registrationLength = FirstCycle.RegistrationDuration - RegistrationOverlap;
 			if((startHeight - FirstCycle.Start) % registrationLength != 0)

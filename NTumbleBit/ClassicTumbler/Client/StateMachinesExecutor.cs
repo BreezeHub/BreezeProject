@@ -51,13 +51,10 @@ namespace NTumbleBit.ClassicTumbler.Client
                         if(lastCycle != cycle.Start)
                         {
                             // Only start a new cycle if there are sufficient wallet funds
-                            Money walletBalance = this.Runtime.Services.WalletService.GetBalance();
-                            Money minimumBalance = this.Runtime.TumblerParameters.Denomination + this.Runtime.TumblerParameters.Fee;
-
-                            if (walletBalance >= minimumBalance)
+                            if (Runtime.HasEnoughFundsForCycle())
                             {
                                 lastCycle = cycle.Start;
-                                Logs.Client.LogInformation("New Cycle: " + cycle.Start);
+                                Logs.Client.LogInformation("New Cycle: {0}", cycle.Start);
                                 PaymentStateMachine.State state = GetPaymentStateMachineState(cycle);
                                 if (state == null)
                                 {
@@ -65,6 +62,11 @@ namespace NTumbleBit.ClassicTumbler.Client
                                     stateMachine.NeedSave = true;
                                     Save(stateMachine, cycle.Start);
                                 }
+                            } else
+                            {
+                                Logs.Client.LogInformation("Tumbling finished; there is no enough funds to sustain another tumbling cycle.");
+                                Stopped();
+                                break;
                             }
                         }
 
@@ -81,9 +83,9 @@ namespace NTumbleBit.ClassicTumbler.Client
                         if (Runtime.Network != Network.RegTest)
                         {
                             //Waiting for the block to propagate to server so invalid-phase happens less often
-                            //This also make the server less overwhelmed by sudden request peak
+                            //This also make the server less overwhelmed by sudden request peak.
                             var waitRandom = TimeSpan.FromSeconds(RandomUtils.GetUInt32() % 120 + 10);
-                            Logs.Client.LogDebug("Waiting " + (int)waitRandom.TotalSeconds + " seconds before updating machine states...");
+                            Logs.Client.LogDebug("Waiting {0} seconds before updating machine states...", (int)waitRandom.TotalSeconds);
 
                             cancellationToken.WaitHandle.WaitOne(waitRandom);
                             cancellationToken.ThrowIfCancellationRequested();
@@ -92,7 +94,7 @@ namespace NTumbleBit.ClassicTumbler.Client
                         {
                             // Need to ensure that the rest of the processing only happens after the server
                             // has definitely recognised that a block has been received. Invalid phase
-                            // errors will result otherwise
+                            // errors will result otherwise.
                             Logs.Client.LogDebug("Waiting 2 seconds before updating machine states...");
 
                             cancellationToken.WaitHandle.WaitOne(2);
@@ -104,7 +106,7 @@ namespace NTumbleBit.ClassicTumbler.Client
                             var machine = new PaymentStateMachine(Runtime, state);
                             if(machine.Status == PaymentStateMachineStatus.Wasted)
                             {
-                                Logs.Client.LogDebug($"Skipping cycle {machine.StartCycle}, because if is wasted");
+                                Logs.Client.LogDebug($"Skipping cycle {machine.StartCycle}, because it is wasted");
                                 continue;
                             }
 

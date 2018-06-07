@@ -490,19 +490,8 @@ namespace Breeze.TumbleBit.Client
                 throw new Exception("Chain is still being downloaded");
             }
 
-            Wallet destinationWallet = this.walletManager.GetWallet(destinationWalletName);
             Wallet originWallet = this.walletManager.GetWallet(originWalletName);
-
-            // Check if origin wallet has a sufficient balance to begin tumbling at least 1 cycle
-            Money originBalance = this.walletManager.GetSpendableTransactionsInWallet(originWalletName)
-                .Sum(s => s.Transaction.Amount);
-
-            // Should ideally take network's transaction fee into account too, but that is dynamic
-            if (originBalance <= (this.TumblerParameters.Denomination + this.TumblerParameters.Fee))
-            {
-                this.logger.LogDebug("Insufficient funds in origin wallet");
-                throw new Exception("Insufficient funds in origin wallet");
-            }
+            Wallet destinationWallet = this.walletManager.GetWallet(destinationWalletName);
             
             // Check if password is valid before starting any cycles
             try
@@ -552,6 +541,13 @@ namespace Breeze.TumbleBit.Client
             }
 
             this.runtime = await TumblerClientRuntime.FromConfigurationAsync(config).ConfigureAwait(false);
+
+            // Check if origin wallet has a sufficient balance to begin tumbling at least 1 cycle
+            if (!runtime.HasEnoughFundsForCycle())
+            {
+                this.logger.LogDebug("Insufficient funds in origin wallet");
+                throw new Exception("Insufficient funds in origin wallet");
+            }
 
             BitcoinExtPubKey extPubKey = new BitcoinExtPubKey(key, this.runtime.Network);
             if (key != null)
