@@ -349,7 +349,7 @@ namespace Breeze.TumbleBit.Client
                 if (registrations.Count < MINIMUM_MASTERNODE_COUNT)
                 {
                     this.logger.LogDebug($"Not enough masternode registrations downloaded yet: {registrations.Count}");
-                    return Result.Fail<ClassicTumblerParameters>("Not enough masternode registrations downloaded yet");
+                    return Result.Fail<ClassicTumblerParameters>("Not enough masternode registrations downloaded yet", true);
                 }
 
                 registrations.Shuffle();
@@ -365,38 +365,28 @@ namespace Breeze.TumbleBit.Client
                         continue;
                     }
 
-                    try
-                    {
-                        var tumblerParameterResult = await TryUseServer();
-
-                        if (tumblerParameterResult.Success)
-                        {
-                            return tumblerParameterResult;
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        this.logger.LogDebug(e, $"Unable to connect to masternode: {this.TumblerAddress}");
-                    }
-                }
-
-                this.logger.LogDebug($"Attempted connection to {registrations.Count} masternodes and did not find a valid registration");
-                return Result.Fail<ClassicTumblerParameters>("Did not find a valid registration");
-            }
-            else
-            {
-                try
-                {
                     var tumblerParameterResult = await TryUseServer();
 
                     if (tumblerParameterResult.Success)
                     {
                         return tumblerParameterResult;
                     }
+                    else if (!tumblerParameterResult.CanContinue)
+                    {
+                        return tumblerParameterResult;
+                    }
                 }
-                catch (Exception e)
+
+                this.logger.LogDebug($"Attempted connection to {registrations.Count} masternodes and did not find a valid registration");
+                return Result.Fail<ClassicTumblerParameters>("Did not find a valid registration", false);
+            }
+            else
+            {
+                var tumblerParameterResult = await TryUseServer();
+
+                if (tumblerParameterResult.Success)
                 {
-                    this.logger.LogDebug(e, $"Unable to connect to masternode: {this.TumblerAddress}");
+                    return tumblerParameterResult;
                 }
 
                 // Blacklist masternode address which we have just failed to connect to so that
@@ -460,18 +450,20 @@ namespace Breeze.TumbleBit.Client
 
                 return Result.Ok(rt.TumblerParameters);
             }
-            catch (Exception cex) when (cex is PrivacyProtocolConfigException || cex is ConfigException)
+            catch (PrivacyProtocolConfigException e)
             {
-                this.logger.LogError("Error obtaining tumbler parameters: " + cex);
-                return Result.Fail<ClassicTumblerParameters>(
-                    cex is PrivacyProtocolConfigException
-                        ? "Tor is required for connectivity to an active Stratis Masternode. Please restart Breeze Wallet with Privacy Protocol and ensure that an instance of Tor is running."
-                        : cex.Message);
+                this.logger.LogError(e, "Privacy protocol exception: {0}", e.Message);
+                return Result.Fail<ClassicTumblerParameters>("TOR is required for connectivity to an active Stratis Masternode. Please restart Breeze Wallet with Privacy Protocol and ensure that an instance of TOR is running.", false);
+            }
+            catch (ConfigException e)
+            {
+                this.logger.LogError(e, "Privacy protocol config exception: {0}", e.Message);
+                return Result.Fail<ClassicTumblerParameters>(e.Message, true);
             }
             catch (Exception e)
             {
-                this.logger.LogError("Error obtaining tumbler parameters: " + e);
-                return Result.Fail<ClassicTumblerParameters>("Error obtaining tumbler parameters");
+                this.logger.LogError(e, "Error obtaining tumbler parameters: {0}", e.Message);
+                return Result.Fail<ClassicTumblerParameters>("Error obtaining tumbler parameters", true);
             }
             finally
             {
