@@ -323,7 +323,7 @@ export class TumblebitComponent implements OnDestroy {
             this.connectionModal.componentInstance.estimatedTime = this.estimate;
             this.connectionModal.componentInstance.coinUnit = this.coinUnit;
             this.connectionModal.result.then(result => {
-              this.stopConnectionRequest();
+              this.stop();
               if (result === 'skip') {
                 this.markAsServerChangeRequired();
               } else {
@@ -333,7 +333,9 @@ export class TumblebitComponent implements OnDestroy {
           }
         },
         error => {
-          this.stopConnectionRequest();
+
+          this.stop();
+          
           console.error(error);
           this.isConnected = false;
           if (error.status === 0) {
