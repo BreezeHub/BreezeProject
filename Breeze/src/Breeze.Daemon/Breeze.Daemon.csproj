@@ -16,6 +16,7 @@
     <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="2.0.0" />
     <PackageReference Include="NStratis" Version="4.0.0.57" />
     <PackageReference Include="NStratis.HashLib" Version="1.0.0.1" />
+    <PackageReference Include="Stratis.Bitcoin" Version="1.1.7-beta" />
     <PackageReference Include="Stratis.Bitcoin.Api" Version="1.1.7-beta" />
     <PackageReference Include="Stratis.Bitcoin.Features.BlockStore" Version="1.1.7-beta" />
     <PackageReference Include="Stratis.Bitcoin.Features.Consensus" Version="1.1.7-beta" />
