@@ -335,6 +335,7 @@ export class TumblebitComponent implements OnDestroy {
           this.stopConnectionRequest();
           console.error(error);
           this.isConnected = false;
+		  
           if (error.status === 0) {
             this.genericModalService.openModal(
               Error.toDialogOptions('Failed to connect to tumbler. Reason: API is not responding or timing out.', null));
