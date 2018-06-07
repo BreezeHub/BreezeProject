@@ -12,17 +12,17 @@
         <div class="row d-flex justify-content-center">
           <form class="col-6 mx-auto text-left" [formGroup]="mnemonicForm">
             <div class="form-group">
-              <label class="col-12 row" for="word1">Word n°4</label>
+              <label class="col-12 row" for="word1">{{secretWordIndexGenerator.text1}}</label>
               <input type="text" class="form-control" formControlName="word1" id="word1">
               <div *ngIf="formErrors.word1" class="text-danger mt-2">{{ formErrors.word1 }}</div>
             </div>
             <div class="form-group">
-              <label class="col-12 row" for="word2">Word n°8</label>
+              <label class="col-12 row" for="word2">{{secretWordIndexGenerator.text2}}</label>
               <input type="text" class="form-control" formControlName="word2" id="word2">
               <div *ngIf="formErrors.word2" class="text-danger mt-2">{{ formErrors.word2 }}</div>
             </div>
             <div class="form-group">
-              <label class="col-12 row" for="word3">Word n°12</label>
+              <label class="col-12 row" for="word3">{{secretWordIndexGenerator.text3}}</label>
               <input type="text" class="form-control" formControlName="word3" id="word3">
               <div *ngIf="formErrors.word3" class="text-danger mt-2">{{ formErrors.word3 }}</div>
             </div>
