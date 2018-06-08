@@ -16,8 +16,8 @@ using Stratis.Bitcoin.Features.RPC;
 using Stratis.Bitcoin.Features.Wallet;
 using Stratis.Bitcoin.Features.Wallet.Interfaces;
 using Stratis.Bitcoin.Features.WatchOnlyWallet;
-using Stratis.Bitcoin.IntegrationTests;
-using Stratis.Bitcoin.IntegrationTests.EnvironmentMockUpHelpers;
+using Stratis.Bitcoin.IntegrationTests.Common;
+using Stratis.Bitcoin.IntegrationTests.Common.EnvironmentMockUpHelpers;
 using Xunit;
 
 namespace Breeze.Registration.Tests
@@ -27,40 +27,38 @@ namespace Breeze.Registration.Tests
         [Fact]
         public void RegistrationTest()
         {
-            using (NodeBuilder builder = NodeBuilder.Create())
+            using (NodeBuilder builder = NodeBuilder.Create(this))
             {   
-                CoreNode node1 = builder.CreateStratisPosNode(true, fullNodeBuilder =>
+                CoreNode node1 = builder.CreateCustomNode(true, fullNodeBuilder =>
                 {
                     fullNodeBuilder
-                        .UsePosConsensus()
                         .UseBlockStore()
+                        .UsePowConsensus()
                         .UseMempool()
                         .UseBlockNotification()
                         .UseTransactionNotification()
                         .UseWallet()
                         .UseWatchOnlyWallet()
-                        .AddPowPosMining()
-                        //.AddMining()
-                        //.UseApi()
+                        .AddMining()
+                        .MockIBD()
                         .AddRPC();
-                });
+                }, Network.RegTest);
                
-                CoreNode node2 = builder.CreateStratisPosNode(true, fullNodeBuilder =>
+                CoreNode node2 = builder.CreateCustomNode(true, fullNodeBuilder =>
                 {
                     fullNodeBuilder
-                        .UsePosConsensus()
                         .UseBlockStore()
+                        .UsePowConsensus()
                         .UseMempool()
                         .UseBlockNotification()
                         .UseTransactionNotification()
                         .UseWallet()
                         .UseWatchOnlyWallet()
-                        .AddPowPosMining()
-                        //.AddMining()
-                        //.UseApi()
+                        .AddMining()
                         .AddRPC()
+                        .MockIBD()
                         .UseRegistration();
-                });
+                }, Network.RegTest);
                 
                 node1.NotInIBD();
                 node2.NotInIBD();
@@ -83,9 +81,12 @@ namespace Breeze.Registration.Tests
 
                 // Generate a block so we have some funds to create a transaction with
                 node1.GenerateStratisWithMiner(52);
-                
-                TestHelper.TriggerSync(node1);
-                TestHelper.TriggerSync(node2);
+                TestHelper.WaitLoop(() => node1.FullNode.GetBlockStoreTip().Height == 52);
+
+                TestHelper.AreNodesSynced(node1, node2);
+
+                //TestHelper.TriggerSync(node1);
+                //TestHelper.TriggerSync(node2);
                 
                 TestHelper.WaitLoop(() => rpc1.GetBestBlockHash() == rpc2.GetBestBlockHash());
 
@@ -189,53 +190,53 @@ namespace Breeze.Registration.Tests
         [Fact]
         public void MinimalTest()
         {
-            using (NodeBuilder builder = NodeBuilder.Create())
+            using (NodeBuilder builder = NodeBuilder.Create(this))
             {   
-                CoreNode node1 = builder.CreateStratisPosNode(true, fullNodeBuilder =>
+                CoreNode node1 = builder.CreateCustomNode(true, fullNodeBuilder =>
                 {
                     fullNodeBuilder
-                        .UsePosConsensus()
                         .UseBlockStore()
+                        .UsePowConsensus()
                         .UseMempool()
+                        .AddMining()
                         .UseBlockNotification()
                         .UseTransactionNotification()
                         .UseWallet()
                         .UseWatchOnlyWallet()
-                        .AddPowPosMining()
-                        //.AddMining()
-                        //.UseApi()
+                        .MockIBD()
                         .AddRPC();
-                });
+                }, Network.RegTest);
 		
                 node1.NotInIBD();
 
-                var rpc1 = node1.CreateRPCClient();
-		
+                node1.CreateRPCClient();
+
                 // Create the originating node's wallet
-                var wm1 = node1.FullNode.NodeService<IWalletManager>() as WalletManager;
-                wm1.CreateWallet("Registration1", "registration");
+                if (node1.FullNode.NodeService<IWalletManager>() is WalletManager walletManager)
+                {
+                    walletManager.CreateWallet("Registration1", "registration");
+                    var wallet = walletManager.GetWalletByName("registration");
 
-                var wallet1 = wm1.GetWalletByName("registration");
-                var account1 = wallet1.GetAccountsByCoinType((CoinType) node1.FullNode.Network.Consensus.CoinType).First();
-                var address1 = account1.GetFirstUnusedReceivingAddress();
-                var secret1 = wallet1.GetExtendedPrivateKeyForAddress("Registration1", address1);
+                    var account = wallet.GetAccountsByCoinType((CoinType) node1.FullNode.Network.Consensus.CoinType).First();
 
-                // We can use SetDummyMinerSecret here because the private key is already in the wallet
-                node1.SetDummyMinerSecret(new BitcoinSecret(secret1.PrivateKey, node1.FullNode.Network));
+                    var address = account.GetFirstUnusedReceivingAddress();
 
-                // Generate a block so we have some funds to create a transaction with
+                    var secret1 = wallet.GetExtendedPrivateKeyForAddress("Registration1", address);
+
+                    // We can use SetDummyMinerSecret here because the private key is already in the wallet
+                    node1.SetDummyMinerSecret(new BitcoinSecret(secret1.PrivateKey, node1.FullNode.Network));
+                }
+
+                // Generate a block so we have some funds to create a transaction with                
                 node1.GenerateStratisWithMiner(10);
-                
-                Thread.Sleep(20000);
+                TestHelper.WaitLoop(() => node1.FullNode.GetBlockStoreTip().Height == 10);
 
                 node1.GenerateStratisWithMiner(10);
-                
-                Thread.Sleep(20000);
+                TestHelper.WaitLoop(() => node1.FullNode.GetBlockStoreTip().Height == 20);
 
                 node1.GenerateStratisWithMiner(10);
-                
-                Thread.Sleep(600000);
-                
+                TestHelper.WaitLoop(() => node1.FullNode.GetBlockStoreTip().Height == 30);
+               
                 node1.Kill();
             }
         }

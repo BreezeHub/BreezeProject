@@ -21,6 +21,9 @@ namespace Breeze.TumbleBit.Client.Services
         private IBroadcastService Broadcaster { get; }
         private FullNodeWalletCache Cache { get; }
 
+        /// <summary>Specification of the network the node runs on - regtest/testnet/mainnet.</summary>
+        private readonly Network network;
+
         public IBlockExplorerService BlockExplorer { get; }
         public IRepository Repository { get; }
 
@@ -32,7 +35,8 @@ namespace Breeze.TumbleBit.Client.Services
             IRepository repository,
             FullNodeWalletCache cache,
             Tracker tracker,
-            TumblingState tumblingState)
+            TumblingState tumblingState,
+            Network network)
         {
             Broadcaster = innerBroadcaster ?? throw new ArgumentNullException(nameof(innerBroadcaster));
             BlockExplorer = explorer ?? throw new ArgumentNullException(nameof(explorer));
@@ -41,6 +45,7 @@ namespace Breeze.TumbleBit.Client.Services
             Tracker = tracker ?? throw new ArgumentNullException(nameof(tracker));
             TumblingState = tumblingState ?? throw new ArgumentNullException(nameof(tumblingState));
             TrackPreviousScriptPubKey = true;
+            this.network = network ?? throw new ArgumentNullException(nameof(network));
         }
 
         public void Broadcast(int cycleStart, TransactionType transactionType, CorrelationId correlation, TrustedBroadcastRequest broadcast)
@@ -133,7 +138,7 @@ namespace Breeze.TumbleBit.Client.Services
                         .Where(c => c.ScriptPubKey == broadcast.Request.PreviousScriptPubKey))
                     {
 
-                        var transaction = broadcast.Request.ReSign(coin, out bool cached);
+                        var transaction = broadcast.Request.ReSign(coin, this.network, out bool cached);
                         var txHash = transaction.GetHash();
                         if (!cached || !broadcast.Tracked)
                         {
