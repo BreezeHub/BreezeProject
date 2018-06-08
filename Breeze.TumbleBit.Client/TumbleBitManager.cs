@@ -45,7 +45,7 @@ namespace Breeze.TumbleBit.Client
             OnlyMonitor
         }
 
-        private const int MINIMUM_MASTERNODE_COUNT = 1;
+        public static readonly int MINIMUM_MASTERNODE_COUNT = 1;
 
         private static Random random = new Random();
 
@@ -360,7 +360,8 @@ namespace Breeze.TumbleBit.Client
                     this.TumblerAddress = $"ctb://{record.Record.OnionAddress}.onion?h={record.Record.ConfigurationHash}";
 
                     //Do not attempt a connection to the Masternode which is blacklisted
-                    if (masternodeBlacklist != null && masternodeBlacklist.Contains(this.TumblerAddress)) {
+                    if (masternodeBlacklist != null && masternodeBlacklist.Contains(this.TumblerAddress))
+                    {
                         this.logger.LogDebug($"Skipping connection attempt to blacklisted masternode {this.TumblerAddress}");
                         continue;
                     }
@@ -492,7 +493,7 @@ namespace Breeze.TumbleBit.Client
 
             Wallet originWallet = this.walletManager.GetWallet(originWalletName);
             Wallet destinationWallet = this.walletManager.GetWallet(destinationWalletName);
-            
+
             // Check if password is valid before starting any cycles
             try
             {
@@ -554,7 +555,7 @@ namespace Breeze.TumbleBit.Client
                 this.runtime.DestinationWallet =
                     new ClientDestinationWallet(extPubKey, keyPath, this.runtime.Repository, this.runtime.Network);
             this.TumblerParameters = this.runtime.TumblerParameters;
-            
+
             // Run onlymonitor mode
             this.broadcasterJob = this.runtime.CreateBroadcasterJob();
             this.broadcasterJob.Start();
@@ -587,7 +588,7 @@ namespace Breeze.TumbleBit.Client
                 return 0;
             }
         }
-        
+
         public async Task Initialize()
         {
             // Start broadcasterJob (onlymonitor mode)
