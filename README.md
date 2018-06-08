@@ -26,9 +26,6 @@ Breeze daemon is the backend REST service, hosting a Bitcoin node upon which Bre
 git clone https://github.com/breezehub/BreezeProject
 cd Breeze
 
-# Initialize dependencies
-git submodule update --init --recursive
-
 # Go in the Breeze deamon folder
 cd Breeze/src/Breeze.Daemon
 dotnet build
