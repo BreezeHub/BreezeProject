@@ -137,7 +137,7 @@ namespace Breeze.BreezeServer
                 // software does not support the RPC call.     
                 Transaction fundedTx = txUtils.FundRawTx(stratisRpc, rawTx, config.TxFeeValueSetting, BitcoinAddress.Create(config.TumblerEcdsaKeyAddress));
                 RPCResponse signedTx = stratisRpc.SendCommand("signrawtransaction", fundedTx.ToHex());
-                Transaction txToSend = new Transaction(((JObject)signedTx.Result)["hex"].Value<string>());
+                Transaction txToSend = Transaction.Parse(((JObject) signedTx.Result)["hex"].Value<string>());
 
                 RegistrationRecord regRecord = new RegistrationRecord(DateTime.Now,
                                                                       Guid.NewGuid(),

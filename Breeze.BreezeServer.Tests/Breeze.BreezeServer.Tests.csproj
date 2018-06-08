@@ -6,6 +6,8 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.0.0" />
+    <PackageReference Include="NStratis" Version="4.0.0.57" />
+    <PackageReference Include="NStratis.HashLib" Version="1.0.0.1" />
     <PackageReference Include="xunit" Version="2.2.0" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.2.0" />
   </ItemGroup>
@@ -15,7 +17,6 @@
     <ProjectReference Include="..\BreezeCommon\BreezeCommon.csproj" />
     <ProjectReference Include="..\NTumbleBit\NTumbleBit.csproj" />
     <ProjectReference Include="..\NTumbleBit.ClassicTumbler.Server.CLI\NTumbleBit.ClassicTumbler.Server.CLI.csproj" />
-    <ProjectReference Include="..\StratisBitcoinFullNode\src\NBitcoin\NBitcoin.csproj" />
   </ItemGroup>
 
   <ItemGroup>
