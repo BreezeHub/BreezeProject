@@ -19,13 +19,14 @@
     <ProjectReference Include="..\BreezeCommon\BreezeCommon.csproj" />
     <ProjectReference Include="..\NTumbleBit\NTumbleBit.csproj" />
     <ProjectReference Include="..\NTumbleBit.ClassicTumbler.Server.CLI\NTumbleBit.ClassicTumbler.Server.CLI.csproj" />
-    <ProjectReference Include="..\StratisBitcoinFullNode\src\NBitcoin\NBitcoin.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="CommandLineParser" Version="2.1.1-beta" />
     <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
     <PackageReference Include="DBreeze" Version="1.89.0" />
+    <PackageReference Include="NStratis" Version="4.0.0.57" />
+    <PackageReference Include="NStratis.HashLib" Version="1.0.0.1" />
     <PackageReference Include="Serilog.Extensions.Logging.File" Version="1.0.1" />	
   </ItemGroup>
 

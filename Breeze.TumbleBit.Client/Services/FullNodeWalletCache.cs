@@ -1,17 +1,11 @@
 ﻿using NBitcoin;
-using NTumbleBit.Logging;
 using NTumbleBit.Services;
-using Newtonsoft.Json.Linq;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using Stratis.Bitcoin.Features.WatchOnlyWallet;
 using Stratis.Bitcoin.Features.Wallet;
-using NTumbleBit;
 using System.Threading.Tasks;
-using System.IO;
 
 namespace Breeze.TumbleBit.Client.Services
 {
