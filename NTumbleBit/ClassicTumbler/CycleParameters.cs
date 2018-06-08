@@ -165,7 +165,12 @@ namespace NTumbleBit.ClassicTumbler
 			return periods;
 		}
 
-		public bool IsInPhase(CyclePhase phase, int blockHeight)
+        public bool IsComplete(int blockHeight)
+        {
+            return GetPeriods().Total.End > blockHeight;
+        }
+
+        public bool IsInPhase(CyclePhase phase, int blockHeight)
 		{
 			var periods = GetPeriods();
 			return periods.IsInPhase(phase, blockHeight);
@@ -338,10 +343,12 @@ namespace NTumbleBit.ClassicTumbler
 				_SafetyPeriodDuration = value;
 			}
 		}
+
 		public override string ToString()
 		{
 			return ToString(-1);
 		}
+
 		public string ToString(int pos)
 		{
 			StringBuilder builder = new StringBuilder();

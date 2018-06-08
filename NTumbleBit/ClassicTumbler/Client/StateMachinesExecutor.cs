@@ -12,6 +12,8 @@ namespace NTumbleBit.ClassicTumbler.Client
 {
     public class StateMachinesExecutor : TumblerServiceBase
     {
+        protected HashSet<CycleParameters> ManagedCycles = new HashSet<CycleParameters>();
+
         public StateMachinesExecutor(
             TumblerClientRuntime runtime)
         {
@@ -48,12 +50,14 @@ namespace NTumbleBit.ClassicTumbler.Client
                         var height = Runtime.Services.BlockExplorerService.GetCurrentHeight();
                         Logs.Client.LogInformation("New Block: " + height);
                         var cycle = Runtime.TumblerParameters.CycleGenerator.GetRegisteringCycle(height);
-                        if(lastCycle != cycle.Start)
+                        if (lastCycle != cycle.Start)
                         {
                             // Only start a new cycle if there are sufficient wallet funds
                             if (Runtime.HasEnoughFundsForCycle())
                             {
                                 lastCycle = cycle.Start;
+                                ManagedCycles.Add(cycle);
+
                                 Logs.Client.LogInformation("New Cycle: {0}", cycle.Start);
                                 PaymentStateMachine.State state = GetPaymentStateMachineState(cycle);
                                 if (state == null)
@@ -64,9 +68,7 @@ namespace NTumbleBit.ClassicTumbler.Client
                                 }
                             } else
                             {
-                                Logs.Client.LogInformation("Tumbling finished; there is no enough funds to sustain another tumbling cycle.");
-                                Stopped();
-                                break;
+                                Logs.Client.LogInformation("There is no enough funds to sustain another tumbling cycle.");
                             }
                         }
 
@@ -118,7 +120,7 @@ namespace NTumbleBit.ClassicTumbler.Client
                                 if (cycleProgressInfo != null)
                                     progressInfo.CycleProgressInfoList.Add(cycleProgressInfo);
                             }
-                            catch(PrematureRequestException)
+                            catch (PrematureRequestException)
                             {
                                 Logs.Client.LogInformation("Skipping update, need to wait for tor circuit renewal");
                                 break;
@@ -143,17 +145,29 @@ namespace NTumbleBit.ClassicTumbler.Client
                             Save(machine);
                         }
 
+                        bool allCyclesAreComplete = ManagedCycles.All(c => c.IsComplete(height));
+                        if (allCyclesAreComplete)
+                        {
+                            Logs.Client.LogInformation("Tumbling finished; all {0} tumbling cycles have been completed", ManagedCycles.Count);
+                            Stop();
+                            break;
+                        }
+                        else
+                        {
+                            Logs.Client.LogInformation("Tumbling running; there are {0} of {1} cycles completed", allCyclesAreComplete, ManagedCycles.Count);
+                        }
+
                         progressInfo.Save();
                     }
                     catch (OperationCanceledException) when(cancellationToken.IsCancellationRequested)
                     {
-                        Stopped();
+                        Stop();
                         break;
                     }
                     catch(Exception ex)
                     {
                         Logs.Client.LogError(new EventId(), ex, "StateMachineExecutor Error: " + ex.ToString());
-                        cancellationToken.WaitHandle.WaitOne(5000);
+                        cancellationToken.WaitHandle.WaitOne(5000); 
                     }
                 }
 

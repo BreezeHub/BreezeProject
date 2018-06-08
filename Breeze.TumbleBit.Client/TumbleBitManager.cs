@@ -68,10 +68,10 @@ namespace Breeze.TumbleBit.Client
         private BroadcasterJob broadcasterJob;
 
         public TumblingState tumblingState { get; private set; }
-        public TumbleState State { get; private set; } = TumbleState.OnlyMonitor;
+        public TumbleState State => (stateMachine != null && stateMachine.IsTumbling) ? TumbleState.Tumbling : TumbleState.OnlyMonitor;
         public ClassicTumblerParameters TumblerParameters { get; private set; } = null;
         public string TumblerAddress { get; private set; } = null;
-        public RegistrationStore registrationStore { get; private set; }
+        public RegistrationStore RegistrationStore { get; private set; }
 
         public TumbleBitManager(
             ILoggerFactory loggerFactory,
@@ -109,11 +109,11 @@ namespace Breeze.TumbleBit.Client
                 {
                     if (option.Value != null)
                     {
-                        this.registrationStore = new RegistrationStore(option.Value);
+                        this.RegistrationStore = new RegistrationStore(option.Value);
                     }
                     else
                     {
-                        this.registrationStore = new RegistrationStore(this.nodeSettings.DataDir);
+                        this.RegistrationStore = new RegistrationStore(this.nodeSettings.DataDir);
                     }
                 }
 
@@ -344,7 +344,7 @@ namespace Breeze.TumbleBit.Client
             //   tumbling_state.json, and will have been loaded into this.TumblerAddress already
             if (this.TumblerAddress == null)
             {
-                List<RegistrationRecord> registrations = this.registrationStore.GetAll();
+                List<RegistrationRecord> registrations = this.RegistrationStore.GetAll();
 
                 if (registrations.Count < MINIMUM_MASTERNODE_COUNT)
                 {
@@ -409,8 +409,6 @@ namespace Breeze.TumbleBit.Client
             {
                 await this.stateMachine.Stop().ConfigureAwait(false);
             }
-
-            this.State = TumbleState.OnlyMonitor;
 
             // Blacklist masternode address which we are currently connected to so that
             // we won't attempt to connect to it again in the next call to ConnectToTumblerAsync.
@@ -563,8 +561,6 @@ namespace Breeze.TumbleBit.Client
             // Run tumbling mode
             this.stateMachine = new StateMachinesExecutor(this.runtime);
             this.stateMachine.Start();
-
-            this.State = TumbleState.Tumbling;
         }
 
         public async Task OnlyMonitorAsync()
@@ -574,14 +570,13 @@ namespace Breeze.TumbleBit.Client
             {
                 await this.stateMachine.Stop().ConfigureAwait(false);
             }
-            this.State = TumbleState.OnlyMonitor;
         }
 
         public int RegistrationCount()
         {
             try
             {
-                return this.registrationStore.GetAll().Count;
+                return this.RegistrationStore.GetAll().Count;
             }
             catch (Exception)
             {
@@ -596,7 +591,6 @@ namespace Breeze.TumbleBit.Client
             {
                 var config = new FullNodeTumblerClientConfiguration(this.tumblingState, onlyMonitor: true);
                 this.runtime = await TumblerClientRuntime.FromConfigurationAsync(config).ConfigureAwait(false);
-                this.State = TumbleState.OnlyMonitor;
                 this.broadcasterJob = this.runtime.CreateBroadcasterJob();
                 this.broadcasterJob.Start();
             }
