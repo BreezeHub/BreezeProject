@@ -12,12 +12,17 @@ import { Error } from '../../../shared/classes/error';
 import { Subscription } from 'rxjs/Subscription';
 import { Subscribable } from 'rxjs/Observable';
 
+import { SecretWordIndexGenerator } from './secret-word-index-generator';
+
 @Component({
   selector: 'app-confirm-mnemonic',
   templateUrl: './confirm-mnemonic.component.html',
   styleUrls: ['./confirm-mnemonic.component.css']
 })
 export class ConfirmMnemonicComponent implements OnInit {
+
+  public secretWordIndexGenerator = new SecretWordIndexGenerator();
+
   formErrors = {
     'word1': '',
     'word2': '',
@@ -125,7 +130,6 @@ export class ConfirmMnemonicComponent implements OnInit {
   }
 
   public onConfirmClicked() {
-    this.checkMnemonic();
     if (this.checkMnemonic()) {
       this.isCreating = true;
       this.createWallets(this.newWallet);
@@ -146,9 +150,9 @@ export class ConfirmMnemonicComponent implements OnInit {
     const mnemonic = this.newWallet.mnemonic;
     const mnemonicArray = mnemonic.split(' ');
 
-    if (this.mnemonicForm.get('word1').value.trim() === mnemonicArray[3] &&
-        this.mnemonicForm.get('word2').value.trim() === mnemonicArray[7] &&
-        this.mnemonicForm.get('word3').value.trim() === mnemonicArray[11]) {
+    if (this.mnemonicForm.get('word1').value.trim() === mnemonicArray[this.secretWordIndexGenerator.index1] &&
+        this.mnemonicForm.get('word2').value.trim() === mnemonicArray[this.secretWordIndexGenerator.index2] &&
+        this.mnemonicForm.get('word3').value.trim() === mnemonicArray[this.secretWordIndexGenerator.index3]) {
       return true;
     } else {
       this.matchError = 'The secret words do not match.'

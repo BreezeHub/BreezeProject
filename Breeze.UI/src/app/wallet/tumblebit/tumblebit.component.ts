@@ -40,7 +40,7 @@ export class TumblebitComponent implements OnDestroy {
   public destinationTotalBalance: number;
   public destinationWalletBalanceSubscription: Subscription;
   public connectionSubscription: Subscription;
-  public isConnected: Boolean = false;
+  public isConnected: boolean = false;
   public isSynced: Boolean = false;
   private walletStatusSubscription: Subscription;
   public tumblerAddressCopied = false;
@@ -53,7 +53,7 @@ export class TumblebitComponent implements OnDestroy {
   private progressSubscription: Subscription;
   public progressDataArray: CycleInfo[];
   public tumbleForm: FormGroup;
-  public tumbling: Boolean = false;
+  public tumbling: boolean = false;
   private connectForm: FormGroup;
   public wallets: [string];
   public tumblerAddress = 'Connecting...';
@@ -100,6 +100,10 @@ export class TumblebitComponent implements OnDestroy {
 
   get connectionRequestTimeoutSeconds(): number {
     return 600;
+  }
+
+  get allowChangeServer(): boolean {
+    return !this.tumbling && this.isConnected;
   }
 
   private static isNavigationEnd(event: RouterEvent, path: string): boolean {
@@ -217,10 +221,11 @@ export class TumblebitComponent implements OnDestroy {
             this.genericModalService.openModal(
               Error.toDialogOptions('Failed to get general wallet information. Reason: API is not responding or timing out.', null));
           } else if (error.status >= 400) {
-            if (!error.json().errors[0]) {
+            const firstError = Error.getFirstError(error);
+            if (!firstError) {
               console.log(error);
-            } else {
-              this.genericModalService.openModal(Error.toDialogOptions(error, null));
+            } else if (firstError.description) {
+              this.genericModalService.openModal(Error.toDialogOptions(error, null)); 
             }
           }
         }
@@ -299,7 +304,7 @@ export class TumblebitComponent implements OnDestroy {
             this.tumblerParameters = response.json();
             this.tumblerAddress = this.tumblerParameters.tumbler
             this.estimate = this.tumblerParameters.estimate / 3600;
-            this.fee = this.tumblerParameters.fee * 100;
+            this.fee = this.tumblerParameters.fee;
             this.denomination = this.tumblerParameters.denomination;
 
             if (!!this.connectionModal) {
@@ -322,7 +327,7 @@ export class TumblebitComponent implements OnDestroy {
             this.connectionModal.componentInstance.estimatedTime = this.estimate;
             this.connectionModal.componentInstance.coinUnit = this.coinUnit;
             this.connectionModal.result.then(result => {
-              this.stopConnectionRequest();
+              this.stop();
               if (result === 'skip') {
                 this.markAsServerChangeRequired();
               } else {
@@ -332,7 +337,9 @@ export class TumblebitComponent implements OnDestroy {
           }
         },
         error => {
-          this.stopConnectionRequest();
+
+          this.stop();
+          
           console.error(error);
           this.isConnected = false;
 		  
