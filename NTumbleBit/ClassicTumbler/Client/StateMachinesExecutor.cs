@@ -13,6 +13,7 @@ namespace NTumbleBit.ClassicTumbler.Client
     public class StateMachinesExecutor : TumblerServiceBase
     {
         protected HashSet<CycleParameters> ManagedCycles = new HashSet<CycleParameters>();
+        public bool IsTumbling { get; set; }
 
         public StateMachinesExecutor(
             TumblerClientRuntime runtime)
@@ -37,6 +38,7 @@ namespace NTumbleBit.ClassicTumbler.Client
 
         protected override void StartCore(CancellationToken cancellationToken)
         {
+            IsTumbling = true;
             new Thread(() =>
             {
                 Logs.Client.LogInformation("State machines started");
@@ -53,7 +55,8 @@ namespace NTumbleBit.ClassicTumbler.Client
                         if (lastCycle != cycle.Start)
                         {
                             // Only start a new cycle if there are sufficient wallet funds
-                            if (Runtime.HasEnoughFundsForCycle())
+                            bool firstCycle = ManagedCycles.All(c => c.IsComplete(height));
+                            if (Runtime.HasEnoughFundsForCycle(firstCycle))
                             {
                                 lastCycle = cycle.Start;
                                 ManagedCycles.Add(cycle);
@@ -170,7 +173,7 @@ namespace NTumbleBit.ClassicTumbler.Client
                         cancellationToken.WaitHandle.WaitOne(5000); 
                     }
                 }
-
+                IsTumbling = false;
             }).Start();
         }
 

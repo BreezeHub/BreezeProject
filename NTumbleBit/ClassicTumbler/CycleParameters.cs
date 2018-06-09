@@ -167,7 +167,7 @@ namespace NTumbleBit.ClassicTumbler
 
         public bool IsComplete(int blockHeight)
         {
-            return GetPeriods().Total.End > blockHeight;
+            return GetPeriods().Total.End < blockHeight;
         }
 
         public bool IsInPhase(CyclePhase phase, int blockHeight)

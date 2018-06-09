@@ -542,7 +542,7 @@ namespace Breeze.TumbleBit.Client
             this.runtime = await TumblerClientRuntime.FromConfigurationAsync(config).ConfigureAwait(false);
 
             // Check if origin wallet has a sufficient balance to begin tumbling at least 1 cycle
-            if (!runtime.HasEnoughFundsForCycle())
+            if (!runtime.HasEnoughFundsForCycle(true))
             {
                 this.logger.LogDebug("Insufficient funds in origin wallet");
                 throw new Exception("Insufficient funds in origin wallet");

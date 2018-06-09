@@ -14,7 +14,6 @@ namespace NTumbleBit
 		private CancellationTokenSource _StopSource;
 		private TaskCompletionSource<bool> _Stopping;
 		public abstract string Name { get; }
-        public bool IsTumbling { get; set; }
 
         public void Start()
 		{
@@ -24,7 +23,6 @@ namespace NTumbleBit
 			_StopSource = new CancellationTokenSource();
 			_Stop = _StopSource.Token;
 			StartCore(_Stop);
-            IsTumbling = true;
         }
 
 		protected abstract void StartCore(CancellationToken cancellationToken);
@@ -44,7 +42,6 @@ namespace NTumbleBit
 
 		public Task Stop()
 		{
-            IsTumbling = false;
             if (!Started)
 				throw new InvalidOperationException("Service already stopped");
 			if(!_StopSource.IsCancellationRequested)
