@@ -72,8 +72,7 @@ namespace NTumbleBit.ClassicTumbler.Server
 			if(session == null)
 				return null;
 			return new SolverServerSession(_Runtime.TumblerKey,
-				_Runtime.ClassicTumblerParameters.CreateSolverParamaters(),
-				session);
+				_Runtime.ClassicTumblerParameters.CreateSolverParamaters(), session, Runtime.Network);
 		}
 
 		public Key GetNextKey(int cycleId, out int keyIndex)

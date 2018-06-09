@@ -42,7 +42,7 @@ namespace Breeze.TumbleBit.Client
             service.WalletService = new FullNodeWalletService(tumblingState);
             service.BroadcastService = new FullNodeBroadcastService(cache, repository, tumblingState);
             service.BlockExplorerService = new FullNodeBlockExplorerService(cache, tumblingState);
-            service.TrustedBroadcastService = new FullNodeTrustedBroadcastService(service.BroadcastService, service.BlockExplorerService, repository, cache, tracker, tumblingState)
+            service.TrustedBroadcastService = new FullNodeTrustedBroadcastService(service.BroadcastService, service.BlockExplorerService, repository, cache, tracker, tumblingState, tumblingState.TumblerNetwork)
             {
                 // BlockExplorer will already track the addresses, since they used a shared bitcoind, no need of tracking again (this would overwrite labels)
                 TrackPreviousScriptPubKey = false

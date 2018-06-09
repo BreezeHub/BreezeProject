@@ -5,7 +5,8 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using Microsoft.Extensions.Logging;
 using NBitcoin;
-using Newtonsoft.Json;
+    using NBitcoin.JsonConverters;
+    using Newtonsoft.Json;
 using NTumbleBit.ClassicTumbler;
 using Stratis.Bitcoin.Configuration;
     using Stratis.Bitcoin.Connection;
@@ -61,6 +62,7 @@ namespace Breeze.TumbleBit.Client
         public string DestinationWalletName { get; set; }       
 
         [JsonProperty("network", NullValueHandling = NullValueHandling.Ignore)]
+        [JsonConverter(typeof(NetworkJsonConverter))]
         public Network TumblerNetwork { get; set; }
 
         [JsonIgnore]

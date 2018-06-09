@@ -5,12 +5,8 @@ using Breeze.TumbleBit.Client.Models;
 using Microsoft.Extensions.Logging;
 using NBitcoin;
 using NTumbleBit.ClassicTumbler;
-using NTumbleBit.ClassicTumbler.CLI;
 using NTumbleBit.ClassicTumbler.Client;
-using Stratis.Bitcoin.Builder;
 using Stratis.Bitcoin.Configuration;
-using Stratis.Bitcoin.Features.BlockStore;
-using Stratis.Bitcoin.Features.MemoryPool;
 using Stratis.Bitcoin.Features.Wallet;
 using Stratis.Bitcoin.Features.WatchOnlyWallet;
 using Stratis.Bitcoin.Signals;
@@ -20,16 +16,11 @@ using System.Collections.Generic;
 using System.Text;
 using Stratis.Bitcoin;
 using Stratis.Bitcoin.Features.Wallet.Interfaces;
-using Stratis.Bitcoin.Interfaces;
 using System.IO;
-using System.Runtime.CompilerServices;
-using Breeze.TumbleBit.Client.Services;
 using NTumbleBit;
 using NTumbleBit.Configuration;
 using Stratis.Bitcoin.Connection;
-using Stratis.Bitcoin.Features.Wallet.Models;
 using TransactionData = Stratis.Bitcoin.Features.Wallet.TransactionData;
-using Breeze.Registration;
 
 namespace Breeze.TumbleBit.Client
 {
@@ -305,11 +296,11 @@ namespace Breeze.TumbleBit.Client
             var bcResult = this.broadcasterManager.GetTransaction(sendTx.GetHash()).State;
             switch (bcResult)
             {
-                case Stratis.Bitcoin.Broadcasting.State.Broadcasted:
-                case Stratis.Bitcoin.Broadcasting.State.Propagated:
+                case Stratis.Bitcoin.Features.Wallet.Broadcasting.State.Broadcasted:
+                case Stratis.Bitcoin.Features.Wallet.Broadcasting.State.Propagated:
                     this.logger.LogDebug("Broadcasted transaction: " + sendTx.GetHash());
                     break;
-                case Stratis.Bitcoin.Broadcasting.State.ToBroadcast:
+                case Stratis.Bitcoin.Features.Wallet.Broadcasting.State.ToBroadcast:
                     // Wait for propagation
                     var waited = TimeSpan.Zero;
                     var period = TimeSpan.FromSeconds(1);
@@ -318,7 +309,7 @@ namespace Breeze.TumbleBit.Client
                         // Check BroadcasterManager for broadcast success
                         var transactionEntry = this.broadcasterManager.GetTransaction(sendTx.GetHash());
                         if (transactionEntry != null &&
-                            transactionEntry.State == Stratis.Bitcoin.Broadcasting.State.Propagated)
+                            transactionEntry.State == Stratis.Bitcoin.Features.Wallet.Broadcasting.State.Propagated)
                         {
                             // TODO: This is cluttering up the console, only need to log it once
                             this.logger.LogDebug("Propagated transaction: " + sendTx.GetHash());
@@ -327,7 +318,7 @@ namespace Breeze.TumbleBit.Client
                         waited += period;
                     }
                     break;
-                case Stratis.Bitcoin.Broadcasting.State.CantBroadcast:
+                case Stratis.Bitcoin.Features.Wallet.Broadcasting.State.CantBroadcast:
                     // Do nothing
                     break;
             }
@@ -826,8 +817,8 @@ namespace Breeze.TumbleBit.Client
             {
                 try
                 {
-                    ChainedBlock chainedBlock = this.chain.Tip;
-                    TimeSpan timespan = DateTimeOffset.UtcNow - chainedBlock.Header.BlockTime;
+                    ChainedHeader chainedHeader = this.chain.Tip;
+                    TimeSpan timespan = DateTimeOffset.UtcNow - chainedHeader.Header.BlockTime;
                     return timespan.Minutes;
                 }
                 catch (Exception)

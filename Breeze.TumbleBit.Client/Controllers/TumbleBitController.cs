@@ -7,14 +7,10 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Breeze.TumbleBit.Client;
-using Breeze.TumbleBit.Client.Models;
 using Breeze.TumbleBit.Models;
-using NBitcoin;
-using NTumbleBit.ClassicTumbler;
 using Stratis.Bitcoin.Features.Wallet;
 using Stratis.Bitcoin.Features.Wallet.Models;
 using Stratis.Bitcoin.Utilities;
-using Stratis.Bitcoin.Utilities.JsonErrors;
 using Stratis.Bitcoin.Features.Wallet.Interfaces;
 
 namespace Breeze.TumbleBit.Controllers
@@ -45,7 +41,8 @@ namespace Breeze.TumbleBit.Controllers
             if (!this.ModelState.IsValid)
             {
                 var errors = this.ModelState.Values.SelectMany(e => e.Errors.Select(m => m.ErrorMessage));
-                return Client.ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, "Formatting error", string.Join(Environment.NewLine, errors));
+                return Client.ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, "Formatting error",
+                    string.Join(Environment.NewLine, errors));
             }
 
             try
@@ -53,7 +50,8 @@ namespace Breeze.TumbleBit.Controllers
                 var tumblerParameters = await this.tumbleBitManager.ConnectToTumblerAsync().ConfigureAwait(false);
 
                 if (tumblerParameters.Failure)
-                    return Client.ErrorHelpers.BuildErrorResponse(HttpStatusCode.InternalServerError, tumblerParameters.Message, tumblerParameters.Message);
+                    return Client.ErrorHelpers.BuildErrorResponse(HttpStatusCode.InternalServerError,
+                        tumblerParameters.Message, tumblerParameters.Message);
 
                 var periods = tumblerParameters.Value.CycleGenerator.FirstCycle.GetPeriods();
                 var lengthBlocks = periods.Total.End - periods.Total.Start;
@@ -66,14 +64,16 @@ namespace Breeze.TumbleBit.Controllers
                     ["fee"] = tumblerParameters.Value.Fee.ToString(),
                     ["network"] = tumblerParameters.Value.Network.Name,
                     ["estimate"] = cycleLengthSeconds.ToString(),
-					["parameters_are_standard"] = tumblerParameters.Value.IsStandard().ToString()
+                    ["parameters_are_standard"] = tumblerParameters.Value.IsStandard().ToString()
                 };
 
                 return this.Json(parameterDictionary);
             }
             catch (Exception e)
             {
-                return Client.ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, $"An error occured connecting to the tumbler with uri {this.tumbleBitManager.TumblerAddress}.", e.ToString());
+                return Client.ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest,
+                    $"An error occured connecting to the tumbler with uri {this.tumbleBitManager.TumblerAddress}.",
+                    e.ToString());
             }
         }
 
@@ -88,72 +88,80 @@ namespace Breeze.TumbleBit.Controllers
             if (!this.ModelState.IsValid)
             {
                 var errors = this.ModelState.Values.SelectMany(e => e.Errors.Select(m => m.ErrorMessage));
-                return Client.ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, "Formatting error", string.Join(Environment.NewLine, errors));
+                return Client.ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, "Formatting error",
+                    string.Join(Environment.NewLine, errors));
             }
 
             if (this.tumbleBitManager.State == TumbleBitManager.TumbleState.Tumbling)
             {
-                return Client.ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, "Already started tumbling", "");
+                return Client.ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, "Already started tumbling",
+                    "");
             }
 
             try
             {
-                await this.tumbleBitManager.TumbleAsync(request.OriginWalletName, request.DestinationWalletName, request.OriginWalletPassword);
+                await this.tumbleBitManager.TumbleAsync(request.OriginWalletName, request.DestinationWalletName,
+                    request.OriginWalletPassword);
                 return this.Ok();
             }
             catch (Exception e)
             {
-                return Client.ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, "An error occured starting tumbling session.", e.Message);
+                return Client.ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest,
+                    "An error occured starting tumbling session.", e.Message);
             }
         }
 
-		/// <summary>
-		/// Disconnects from the currently connected masternode and attempts to connect to a new one.
-		/// </summary>
-		[Route("changeserver")]
-		[HttpGet]
-		public async Task<IActionResult> ChangeServerAsync()
-		{
-			// Checks the request is valid
-			if (!this.ModelState.IsValid)
-			{
-				var errors = this.ModelState.Values.SelectMany(e => e.Errors.Select(m => m.ErrorMessage));
-				return Client.ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, "Formatting error", string.Join(Environment.NewLine, errors));
-			}
+        /// <summary>
+        /// Disconnects from the currently connected masternode and attempts to connect to a new one.
+        /// </summary>
+        [Route("changeserver")]
+        [HttpGet]
+        public async Task<IActionResult> ChangeServerAsync()
+        {
+            // Checks the request is valid
+            if (!this.ModelState.IsValid)
+            {
+                var errors = this.ModelState.Values.SelectMany(e => e.Errors.Select(m => m.ErrorMessage));
+                return Client.ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, "Formatting error",
+                    string.Join(Environment.NewLine, errors));
+            }
 
-			try
-			{
-				var tumblerParameters = await this.tumbleBitManager.ChangeServerAsync().ConfigureAwait(false);
+            try
+            {
+                var tumblerParameters = await this.tumbleBitManager.ChangeServerAsync().ConfigureAwait(false);
 
-				if (tumblerParameters.Failure)
-					return Client.ErrorHelpers.BuildErrorResponse(HttpStatusCode.InternalServerError, tumblerParameters.Message, tumblerParameters.Message);
+                if (tumblerParameters.Failure)
+                    return Client.ErrorHelpers.BuildErrorResponse(HttpStatusCode.InternalServerError,
+                        tumblerParameters.Message, tumblerParameters.Message);
 
-				var periods = tumblerParameters.Value.CycleGenerator.FirstCycle.GetPeriods();
-				var lengthBlocks = periods.Total.End - periods.Total.Start;
-				var cycleLengthSeconds = lengthBlocks * 10 * 60;
+                var periods = tumblerParameters.Value.CycleGenerator.FirstCycle.GetPeriods();
+                var lengthBlocks = periods.Total.End - periods.Total.Start;
+                var cycleLengthSeconds = lengthBlocks * 10 * 60;
 
-				var parameterDictionary = new Dictionary<string, string>()
-				{
-					["tumbler"] = this.tumbleBitManager.TumblerAddress,
-					["denomination"] = tumblerParameters.Value.Denomination.ToString(),
-					["fee"] = tumblerParameters.Value.Fee.ToString(),
-					["network"] = tumblerParameters.Value.Network.Name,
-					["estimate"] = cycleLengthSeconds.ToString(),
-					["parameters_are_standard"] = tumblerParameters.Value.IsStandard().ToString()
-				};
+                var parameterDictionary = new Dictionary<string, string>()
+                {
+                    ["tumbler"] = this.tumbleBitManager.TumblerAddress,
+                    ["denomination"] = tumblerParameters.Value.Denomination.ToString(),
+                    ["fee"] = tumblerParameters.Value.Fee.ToString(),
+                    ["network"] = tumblerParameters.Value.Network.Name,
+                    ["estimate"] = cycleLengthSeconds.ToString(),
+                    ["parameters_are_standard"] = tumblerParameters.Value.IsStandard().ToString()
+                };
 
-				return this.Json(parameterDictionary);
-			}
-			catch (Exception e)
-			{
-				return Client.ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, $"An error occured connecting to the tumbler with uri {this.tumbleBitManager.TumblerAddress}.", e.ToString());
-			}
-		}
+                return this.Json(parameterDictionary);
+            }
+            catch (Exception e)
+            {
+                return Client.ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest,
+                    $"An error occured connecting to the tumbler with uri {this.tumbleBitManager.TumblerAddress}.",
+                    e.ToString());
+            }
+        }
 
-		/// <summary>
-		/// Is tumbler tumbling.
-		/// </summary>
-		[Route("tumbling-state")]
+        /// <summary>
+        /// Is tumbler tumbling.
+        /// </summary>
+        [Route("tumbling-state")]
         [HttpGet]
         public async Task<IActionResult> GetTumblingStateAsync()
         {
@@ -173,7 +181,8 @@ namespace Breeze.TumbleBit.Controllers
             }
             catch (Exception e)
             {
-                return Client.ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, "An error occured during tumbling-state request.", e.ToString());
+                return Client.ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest,
+                    "An error occured during tumbling-state request.", e.ToString());
             }
         }
 
@@ -191,7 +200,8 @@ namespace Breeze.TumbleBit.Controllers
             }
             catch (Exception e)
             {
-                return Client.ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, "An error occured during onlymonitor request.", e.ToString());
+                return Client.ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest,
+                    "An error occured during onlymonitor request.", e.ToString());
             }
         }
 
@@ -210,7 +220,8 @@ namespace Breeze.TumbleBit.Controllers
             if (!this.ModelState.IsValid)
             {
                 var errors = this.ModelState.Values.SelectMany(e => e.Errors.Select(m => m.ErrorMessage));
-                return Client.ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, "Formatting error", string.Join(Environment.NewLine, errors));
+                return Client.ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, "Formatting error",
+                    string.Join(Environment.NewLine, errors));
             }
 
             try
@@ -222,7 +233,7 @@ namespace Breeze.TumbleBit.Controllers
                 {
                     var result = account.GetSpendableAmount();
 
-                    AccountBalance balance = new AccountBalance
+                    model.AccountsBalances.Add(new AccountBalanceModel
                     {
                         //TODO:update this for mainnet
                         CoinType = CoinType.Testnet,
@@ -230,9 +241,7 @@ namespace Breeze.TumbleBit.Controllers
                         HdPath = account.HdPath,
                         AmountConfirmed = result.ConfirmedAmount,
                         AmountUnconfirmed = result.UnConfirmedAmount,
-                    };
-
-                    model.AccountsBalances.Add(balance);
+                    });
                 }
 
                 return this.Json(model);
@@ -251,36 +260,39 @@ namespace Breeze.TumbleBit.Controllers
             return this.Ok();
         }
 
-	    /// <summary>
-	    /// Tumbling Progress expressed as json.
-	    /// </summary>
-	    [Route("progress")]
-	    [HttpGet]
-	    public async Task<IActionResult> ProgressAsync()
-	    {
-		    try
-		    {
-		        string folder;
+        /// <summary>
+        /// Tumbling Progress expressed as json.
+        /// </summary>
+        [Route("progress")]
+        [HttpGet]
+        public async Task<IActionResult> ProgressAsync()
+        {
+            try
+            {
+                string folder;
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                    folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "StratisNode\\bitcoin\\TumbleBit");
+                    folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                        "StratisNode\\bitcoin\\TumbleBit");
                 else
-                    folder = Path.Combine(Environment.GetEnvironmentVariable("HOME"), ".stratisnode", "bitcoin", "TumbleBit");
-                  
+                    folder = Path.Combine(Environment.GetEnvironmentVariable("HOME"), ".stratisnode", "bitcoin",
+                        "TumbleBit");
+
                 if (!Directory.Exists(folder)) Directory.CreateDirectory(folder);
-			    string filename = Path.Combine(folder, "tb_progress.json");
-			    if (System.IO.File.Exists(filename) == false)
-				    return this.Json(string.Empty);
-			    else
-			    {
-				    string progress = await System.IO.File.ReadAllTextAsync(filename).ConfigureAwait(false);
-				    return this.Json(progress);
-			    }
-		    }
-			catch (Exception e)
-		    {
-			    return Client.ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, $"Could not get progress.", e.ToString());
-		    }
-	    }
+                string filename = Path.Combine(folder, "tb_progress.json");
+                if (System.IO.File.Exists(filename) == false)
+                    return this.Json(string.Empty);
+                else
+                {
+                    string progress = await System.IO.File.ReadAllTextAsync(filename).ConfigureAwait(false);
+                    return this.Json(progress);
+                }
+            }
+            catch (Exception e)
+            {
+                return Client.ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, $"Could not get progress.",
+                    e.ToString());
+            }
+        }
 
         ///<inheritdoc/>
         [Route("last-block-mins")]
@@ -297,7 +309,8 @@ namespace Breeze.TumbleBit.Controllers
             }
             catch (Exception e)
             {
-                return Client.ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, $"Could not get last block mins.", e.ToString());
+                return Client.ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest,
+                    $"Could not get last block mins.", e.ToString());
             }
         }
     }

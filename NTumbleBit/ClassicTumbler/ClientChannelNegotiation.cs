@@ -169,7 +169,7 @@ namespace NTumbleBit.ClassicTumbler
 			AssertState(TumblerClientSessionStates.WaitingClientTransaction);
 			var expectedTxout = BuildClientEscrowTxOut();
 			var output = transaction.Outputs.AsIndexedOutputs().Single(o => o.TxOut.ScriptPubKey == expectedTxout.ScriptPubKey && o.TxOut.Value == expectedTxout.Value);
-			var solver = new SolverClientSession(Parameters.CreateSolverParamaters());
+			var solver = new SolverClientSession(Parameters.CreateSolverParamaters().ServerKey);
 			solver.ConfigureEscrowedCoin(channelId, new Coin(output).ToScriptCoin(InternalState.ClientEscrow), InternalState.ClientEscrowKey, redeemDestination);
 			InternalState.Status = TumblerClientSessionStates.WaitingSolvedVoucher;
 			return solver;
@@ -222,7 +222,7 @@ namespace NTumbleBit.ClassicTumbler
 
 
 			InternalState.Status = TumblerClientSessionStates.PromisePhase;
-			var session = new PromiseClientSession(Parameters.CreatePromiseParamaters());
+			var session = new PromiseClientSession(Parameters.Network, Parameters.CreatePromiseParamaters());
 			session.SetChannelId(InternalState.ChannelId);
 			session.ConfigureEscrowedCoin(escrowedCoin, InternalState.TumblerEscrowKey);
 			InternalState.TumblerEscrowKey = null;

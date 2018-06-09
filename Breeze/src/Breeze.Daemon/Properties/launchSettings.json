@@ -2,7 +2,7 @@
   "profiles": {
     "Breeze.Daemon Main": {
       "commandName": "Project",
-      "commandLineArgs": "light -testnet -tumblebit -ppuri=ctb://t4cqwqlvswcyyagg.onion?h=f2c96151dc6a76a906d683a20e40e1b8ac01e8b6"
+      "commandLineArgs": "light -tumblebit registration -storedir=C:\\Users\\Maciej\\AppData\\Roaming\\StratisNode\\stratis\\StratisTest\\registrationHistory.json -testnet"
     },
     "Breeze.Daemon TestNet": {
       "commandName": "Project",

@@ -11,7 +11,6 @@ using System;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 
 // For more information on enabling Web API for empty projects, visit http://go.microsoft.com/fwlink/?LinkID=397860
@@ -169,7 +168,7 @@ namespace NTumbleBit.ClassicTumbler.Server.Controllers
 
 			if(request.MerkleProof.PartialMerkleTree
 				.GetMatchedTransactions()
-				.FirstOrDefault() != request.Transaction.GetHash() || !request.MerkleProof.Header.CheckProofOfWork(this.Parameters.Network.Consensus))
+				.FirstOrDefault() != request.Transaction.GetHash() || !request.MerkleProof.Header.CheckProofOfWork())
 			{
 				Logs.Tumbler.LogDebug("Invalid transaction merkle proof");
 				throw new ActionResultException(BadRequest("invalid-merkleproof"));
@@ -211,7 +210,7 @@ namespace NTumbleBit.ClassicTumbler.Server.Controllers
 				throw new ActionResultException(BadRequest("invalid-transaction"));
 			}
 
-			var solverServerSession = new SolverServerSession(Runtime.TumblerKey, Parameters.CreateSolverParamaters());
+			var solverServerSession = new SolverServerSession(Runtime.TumblerKey, Parameters.CreateSolverParamaters(), Runtime.Network);
 			solverServerSession.SetChannelId(request.ChannelId);
 			solverServerSession.ConfigureEscrowedCoin(escrowedCoin, key);
 			await Services.BlockExplorerService.TrackAsync(escrowedCoin.ScriptPubKey);

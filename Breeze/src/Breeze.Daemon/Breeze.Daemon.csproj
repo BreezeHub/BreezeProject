@@ -14,6 +14,19 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="2.0.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="2.0.0" />
+    <PackageReference Include="NStratis" Version="4.0.0.57" />
+    <PackageReference Include="NStratis.HashLib" Version="1.0.0.1" />
+    <PackageReference Include="Stratis.Bitcoin" Version="1.1.7-beta" />
+    <PackageReference Include="Stratis.Bitcoin.Api" Version="1.1.7-beta" />
+    <PackageReference Include="Stratis.Bitcoin.Features.BlockStore" Version="1.1.7-beta" />
+    <PackageReference Include="Stratis.Bitcoin.Features.Consensus" Version="1.1.7-beta" />
+    <PackageReference Include="Stratis.Bitcoin.Features.LightWallet" Version="1.1.7-beta" />
+    <PackageReference Include="Stratis.Bitcoin.Features.MemoryPool" Version="1.1.7-beta" />
+    <PackageReference Include="Stratis.Bitcoin.Features.Miner" Version="1.1.7-beta" />
+    <PackageReference Include="Stratis.Bitcoin.Features.Notifications" Version="1.1.7-beta" />
+    <PackageReference Include="Stratis.Bitcoin.Features.RPC" Version="1.1.7-beta" />
+    <PackageReference Include="Stratis.Bitcoin.Features.Wallet" Version="1.1.7-beta" />
+    <PackageReference Include="Stratis.Bitcoin.Features.WatchOnlyWallet" Version="1.1.7-beta" />
   </ItemGroup>
 
   <ItemGroup>
@@ -21,18 +34,6 @@
     <ProjectReference Include="..\..\..\BreezeCommon\BreezeCommon.csproj" />
     <ProjectReference Include="..\..\..\NTumbleBit\NTumbleBit.csproj" />
     <ProjectReference Include="..\..\..\Breeze.TumbleBit.Client\Breeze.TumbleBit.Client.csproj" />
-    <ProjectReference Include="..\..\..\StratisBitcoinFullNode\src\NBitcoin\NBitcoin.csproj" />
-    <ProjectReference Include="..\..\..\StratisBitcoinFullNode\src\Stratis.Bitcoin.Features.Api\Stratis.Bitcoin.Features.Api.csproj" />
-    <ProjectReference Include="..\..\..\StratisBitcoinFullNode\src\Stratis.Bitcoin.Features.BlockStore\Stratis.Bitcoin.Features.BlockStore.csproj" />
-    <ProjectReference Include="..\..\..\StratisBitcoinFullNode\src\Stratis.Bitcoin.Features.Consensus\Stratis.Bitcoin.Features.Consensus.csproj" />
-    <ProjectReference Include="..\..\..\StratisBitcoinFullNode\src\Stratis.Bitcoin.Features.LightWallet\Stratis.Bitcoin.Features.LightWallet.csproj" />
-    <ProjectReference Include="..\..\..\StratisBitcoinFullNode\src\Stratis.Bitcoin.Features.MemoryPool\Stratis.Bitcoin.Features.MemoryPool.csproj" />
-    <ProjectReference Include="..\..\..\StratisBitcoinFullNode\src\Stratis.Bitcoin.Features.Miner\Stratis.Bitcoin.Features.Miner.csproj" />
-    <ProjectReference Include="..\..\..\StratisBitcoinFullNode\src\Stratis.Bitcoin.Features.Notifications\Stratis.Bitcoin.Features.Notifications.csproj" />
-    <ProjectReference Include="..\..\..\StratisBitcoinFullNode\src\Stratis.Bitcoin.Features.RPC\Stratis.Bitcoin.Features.RPC.csproj" />
-    <ProjectReference Include="..\..\..\StratisBitcoinFullNode\src\Stratis.Bitcoin.Features.Wallet\Stratis.Bitcoin.Features.Wallet.csproj" />
-    <ProjectReference Include="..\..\..\StratisBitcoinFullNode\src\Stratis.Bitcoin.Features.WatchOnlyWallet\Stratis.Bitcoin.Features.WatchOnlyWallet.csproj" />
-    <ProjectReference Include="..\..\..\StratisBitcoinFullNode\src\Stratis.Bitcoin\Stratis.Bitcoin.csproj" />
   </ItemGroup>
 
   <PropertyGroup>
