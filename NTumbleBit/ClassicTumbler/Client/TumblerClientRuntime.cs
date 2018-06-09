@@ -291,14 +291,25 @@ namespace NTumbleBit.ClassicTumbler.Client
 			private set;
 		}
 
-        public bool HasEnoughFundsForCycle()
+        public bool HasEnoughFundsForCycle(bool firstCycle)
         {
             Money walletBalance = this.Services.WalletService.GetBalance();
-            Money minimumBalance = this.TumblerParameters.Denomination + this.TumblerParameters.Fee;
-            Logs.Client.LogInformation($"Performing wallet balance check; walletBalance = {walletBalance}, minimumBalance = {this.TumblerParameters.Denomination}(denomination) + {this.TumblerParameters.Fee}(fee)");
+            FeeRate networkFeeRate = this.Services.FeeService.GetFeeRateAsync().GetAwaiter().GetResult();
+            Money networkFee = networkFeeRate.FeePerK * 1;
 
-            // Should ideally take network's transaction fee into account too, but that is dynamic
-            return walletBalance >= minimumBalance;
+            Money minimumBalance = this.TumblerParameters.Denomination + this.TumblerParameters.Fee + networkFee;
+            Money fundsAllocatedToPreviousCycle = minimumBalance;
+
+            if (firstCycle)
+            {
+                Logs.Client.LogInformation($"Performing wallet balance check; walletBalance = {walletBalance}, {minimumBalance}(minimumBalance) = {this.TumblerParameters.Denomination}(denomination) + {this.TumblerParameters.Fee}(masternode fee) + {networkFee}(network fees)");
+                return walletBalance >= minimumBalance;
+            }
+            else
+            {
+                Logs.Client.LogInformation($"Performing wallet balance check taking into account funds already allocated to previous cycle; {walletBalance}(walletBalance) = {walletBalance}(current balance) - {fundsAllocatedToPreviousCycle}(fundsAllocatedToPreviousCycle), {minimumBalance}(minimumBalance) = {this.TumblerParameters.Denomination}(denomination) + {this.TumblerParameters.Fee}(masternode fee) + {networkFee}(network fees)");
+                return walletBalance >= minimumBalance + fundsAllocatedToPreviousCycle;
+            }
         }
     }
 }
