@@ -419,6 +419,7 @@ export class TumblebitComponent implements OnDestroy {
   private markAsConnected() {
     this.isConnected = true;
     this.operation = 'connect';
+    this.tumblerAddress = this.tumblerParameters.tumbler;
   }
 
   private getProgress() {
