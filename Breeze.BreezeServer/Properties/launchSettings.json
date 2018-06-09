@@ -1,8 +1,16 @@
 {
   "profiles": {
-    "Breeze.BreezeServer": {
-      "commandName": "Project"
-
+    "Breeze.BreezeServer Main": {
+      "commandName": "Project",
+      "commandLineArgs": ""
+    },
+    "Breeze.Daemon TestNet": {
+      "commandName": "Project",
+      "commandLineArgs": "-testnet"
+    },
+    "Breeze.Daemon RegTest": {
+      "commandName": "Project",
+      "commandLineArgs": "-regtest"
     }
   }
 }

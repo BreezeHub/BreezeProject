@@ -21,28 +21,40 @@ namespace Breeze.TumbleBit.Client.DBreezeUtils
             // args[1] = origin wallet filename
             // args[2] = destination wallet filename
             
-            string repoPath = Path.Combine(args[0], "db2");
-            var network = Network.Main;
-            var api = new SmartBitApi(network);
+            //string repoPath = Path.Combine(args[0], "db2");
+            string repoPath = Path.Combine(@"C:\Users\Kevin\Downloads\Projects\TBdata\regtest17", "db2_server");
+            var network = Network.RegTest;
+            var api = (network != Network.RegTest ? new SmartBitApi(network) : null);
             var repo = new DBreezeUtils(repoPath, network);
-            var walletUtils = new WalletUtils(args[0], args[1], args[2]);
+            //var walletUtils = new WalletUtils(args[0], args[1], args[2]);
+            var walletUtils = new WalletUtils(@"C:\Users\Kevin\Downloads\Projects\TBdata\regtest17", "alice.wallet.json", "bob.wallet.json");
             var textOutput = new TextOutput(repo, api, walletUtils);
             
             textOutput.DumpServers();
-            textOutput.DumpCycleTransactions(true);
+            textOutput.DumpCycleTransactions(false);
             
             Console.WriteLine("=====");
             Console.WriteLine("TxToRecord transactions");
             foreach (var tx in repo.FindAllTxToRecordEntries())
             {
                 Console.WriteLine("TxToRecord entry: " + tx);
+                Console.WriteLine(tx.TxData.ToHex());
+                Console.WriteLine("===");
             }
             
             Console.WriteLine("=====");
             Console.WriteLine("Broadcast transactions");
             foreach (var tx in repo.FindAllBroadcastTransactions())
             {
-                try
+                Console.WriteLine(tx.TxData.ToHex());
+                Console.WriteLine(tx.TxData);
+
+                if (tx.TxId.ToString().Equals("1f8c1db597c59c367bb72e95ec88f815ffb7e923d64f6f336d806554b9e1dfe8"))
+                {
+                    Console.WriteLine("Break");
+                }
+
+                /*try
                 {
                     var result = api.GetTransaction(tx.TxId).Result;
 
@@ -62,14 +74,19 @@ namespace Breeze.TumbleBit.Client.DBreezeUtils
                 catch (Exception e)
                 {
                     Console.WriteLine("* Broadcast UNKNOWN status: " + tx);
-                }
+                }*/
             }
 
             Console.WriteLine("=====");
             Console.WriteLine("Trusted broadcast transactions");
             foreach (var tx in repo.FindAllTrustedBroadcastTransactions())
             {
-                try
+                if (tx.TxId.ToString().Equals("1f8c1db597c59c367bb72e95ec88f815ffb7e923d64f6f336d806554b9e1dfe8"))
+                {
+                    Console.WriteLine("Break");
+                }
+
+                /*try
                 {
                     var result = api.GetTransaction(tx.TxId).Result;
 
@@ -87,7 +104,7 @@ namespace Breeze.TumbleBit.Client.DBreezeUtils
                 catch (Exception e)
                 {
                     Console.WriteLine("* Trusted Broadcast UNKNOWN status: " + tx);
-                }
+                }*/
             }
             
             Console.WriteLine("=====");
@@ -111,7 +128,7 @@ namespace Breeze.TumbleBit.Client.DBreezeUtils
                         else
                             Console.WriteLine("* " + txTypeName + " UNKNOWN status: " + txData);
                     }
-                    catch (Exception e)
+                    catch (Exception)
                     {
                         Console.WriteLine("* " + txTypeName + " UNKNOWN status: " + txData);
                     }
