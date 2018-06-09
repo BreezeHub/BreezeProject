@@ -12,6 +12,8 @@
 	    {
 	    }
 
+        public bool CanContinue { get; private set; }
+
 		public ResultStatus Status { get; private set; }
 		public bool Success => this.Status == ResultStatus.Success; 
 
@@ -19,20 +21,21 @@
 
 	    public bool Failure => !Success;
 
-	    protected Result(ResultStatus status, string message = null)
+        protected Result(ResultStatus status, string message = null, bool canContinue = true)
 	    {
-	        this.Status = status;
+            this.CanContinue = canContinue;
+            this.Status = status;
 	        this.Message = message;
 	    }
 
-	    public static Result Fail(string message)
+	    public static Result Fail(string message, bool canContinue)
 	    {
-	        return new Result(ResultStatus.Error, message);
+	        return new Result(ResultStatus.Error, message, canContinue);
 	    }
 
-	    public static Result<T> Fail<T>(string message)
+	    public static Result<T> Fail<T>(string message, bool canContinue)
 	    {
-	        return new Result<T>(default(T), ResultStatus.Error, message);
+	        return new Result<T>(default(T), ResultStatus.Error, message, canContinue);
 	    }
 
 	    public static Result Ok()
@@ -69,8 +72,8 @@
 
 		public T Value { get; set; }
 
-	    protected internal Result(T value, ResultStatus status, string message = null)
-	        : base(status, message)
+	    protected internal Result(T value, ResultStatus status, string message = null, bool canContinue = true)
+	        : base(status, message, canContinue)
 	    { 
 	    	Value = value;
 	    }

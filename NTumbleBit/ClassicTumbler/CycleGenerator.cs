@@ -43,12 +43,13 @@ namespace NTumbleBit.ClassicTumbler
 			}
 		}
 
-		public CycleParameters GetRegisteringCycle(int blockHeight)
+        private int registrationLength => FirstCycle.RegistrationDuration - RegistrationOverlap;
+
+        public CycleParameters GetRegisteringCycle(int blockHeight)
 		{
 			if(blockHeight < FirstCycle.Start)
-				throw new InvalidOperationException("cycle generation starts at " + FirstCycle.Start);
+				throw new InvalidOperationException("Cycle generation starts at " + FirstCycle.Start);
 
-			var registrationLength = FirstCycle.RegistrationDuration - RegistrationOverlap;
 			var cycleCount = (blockHeight - FirstCycle.Start) / registrationLength;
 
 			var cycle = FirstCycle.Clone();
@@ -59,9 +60,8 @@ namespace NTumbleBit.ClassicTumbler
 		public CycleParameters GetCycle(int startHeight)
 		{
 			if(startHeight < FirstCycle.Start)
-				throw new InvalidOperationException("cycle generation starts at " + FirstCycle.Start + "(actual " + startHeight + ")");
+				throw new InvalidOperationException("Cycle generation starts at " + FirstCycle.Start + "(actual " + startHeight + ")");
 
-			var registrationLength = FirstCycle.RegistrationDuration - RegistrationOverlap;
 			if((startHeight - FirstCycle.Start) % registrationLength != 0)
 				throw new InvalidOperationException("Invalid cycle start height");
 			var result = FirstCycle.Clone();
@@ -71,7 +71,6 @@ namespace NTumbleBit.ClassicTumbler
 
 		public CycleParameters GetPreviousCycle(CycleParameters cycle)
 		{
-			var registrationLength = FirstCycle.RegistrationDuration - RegistrationOverlap;
 			if(registrationLength > cycle.Start)
 				return null;
 			return GetCycle(cycle.Start - registrationLength);
@@ -84,7 +83,6 @@ namespace NTumbleBit.ClassicTumbler
 
 		public CycleParameters GetNextCycle(CycleParameters cycle)
 		{
-			var registrationLength = FirstCycle.RegistrationDuration - RegistrationOverlap;
 			return GetCycle(cycle.Start + registrationLength);
 		}
 

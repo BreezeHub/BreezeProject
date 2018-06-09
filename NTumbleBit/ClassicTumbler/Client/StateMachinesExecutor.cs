@@ -12,6 +12,9 @@ namespace NTumbleBit.ClassicTumbler.Client
 {
     public class StateMachinesExecutor : TumblerServiceBase
     {
+        protected HashSet<CycleParameters> ManagedCycles = new HashSet<CycleParameters>();
+        public bool IsTumbling { get; set; }
+
         public StateMachinesExecutor(
             TumblerClientRuntime runtime)
         {
@@ -35,6 +38,7 @@ namespace NTumbleBit.ClassicTumbler.Client
 
         protected override void StartCore(CancellationToken cancellationToken)
         {
+            IsTumbling = true;
             new Thread(() =>
             {
                 Logs.Client.LogInformation("State machines started");
@@ -48,16 +52,16 @@ namespace NTumbleBit.ClassicTumbler.Client
                         var height = Runtime.Services.BlockExplorerService.GetCurrentHeight();
                         Logs.Client.LogInformation("New Block: " + height);
                         var cycle = Runtime.TumblerParameters.CycleGenerator.GetRegisteringCycle(height);
-                        if(lastCycle != cycle.Start)
+                        if (lastCycle != cycle.Start)
                         {
                             // Only start a new cycle if there are sufficient wallet funds
-                            Money walletBalance = this.Runtime.Services.WalletService.GetBalance();
-                            Money minimumBalance = this.Runtime.TumblerParameters.Denomination + this.Runtime.TumblerParameters.Fee;
-
-                            if (walletBalance >= minimumBalance)
+                            bool firstCycle = ManagedCycles.All(c => c.IsComplete(height));
+                            if (Runtime.HasEnoughFundsForCycle(firstCycle))
                             {
                                 lastCycle = cycle.Start;
-                                Logs.Client.LogInformation("New Cycle: " + cycle.Start);
+                                ManagedCycles.Add(cycle);
+
+                                Logs.Client.LogInformation("New Cycle: {0}", cycle.Start);
                                 PaymentStateMachine.State state = GetPaymentStateMachineState(cycle);
                                 if (state == null)
                                 {
@@ -65,6 +69,9 @@ namespace NTumbleBit.ClassicTumbler.Client
                                     stateMachine.NeedSave = true;
                                     Save(stateMachine, cycle.Start);
                                 }
+                            } else
+                            {
+                                Logs.Client.LogInformation("There is no enough funds to sustain another tumbling cycle.");
                             }
                         }
 
@@ -81,9 +88,9 @@ namespace NTumbleBit.ClassicTumbler.Client
                         if (Runtime.Network != Network.RegTest)
                         {
                             //Waiting for the block to propagate to server so invalid-phase happens less often
-                            //This also make the server less overwhelmed by sudden request peak
+                            //This also make the server less overwhelmed by sudden request peak.
                             var waitRandom = TimeSpan.FromSeconds(RandomUtils.GetUInt32() % 120 + 10);
-                            Logs.Client.LogDebug("Waiting " + (int)waitRandom.TotalSeconds + " seconds before updating machine states...");
+                            Logs.Client.LogDebug("Waiting {0} seconds before updating machine states...", (int)waitRandom.TotalSeconds);
 
                             cancellationToken.WaitHandle.WaitOne(waitRandom);
                             cancellationToken.ThrowIfCancellationRequested();
@@ -92,7 +99,7 @@ namespace NTumbleBit.ClassicTumbler.Client
                         {
                             // Need to ensure that the rest of the processing only happens after the server
                             // has definitely recognised that a block has been received. Invalid phase
-                            // errors will result otherwise
+                            // errors will result otherwise.
                             Logs.Client.LogDebug("Waiting 2 seconds before updating machine states...");
 
                             cancellationToken.WaitHandle.WaitOne(2);
@@ -104,7 +111,7 @@ namespace NTumbleBit.ClassicTumbler.Client
                             var machine = new PaymentStateMachine(Runtime, state);
                             if(machine.Status == PaymentStateMachineStatus.Wasted)
                             {
-                                Logs.Client.LogDebug($"Skipping cycle {machine.StartCycle}, because if is wasted");
+                                Logs.Client.LogDebug($"Skipping cycle {machine.StartCycle}, because it is wasted");
                                 continue;
                             }
 
@@ -116,7 +123,7 @@ namespace NTumbleBit.ClassicTumbler.Client
                                 if (cycleProgressInfo != null)
                                     progressInfo.CycleProgressInfoList.Add(cycleProgressInfo);
                             }
-                            catch(PrematureRequestException)
+                            catch (PrematureRequestException)
                             {
                                 Logs.Client.LogInformation("Skipping update, need to wait for tor circuit renewal");
                                 break;
@@ -141,20 +148,32 @@ namespace NTumbleBit.ClassicTumbler.Client
                             Save(machine);
                         }
 
+                        bool allCyclesAreComplete = ManagedCycles.All(c => c.IsComplete(height));
+                        if (allCyclesAreComplete)
+                        {
+                            Logs.Client.LogInformation("Tumbling finished; all {0} tumbling cycles have been completed", ManagedCycles.Count);
+                            Stop();
+                            break;
+                        }
+                        else
+                        {
+                            Logs.Client.LogInformation("Tumbling running; there are {0} of {1} cycles completed", allCyclesAreComplete, ManagedCycles.Count);
+                        }
+
                         progressInfo.Save();
                     }
                     catch (OperationCanceledException) when(cancellationToken.IsCancellationRequested)
                     {
-                        Stopped();
+                        Stop();
                         break;
                     }
                     catch(Exception ex)
                     {
                         Logs.Client.LogError(new EventId(), ex, "StateMachineExecutor Error: " + ex.ToString());
-                        cancellationToken.WaitHandle.WaitOne(5000);
+                        cancellationToken.WaitHandle.WaitOne(5000); 
                     }
                 }
-
+                IsTumbling = false;
             }).Start();
         }
 

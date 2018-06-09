@@ -290,5 +290,26 @@ namespace NTumbleBit.ClassicTumbler.Client
 			get;
 			private set;
 		}
-	}
+
+        public bool HasEnoughFundsForCycle(bool firstCycle)
+        {
+            Money walletBalance = this.Services.WalletService.GetBalance();
+            FeeRate networkFeeRate = this.Services.FeeService.GetFeeRateAsync().GetAwaiter().GetResult();
+            Money networkFee = networkFeeRate.FeePerK * 1;
+
+            Money minimumBalance = this.TumblerParameters.Denomination + this.TumblerParameters.Fee + networkFee;
+            Money fundsAllocatedToPreviousCycle = minimumBalance;
+
+            if (firstCycle)
+            {
+                Logs.Client.LogInformation($"Performing wallet balance check; walletBalance = {walletBalance}, {minimumBalance}(minimumBalance) = {this.TumblerParameters.Denomination}(denomination) + {this.TumblerParameters.Fee}(masternode fee) + {networkFee}(network fees)");
+                return walletBalance >= minimumBalance;
+            }
+            else
+            {
+                Logs.Client.LogInformation($"Performing wallet balance check taking into account funds already allocated to previous cycle; {walletBalance}(walletBalance) = {walletBalance}(current balance) - {fundsAllocatedToPreviousCycle}(fundsAllocatedToPreviousCycle), {minimumBalance}(minimumBalance) = {this.TumblerParameters.Denomination}(denomination) + {this.TumblerParameters.Fee}(masternode fee) + {networkFee}(network fees)");
+                return walletBalance >= minimumBalance + fundsAllocatedToPreviousCycle;
+            }
+        }
+    }
 }
