@@ -148,7 +148,8 @@ namespace NTumbleBit.ClassicTumbler.Client
                             Save(machine);
                         }
 
-                        bool allCyclesAreComplete = ManagedCycles.All(c => c.IsComplete(height));
+                        int numberOfCompletedCycles = ManagedCycles.Count(c => c.IsComplete(height));
+                        bool allCyclesAreComplete = !ManagedCycles.Any() || (numberOfCompletedCycles == ManagedCycles.Count);
                         if (allCyclesAreComplete)
                         {
                             Logs.Client.LogInformation("Tumbling finished; all {0} tumbling cycles have been completed", ManagedCycles.Count);
@@ -157,7 +158,7 @@ namespace NTumbleBit.ClassicTumbler.Client
                         }
                         else
                         {
-                            Logs.Client.LogInformation("Tumbling running; there are {0} of {1} cycles completed", allCyclesAreComplete, ManagedCycles.Count);
+                            Logs.Client.LogDebug("Tumbling running; there are {0} of {1} cycles completed", numberOfCompletedCycles, ManagedCycles.Count);
                         }
 
                         progressInfo.Save();
