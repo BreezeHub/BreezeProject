@@ -16,11 +16,11 @@
             </div>
             <div class="form-group row nomargin">
               <label class="col-sm-4 col-form-label">Denomination:</label>
-              <span class="form-control-static col-sm-8"><b>{{ denomination }} {{ coinUnit }}</b></span>
+              <span class="form-control-static col-sm-8"><b>{{ denomination | number:'1.8-8' }} {{ coinUnit }}</b></span>
             </div>
             <div class="form-group row nomargin">
               <label class="col-sm-4 col-form-label">Fees:</label>
-              <span class="form-control-static col-sm-8"><b>{{ fees | number:'1.2-2' }}%</b></span>
+              <span class="form-control-static col-sm-8"><b>{{ fees | number:'1.8-8' }} {{ coinUnit }}</b></span>
             </div>
             <div class="form-group row">
               <label class="col-sm-4 col-form-label">Estimated Time:</label>
