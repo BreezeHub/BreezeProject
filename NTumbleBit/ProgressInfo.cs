@@ -71,9 +71,13 @@ namespace NTumbleBit
 
     public class ProgressInfo
     {
+        [JsonIgnore]
         public static readonly string TumbleProgressFileName = "tb_progress.json";
+
+        [JsonIgnore]
+        public string RootFolderName { get; set; }
+
         public int Height { get; private set; }
-        public string RootFolderName { get; set;  }
 
 		public List<CycleProgressInfo> CycleProgressInfoList = new List<CycleProgressInfo>();
 

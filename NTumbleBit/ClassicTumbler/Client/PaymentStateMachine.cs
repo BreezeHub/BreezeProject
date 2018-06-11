@@ -211,7 +211,6 @@ namespace NTumbleBit.ClassicTumbler.Client
 			TumblerClient bob = null, alice = null;
 			try
 			{
-
 				var correlation = SolverClientSession == null ? CorrelationId.Zero : new CorrelationId(SolverClientSession.Id);
 
 				FeeRate feeRate = null;

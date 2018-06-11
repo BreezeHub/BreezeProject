@@ -147,6 +147,7 @@ namespace NTumbleBit.ClassicTumbler.Client
 
                             Save(machine);
                         }
+                        Logs.Client.LogDebug("Numer of running cycles reported to the progress API: ", progressInfo.CycleProgressInfoList.Count);
 
                         int numberOfCompletedCycles = ManagedCycles.Count(c => c.IsComplete(height));
                         bool allCyclesAreComplete = !ManagedCycles.Any() || (numberOfCompletedCycles == ManagedCycles.Count);
