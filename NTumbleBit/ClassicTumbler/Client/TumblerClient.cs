@@ -12,6 +12,8 @@ using System.Threading.Tasks;
 using NTumbleBit.ClassicTumbler.Server.Models;
 using System.IO;
 using System.Threading;
+using NTumbleBit.Logging;
+using Microsoft.Extensions.Logging;
 
 namespace NTumbleBit.ClassicTumbler.Client
 {
@@ -154,17 +156,29 @@ namespace NTumbleBit.ClassicTumbler.Client
 				string error = await result.Content.ReadAsStringAsync().ConfigureAwait(false);
 				if(!string.IsNullOrEmpty(error))
 				{
-					throw new HttpRequestException(result.StatusCode + ": " + error);
+                    throw new HttpRequestException(result.StatusCode + ": " + error);
 				}
 			}
 			if(result.StatusCode == HttpStatusCode.NotFound)
 				return default(T);
-			if(result.Content?.Headers?.ContentLength > MaxContentLength)
-				throw new IOException("Content is too big");
+            if (result.Content?.Headers?.ContentLength > MaxContentLength)
+            {
+                Logs.Client.LogError($"Content is larger than max content lenth of {MaxContentLength}bytes for request to: {uri}\nRequest Body: \"{body.ToString()}\"");
+                throw new IOException("Content is too big");
+            }
 
-			result.EnsureSuccessStatusCode();
-			if(typeof(T) == typeof(byte[]))
-				return (T)(object)await result.Content.ReadAsByteArrayAsync().ConfigureAwait(false);
+            try
+            {
+                result.EnsureSuccessStatusCode();
+            }
+            catch (Exception ex)
+            {
+                Logs.Client.LogError(ex, $"Received HTTP {result.StatusCode} response from: {uri}\nRequest Body: \"{body.ToString()}\"");
+                throw ex;
+            }
+
+            if (typeof(T) == typeof(byte[]))
+                return (T)(object)await result.Content.ReadAsByteArrayAsync().ConfigureAwait(false);
 			var str = await result.Content.ReadAsStringAsync().ConfigureAwait(false);
 			if(typeof(T) == typeof(string))
 				return (T)(object)str;
