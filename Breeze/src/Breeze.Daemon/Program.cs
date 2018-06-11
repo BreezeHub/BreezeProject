@@ -30,6 +30,7 @@ using Stratis.Bitcoin.Utilities;
 using Stratis.Bitcoin.Utilities.Extensions;
 using Stratis.Bitcoin;
 using System.Threading.Tasks;
+using System.Runtime.InteropServices;
 
 namespace Breeze.Daemon
 {
@@ -118,7 +119,17 @@ namespace Breeze.Daemon
                 }
 
                 // Need this to happen for both TB and non-TB daemon
-                Logs.Configure(new FuncLoggerFactory(i => new DualLogger(i, (a, b) => true, false)));
+                string dataDir = nodeSettings.DataDir;
+                if (string.IsNullOrEmpty(dataDir))
+                {
+                    if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                        dataDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "StratisNode");
+                    else
+                        dataDir = Path.Combine(Environment.GetEnvironmentVariable("HOME"), ".stratisnode");
+                }
+
+                string logDir = Path.Combine(dataDir, nodeSettings.Network.RootFolderName, nodeSettings.Network.Name, "Logs");
+                Logs.Configure(new FuncLoggerFactory(i => new DualLogger(i, (a, b) => true, false)), logDir);
 
                 // Start NTumbleBit logging to the console
                 SetupTumbleBitConsoleLogs(nodeSettings);

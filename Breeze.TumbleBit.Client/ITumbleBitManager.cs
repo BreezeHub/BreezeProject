@@ -45,7 +45,7 @@ namespace Breeze.TumbleBit.Client
 
         ClassicTumblerParameters TumblerParameters { get; }
 
-        TumblingState tumblingState { get; }
+        TumblingState TumblingState { get; }
 
         /// <summary>
         /// Processes a block received from the network.

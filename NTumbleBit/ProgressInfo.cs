@@ -69,23 +69,26 @@ namespace NTumbleBit
         }
     }
 
-	public class ProgressInfo
+    public class ProgressInfo
     {
-		public int Height { get; private set; }
+        public static readonly string TumbleProgressFileName = "tb_progress.json";
+        public int Height { get; private set; }
+        public string RootFolderName { get; set;  }
 
 		public List<CycleProgressInfo> CycleProgressInfoList = new List<CycleProgressInfo>();
 
-	    public ProgressInfo(int height)
+	    public ProgressInfo(int height, string rootFolderName)
 	    {
 		    this.Height = height;
-	    }
+            this.RootFolderName = rootFolderName;
+        }
 
 	    public void Save()
         {
             try
             {
-                if (!Directory.Exists(ProgressInfo.Folder)) Directory.CreateDirectory(ProgressInfo.Folder);
-                string filename = Path.Combine(ProgressInfo.Folder, "tb_progress.json");
+                if (!Directory.Exists(this.RootFolderName)) Directory.CreateDirectory(this.RootFolderName);
+                string filename = Path.Combine(this.RootFolderName, ProgressInfo.TumbleProgressFileName);
 
                 using (var file = File.CreateText(filename))
                 {
@@ -98,20 +101,15 @@ namespace NTumbleBit
             catch (Exception){}
         }
 
-	    public static void RemoveProgressFile()
+	    public static void RemoveProgressFile(string rootFolderName)
 	    {
-		    string filename = Path.Combine(ProgressInfo.Folder, "tb_progress.json");
+            string filename = Path.Combine(rootFolderName, ProgressInfo.TumbleProgressFileName);
 			if (File.Exists(filename)) File.Delete(filename);
 		}
 
-        private static string Folder
+        public void RemoveProgressFile()
         {
-            get
-            {
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                    return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "StratisNode\\bitcoin\\TumbleBit");
-                return Path.Combine(Environment.GetEnvironmentVariable("HOME"), ".stratisnode", "bitcoin", "TumbleBit");
-            }
+            RemoveProgressFile(this.RootFolderName);
         }
-	}
+    }
 }

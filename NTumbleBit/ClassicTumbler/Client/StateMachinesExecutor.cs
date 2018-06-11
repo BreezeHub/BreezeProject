@@ -75,7 +75,7 @@ namespace NTumbleBit.ClassicTumbler.Client
                             }
                         }
 
-                        var progressInfo = new ProgressInfo(height);
+                        var progressInfo = new ProgressInfo(height, Runtime.DataDir);
 
                         var cycles = Runtime.TumblerParameters.CycleGenerator.GetCycles(height);
                         var machineStates = cycles
