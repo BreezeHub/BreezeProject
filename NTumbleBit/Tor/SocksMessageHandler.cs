@@ -72,8 +72,9 @@ namespace NTumbleBit.Tor
 	public class SocksMessageHandler : TCPServer.Client.TCPHttpMessageHandler
 	{
 		static readonly byte[] SelectionMessage = new byte[] { 5, 1, 0 };
-		IPEndPoint _SocksEndpoint;
-		public SocksMessageHandler(IPEndPoint socksEndpoint, ClientOptions options = null) : base(options)
+        public static TimeSpan DefaultConnectionTimeout { get; set; } = new ClientOptions().ConnectTimeout;
+        IPEndPoint _SocksEndpoint;
+        public SocksMessageHandler(IPEndPoint socksEndpoint, ClientOptions options = null) : base(options)
 		{
             _SocksEndpoint = socksEndpoint ?? throw new ArgumentNullException(nameof(socksEndpoint));
 		}
@@ -103,6 +104,22 @@ namespace NTumbleBit.Tor
 					var connectBytes = CreateConnectMessage(endpoint.Host, endpoint.Port);
 					await stream.WriteAsync(connectBytes, 0, connectBytes.Length, cancellation).ConfigureAwait(false);
 					await stream.FlushAsync(cancellation).ConfigureAwait(false);
+
+                    if (Options?.ConnectTimeout != DefaultConnectionTimeout)
+                    {
+                        await Task.Run(() =>
+                        {
+                            DateTime endTime = DateTime.Now.Add(Options.ConnectTimeout);
+                            while (DateTime.Now < endTime)
+                            {
+                                if (stream.DataAvailable) break;
+                                Thread.Sleep(500);
+                            }
+                        });
+
+                        if (!stream.DataAvailable)
+                            throw new SocksException($"No response from the SOCKS proxy has been received within {Options.ConnectTimeout.TotalSeconds} sec");
+                    }
 
 					var connectResponse = await stream.ReadBytes(10, cancellation);
 					if(connectResponse[0] != 5)
