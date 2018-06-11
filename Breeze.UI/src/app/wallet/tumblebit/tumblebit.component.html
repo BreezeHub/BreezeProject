@@ -24,7 +24,7 @@
             <button type="button" class="btn btn-lg btn-primary mt-4" (click)="startTumbling()" [ngClass]="{ 'btn-disabled': !this.destinationWalletName }" [disabled]="(!isConnected && !tumbling) || !isSynced" *ngIf="!tumbling">Start</button>
             <button type="button" class="btn btn-danger" (click)="stopTumbling()" [disabled]="(!isConnected && tumbling) || !isSynced" *ngIf="tumbling">Stop</button>
             <p class="help mt-4" *ngIf="!isSynced">Please wait until the wallet is fully synced.</p>
-            <p class="help mt-4" *ngIf="!isConnected">Please wait until the wallet is connected.</p>
+            <p class="help mt-4" *ngIf="!isConnected">Please wait until a connection the MasterNode server is established. This can take up to 10min.</p>
             <!-- <p class="help mt-4" *ngIf="!hasRegistrations">Not enough masternodes registered to start the Breeze Privacy Protocol. Please wait.</p> -->
           </form>
 
@@ -53,11 +53,11 @@
             <thead>
               <tr>
                 <th *ngIf="isConnected">
-                  Connection <span class="badge badge-success float-right">Online</span>
+                  Connection <span class="badge badge-success float-right">Connected to MasterNode</span>
                   <a *ngIf="allowChangeServer" class="btn btn-sm btn-secondary" (click)="markAsServerChangeRequired()">Change server</a>
                 </th>
                 <th *ngIf="!isConnected">
-                  Connection <span class="badge badge-danger float-right">Offline</span>
+                  Connection <span class="badge badge-danger float-right">No MasterNode connection</span>
                   <a *ngIf="allowChangeServer" class="btn btn-sm btn-secondary" (click)="markAsServerChangeRequired()">Change server</a>
                 </th>
               </tr>
@@ -107,13 +107,16 @@
           <table class="table" *ngIf="isConnected">
             <tbody>
               <tr>
-                <td><strong>Estimate</strong>{{ estimate | number:'1.2-2' }} Hours</td>
+                <td><strong>Estimate</strong></td>
+				<td>{{ estimate | number:'1.2-2' }} Hours</td>
               </tr>
               <tr>
-                <td><strong>Fee</strong> {{ fee | number:'1.2-2' }}{{ coinUnit }}</td>
+                <td><strong>Fee</strong></td>
+				<td>{{ fee | number:'1.8-8' }} {{ coinUnit }}</td>
               </tr>
               <tr>
-                <td><strong>Denomination</strong> {{ denomination }} {{ coinUnit }}</td>
+                <td><strong>Denomination</strong></td>
+				<td>{{ denomination | number:'1.8-8' }} {{ coinUnit }}</td>
               </tr>
             </tbody>
           </table>
