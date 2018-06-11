@@ -349,7 +349,7 @@ namespace Breeze.TumbleBit.Client
                 if (registrations.Count < MINIMUM_MASTERNODE_COUNT)
                 {
                     this.logger.LogDebug($"Not enough masternode registrations downloaded yet: {registrations.Count}");
-                    return Result.Fail<ClassicTumblerParameters>("Not enough masternode registrations downloaded yet", true);
+                    return Result.Fail<ClassicTumblerParameters>("Not enough masternode registrations downloaded yet", PostResultActionType.CanContinue);
                 }
 
                 registrations.Shuffle();
@@ -372,14 +372,14 @@ namespace Breeze.TumbleBit.Client
                     {
                         return tumblerParameterResult;
                     }
-                    else if (!tumblerParameterResult.CanContinue)
+                    else if (tumblerParameterResult.PostResultAction == PostResultActionType.ShouldStop)
                     {
                         return tumblerParameterResult;
                     }
                 }
 
                 this.logger.LogDebug($"Attempted connection to {registrations.Count} masternodes and did not find a valid registration");
-                return Result.Fail<ClassicTumblerParameters>("Did not find a valid registration", false);
+                return Result.Fail<ClassicTumblerParameters>("Did not find a valid registration", PostResultActionType.ShouldStop);
             }
             else
             {
