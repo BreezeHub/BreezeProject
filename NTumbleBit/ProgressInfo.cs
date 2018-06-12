@@ -34,7 +34,9 @@ namespace NTumbleBit
 			get { return this.PhaseEnum.ToString(); }
 		}
 
-		public CycleProgressInfo(CyclePeriod period, int height, int blocksLeft, int start, PaymentStateMachineStatus status, CyclePhase phase, string asciiArt)
+        public bool IsSaftyPeriod { get; set; }
+
+        public CycleProgressInfo(CyclePeriod period, int height, int blocksLeft, int start, PaymentStateMachineStatus status, CyclePhase phase, bool isSaftyPeriod, string asciiArt)
 		{
 			this.Period = period;
 			this.Height = height;
@@ -42,7 +44,8 @@ namespace NTumbleBit
 			this.Start = start;
 			this.StatusEnum = status;
 			this.PhaseEnum = phase;
-			this.AsciiArt = asciiArt;
+            this.IsSaftyPeriod = isSaftyPeriod;
+            this.AsciiArt = asciiArt;
 
 		    this.CheckForFailedState();
 		}

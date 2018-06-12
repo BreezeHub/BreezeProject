@@ -172,16 +172,21 @@ namespace NTumbleBit.ClassicTumbler.Client
 			get; set;
 		}
 
-		public CycleProgressInfo Update()
+        private CyclePhase lastCyclePhase { get; set; }
+
+        public CycleProgressInfo Update()
 		{
 			int height = Services.BlockExplorerService.GetCurrentHeight();
 			CycleParameters cycle;
 			CyclePhase phase;
-			if(ClientChannelNegotiation == null)
+            CyclePeriod period;
+            bool isSaftyPeriod = false;
+            if (ClientChannelNegotiation == null)
 			{
 				cycle = Parameters.CycleGenerator.GetRegisteringCycle(height);
 				phase = CyclePhase.Registration;
-			}
+                period = cycle.GetPeriods().GetPeriod(phase);
+            }
 			else
 			{
 				cycle = ClientChannelNegotiation.GetCycle();
@@ -194,19 +199,32 @@ namespace NTumbleBit.ClassicTumbler.Client
 					CyclePhase.TumblerCashoutPhase,
 					CyclePhase.ClientCashoutPhase
 				};
-				if(!phases.Any(p => cycle.IsInPhase(p, height)))
-					return null;
-				phase = phases.First(p => cycle.IsInPhase(p, height));
+
+                if (cycle.IsComplete(height))
+                    return null;
+
+                //If we are not in any phase we are in the SaftyPeriod
+                if (!phases.Any(p => cycle.IsInPhase(p, height)))
+                {
+                    phase = lastCyclePhase;
+                    period = cycle.GetPeriods().GetPeriod(phase);
+                    period.End += cycle.SafetyPeriodDuration;
+                    isSaftyPeriod = true;
+                }
+                else
+                {
+                    phase = phases.First(p => cycle.IsInPhase(p, height));
+                    period = cycle.GetPeriods().GetPeriod(phase);
+                    isSaftyPeriod = false;
+                }
 			}
 
-			Logs.Client.LogInformation(Environment.NewLine);
-			var period = cycle.GetPeriods().GetPeriod(phase);
 			var blocksLeft = period.End - height;
 			Logs.Client.LogInformation($"Cycle {cycle.Start} ({Status})");
 			Logs.Client.LogInformation($"{cycle.ToString(height)} in phase {phase} ({blocksLeft} more blocks)");
 			var previousState = Status;
 
-			var progressInfo = new CycleProgressInfo(period, height, blocksLeft, cycle.Start, Status, phase, $"{cycle.ToString(height)} in phase {phase} ({blocksLeft} more blocks)");
+			var progressInfo = new CycleProgressInfo(period, height, blocksLeft, cycle.Start, Status, phase, isSaftyPeriod, $"{cycle.ToString(height)} in phase {phase} ({blocksLeft} more blocks)");
 
 			TumblerClient bob = null, alice = null;
 			try
@@ -515,7 +533,9 @@ namespace NTumbleBit.ClassicTumbler.Client
 				if(bob != null)
 					bob.Dispose();
 			}
-			return progressInfo;
+
+            lastCyclePhase = phase;
+            return progressInfo;
 		}
 
 		public bool ShouldStayConnected()

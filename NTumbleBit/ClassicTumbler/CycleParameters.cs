@@ -160,8 +160,8 @@ namespace NTumbleBit.ClassicTumbler
 			periods.TumblerChannelEstablishment = new CyclePeriod(tchannelRegistrationStart, tchannelRegistrationEnd);
 			periods.TumblerCashout = new CyclePeriod(tcashoutStart, tcashoutEnd);
 			periods.Payment = new CyclePeriod(paymentStart, paymentEnd);
-			periods.ClientCashout = new CyclePeriod(ccashoutStart, ccashoutEnd + SafetyPeriodDuration);
-			periods.Total = new CyclePeriod(Start, ccashoutEnd);
+			periods.ClientCashout = new CyclePeriod(ccashoutStart, ccashoutEnd);
+			periods.Total = new CyclePeriod(Start, ccashoutEnd + SafetyPeriodDuration);
 			return periods;
 		}
 
