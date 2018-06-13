@@ -10,7 +10,7 @@ import { Subscription } from 'rxjs/Subscription';
 import { TransactionDetailsComponent } from '../transaction-details/transaction-details.component';
 import { TransactionInfo } from '../../shared/classes/transaction-info';
 import { WalletInfo } from '../../shared/classes/wallet-info';
-import { ITransaction } from 'interfaces/itransaction';
+import { Transaction } from 'interfaces/transaction';
 
 @Component({
   // tslint:disable-next-line:component-selector
@@ -128,7 +128,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
       ;
   };
 
-  private getTransactionInfo(transactions: Array<ITransaction>) {
+  private getTransactionInfo(transactions: Array<Transaction>) {
     this.transactionArray = transactions.map(transaction => new TransactionInfo(transaction));
   }
 

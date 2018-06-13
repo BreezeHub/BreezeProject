@@ -1,4 +1,4 @@
-export interface ITransaction {
+export interface Transaction {
     amount: number,
     confirmedInBlock: number,
     fee?: number;

@@ -1,8 +1,8 @@
-import { ITransaction } from 'interfaces/itransaction'
+import { Transaction } from 'interfaces/transaction'
 
 export class TransactionInfo {
 
-  constructor(transaction: ITransaction) {
+  constructor(transaction: Transaction) {
     this.transactionType = transaction.type;
     this.transactionId = transaction.id;
     this.transactionAmount = transaction.amount;

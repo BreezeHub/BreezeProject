@@ -4,7 +4,7 @@ import { Error } from '../../shared/classes/error';
 import { FormGroup, FormControl, Validators, FormBuilder } from '@angular/forms';
 import { formValidator } from '../../shared/helpers/form-validation-helper';
 import { GlobalService } from '../../shared/services/global.service';
-import { ITransaction } from 'interfaces/itransaction'
+import { Transaction } from 'interfaces/transaction'
 import { ModalService } from '../../shared/services/modal.service';
 import { NgbModal, NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { Subscription } from 'rxjs/Subscription';
@@ -60,7 +60,7 @@ export class HistoryComponent implements OnInit, OnDestroy {
     formValidator(this.searchForm, this.formErrors, this.validationMessages)
   }
 
-  private openTransactionDetailDialog(transaction: ITransaction) {
+  private openTransactionDetailDialog(transaction: Transaction) {
     const modalRef = this.modalService.open(TransactionDetailsComponent);
     modalRef.componentInstance.transaction = transaction;
   }
@@ -103,7 +103,7 @@ export class HistoryComponent implements OnInit, OnDestroy {
       );
   };
 
-  private getTransactionInfo(transactions: Array<ITransaction>) {
+  private getTransactionInfo(transactions: Array<Transaction>) {
     this.transactions = transactions.map(transaction => new TransactionInfo(transaction));
   }
 
