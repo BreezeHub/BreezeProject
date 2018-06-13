@@ -15,6 +15,7 @@ using NTumbleBit.Configuration;
 using NTumbleBit.ClassicTumbler.CLI;
 using NBitcoin;
 using Breeze.BreezeServer;
+using System.Runtime.InteropServices;
 
 namespace Breeze.BreezeServer.Services
 {
@@ -45,7 +46,21 @@ namespace Breeze.BreezeServer.Services
             var debug = argsConf.GetOrDefault<bool>("debug", false);
 
             ConsoleLoggerProcessor loggerProcessor = new ConsoleLoggerProcessor();
-            Logs.Configure(new FuncLoggerFactory(i => new CustomerConsoleLogger(i, Logs.SupportDebug(debug), false, loggerProcessor)));
+
+            string dataDir;
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                dataDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "StratisNode");
+                dataDir = argsConf.GetOrDefault<string>("dataDir", dataDir);
+            }
+            else
+            {
+                dataDir = Path.Combine(Environment.GetEnvironmentVariable("HOME"), ".stratisnode");
+                dataDir = argsConf.GetOrDefault<string>("dataDir", dataDir);
+            }
+
+            string logDir = Path.Combine(dataDir, breezeConfig.TumblerNetwork.RootFolderName, breezeConfig.TumblerNetwork.Name, "Logs");
+            Logs.Configure(new FuncLoggerFactory(i => new CustomerConsoleLogger(i, Logs.SupportDebug(debug), false, loggerProcessor)), logDir);
 
             if (getConfigOnly)
             {

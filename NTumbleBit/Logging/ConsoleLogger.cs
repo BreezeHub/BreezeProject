@@ -357,15 +357,9 @@ namespace NTumbleBit.Logging
 
 		public void WriteMessageToDisk(string message)
 		{
-			string logFilePath;
-			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-				logFilePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "StratisNode\\bitcoin\\NTBLogs");
-			else
-				logFilePath = Path.Combine(Environment.GetEnvironmentVariable("HOME"), ".stratisnode", "bitcoin", "NTBLogs");
-
 			// TODO: Split log daily or rotate
-			if (!Directory.Exists(logFilePath)) Directory.CreateDirectory(logFilePath);
-			string filePath = Path.Combine(logFilePath, "NTumbleBit.txt");
+			//if (!Directory.Exists(logFilePath)) Directory.CreateDirectory(logFilePath);
+			string filePath = Path.Combine(Logs.LogDir, "NTumbleBit.txt");
 
 			using (var file = File.AppendText(filePath))
 			{

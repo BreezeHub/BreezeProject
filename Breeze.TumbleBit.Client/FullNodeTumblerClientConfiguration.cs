@@ -16,6 +16,7 @@ namespace Breeze.TumbleBit.Client
 {
     public class FullNodeTumblerClientConfiguration : TumblerClientConfigurationBase
     {
+        public static readonly string TumbleBitFolderName = "TumbleBit";
         private TumblingState tumblingState;
         public FullNodeTumblerClientConfiguration(TumblingState tumblingState, bool onlyMonitor, bool connectionTest = false, bool useProxy = true)
         {
@@ -62,7 +63,7 @@ namespace Breeze.TumbleBit.Client
 
             OnlyMonitor = onlyMonitor;
             Logs.Configuration.LogInformation("Network: " + Network);
-            DataDir = Path.Combine(this.tumblingState.NodeSettings.DataDir, "TumbleBit");
+            DataDir = GetTumbleBitDataDir(this.tumblingState.NodeSettings.DataDir);
             Logs.Configuration.LogInformation("Data directory set to " + DataDir);
 
             DBreezeRepository = new DBreezeRepository(Path.Combine(DataDir, "db2"));
@@ -70,6 +71,13 @@ namespace Breeze.TumbleBit.Client
 
             // Need to use our own ExternalServices implementations to remove RPC dependency
             Services = ExternalServices.CreateFromFullNode(DBreezeRepository, Tracker, this.tumblingState);
+        }
+
+        public static string GetTumbleBitDataDir(string dataDir)
+        {
+            string tumbleBitDataDir = Path.Combine(dataDir, TumbleBitFolderName);
+            if (!Directory.Exists(tumbleBitDataDir)) Directory.CreateDirectory(tumbleBitDataDir);
+            return tumbleBitDataDir;
         }
     }
 }

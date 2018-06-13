@@ -17,6 +17,7 @@ using NTumbleBit.Configuration;
 using NTumbleBit.ClassicTumbler.Server;
 using NTumbleBit.ClassicTumbler.CLI;
 using System.Net;
+using System.Runtime.InteropServices;
 
 namespace NTumbleBit.ClassicTumbler.Server.CLI
 {
@@ -32,7 +33,30 @@ namespace NTumbleBit.ClassicTumbler.Server.CLI
 			var debug = argsConf.GetOrDefault<bool>("debug", false);
 
 			ConsoleLoggerProcessor loggerProcessor = new ConsoleLoggerProcessor();
-			Logs.Configure(new FuncLoggerFactory(i => new CustomerConsoleLogger(i, Logs.SupportDebug(debug), false, loggerProcessor)));
+
+            bool isTestNet = argsConf.GetOrDefault<bool>("testnet", false);
+            bool isRegTest = argsConf.GetOrDefault<bool>("regtest", false);
+
+            string dataDir;
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                dataDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "StratisNode");
+                dataDir = argsConf.GetOrDefault<string>("dataDir", dataDir);
+            }
+            else
+            {
+                dataDir = Path.Combine(Environment.GetEnvironmentVariable("HOME"), ".stratisnode");
+                dataDir = argsConf.GetOrDefault<string>("dataDir", dataDir);
+            }
+
+            string networkRootFolderName = Network.Main.RootFolderName;
+            if (isTestNet)
+                networkRootFolderName = Network.TestNet.RootFolderName;
+            else if (isRegTest)
+                networkRootFolderName = Network.RegTest.RootFolderName;
+
+            string logDir = Path.Combine(dataDir, networkRootFolderName, Network.Main.Name, "Logs");
+            Logs.Configure(new FuncLoggerFactory(i => new CustomerConsoleLogger(i, Logs.SupportDebug(debug), false, loggerProcessor)), logDir);
 
 			using(var interactive = new Interactive())
 			{

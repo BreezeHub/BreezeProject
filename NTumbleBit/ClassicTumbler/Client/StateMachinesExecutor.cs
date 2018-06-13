@@ -55,7 +55,7 @@ namespace NTumbleBit.ClassicTumbler.Client
                         if (lastCycle != cycle.Start)
                         {
                             // Only start a new cycle if there are sufficient wallet funds
-                            bool firstCycle = ManagedCycles.All(c => c.IsComplete(height));
+                            bool firstCycle = ManagedCycles.All(c => c.IsPostRegistration(height));
                             if (Runtime.HasEnoughFundsForCycle(firstCycle))
                             {
                                 lastCycle = cycle.Start;
@@ -75,7 +75,7 @@ namespace NTumbleBit.ClassicTumbler.Client
                             }
                         }
 
-                        var progressInfo = new ProgressInfo(height);
+                        var progressInfo = new ProgressInfo(height, Runtime.DataDir);
 
                         var cycles = Runtime.TumblerParameters.CycleGenerator.GetCycles(height);
                         var machineStates = cycles
@@ -125,7 +125,7 @@ namespace NTumbleBit.ClassicTumbler.Client
                             }
                             catch (PrematureRequestException)
                             {
-                                Logs.Client.LogInformation("Skipping update, need to wait for tor circuit renewal");
+                                Logs.Client.LogInformation("Skipping update, need to wait for tor circuit renewal for cycle {0} ({1})", machine.StartCycle, machine.Status);
                                 break;
                             }
                             catch(Exception ex) when(IsInvalidPhase(ex))
@@ -136,17 +136,19 @@ namespace NTumbleBit.ClassicTumbler.Client
                                     InvalidPhaseCount++;
                                     if(InvalidPhaseCount > 2)
                                     {
-                                        Logs.Client.LogError(new EventId(), ex, $"Invalid-Phase happened repeatedly, check that your node currently at height {height} is currently sync to the network");
+                                        Logs.Client.LogError(new EventId(), ex, "Invalid-Phase happened repeatedly, check that your node currently " +
+                                            "at height {0} is currently sync to the network; cycle {1} ({2})", height, machine.StartCycle, machine.Status);
                                     }
                                 }
                             }
                             catch(Exception ex)
                             {
-                                Logs.Client.LogError(new EventId(), ex, "Unhandled StateMachine Error");
+                                Logs.Client.LogError(new EventId(), ex, "Unhandled StateMachine Error for cycle {0} ({1})", machine.StartCycle, machine.Status);
                             }
 
                             Save(machine);
                         }
+                        Logs.Client.LogDebug("Number of running cycles reported to the progress API: {0}", progressInfo.CycleProgressInfoList.Count);
 
                         int numberOfCompletedCycles = ManagedCycles.Count(c => c.IsComplete(height));
                         bool allCyclesAreComplete = !ManagedCycles.Any() || (numberOfCompletedCycles == ManagedCycles.Count);
@@ -165,6 +167,7 @@ namespace NTumbleBit.ClassicTumbler.Client
                     }
                     catch (OperationCanceledException) when(cancellationToken.IsCancellationRequested)
                     {
+                        Logs.Client.LogInformation("Tumbling cancelled; all {0} tumbling cycles have been aborted", ManagedCycles.Count);
                         Stop();
                         break;
                     }

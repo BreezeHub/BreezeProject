@@ -6,13 +6,19 @@
 		Error
 	}
 
+    public enum PostResultActionType
+    {
+        CanContinue,
+        ShouldStop
+    }
+
 	public class Result
 	{
 	    public Result()
 	    {
 	    }
 
-        public bool CanContinue { get; private set; }
+        public PostResultActionType PostResultAction { get; private set; }
 
 		public ResultStatus Status { get; private set; }
 		public bool Success => this.Status == ResultStatus.Success; 
@@ -21,21 +27,21 @@
 
 	    public bool Failure => !Success;
 
-        protected Result(ResultStatus status, string message = null, bool canContinue = true)
+        protected Result(ResultStatus status, string message = null, PostResultActionType postResultAction = PostResultActionType.CanContinue)
 	    {
-            this.CanContinue = canContinue;
+            this.PostResultAction = postResultAction;
             this.Status = status;
 	        this.Message = message;
 	    }
 
-	    public static Result Fail(string message, bool canContinue)
+	    public static Result Fail(string message, PostResultActionType postResultAction)
 	    {
-	        return new Result(ResultStatus.Error, message, canContinue);
+	        return new Result(ResultStatus.Error, message, postResultAction);
 	    }
 
-	    public static Result<T> Fail<T>(string message, bool canContinue)
+	    public static Result<T> Fail<T>(string message, PostResultActionType postResultAction)
 	    {
-	        return new Result<T>(default(T), ResultStatus.Error, message, canContinue);
+	        return new Result<T>(default(T), ResultStatus.Error, message, postResultAction);
 	    }
 
 	    public static Result Ok()
@@ -72,8 +78,8 @@
 
 		public T Value { get; set; }
 
-	    protected internal Result(T value, ResultStatus status, string message = null, bool canContinue = true)
-	        : base(status, message, canContinue)
+	    protected internal Result(T value, ResultStatus status, string message = null, PostResultActionType postResultAction = PostResultActionType.CanContinue)
+	        : base(status, message, postResultAction)
 	    { 
 	    	Value = value;
 	    }

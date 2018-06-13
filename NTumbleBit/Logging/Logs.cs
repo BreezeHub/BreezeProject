@@ -1,21 +1,28 @@
 ﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using NBitcoin;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
 namespace NTumbleBit.Logging
 {
 	public class Logs
 	{
-		static Logs()
+        public static string LogDir { get; set; }
+        static Logs()
 		{
-			Configure(new FuncLoggerFactory(n => NullLogger.Instance));
+			Configure(new FuncLoggerFactory(n => NullLogger.Instance), null);
 		}
-		public static void Configure(ILoggerFactory factory)
+
+		public static void Configure(ILoggerFactory factory, string logDir = null)
 		{
-			Configuration = factory.CreateLogger("Configuration");
+            LogDir = logDir;
+
+            Configuration = factory.CreateLogger("Configuration");
 			Tumbler = factory.CreateLogger("Tumbler");
 			Client = factory.CreateLogger("Client");
 			Broadcasters = factory.CreateLogger("Broadcasters");
@@ -61,5 +68,5 @@ namespace NTumbleBit.Logging
 			get; set;
 		}
 		public const int ColumnLength = 16;
-	}
+    }
 }

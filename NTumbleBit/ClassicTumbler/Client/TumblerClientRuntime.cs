@@ -84,6 +84,7 @@ namespace NTumbleBit.ClassicTumbler.Client
 
             if (!configuration.OnlyMonitor)
             {
+                DataDir = configuration.DataDir;
                 TumblerServer = configuration.TumblerServer;
                 BobSettings = configuration.BobConnectionSettings;
                 AliceSettings = configuration.AliceConnectionSettings;
@@ -180,7 +181,12 @@ namespace NTumbleBit.ClassicTumbler.Client
 			return new BroadcasterJob(Services);
 		}
 
-		public ConnectionSettingsBase BobSettings
+        public string DataDir
+        {
+            get; set;
+        }
+
+        public ConnectionSettingsBase BobSettings
 		{
 			get; set;
 		}
