@@ -21,7 +21,7 @@ import { WalletInfo } from '../../shared/classes/wallet-info';
 export class HistoryComponent implements OnInit, OnDestroy {
   private isSearching;
   private searchForm: FormGroup;
-  private txiIdLength: number = 64;
+  private txiIdLength = 64;
   private walletHistorySubscription: Subscription;
   public coinUnit: string;
   public transactions: TransactionInfo[] = [];
@@ -108,7 +108,7 @@ export class HistoryComponent implements OnInit, OnDestroy {
   }
 
   public onBlur() {
-    this.isSearching = this.searchForm.get('transactionId').value ? true : false;
+    this.isSearching = !!this.searchForm.get('transactionId').value;
   }
 
   public onClick(event) {
@@ -116,8 +116,8 @@ export class HistoryComponent implements OnInit, OnDestroy {
   }
 
   public searchTransactions() {
-    let searchValue = this.searchForm.get('transactionId').value;
-    if (searchValue) {
+    const searchValue = this.searchForm.get('transactionId').value;
+    if (!!searchValue) {
       //TODO : We probably need a regular expression to check whether transaction Id is valid when searching, check length for now.
       if (searchValue.length === this.txiIdLength) {
         this.transactions = searchValue ? this.transactions.filter(t => t.transactionId === searchValue) : this.transactions;
