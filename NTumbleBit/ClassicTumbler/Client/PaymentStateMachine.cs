@@ -178,7 +178,7 @@ namespace NTumbleBit.ClassicTumbler.Client
 			CycleParameters cycle;
 			CyclePhase phase;
 			CyclePeriod period;
-			bool isSaftyPeriod = false;
+			bool isSafetyPeriod = false;
 			if (ClientChannelNegotiation == null)
 			{
 				cycle = Parameters.CycleGenerator.GetRegisteringCycle(height);
@@ -204,23 +204,26 @@ namespace NTumbleBit.ClassicTumbler.Client
 				//If we are not in any phase we are in the SaftyPeriod.
 				if (!phases.Any(p => cycle.IsInPhase(p, height)))
 				{
-					//Find last CyclePhase 
+					//Find last CyclePhase
+					phase = CyclePhase.Registration;
 					for (int i = height - 1; i >= cycle.Start; i--)
 					{
 						if (phases.Any(p => cycle.IsInPhase(p, i)))
+						{
+							phase = phases.First(p => cycle.IsInPhase(p, i));
 							break;
+						}
 					}
-
-					phase = phases.First(p => cycle.IsInPhase(p, height));
+					
 					period = cycle.GetPeriods().GetPeriod(phase);
 					period.End += cycle.SafetyPeriodDuration;
-					isSaftyPeriod = true;
+					isSafetyPeriod = true;
 				}
 				else
 				{
 					phase = phases.First(p => cycle.IsInPhase(p, height));
 					period = cycle.GetPeriods().GetPeriod(phase);
-					isSaftyPeriod = false;
+					isSafetyPeriod = false;
 				}
 			}
 
@@ -229,7 +232,7 @@ namespace NTumbleBit.ClassicTumbler.Client
 			Logs.Client.LogInformation($"{cycle.ToString(height)} in phase {phase} ({blocksLeft} more blocks)");
 			var previousState = Status;
 
-			var progressInfo = new CycleProgressInfo(period, height, blocksLeft, cycle.Start, Status, phase, isSaftyPeriod, $"{cycle.ToString(height)} in phase {phase} ({blocksLeft} more blocks)");
+			var progressInfo = new CycleProgressInfo(period, height, blocksLeft, cycle.Start, Status, phase, isSafetyPeriod, $"{cycle.ToString(height)} in phase {phase} ({blocksLeft} more blocks)");
 
 			TumblerClient bob = null, alice = null;
 			try
@@ -464,7 +467,7 @@ namespace NTumbleBit.ClassicTumbler.Client
 								var transaction = PromiseClientSession.GetSignedTransaction(tumblingSolution);
 								Logs.Client.LogDebug("Got puzzle solution cooperatively from the tumbler");
 
-								Console.WriteLine("TumblerCashOut hex: " + transaction.ToHex());
+								Logs.Client.LogDebug("TumblerCashOut hex: {0}", transaction.ToHex());
 
 								Status = PaymentStateMachineStatus.PuzzleSolutionObtained;
 								Services.TrustedBroadcastService.Broadcast(cycle.Start, TransactionType.TumblerCashout, correlation, new TrustedBroadcastRequest()
