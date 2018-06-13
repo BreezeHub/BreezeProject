@@ -86,8 +86,7 @@ export class LoginComponent implements OnInit {
             }
           }
         }
-      )
-      ;
+      );
   }
 
   private updateWalletFileDisplay(walletName: string) {
@@ -137,8 +136,7 @@ export class LoginComponent implements OnInit {
           }
         },
         () => this.loadStratisWallet(walletLoad)
-      )
-      ;
+      );
   }
 
   private loadStratisWallet(walletLoad: WalletLoad) {
@@ -163,8 +161,7 @@ export class LoginComponent implements OnInit {
             }
           }
         }
-      )
-      ;
+      );
   }
 
   private getCurrentNetwork() {
@@ -196,7 +193,6 @@ export class LoginComponent implements OnInit {
             }
           }
         }
-      )
-      ;
+      );
   }
 }
