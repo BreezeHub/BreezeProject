@@ -55,7 +55,7 @@ namespace NTumbleBit.ClassicTumbler.Client
                         if (lastCycle != cycle.Start)
                         {
                             // Only start a new cycle if there are sufficient wallet funds
-                            bool firstCycle = ManagedCycles.All(c => c.IsComplete(height));
+                            bool firstCycle = ManagedCycles.All(c => c.IsPostRegistration(height));
                             if (Runtime.HasEnoughFundsForCycle(firstCycle))
                             {
                                 lastCycle = cycle.Start;
