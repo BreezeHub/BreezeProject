@@ -1,19 +1,16 @@
-import { Component, OnInit, OnDestroy, Input } from '@angular/core';
-import { NgbModal, NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
-
 import { ApiService } from '../../shared/services/api.service';
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Error } from '../../shared/classes/error';
 import { GlobalService } from '../../shared/services/global.service';
 import { ModalService } from '../../shared/services/modal.service';
-import { WalletInfo } from '../../shared/classes/wallet-info';
-import { Error } from '../../shared/classes/error';
-import { TransactionInfo } from '../../shared/classes/transaction-info';
-
-import { SendComponent } from '../send/send.component';
+import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { ReceiveComponent } from '../receive/receive.component';
-import { TransactionDetailsComponent } from '../transaction-details/transaction-details.component';
-
-import { Observable } from 'rxjs/Rx';
+import { SendComponent } from '../send/send.component';
 import { Subscription } from 'rxjs/Subscription';
+import { TransactionDetailsComponent } from '../transaction-details/transaction-details.component';
+import { TransactionInfo } from '../../shared/classes/transaction-info';
+import { WalletInfo } from '../../shared/classes/wallet-info';
+import { ITransaction } from 'interfaces/itransaction';
 
 @Component({
   // tslint:disable-next-line:component-selector
@@ -35,7 +32,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     private apiService: ApiService,
     private globalService: GlobalService,
     private modalService: NgbModal,
-    private genericModalService: ModalService) {}
+    private genericModalService: ModalService) { }
 
   ngOnInit() {
     this.startSubscriptions();
@@ -64,11 +61,11 @@ export class DashboardComponent implements OnInit, OnDestroy {
     const walletInfo = new WalletInfo(this.globalService.getWalletName());
     this.walletBalanceSubscription = this.apiService.getWalletBalance(walletInfo)
       .subscribe(
-        response =>  {
+        response => {
           if (response.status >= 200 && response.status < 400) {
-              const balanceResponse = response.json();
-              this.confirmedBalance = balanceResponse.balances[0].amountConfirmed;
-              this.unconfirmedBalance = balanceResponse.balances[0].amountUnconfirmed;
+            const balanceResponse = response.json();
+            this.confirmedBalance = balanceResponse.balances[0].amountConfirmed;
+            this.unconfirmedBalance = balanceResponse.balances[0].amountUnconfirmed;
           }
         },
         error => {
@@ -91,7 +88,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
           }
         }
       )
-    ;
+      ;
   };
 
   // todo: add history in seperate service to make it reusable
@@ -128,36 +125,11 @@ export class DashboardComponent implements OnInit, OnDestroy {
           }
         }
       )
-    ;
+      ;
   };
 
-  private getTransactionInfo(transactions: any) {
-    this.transactionArray = [];
-
-    for (const transaction of transactions) {
-      let transactionType;
-      if (transaction.type === 'send') {
-        transactionType = 'sent';
-      } else if (transaction.type === 'received') {
-        transactionType = 'received';
-      }
-      const transactionId = transaction.id;
-      const transactionAmount = transaction.amount;
-      let transactionFee;
-      if (transaction.fee) {
-        transactionFee = transaction.fee;
-      } else {
-        transactionFee = 0;
-      }
-      const transactionConfirmedInBlock = transaction.confirmedInBlock;
-      const transactionTimestamp = transaction.timestamp;
-
-      this.transactionArray.push(
-        new TransactionInfo(
-          transactionType, transactionId,
-          transactionAmount, transactionFee,
-          transactionConfirmedInBlock, transactionTimestamp));
-    }
+  private getTransactionInfo(transactions: Array<ITransaction>) {
+    this.transactionArray = transactions.map(transaction => new TransactionInfo(transaction));
   }
 
   private cancelSubscriptions() {

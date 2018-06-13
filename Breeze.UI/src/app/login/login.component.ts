@@ -1,14 +1,13 @@
-import { Component, OnInit } from '@angular/core';
-import { FormGroup, FormControl, Validators, FormBuilder } from '@angular/forms';
-import { Router } from '@angular/router';
-
-import { GlobalService } from '../shared/services/global.service';
 import { ApiService } from '../shared/services/api.service';
-import { ModalService } from '../shared/services/modal.service';
-
-import { WalletLoad } from '../shared/classes/wallet-load';
-import { WalletInfo } from '../shared/classes/wallet-info';
+import { Component, OnInit } from '@angular/core';
 import { Error } from '../shared/classes/error';
+import { FormGroup, Validators, FormBuilder } from '@angular/forms';
+import { formValidator } from '../shared/helpers/form-validation-helper';
+import { GlobalService } from '../shared/services/global.service';
+import { ModalService } from '../shared/services/modal.service';
+import { Router } from '@angular/router';
+import { WalletInfo } from '../shared/classes/wallet-info';
+import { WalletLoad } from '../shared/classes/wallet-load';
 
 @Component({
   selector: 'app-login',
@@ -48,31 +47,8 @@ export class LoginComponent implements OnInit {
       'selectWallet': ['', Validators.required],
       'password': ['', Validators.required]
     });
-
-    this.openWalletForm.valueChanges
-      .subscribe(data => this.onValueChanged(data));
-
-    this.onValueChanged();
-  }
-
-  onValueChanged(data?: any) {
-    if (!this.openWalletForm) { return; }
-    const form = this.openWalletForm;
-    for (const field in this.formErrors) {
-      if (!this.formErrors.hasOwnProperty(field)) {
-        continue;
-      }
-      this.formErrors[field] = '';
-      const control = form.get(field);
-      if (control && control.dirty && !control.valid) {
-        const messages = this.validationMessages[field];
-        for (const key in control.errors) {
-          if (control.errors.hasOwnProperty(key)) {
-            this.formErrors[field] += messages[key] + ' ';
-          }
-        }
-      }
-    }
+    this.openWalletForm.valueChanges.subscribe(data => formValidator(this.openWalletForm, this.formErrors, this.validationMessages));
+    formValidator(this.openWalletForm, this.formErrors, this.validationMessages)
   }
 
   private getWalletFiles() {
@@ -105,17 +81,17 @@ export class LoginComponent implements OnInit {
               console.log(error);
             } else {
               this.genericModalService.openModal(
-                  Error.toDialogOptionsWithFallbackMsg(
-                      error, null, 'Failed to get wallet files. Reason: API returned a bad request but message was not specified.'));
+                Error.toDialogOptionsWithFallbackMsg(
+                  error, null, 'Failed to get wallet files. Reason: API returned a bad request but message was not specified.'));
             }
           }
         }
       )
-    ;
+      ;
   }
 
   private updateWalletFileDisplay(walletName: string) {
-    this.openWalletForm.patchValue({selectWallet: walletName})
+    this.openWalletForm.patchValue({ selectWallet: walletName })
   }
 
   private onCreateClicked() {
@@ -162,7 +138,7 @@ export class LoginComponent implements OnInit {
         },
         () => this.loadStratisWallet(walletLoad)
       )
-    ;
+      ;
   }
 
   private loadStratisWallet(walletLoad: WalletLoad) {
@@ -188,7 +164,7 @@ export class LoginComponent implements OnInit {
           }
         }
       )
-    ;
+      ;
   }
 
   private getCurrentNetwork() {
@@ -221,6 +197,6 @@ export class LoginComponent implements OnInit {
           }
         }
       )
-    ;
+      ;
   }
 }

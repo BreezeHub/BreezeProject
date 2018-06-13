@@ -1,37 +1,47 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
-import { NgbModal, NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
-
 import { ApiService } from '../../shared/services/api.service';
-import { GlobalService } from '../../shared/services/global.service';
-import { ModalService } from '../../shared/services/modal.service';
-
-import { WalletInfo } from '../../shared/classes/wallet-info';
-import { TransactionInfo } from '../../shared/classes/transaction-info';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Error } from '../../shared/classes/error';
-
-import { Observable } from 'rxjs/Rx';
+import { FormGroup, FormControl, Validators, FormBuilder } from '@angular/forms';
+import { formValidator } from '../../shared/helpers/form-validation-helper';
+import { GlobalService } from '../../shared/services/global.service';
+import { ITransaction } from 'interfaces/itransaction'
+import { ModalService } from '../../shared/services/modal.service';
+import { NgbModal, NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { Subscription } from 'rxjs/Subscription';
-
 import { TransactionDetailsComponent } from '../transaction-details/transaction-details.component';
+import { TransactionInfo } from '../../shared/classes/transaction-info';
+import { WalletInfo } from '../../shared/classes/wallet-info';
+
 
 @Component({
-  // tslint:disable-next-line:component-selector
   selector: 'history-component',
   templateUrl: './history.component.html',
   styleUrls: ['./history.component.css'],
 })
-
 export class HistoryComponent implements OnInit, OnDestroy {
-  public transactions: TransactionInfo[];
-  public coinUnit: string;
-  private errorMessage: string;
+  private isSearching;
+  private searchForm: FormGroup;
+  private txiIdLength: number = 64;
   private walletHistorySubscription: Subscription;
+  public coinUnit: string;
+  public transactions: TransactionInfo[] = [];
+  private formErrors = {
+    'transactionId': ''
+  };
+  private validationMessages = {
+    'transactionId': {
+      'required': 'Please enter transaction id.'
+    }
+  };
 
   constructor(
     private apiService: ApiService,
     private globalService: GlobalService,
     private modalService: NgbModal,
-    private genericModalService: ModalService) {}
+    private genericModalService: ModalService,
+    private fb: FormBuilder) {
+    this.buildSearchFormValidation();
+  }
 
   ngOnInit() {
     this.startSubscriptions();
@@ -42,12 +52,20 @@ export class HistoryComponent implements OnInit, OnDestroy {
     this.cancelSubscriptions();
   }
 
-  private openTransactionDetailDialog(transaction: any) {
+  buildSearchFormValidation() {
+    this.searchForm = this.fb.group({
+      'transactionId': ['', Validators.required]
+    });
+    this.searchForm.valueChanges.subscribe(data => formValidator(this.searchForm, this.formErrors, this.validationMessages));
+    formValidator(this.searchForm, this.formErrors, this.validationMessages)
+  }
+
+  private openTransactionDetailDialog(transaction: ITransaction) {
     const modalRef = this.modalService.open(TransactionDetailsComponent);
     modalRef.componentInstance.transaction = transaction;
   }
 
-    // todo: add history in seperate service to make it reusable
+  // todo: add history in seperate service to make it reusable
   private getHistory() {
     const walletInfo = new WalletInfo(this.globalService.getWalletName())
     let historyResponse;
@@ -56,8 +74,10 @@ export class HistoryComponent implements OnInit, OnDestroy {
         response => {
           if (response.status >= 200 && response.status < 400) {
             if (response.json().transactionsHistory.length > 0) {
-              historyResponse = response.json().transactionsHistory;
-              this.getTransactionInfo(historyResponse);
+              if (!this.isSearching) {
+                historyResponse = response.json().transactionsHistory;
+                this.getTransactionInfo(historyResponse);
+              }
             }
           }
         },
@@ -80,39 +100,34 @@ export class HistoryComponent implements OnInit, OnDestroy {
             }
           }
         }
-      )
-    ;
+      );
   };
 
-  private getTransactionInfo(transactions: any) {
-    this.transactions = [];
+  private getTransactionInfo(transactions: Array<ITransaction>) {
+    this.transactions = transactions.map(transaction => new TransactionInfo(transaction));
+  }
 
-    for (const transaction of transactions) {
-      let transactionType;
-      if (transaction.type === 'send') {
-        transactionType = 'sent';
-      } else if (transaction.type === 'received') {
-        transactionType = 'received';
-      }
-      const transactionId = transaction.id;
-      const transactionAmount = transaction.amount;
-      let transactionFee;
-      if (transaction.fee) {
-        transactionFee = transaction.fee;
+  public onBlur() {
+    this.isSearching = this.searchForm.get('transactionId').value ? true : false;
+  }
+
+  public onClick(event) {
+    event.target.select();
+  }
+
+  public searchTransactions() {
+    let searchValue = this.searchForm.get('transactionId').value;
+    if (searchValue) {
+      //TODO : We probably need a regular expression to check whether transaction Id is valid when searching, check length for now.
+      if (searchValue.length === this.txiIdLength) {
+        this.transactions = searchValue ? this.transactions.filter(t => t.transactionId === searchValue) : this.transactions;
+        this.isSearching = true;
       } else {
-        transactionFee = 0;
+        this.formErrors.transactionId = 'Transaction id not valid';
       }
-      const transactionConfirmedInBlock = transaction.confirmedInBlock;
-      const transactionTimestamp = transaction.timestamp;
 
-      this.transactions.push(
-        new TransactionInfo(
-          transactionType,
-          transactionId,
-          transactionAmount,
-          transactionFee,
-          transactionConfirmedInBlock,
-          transactionTimestamp));
+    } else {
+      this.isSearching = false;
     }
   }
 

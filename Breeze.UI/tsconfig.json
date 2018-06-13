@@ -13,7 +13,10 @@
     "paths": {
       "environments": [
         "./environments"
-      ]
+      ],
+      "interfaces": [
+        "./interfaces/*"
+    ],
     },
     "types": [
       "node",
