@@ -313,7 +313,7 @@ namespace NTumbleBit.ClassicTumbler.Client
             }
             else
             {
-                Logs.Client.LogInformation($"Performing wallet balance check taking into account funds already allocated to previous cycle; {walletBalance}(walletBalance) = {walletBalance}(current balance) - {fundsAllocatedToPreviousCycle}(fundsAllocatedToPreviousCycle), {minimumBalance}(minimumBalance) = {this.TumblerParameters.Denomination}(denomination) + {this.TumblerParameters.Fee}(masternode fee) + {networkFee}(network fees)");
+                Logs.Client.LogInformation($"Performing wallet balance check taking into account funds already allocated to previous cycle; {walletBalance - fundsAllocatedToPreviousCycle}(walletBalance) = {walletBalance}(current balance) - {fundsAllocatedToPreviousCycle}(fundsAllocatedToPreviousCycle), {minimumBalance}(minimumBalance) = {this.TumblerParameters.Denomination}(denomination) + {this.TumblerParameters.Fee}(masternode fee) + {networkFee}(network fees)");
                 return walletBalance >= minimumBalance + fundsAllocatedToPreviousCycle;
             }
         }
