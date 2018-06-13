@@ -163,7 +163,7 @@ namespace NTumbleBit.ClassicTumbler.Client
 				return default(T);
             if (result.Content?.Headers?.ContentLength > MaxContentLength)
             {
-                Logs.Client.LogError($"Content is larger than max content lenth of {MaxContentLength}bytes for request to: {uri}\nRequest Body: \"{body.ToString()}\"");
+                Logs.Client.LogError($"Content is larger than max content length of {MaxContentLength}bytes for request to: {uri}\nRequest Body: \"{body.ToString()}\"");
                 throw new IOException("Content is too big");
             }
 
