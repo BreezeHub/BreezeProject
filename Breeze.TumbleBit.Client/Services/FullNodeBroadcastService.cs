@@ -108,17 +108,20 @@ namespace Breeze.TumbleBit.Client.Services
 
                 if (this.TumblingState.TumblerNetwork != Network.RegTest)
                 {
-                    // Check number of attached peers - if there is only 1 (or 0) there is a significantly higher risk
-                    // the transaction will not get adequately propagated on the network
-                    if (this.TumblingState.ConnectionManager.ConnectedPeers.Count() < 4)
+                    // Check number of attached peers - if there aren't enough there is
+                    // a significantly higher risk the transaction will not get adequately
+                    // propagated on the network.
+                    // TODO: Revisit this when SBFN connection manager reliably maintains
+                    // a peer count of ~8 continuously
+                    if (this.TumblingState.ConnectionManager.ConnectedPeers.Count() < 1)
                     {
-                        Logs.Broadcasters.LogDebug("Insufficient peers for reliable transaction (" + tx.Transaction.GetHash() + ") propagation: " + this.TumblingState.ConnectionManager.ConnectedPeers.Count());
+                        Logs.Broadcasters.LogDebug($"Insufficient peers for reliable transaction ({tx.Transaction.GetHash()}) propagation: {this.TumblingState.ConnectionManager.ConnectedPeers.Count()}");
                         return false;
                     }
                 }
 
                 // Use the node's broadcast manager for all networks
-                Logs.Broadcasters.LogDebug("Trying to broadcast transaction: " + tx.Transaction.GetHash());
+                Logs.Broadcasters.LogDebug($"Trying to broadcast transaction: {tx.Transaction.GetHash()}");
 
                 await this.TumblingState.BroadcasterManager.BroadcastTransactionAsync(tx.Transaction).ConfigureAwait(false);
                 var bcResult = TumblingState.BroadcasterManager.GetTransaction(tx.Transaction.GetHash()).State;
@@ -131,7 +134,7 @@ namespace Breeze.TumbleBit.Client.Services
                         {
                             TumblingState.WatchOnlyWalletManager.WatchScriptPubKey(output.ScriptPubKey);
                         }
-                        Logs.Broadcasters.LogDebug("Broadcasted transaction: " + tx.Transaction.GetHash());
+                        Logs.Broadcasters.LogDebug($"Broadcasted transaction: {tx.Transaction.GetHash()}");
                         return true;
                         break;
                     case Stratis.Bitcoin.Broadcasting.State.ToBroadcast:
@@ -144,7 +147,7 @@ namespace Breeze.TumbleBit.Client.Services
                             var transactionEntry = this.TumblingState.BroadcasterManager.GetTransaction(tx.Transaction.GetHash());
                             if (transactionEntry != null && transactionEntry.State == Stratis.Bitcoin.Broadcasting.State.Propagated)
                             {
-                                Logs.Broadcasters.LogDebug("Propagated transaction: " + tx.Transaction.GetHash());
+                                Logs.Broadcasters.LogDebug($"Propagated transaction: {tx.Transaction.GetHash()}");
                                 // Have to presume propagated = broadcasted when we are operating as a light wallet (or on regtest)
                                 return true;
                             }
@@ -153,12 +156,12 @@ namespace Breeze.TumbleBit.Client.Services
                         }
                         break;
                     case Stratis.Bitcoin.Broadcasting.State.CantBroadcast:
-                        Logs.Broadcasters.LogDebug("Could not broadcast transaction: " + tx.Transaction.GetHash());
+                        Logs.Broadcasters.LogDebug($"Could not broadcast transaction: {tx.Transaction.GetHash()}");
                         // Do nothing
                         break;
                 }
 
-                Logs.Broadcasters.LogDebug("Broadcast status uncertain for transaction: " + tx.Transaction.GetHash());
+                Logs.Broadcasters.LogDebug($"Broadcast status uncertain for transaction: {tx.Transaction.GetHash()}");
 
                 return false;
             }
