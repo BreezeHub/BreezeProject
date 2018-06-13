@@ -170,7 +170,12 @@ namespace NTumbleBit.ClassicTumbler
             return GetPeriods().Total.End <= blockHeight;
         }
 
-        public bool IsInPhase(CyclePhase phase, int blockHeight)
+		public bool IsPostRegistration(int blockHeight)
+		{
+			return GetPeriods().ClientChannelEstablishment.End <= blockHeight;
+		}
+
+		public bool IsInPhase(CyclePhase phase, int blockHeight)
 		{
 			var periods = GetPeriods();
 			return periods.IsInPhase(phase, blockHeight);
