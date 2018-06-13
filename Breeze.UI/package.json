@@ -28,7 +28,6 @@
     "build": "webpack --display-error-details && npm run build:electron:main",
     "build:prod": "cross-env NODE_ENV=production npm run build",
     "build:styling": "node-sass --output-style expanded --source-map true --precision 6 ./src/scss/bootstrap.scss ./src/styles.css",
-    "build:styling:watch": "node-sass --watch --output-style expanded --source-map true --precision 6 ./src/scss/bootstrap.scss ./src/styles.css",
     "electron:serve": "npm run build:electron:main && electron ./dist --serve",
     "electron:test": "electron ./dist",
     "electron:dev": "npm run build && electron ./dist",

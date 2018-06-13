@@ -117,6 +117,10 @@ code {
   cursor: pointer !important;
 }
 
+#sidebar .menu li:hover .bar {
+  opacity: 0;
+}
+
 #sidebar .menu li img {
   width: 42px;
 }
