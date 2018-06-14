@@ -10,8 +10,13 @@
           <!--<div class="form-group has-danger clearfix">-->
             <div class="form-group clearfix">
             <label class="float-left" for="Amount">Amount</label>
-            <!-- <span class="float-right btn-link" (click)="getMaxBalance()">max</span> -->
-            <input type="text" class="form-control form-control-danger" formControlName="amount" id="Amount" placeholder="0.00 {{ coinUnit }}">
+            <input type="text" [attr.disabled]="maxSelected ? '' : null" class="form-control form-control-danger" formControlName="amount" id="Amount" placeholder="0.00 {{ coinUnit }}">
+            <div class="slider mt-10">
+              <input type="checkbox" (change)="processMaxSelectedChange()" id="maxSelected" type="checkbox" name="slider" class="slider-checkbox">
+              <label class="slider-label" for="maxSelected">
+                <span class="slider-inner"></span>
+              </label>
+            </div>
             <div *ngIf="formErrors.amount" class="form-control-feedback">{{ formErrors.amount }}</div>
           </div>
           <!--<div class="form-group has-success">-->
@@ -24,13 +29,13 @@
             <label>Transaction Fee</label>
             <!-- fee buttons -->
               <div class="radioButtons" ngbRadioGroup name="feeButtons" formControlName="fee">
-                <label ngbButtonLabel class="btn btn-outline-danger">
+                <label ngbButtonLabel class="btn btn-outline-danger pointer">
                   <input ngbButton type="radio" value="low">Low/Slow
                 </label>
-                <label ngbButtonLabel class="btn btn-outline-warning mx-2">
+                <label ngbButtonLabel class="btn btn-outline-warning mx-2 pointer">
                   <input ngbButton type="radio" value="medium">Medium
                 </label>
-                <label ngbButtonLabel class="btn btn-outline-success">
+                <label ngbButtonLabel class="btn btn-outline-success pointer">
                   <input ngbButton type="radio" value="high">High/Fast
                 </label>
               </div>

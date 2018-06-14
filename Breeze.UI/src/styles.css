@@ -3676,6 +3676,80 @@ select.form-control-lg:not([size]):not([multiple]), .input-group-lg > select.for
   }
 }
 
+.pointer {
+  cursor: pointer;
+}
+
+.slider {
+  border: none;
+  position: relative;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  width: 125px;
+  margin-top: 10px;
+}
+
+.slider-checkbox {
+  display: none;
+}
+
+.slider-label {
+  border: 2px solid #666;
+  border-radius: 20px;
+  cursor: pointer;
+  display: block;
+  overflow: hidden;
+}
+
+.slider-inner {
+  display: block;
+  margin-left: -100%;
+  -webkit-transition: margin 0.1s ease-in 0s;
+  transition: margin 0.1s ease-in 0s;
+  width: 200%;
+}
+
+.slider-inner:before,
+.slider-inner:after {
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box;
+  display: block;
+  float: left;
+  font-family: sans-serif;
+  font-size: 12px;
+  font-weight: bold;
+  height: 25px;
+  line-height: 25px;
+  padding: 0;
+  width: 50%;
+}
+
+.slider-inner:before {
+  background-color: #20B7C1;
+  color: #fff;
+  content: "SEND MAX";
+  padding-left: .55em;
+  text-align: center;
+}
+
+.slider-inner:after {
+  background-color: #eee;
+  color: #666;
+  content: "SEND MAX";
+  text-align: center;
+}
+
+.slider-checkbox:checked + .slider-label .slider-inner {
+  margin-left: 0;
+}
+
+.slider-checkbox:checked + .slider-label .slider-circle {
+  background-color: #eee;
+  right: 0;
+}
+
 .btn {
   display: inline-block;
   font-weight: normal;

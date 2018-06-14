@@ -1,20 +1,16 @@
-import { Component, OnInit } from '@angular/core';
-import { FormGroup, FormControl, Validators, FormBuilder } from '@angular/forms';
-
 import { ApiService } from '../../shared/services/api.service';
-import { GlobalService } from '../../shared/services/global.service';
-import { ModalService } from '../../shared/services/modal.service';
 import { CoinNotationPipe } from '../../shared/pipes/coin-notation.pipe';
-
-import { NgbModal, NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
-
+import { Component, OnInit } from '@angular/core';
+import { Error } from '../../shared/classes/error';
 import { FeeEstimation } from '../../shared/classes/fee-estimation';
+import { FormGroup, FormControl, Validators, FormBuilder } from '@angular/forms';
+import { GlobalService } from '../../shared/services/global.service';
+import { Log } from '../../shared/services/logger.service';
+import { ModalService } from '../../shared/services/modal.service';
+import { NgbModal, NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
+import { SendConfirmationComponent } from './send-confirmation/send-confirmation.component';
 import { TransactionBuilding } from '../../shared/classes/transaction-building';
 import { TransactionSending } from '../../shared/classes/transaction-sending';
-import { Error } from '../../shared/classes/error';
-import { Log } from '../../shared/services/logger.service';
-
-import { SendConfirmationComponent } from './send-confirmation/send-confirmation.component';
 
 @Component({
   selector: 'send-component',
@@ -30,8 +26,8 @@ export class SendComponent implements OnInit {
   public apiError: string;
   private transactionHex: string;
   private responseMessage: any;
-  private errorMessage: string;
   private transaction: TransactionBuilding;
+  private maxSelected = false;
 
   formErrors = {
     'address': '',
@@ -83,7 +79,27 @@ export class SendComponent implements OnInit {
     this.sendForm.valueChanges
       .subscribe(data => this.onValueChanged(data));
 
+    this.feeSubscription();
+
     this.onValueChanged();
+  }
+
+  feeSubscription() {
+    this.sendForm.controls['fee'].valueChanges.subscribe((value) => {
+      if (this.maxSelected) {
+        this.getMaxBalance();
+      }
+    })
+  }
+
+  processMaxSelectedChange() {
+    this.maxSelected = !this.maxSelected;
+    if (this.maxSelected) {
+      this.getMaxBalance();
+    } else {
+      this.sendForm.patchValue({ amount: 0 });
+      this.estimatedFee = 0;
+    }
   }
 
   onValueChanged(data?: any) {
@@ -102,11 +118,11 @@ export class SendComponent implements OnInit {
         }
       }
     }
-
     this.apiError = '';
-
     if (this.sendForm.get('address').valid && this.sendForm.get('amount').valid) {
-      this.estimateFee();
+      if (!this.maxSelected) {
+        this.estimateFee();
+      }
     }
   }
 
@@ -139,8 +155,9 @@ export class SendComponent implements OnInit {
           }
         },
         () => {
-          this.sendForm.patchValue({amount: +new CoinNotationPipe(this.globalService).transform(balanceResponse.maxSpendableAmount)});
+          this.sendForm.patchValue({ amount: +new CoinNotationPipe(this.globalService).transform(balanceResponse.maxSpendableAmount) });
           this.estimatedFee = balanceResponse.fee;
+          this.maxSelected = true;
         }
       )
   };
@@ -179,7 +196,7 @@ export class SendComponent implements OnInit {
           this.estimatedFee = this.responseMessage;
         }
       )
-    ;
+      ;
   }
 
   public buildTransaction() {
@@ -223,7 +240,7 @@ export class SendComponent implements OnInit {
           }
         }
       )
-    ;
+      ;
   };
 
   public send() {
@@ -256,7 +273,7 @@ export class SendComponent implements OnInit {
         },
         () => this.openConfirmationModal()
       )
-    ;
+      ;
   }
 
   private openConfirmationModal() {
