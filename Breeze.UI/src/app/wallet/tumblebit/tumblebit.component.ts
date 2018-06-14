@@ -40,8 +40,8 @@ export class TumblebitComponent implements OnDestroy {
   public destinationTotalBalance: number;
   public destinationWalletBalanceSubscription: Subscription;
   public connectionSubscription: Subscription;
-  public isConnected: boolean = false;
-  public isSynced: Boolean = false;
+  public isConnected = false;
+  public isSynced = false;
   private walletStatusSubscription: Subscription;
   public tumblerAddressCopied = false;
   public tumblerParameters: any;
@@ -53,11 +53,11 @@ export class TumblebitComponent implements OnDestroy {
   private progressSubscription: Subscription;
   public progressDataArray: CycleInfo[];
   public tumbleForm: FormGroup;
-  public tumbling: boolean = false;
+  public tumbling = false;
   private connectForm: FormGroup;
   public wallets: [string];
   public tumblerAddress = 'Connecting...';
-  public hasRegistrations: Boolean = false;
+  public hasRegistrations = false;
   public connectionInProgress = false;
   public operation: 'connect' | 'changeserver' = 'connect';
   private timer: any;
@@ -78,6 +78,10 @@ export class TumblebitComponent implements OnDestroy {
     }
   }
 
+  private static isNavigationEnd(event: RouterEvent, path: string): boolean {
+    return (event instanceof NavigationEnd && event.url === path);
+  }
+
   constructor(
     private apiService: ApiService,
     private tumblebitService: TumblebitService,
@@ -85,7 +89,7 @@ export class TumblebitComponent implements OnDestroy {
     private modalService: NgbModal,
     private genericModalService: ModalService,
     private fb: FormBuilder,
-    private router: Router) { 
+    private router: Router) {
 
       this.buildTumbleForm();
       this.start();
@@ -106,16 +110,12 @@ export class TumblebitComponent implements OnDestroy {
     return !this.tumbling && this.isConnected;
   }
 
-  private static isNavigationEnd(event: RouterEvent, path: string): boolean {
-    return (event instanceof NavigationEnd && event.url === path);
-  }
-
   private start(): void {
     const routerEvents = this.router.events;
     const $1 = routerEvents.filter(x => this.started && TumblebitComponent.isNavigationEnd(<RouterEvent>x, this.loginPath))
                            .subscribe(_ => this.stop());
 
-    const $2 = routerEvents.filter(x => !this.started && TumblebitComponent.isNavigationEnd(<RouterEvent>x, this.routerPath)) 
+    const $2 = routerEvents.filter(x => !this.started && TumblebitComponent.isNavigationEnd(<RouterEvent>x, this.routerPath))
                            .subscribe(_ => {
 
         this.operation = 'connect';
@@ -162,7 +162,7 @@ export class TumblebitComponent implements OnDestroy {
     this.isConnected = false;
 
     console.log('stopped');
-    
+
     this.started = false;
   }
 
@@ -203,9 +203,9 @@ export class TumblebitComponent implements OnDestroy {
   }
 
   private checkWalletStatus(): Subscription {
-    
+
     this.isSynced = false;
-    
+
     const walletInfo = new WalletInfo(this.globalService.getWalletName())
     return this.apiService.getGeneralInfo(walletInfo)
       .subscribe(
@@ -225,7 +225,7 @@ export class TumblebitComponent implements OnDestroy {
             if (!firstError) {
               console.log(error);
             } else if (firstError.description) {
-              this.genericModalService.openModal(Error.toDialogOptions(error, null)); 
+              this.genericModalService.openModal(Error.toDialogOptions(error, null));
             }
           }
         }
@@ -233,7 +233,7 @@ export class TumblebitComponent implements OnDestroy {
   }
 
   private checkTumblingStatus(): Subscription {
-    
+
     this.hasRegistrations = this.tumbling = false;
 
     return this.tumblebitService.getTumblingState()
@@ -339,10 +339,10 @@ export class TumblebitComponent implements OnDestroy {
         error => {
 
           this.stopConnectionRequest();
-          
+
           console.error(error);
           this.isConnected = false;
-		  
+
           if (error.status === 0) {
             this.genericModalService.openModal(
               Error.toDialogOptions('Failed to connect to tumbler. Reason: API is not responding or timing out.', null));
