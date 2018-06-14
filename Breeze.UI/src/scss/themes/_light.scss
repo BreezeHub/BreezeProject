@@ -106,7 +106,7 @@ $btn-primary-color: $white !important;
         }
         li {
           line-height: 2.5em;
-          &.transactionDate {color: $gray-light;}
+          &.transactionDate {color: darken($gray-light, 50%)}
         }
       }
     }

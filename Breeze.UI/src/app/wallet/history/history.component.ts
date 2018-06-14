@@ -8,7 +8,6 @@ import { Transaction } from 'interfaces/transaction'
 import { ModalService } from '../../shared/services/modal.service';
 import { NgbModal, NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { Subscription } from 'rxjs/Subscription';
-import { TransactionDetailsComponent } from '../transaction-details/transaction-details.component';
 import { TransactionInfo } from '../../shared/classes/transaction-info';
 import { WalletInfo } from '../../shared/classes/wallet-info';
 
@@ -58,11 +57,6 @@ export class HistoryComponent implements OnInit, OnDestroy {
     });
     this.searchForm.valueChanges.subscribe(data => formValidator(this.searchForm, this.formErrors, this.validationMessages));
     formValidator(this.searchForm, this.formErrors, this.validationMessages)
-  }
-
-  private openTransactionDetailDialog(transaction: Transaction) {
-    const modalRef = this.modalService.open(TransactionDetailsComponent);
-    modalRef.componentInstance.transaction = transaction;
   }
 
   // todo: add history in seperate service to make it reusable

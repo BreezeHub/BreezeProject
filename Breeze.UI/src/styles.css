@@ -117,10 +117,6 @@ code {
   cursor: pointer !important;
 }
 
-#sidebar .menu li:hover .bar {
-  opacity: 0;
-}
-
 #sidebar .menu li img {
   width: 42px;
 }
@@ -10256,7 +10252,7 @@ a.text-gray-dark:focus, a.text-gray-dark:hover {
 }
 
 #content.bitcoin #transaction .card li.transactionDate {
-  color: #BAC4D1;
+  color: #384454;
 }
 
 #content.bitcoin #Tumblebit i {

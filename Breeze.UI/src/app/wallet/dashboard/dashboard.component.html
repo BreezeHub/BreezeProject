@@ -1,4 +1,4 @@
- <section id="breeze">
+<section id="breeze">
   <!-- CONTENT -->
   <section id="content" class="bitcoin">
     <!-- JUMBOTRON-->
@@ -49,31 +49,18 @@
 
     <!-- TRANSACTIONS -->
     <section id="transaction" class="col-10 mx-auto">
-      <h5>Latest Transactions</h5>
+      <h5>Displaying the latest 3 transactions</h5>
       <div *ngIf="transactionArray; else noTransactions">
+       
         <div *ngFor="let transaction of transactionArray; let i=index">
-          <div class="card" *ngIf="i<3" (click)="openTransactionDetailDialog(transaction)">
-            <div class="card-block text-nowrap">
-              <ul class="list-inline row">
-                <li class="list-inline-item hidden-xs-down col-3 text-uppercase align-bottom">{{ transaction.transactionType }}</li>
-                <li class="list-inline-item col-4 amount text-left align-baseline">
-                  <span *ngIf="transaction.transactionType == 'received'" class="text-success">+</span>
-                  <span *ngIf="transaction.transactionType == 'sent'" class="text-danger">-</span>
-                  {{ transaction.transactionAmount + transaction.transactionFee | coinNotation }}
-                  <small class="text-uppercase">{{ coinUnit }}</small>
-                </li>
-                <li class="list-inline-item col amount text-left align-baseline">
-                  <span *ngIf="transaction.transactionConfirmedInBlock" class="badge badge-success text-capitalize">Confirmed</span>
-                  <span *ngIf="!transaction.transactionConfirmedInBlock" class="badge badge-warning text-capitalize">Pending</span>
-                </li>
-                <li class="list-inline-item col text-right align-baseline transactionDate">{{ transaction.transactionTimestamp * 1000 | date:'medium' }}</li>
-              </ul>
-            </div>
+          <div *ngIf="i<3">
+              <app-transaction [transaction]="transaction"></app-transaction>
           </div>
-          <!-- /card-->
         </div>
       </div>
-      <ng-template #noTransactions><em class="muted">Looks like you haven't made any transactions yet.</em></ng-template>
+      <ng-template #noTransactions>
+        <em class="muted">Looks like you haven't made any transactions yet.</em>
+      </ng-template>
     </section>
     <!-- /TRANSACTIONS -->
     <status-bar></status-bar>

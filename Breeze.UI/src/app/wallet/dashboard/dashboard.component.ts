@@ -7,7 +7,6 @@ import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { ReceiveComponent } from '../receive/receive.component';
 import { SendComponent } from '../send/send.component';
 import { Subscription } from 'rxjs/Subscription';
-import { TransactionDetailsComponent } from '../transaction-details/transaction-details.component';
 import { TransactionInfo } from '../../shared/classes/transaction-info';
 import { WalletInfo } from '../../shared/classes/wallet-info';
 import { Transaction } from 'interfaces/transaction';
@@ -37,7 +36,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.startSubscriptions();
     this.walletName = this.globalService.getWalletName();
-    this.coinUnit = this.globalService.getCoinUnit();
   };
 
   ngOnDestroy() {
@@ -51,11 +49,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
   public openReceiveDialog() {
     const modalRef = this.modalService.open(ReceiveComponent);
   };
-
-  public openTransactionDetailDialog(transaction: TransactionInfo) {
-    const modalRef = this.modalService.open(TransactionDetailsComponent);
-    modalRef.componentInstance.transaction = transaction;
-  }
 
   private getWalletBalance() {
     const walletInfo = new WalletInfo(this.globalService.getWalletName());
