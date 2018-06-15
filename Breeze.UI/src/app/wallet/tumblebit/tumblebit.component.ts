@@ -122,6 +122,7 @@ export class TumblebitComponent implements OnDestroy {
         this.operation = 'connect';
         this.tumblerAddress = 'Connecting...';
         this.coinUnit = this.globalService.getCoinUnit();
+        this.connectionFatalError = false;
 
         this.startSubscriptions = new CompositeDisposable([
           this.checkTumblingStatus(),
