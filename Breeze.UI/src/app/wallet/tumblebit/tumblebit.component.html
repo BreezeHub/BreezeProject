@@ -66,10 +66,10 @@
               <tr>
                 <td>
                   <div>
-                    <code data-toggle="tooltip" style="float: left; margin-right:15px"  data-placement="top" title="{{ tumblerAddress }}">{{ tumblerAddress }}</code>  
-                    <app-connection-progress *ngIf="!isConnected" style="display: inline-flex; vertical-align: middle" 
+                    <code data-toggle="tooltip" style="float: left; margin-right:15px"  data-placement="top" title="{{ tumblerAddress }}">{{ tumblerAddress }}</code>
+                    <app-connection-progress *ngIf="!isConnected" style="display: inline-flex; vertical-align: middle"
                                 [durationSeconds]="connectionRequestTimeoutSeconds" [run]="connectionInProgress"></app-connection-progress>
-                  </div>  
+                  </div>
                 </td>
               </tr>
             </tbody>
@@ -87,18 +87,18 @@
             <tbody>
               <tr>
                 <td>Available</td>
-                <td>{{ confirmedBalance | coinNotation }}</td>
-                <td>{{ (destinationConfirmedBalance | coinNotation) || "Select destination wallet" }}</td>
+                <td>{{ confirmedBalance | coinNotation }} {{ coinUnit }}</td>
+                <td>{{ (destinationConfirmedBalance | coinNotation) || "Select destination wallet" }}  {{ (!!destinationConfirmedBalance ? coinUnit : '') }}</td>
               </tr>
               <tr>
                 <td>Pending</td>
-                <td>{{ unconfirmedBalance | coinNotation }}</td>
-                <td>{{ (destinationUnconfirmedBalance | coinNotation) || "Select destination wallet" }}</td>
+                <td>{{ unconfirmedBalance | coinNotation }} {{ coinUnit }}</td>
+                <td>{{ (destinationUnconfirmedBalance | coinNotation) || "Select destination wallet" }} {{ (!!destinationUnconfirmedBalance ? coinUnit : '') }}</td>
               </tr>
               <tr class="total">
                 <td>Total</td>
-                <td>{{ totalBalance | coinNotation }}</td>
-                <td>{{ (destinationTotalBalance | coinNotation) || "Select destination wallet" }}</td>
+                <td>{{ totalBalance | coinNotation }} {{ coinUnit }}</td>
+                <td>{{ (destinationTotalBalance | coinNotation) || "Select destination wallet" }} {{ (!!destinationTotalBalance ? coinUnit : '') }}</td>
               </tr>
             </tbody>
           </table>

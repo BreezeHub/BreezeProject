@@ -43,8 +43,8 @@ export class TumblebitComponent implements OnDestroy {
   public destinationTotalBalance: number;
   public destinationWalletBalanceSubscription: Subscription;
   public connectionSubscription: Subscription;
-  public isConnected: boolean = false;
-  public isSynced: Boolean = false;
+  public isConnected = false;
+  public isSynced = false;
   private walletStatusSubscription: Subscription;
   public tumblerAddressCopied = false;
   public tumblerParameters: any;
@@ -56,11 +56,11 @@ export class TumblebitComponent implements OnDestroy {
   private progressSubscription: Subscription;
   public progressDataArray: CycleInfo[];
   public tumbleForm: FormGroup;
-  public tumbling: boolean = false;
+  public tumbling = false;
   private connectForm: FormGroup;
   public wallets: [string];
   public tumblerAddress = 'Connecting...';
-  public hasRegistrations: Boolean = false;
+  public hasRegistrations = false;
   public connectionInProgress = false;
   public operation: 'connect' | 'changeserver' = 'connect';
   private timer: any;
@@ -70,6 +70,7 @@ export class TumblebitComponent implements OnDestroy {
   private readonly loginPath = '/login';
   private routerSubscriptions: CompositeDisposable;
   private startSubscriptions: CompositeDisposable;
+  private connectionFatalError = false;
 
   tumbleFormErrors = {
     'selectWallet': ''
@@ -81,6 +82,10 @@ export class TumblebitComponent implements OnDestroy {
     }
   }
 
+  private static isNavigationEnd(event: RouterEvent, path: string): boolean {
+    return (event instanceof NavigationEnd && event.url === path);
+  }
+
   constructor(
     private apiService: ApiService,
     private tumblebitService: TumblebitService,
@@ -88,7 +93,7 @@ export class TumblebitComponent implements OnDestroy {
     private modalService: NgbModal,
     private genericModalService: ModalService,
     private fb: FormBuilder,
-    private router: Router) { 
+    private router: Router) {
 
       this.buildTumbleForm();
       this.start();
@@ -109,22 +114,19 @@ export class TumblebitComponent implements OnDestroy {
     return !this.tumbling && this.isConnected;
   }
 
-  private static isNavigationEnd(event: RouterEvent, path: string): boolean {
-    return (event instanceof NavigationEnd && event.url === path);
-  }
-
   private start(): void {
     const routerEvents = this.router.events;
     const $1 = routerEvents.filter(x => this.started && TumblebitComponent.isNavigationEnd(<RouterEvent>x, this.loginPath))
                            .subscribe(_ => this.stop());
 
-    const $2 = routerEvents.filter(x => !this.started && TumblebitComponent.isNavigationEnd(<RouterEvent>x, this.routerPath)) 
+    const $2 = routerEvents.filter(x => !this.started && TumblebitComponent.isNavigationEnd(<RouterEvent>x, this.routerPath))
                            .subscribe(_ => {
 
         this.destroyed$ = new ReplaySubject<any>();
         this.operation = 'connect';
         this.tumblerAddress = 'Connecting...';
         this.coinUnit = this.globalService.getCoinUnit();
+        this.connectionFatalError = false;
 
         this.startSubscriptions = new CompositeDisposable([
           this.checkTumblingStatus(),
@@ -166,7 +168,7 @@ export class TumblebitComponent implements OnDestroy {
     this.isConnected = false;
 
     console.log('stopped');
-    
+
     this.started = false;
   }
 
@@ -207,9 +209,9 @@ export class TumblebitComponent implements OnDestroy {
   }
 
   private checkWalletStatus(): Subscription {
-    
+
     this.isSynced = false;
-    
+
     const walletInfo = new WalletInfo(this.globalService.getWalletName())
     return this.apiService.getGeneralInfo(walletInfo)
       .subscribe(
@@ -229,7 +231,7 @@ export class TumblebitComponent implements OnDestroy {
             if (!firstError) {
               console.log(error);
             } else if (firstError.description) {
-              this.genericModalService.openModal(Error.toDialogOptions(error, null)); 
+              this.genericModalService.openModal(Error.toDialogOptions(error, null));
             }
           }
         }
@@ -237,7 +239,7 @@ export class TumblebitComponent implements OnDestroy {
   }
 
   private checkTumblingStatus(): Subscription {
-    
+
     this.hasRegistrations = this.tumbling = false;
 
     return this.tumblebitService.getTumblingState()
@@ -305,6 +307,7 @@ export class TumblebitComponent implements OnDestroy {
       .subscribe(
         // TODO abstract into shared utility method
         response => {
+          this.connectionFatalError = response.status >= 400;
           if (response.status >= 200 && response.status < 400) {
             this.tumblerParameters = response.json();
             this.tumblerAddress = this.tumblerParameters.tumbler
@@ -344,18 +347,20 @@ export class TumblebitComponent implements OnDestroy {
         error => {
 
           this.stopConnectionRequest();
-          
+
           console.error(error);
           this.isConnected = false;
-		  
-          if (error.status === 0) {
+          this.connectionFatalError = error.status >= 400;
+          if (error.status === 0 && !this.connectionFatalError) {
             this.genericModalService.openModal(
               Error.toDialogOptions('Failed to connect to tumbler. Reason: API is not responding or timing out.', null));
           } else if (error.status >= 400) {
             if (!error.json().errors[0]) {
               console.error(error);
             } else {
-              this.genericModalService.openModal(Error.toDialogOptions(error, null));
+              if (!this.connectionFatalError) {
+                this.genericModalService.openModal(Error.toDialogOptions(error, null));
+              }
               this.router.navigate(['/wallet']);
               this.started = false;
               this.destroyed$.next(true);
