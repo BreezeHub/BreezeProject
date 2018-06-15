@@ -67,6 +67,7 @@ export class TumblebitComponent implements OnDestroy {
   private readonly loginPath = '/login';
   private routerSubscriptions: CompositeDisposable;
   private startSubscriptions: CompositeDisposable;
+  private connectionFatalError = false;
 
   tumbleFormErrors = {
     'selectWallet': ''
@@ -300,6 +301,7 @@ export class TumblebitComponent implements OnDestroy {
       .subscribe(
         // TODO abstract into shared utility method
         response => {
+          this.connectionFatalError = response.status >= 400;
           if (response.status >= 200 && response.status < 400) {
             this.tumblerParameters = response.json();
             this.tumblerAddress = this.tumblerParameters.tumbler
@@ -342,15 +344,17 @@ export class TumblebitComponent implements OnDestroy {
 
           console.error(error);
           this.isConnected = false;
-
-          if (error.status === 0) {
+          this.connectionFatalError = error.status >= 400;
+          if (error.status === 0 && !this.connectionFatalError) {
             this.genericModalService.openModal(
               Error.toDialogOptions('Failed to connect to tumbler. Reason: API is not responding or timing out.', null));
           } else if (error.status >= 400) {
             if (!error.json().errors[0]) {
               console.error(error);
             } else {
-              this.genericModalService.openModal(Error.toDialogOptions(error, null));
+              if (!this.connectionFatalError) {
+                this.genericModalService.openModal(Error.toDialogOptions(error, null));
+              }
               this.router.navigate(['/wallet']);
             }
           }
