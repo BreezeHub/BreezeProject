@@ -4,7 +4,9 @@ import { NgbModal, NgbActiveModal, NgbDropdown, NgbModalRef, NgbModalOptions } f
 import { FormGroup, FormControl, Validators, FormBuilder } from '@angular/forms';
 import { Observable } from 'rxjs/Rx';
 import { Subscription } from 'rxjs/Subscription';
+import { ReplaySubject } from 'rxjs/ReplaySubject';
 import 'rxjs/add/operator/filter';
+import 'rxjs/add/operator/takeUntil';
 
 import { PasswordConfirmationComponent } from './password-confirmation/password-confirmation.component';
 import { ConnectionModalComponent } from '../../shared/components/connection-modal/connection-modal.component';
@@ -34,6 +36,7 @@ export class TumblebitComponent implements OnDestroy {
   public unconfirmedBalance: number;
   public totalBalance: number;
   private walletBalanceSubscription: Subscription;
+  private destroyed$ = new ReplaySubject<any>();
   public destinationWalletName: string;
   public destinationConfirmedBalance: number;
   public destinationUnconfirmedBalance: number;
@@ -118,6 +121,7 @@ export class TumblebitComponent implements OnDestroy {
     const $2 = routerEvents.filter(x => !this.started && TumblebitComponent.isNavigationEnd(<RouterEvent>x, this.routerPath)) 
                            .subscribe(_ => {
 
+        this.destroyed$ = new ReplaySubject<any>();
         this.operation = 'connect';
         this.tumblerAddress = 'Connecting...';
         this.coinUnit = this.globalService.getCoinUnit();
@@ -237,6 +241,7 @@ export class TumblebitComponent implements OnDestroy {
     this.hasRegistrations = this.tumbling = false;
 
     return this.tumblebitService.getTumblingState()
+      .takeUntil(this.destroyed$)
       .subscribe(
         response => {
 
@@ -352,6 +357,9 @@ export class TumblebitComponent implements OnDestroy {
             } else {
               this.genericModalService.openModal(Error.toDialogOptions(error, null));
               this.router.navigate(['/wallet']);
+              this.started = false;
+              this.destroyed$.next(true);
+              this.destroyed$.complete();
             }
           }
         }
