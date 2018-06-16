@@ -19,15 +19,16 @@ import { TransactionSending } from '../../shared/classes/transaction-sending';
 })
 
 export class SendComponent implements OnInit {
-  public sendForm: FormGroup;
-  public coinUnit: string;
-  public isSending = false;
-  public estimatedFee: number;
-  public apiError: string;
-  private transactionHex: string;
+  private feeSubscription;
+  private maxSelected = false;
   private responseMessage: any;
   private transaction: TransactionBuilding;
-  private maxSelected = false;
+  private transactionHex: string;
+  public apiError: string;
+  public coinUnit: string;
+  public estimatedFee: number;
+  public isSending = false;
+  public sendForm: FormGroup;
 
   formErrors = {
     'address': '',
@@ -79,13 +80,13 @@ export class SendComponent implements OnInit {
     this.sendForm.valueChanges
       .subscribe(data => this.onValueChanged(data));
 
-    this.feeSubscription();
+    this.handlefeeSubscription();
 
     this.onValueChanged();
   }
 
-  feeSubscription() {
-    this.sendForm.controls['fee'].valueChanges.subscribe((value) => {
+  handlefeeSubscription() {
+    this.feeSubscription = this.sendForm.controls['fee'].valueChanges.subscribe((value) => {
       if (this.maxSelected) {
         this.getMaxBalance();
       }
@@ -280,5 +281,9 @@ export class SendComponent implements OnInit {
     const modalRef = this.modalService.open(SendConfirmationComponent);
     modalRef.componentInstance.transaction = this.transaction;
     modalRef.componentInstance.transactionFee = this.estimatedFee;
+  }
+
+  ngOnDestroy(): void {
+    this.feeSubscription.unsubscribe();    
   }
 }
