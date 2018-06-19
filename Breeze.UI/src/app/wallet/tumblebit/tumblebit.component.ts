@@ -2,11 +2,11 @@ import { Router, NavigationEnd, RouterEvent } from '@angular/router';
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { NgbModal, NgbActiveModal, NgbDropdown, NgbModalRef, NgbModalOptions } from '@ng-bootstrap/ng-bootstrap';
 import { FormGroup, FormControl, Validators, FormBuilder } from '@angular/forms';
-import { Observable } from 'rxjs/Rx';
 import { Subscription } from 'rxjs/Subscription';
 import { ReplaySubject } from 'rxjs/ReplaySubject';
 import 'rxjs/add/operator/filter';
 import 'rxjs/add/operator/takeUntil';
+import { zip } from 'rxjs/observable/zip';
 
 import { PasswordConfirmationComponent } from './password-confirmation/password-confirmation.component';
 import { ConnectionModalComponent } from '../../shared/components/connection-modal/connection-modal.component';
@@ -212,15 +212,12 @@ export class TumblebitComponent implements OnDestroy {
 
     this.isSynced = false;
 
-    const walletInfo = new WalletInfo(this.globalService.getWalletName())
-    return this.apiService.getGeneralInfo(walletInfo)
+    const walletInfo = new WalletInfo(this.globalService.getWalletName());
+
+    return zip(this.apiService.getGeneralInfo(walletInfo, 'Bitcoin'), 
+               this.apiService.getGeneralInfo(walletInfo, 'Stratis'))
       .subscribe(
-        response =>  {
-          if (response.status >= 200 && response.status < 400) {
-            const generalWalletInfoResponse = response.json();
-            this.isSynced = generalWalletInfoResponse.lastBlockSyncedHeight === generalWalletInfoResponse.chainTip;
-          }
-        },
+        x => this.onCoinsGeneralInfo(x[0], x[1]),
         error => {
           console.log(error);
           if (error.status === 0) {
@@ -236,6 +233,18 @@ export class TumblebitComponent implements OnDestroy {
           }
         }
       );
+  }
+
+  private onCoinsGeneralInfo(bitcoinInfo, stratisInfo) {
+    const success = bitcoinInfo.status >= 200 && bitcoinInfo.status < 400 && 
+                    stratisInfo.status >= 200 && stratisInfo.status < 400;
+    if (success) {
+      this.isSynced = TumblebitComponent.isCoinSynced(bitcoinInfo) && TumblebitComponent.isCoinSynced(stratisInfo);
+    }
+  }
+
+  private static isCoinSynced(coinInfo: any) {
+    return coinInfo.lastBlockSyncedHeight === coinInfo.chainTip;
   }
 
   private checkTumblingStatus(): Subscription {
@@ -346,7 +355,7 @@ export class TumblebitComponent implements OnDestroy {
         },
         error => {
 
-          this.stopConnectionRequest();
+          this.stop();
 
           console.error(error);
           this.isConnected = false;
@@ -358,9 +367,9 @@ export class TumblebitComponent implements OnDestroy {
             if (!error.json().errors[0]) {
               console.error(error);
             } else {
-              if (!this.connectionFatalError) {
-                this.genericModalService.openModal(Error.toDialogOptions(error, null));
-              }
+                
+              this.genericModalService.openModal(Error.toDialogOptions(error, null));
+            
               this.router.navigate(['/wallet']);
               this.started = false;
               this.destroyed$.next(true);

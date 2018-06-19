@@ -6,6 +6,7 @@ import 'rxjs/add/operator/switchMap';
 import 'rxjs/add/operator/catch';
 import 'rxjs/add/observable/interval';
 import 'rxjs/add/operator/startWith';
+import 'rxjs/observable/throw';
 
 import { GlobalService } from './global.service';
 
@@ -33,11 +34,19 @@ export class ApiService {
 
   private getCurrentCoin() {
     const currentCoin = this.globalService.getCoinName();
-    if (currentCoin === 'Bitcoin' || currentCoin === 'TestBitcoin') {
+    if (ApiService.isBitcoin(currentCoin)) {
       this._currentApiUrl = this.bitcoinApiUrl;
-    } else if (currentCoin === 'Stratis' || currentCoin === 'TestStratis') {
+    } else if (ApiService.isStratis(currentCoin)) {
       this._currentApiUrl = this.stratisApiUrl;
     }
+  }
+
+  private static isBitcoin(coin: string): boolean {
+    return coin === 'Bitcoin' || coin === 'TestBitcoin';
+  }
+
+  private static isStratis(coin: string): boolean {
+    return coin === 'Stratis' || coin === 'TestStratis';
   }
 
   get bitcoinApiUrl() {
@@ -167,8 +176,19 @@ export class ApiService {
   /**
    * Get general wallet info from the API.
    */
-  getGeneralInfo(data: WalletInfo): Observable<any> {
-    this.getCurrentCoin();
+  getGeneralInfo(data: WalletInfo, coin: string = null): Observable<any> {
+
+    if (!coin) {
+      this.getCurrentCoin();
+    } else {
+        if (ApiService.isBitcoin(coin)) {
+          this._currentApiUrl = this.bitcoinApiUrl;
+        } else if (ApiService.isStratis(coin)) {
+          this._currentApiUrl = this.stratisApiUrl;
+        } else {
+          return Observable.throw(`No such coin '${coin}'`);
+        }
+    }
 
     const params: URLSearchParams = new URLSearchParams();
     params.set('Name', data.walletName);
