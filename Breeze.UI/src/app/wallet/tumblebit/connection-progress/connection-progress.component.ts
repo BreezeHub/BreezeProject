@@ -85,14 +85,14 @@ export class ConnectionProgressComponent implements OnDestroy {
   }
 
   private makeInfo() {
-    var secondsRemaining = this._durationSeconds - this._progressSeconds;
+    let secondsRemaining = this._durationSeconds - this._progressSeconds;
     secondsRemaining = this._durationSeconds - secondsRemaining;
     
-    var date = new Date(null);
+    let date = new Date(null);
     date.setSeconds(secondsRemaining);
     const remaining = `${date.getMinutes()}m:${date.getSeconds()}s`;
 
-    var date = new Date(null);
+    date = new Date(null);
     date.setSeconds(this._durationSeconds);
     const duration = `${date.getMinutes()}mins`;
 
