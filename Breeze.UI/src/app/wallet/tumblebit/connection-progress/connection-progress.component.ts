@@ -14,7 +14,6 @@ export class ConnectionProgressComponent implements OnDestroy {
 
   private _run = false;
   private _progress = 0;
-  private _progressWidth = "";
   private _progressSeconds = 0;
   private _durationSeconds = 0;
   private _info = "";

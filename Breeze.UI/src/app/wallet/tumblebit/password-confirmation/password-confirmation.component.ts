@@ -25,6 +25,8 @@ export class PasswordConfirmationComponent implements OnInit {
 
   public startingTumble: Boolean = false;
   private walletPasswordForm: FormGroup;
+  public showLegalText = false;
+  
   formErrors = {
     'walletPassword': ''
   };
@@ -44,6 +46,10 @@ export class PasswordConfirmationComponent implements OnInit {
   }
 
   ngOnInit() {
+  }
+
+  public onLegalTextClicked() {
+    this.showLegalText = true;
   }
 
   private buildWalletPasswordForm(): void {
