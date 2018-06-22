@@ -1,133 +1,137 @@
 <section id="breeze">
-  <!-- CONTENT -->
-  <div id="content" class="bitcoin">
-    <div class="container" id="Tumblebit">
-      <div class="row d-flex align-items-center">
-        <!-- left column -->
-        <div class="col-xs-12 col-sm-6">
-          <div class="col-11 my-2 mx-auto text-center">
-            <i *ngIf="!tumbling" class="icon-tumblebit my-4 OFF"></i>
-            <i *ngIf="tumbling" class="icon-tumblebit my-4 ON"></i>
-            <p class="help mt-3">The Breeze Privacy Protocol takes an amount of Bitcoin at a time, shuffles and swaps it with other coins, then transfers it to your destination wallet.  It can take some time to transfer several coins.</p>
-          </div>
-          <form class="col-11 mx-auto text-center" [formGroup]="tumbleForm">
-            <div class="row" *ngIf="!tumbling">
-              <label class="col-12 text-left" for="">Destination wallet</label>
+    <!-- CONTENT -->
+    <div id="content" class="bitcoin">
+      <div class="container" id="Tumblebit">
+        <div class="row d-flex align-items-center">
+          <!-- left column -->
+          <div class="col-xs-12 col-sm-6">
+            <div class="col-11 my-2 mx-auto text-center">
+              <i *ngIf="!tumbling" class="icon-tumblebit my-4 OFF"></i>
+              <i *ngIf="tumbling" class="icon-tumblebit my-4 ON"></i>
+              <p class="help mt-3">The Breeze Privacy Protocol takes an amount of Bitcoin at a time, shuffles and swaps it with other coins, then transfers it to your destination wallet.  It can take some time to transfer several coins.</p>
             </div>
-            <div class="form-group mb-4">
-              <select *ngIf="!tumbling" class="form-control custom-select" formControlName="selectWallet">
-                <option value="" disabled selected>Please select a destination wallet...</option>
-                <option *ngFor="let wallet of wallets" [value]="wallet">{{ wallet }}</option>
-              </select>
-            </div>
-            <!-- <button type="button" class="btn btn-lg btn-primary mt-4" (click)="startTumbling()" [disabled]="((!isConnected && !tumbling) || !hasRegistrations) || !isSynced" *ngIf="!tumbling">Start</button> -->
-            <button type="button" class="btn btn-lg btn-primary mt-4" (click)="startTumbling()" [ngClass]="{ 'btn-disabled': !this.destinationWalletName }" [disabled]="(!isConnected && !tumbling) || !isSynced" *ngIf="!tumbling">Start</button>
-            <button type="button" class="btn btn-danger" (click)="stopTumbling()" [disabled]="(!isConnected && tumbling) || !isSynced" *ngIf="tumbling">Stop</button>
-            <p class="help mt-4" *ngIf="!isSynced">Please wait until the wallet is fully synced.</p>
-            <p class="help mt-4" *ngIf="!isConnected">Please wait until a connection the MasterNode server is established. This can take up to 10min.</p>
-            <!-- <p class="help mt-4" *ngIf="!hasRegistrations">Not enough masternodes registered to start the Breeze Privacy Protocol. Please wait.</p> -->
-          </form>
-
-          <div class="col-11 mx-auto cycles mt-3" *ngIf="(tumbling && isConnected) && progressDataArray">
-            <div *ngFor="let cycle of progressDataArray" class="cycle-line">
-              <ul class="list-inline">
-                <li class="cycle-number list-inline-item float-left">Cycle {{ cycle.cycleStart }} - Phase {{ cycle.cyclePhaseNumber }}/6</li>
-                <li *ngIf="!cycle.cycleFailed && cycle.blocksLeft===1" class="phase list-inline-item ml-auto">{{ cycle.cyclePhase }} ({{ cycle.blocksLeft }} more block)</li>
-                <li *ngIf="!cycle.cycleFailed && cycle.blocksLeft>1" class="phase list-inline-item ml-auto">{{ cycle.cyclePhase }} ({{ cycle.blocksLeft }} more blocks)</li>
-                <li *ngIf="cycle.cycleFailed" class="phase text-danger list-inline-item ml-auto">Failed</li>
-              </ul>
-              <div class="row no-gutters mb-2">
-                <div class="progress col" *ngFor="let number of [1,2,3,4,5,6]" style="margin: 2px;">
-                  <ngb-progressbar class="progress-bar" [striped]="true" [animated]="number === cycle.cyclePhaseNumber ? true : false" [class.bg-danger]="cycle.cycleFailed" [value]="number <= cycle.cyclePhaseNumber ? 100 : 0" [max]="100" style="width: 100%; height: 6px;"></ngb-progressbar>
+            <form class="col-11 mx-auto text-center" [formGroup]="tumbleForm">
+              <div class="row" *ngIf="!tumbling">
+                <label class="col-12 text-left" for="">Destination wallet</label>
+              </div>
+              <div class="form-group mb-4">
+                <select *ngIf="!tumbling" class="form-control custom-select" formControlName="selectWallet">
+                  <option value="" disabled selected>Please select a destination wallet...</option>
+                  <option *ngFor="let wallet of wallets" [value]="wallet">{{ wallet }}</option>
+                </select>
+              </div>
+              <!-- <button type="button" class="btn btn-lg btn-primary mt-4" (click)="startTumbling()" [disabled]="((!isConnected && !tumbling) || !hasRegistrations) || !isSynced" *ngIf="!tumbling">Start</button> -->
+              <button type="button" class="btn btn-lg btn-primary mt-4" (click)="startTumbling()" [ngClass]="{ 'btn-disabled': !this.destinationWalletName }" [disabled]="(!isConnected && !tumbling) || !isSynced" *ngIf="!tumbling">Start</button>
+              <button type="button" class="btn btn-danger" (click)="stopTumbling()" [disabled]="(!isConnected && tumbling) || !isSynced" *ngIf="tumbling">Stop</button>
+              <p class="help mt-4" *ngIf="!isSynced">Please wait until the wallet is fully synced.</p>
+              <p class="help mt-4" *ngIf="!isConnected">Please wait until a connection the MasterNode server is established. This can take up to 10min.</p>
+              <!-- <p class="help mt-4" *ngIf="!hasRegistrations">Not enough masternodes registered to start the Breeze Privacy Protocol. Please wait.</p> -->
+            </form>
+  
+            <div class="col-11 mx-auto cycles mt-3" *ngIf="(tumbling && isConnected) && progressDataArray">
+              <div *ngFor="let cycle of progressDataArray" class="cycle-line">
+                <ul class="list-inline">
+                  <li class="cycle-number list-inline-item float-left">Cycle {{ cycle.cycleStart }} - Phase {{ cycle.cyclePhaseNumber }}/6</li>
+                  <li *ngIf="!cycle.cycleFailed && cycle.blocksLeft===1" class="phase list-inline-item ml-auto">{{ cycle.cyclePhase }} ({{ cycle.blocksLeft }} more block)</li>
+                  <li *ngIf="!cycle.cycleFailed && cycle.blocksLeft>1" class="phase list-inline-item ml-auto">{{ cycle.cyclePhase }} ({{ cycle.blocksLeft }} more blocks)</li>
+                  <li *ngIf="cycle.cycleFailed" class="phase text-danger list-inline-item ml-auto">Failed</li>
+                </ul>
+                <div class="row no-gutters mb-2">
+                  <div class="progress col" *ngFor="let number of [1,2,3,4,5,6]" style="margin: 2px;">
+                    <ngb-progressbar class="progress-bar" [striped]="true" [animated]="number === cycle.cyclePhaseNumber ? true : false" [class.bg-danger]="cycle.cycleFailed" [value]="number <= cycle.cyclePhaseNumber ? 100 : 0" [max]="100" style="width: 100%; height: 6px;"></ngb-progressbar>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-        <!-- /left column-->
-
-        <!-- right column -->
-        <div class="col-xs-12 col-sm-6">
-          <!-- table 1 -->
-          <table class="table">
-            <thead>
-              <tr>
-                <th *ngIf="isConnected">
-                  Connection <span class="badge badge-success float-right">Connected to MasterNode</span>
-                  <a *ngIf="allowChangeServer" class="btn btn-sm btn-secondary" (click)="markAsServerChangeRequired()">Change server</a>
-                </th>
-                <th *ngIf="!isConnected">
-                  Connection <span class="badge badge-danger float-right">No MasterNode connection</span>
-                  <a *ngIf="allowChangeServer" class="btn btn-sm btn-secondary" (click)="markAsServerChangeRequired()">Change server</a>
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>
-                  <div>
-                    <code data-toggle="tooltip" style="float: left; margin-right:15px"  data-placement="top" title="{{ tumblerAddress }}">{{ tumblerAddress }}</code>
-                    <app-connection-progress *ngIf="!isConnected" style="display: inline-flex; vertical-align: middle"
-                                [durationSeconds]="connectionRequestTimeoutSeconds" [run]="connectionInProgress"></app-connection-progress>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-          <!-- /table 1-->
-          <!-- table 2 -->
-          <table class="table">
-            <thead>
-              <tr>
-                <th>Balance</th>
-                <th>Source</th>
-                <th>Destination</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>Available</td>
-                <td>{{ confirmedBalance | coinNotation }} {{ coinUnit }}</td>
-                <td>{{ (destinationConfirmedBalance | coinNotation) || "Select destination wallet" }}  {{ (!!destinationConfirmedBalance ? coinUnit : '') }}</td>
-              </tr>
-              <tr>
-                <td>Pending</td>
-                <td>{{ unconfirmedBalance | coinNotation }} {{ coinUnit }}</td>
-                <td>{{ (destinationUnconfirmedBalance | coinNotation) || "Select destination wallet" }} {{ (!!destinationUnconfirmedBalance ? coinUnit : '') }}</td>
-              </tr>
-              <tr class="total">
-                <td>Total</td>
-                <td>{{ totalBalance | coinNotation }} {{ coinUnit }}</td>
-                <td>{{ (destinationTotalBalance | coinNotation) || "Select destination wallet" }} {{ (!!destinationTotalBalance ? coinUnit : '') }}</td>
-              </tr>
-            </tbody>
-          </table>
-          <!-- /table 2-->
-          <!-- table 3 -->
-          <table class="table" *ngIf="isConnected">
-            <tbody>
-              <tr>
-                <td><strong>Estimate</strong></td>
-				<td>{{ estimate | number:'1.2-2' }} Hours</td>
-              </tr>
-              <tr>
-                <td><strong>Fee</strong></td>
-				<td>{{ fee | number:'1.8-8' }} {{ coinUnit }}</td>
-              </tr>
-              <tr>
-                <td><strong>Denomination</strong></td>
-				<td>{{ denomination | number:'1.8-8' }} {{ coinUnit }}</td>
-              </tr>
-            </tbody>
-          </table>
-          <!-- /table 3-->
-          <label class="float-right" for=""><em>Powered by TumbleBit and Blockchain Technology</em></label>
-        </div>
-        <!-- /right column -->
-
-      </div><!--/row -->
-    </div><!-- /container -->
-  </div><!-- /#content -->
-  <!-- /CONTENT-->
-</section>
-<!-- /breeze-->
+          <!-- /left column-->
+  
+          <!-- right column -->
+          <div class="col-xs-12 col-sm-6">
+            <!-- table 1 -->
+            <table class="table">
+              <thead>
+                <tr>
+                  <th *ngIf="isConnected">
+                    Connection <span class="badge badge-success float-right">Connected to MasterNode</span>
+                    <a *ngIf="allowChangeServer" class="btn btn-sm btn-secondary" (click)="markAsServerChangeRequired()">Change server</a>
+                  </th>
+                  <th *ngIf="!isConnected">
+                    Connection <span class="badge badge-danger float-right">No MasterNode connection</span>
+                    <a *ngIf="allowChangeServer" class="btn btn-sm btn-secondary" (click)="markAsServerChangeRequired()">Change server</a>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>
+                    <div *ngIf="isSynced">
+                      <code data-toggle="tooltip" style="float: left; margin-right:15px"  data-placement="top" title="{{ tumblerAddress }}">{{ tumblerAddress }}</code>
+                      <app-connection-progress *ngIf="!isConnected" style="display: inline-flex; vertical-align: middle"
+                                  [durationSeconds]="connectionRequestTimeoutSeconds" [run]="connectionInProgress"></app-connection-progress>
+                    </div>
+                    <div *ngIf="!isSynced">
+                      <code data-toggle="tooltip" style="float: left; margin-right:15px"  data-placement="top">Synchronizing wallets...</code>                   
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+            <!-- /table 1-->
+            <!-- table 2 -->
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Balance</th>
+                  <th>Source</th>
+                  <th>Destination</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Available</td>
+                  <td>{{ confirmedBalance | coinNotation }} {{ coinUnit }}</td>
+                  <td>{{ (destinationConfirmedBalance | coinNotation) || "Select destination wallet" }}  {{ (!!destinationConfirmedBalance ? coinUnit : '') }}</td>
+                </tr>
+                <tr>
+                  <td>Pending</td>
+                  <td>{{ unconfirmedBalance | coinNotation }} {{ coinUnit }}</td>
+                  <td>{{ (destinationUnconfirmedBalance | coinNotation) || "Select destination wallet" }} {{ (!!destinationUnconfirmedBalance ? coinUnit : '') }}</td>
+                </tr>
+                <tr class="total">
+                  <td>Total</td>
+                  <td>{{ totalBalance | coinNotation }} {{ coinUnit }}</td>
+                  <td>{{ (destinationTotalBalance | coinNotation) || "Select destination wallet" }} {{ (!!destinationTotalBalance ? coinUnit : '') }}</td>
+                </tr>
+              </tbody>
+            </table>
+            <!-- /table 2-->
+            <!-- table 3 -->
+            <table class="table" *ngIf="isConnected">
+              <tbody>
+                <tr>
+                  <td><strong>Estimate</strong></td>
+          <td>{{ estimate | number:'1.2-2' }} Hours</td>
+                </tr>
+                <tr>
+                  <td><strong>Fee</strong></td>
+          <td>{{ fee | number:'1.8-8' }} {{ coinUnit }}</td>
+                </tr>
+                <tr>
+                  <td><strong>Denomination</strong></td>
+          <td>{{ denomination | number:'1.8-8' }} {{ coinUnit }}</td>
+                </tr>
+              </tbody>
+            </table>
+            <!-- /table 3-->
+            <label class="float-right" for=""><em>Powered by TumbleBit and Blockchain Technology</em></label>
+          </div>
+          <!-- /right column -->
+  
+        </div><!--/row -->
+      </div><!-- /container -->
+    </div><!-- /#content -->
+    <!-- /CONTENT-->
+  </section>
+  <!-- /breeze-->
+  
