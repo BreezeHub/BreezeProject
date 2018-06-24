@@ -6,7 +6,7 @@ import { Subscription } from 'rxjs/Subscription';
 import { ReplaySubject } from 'rxjs/ReplaySubject';
 import 'rxjs/add/operator/filter';
 import 'rxjs/add/operator/takeUntil';
-import { zip } from 'rxjs/observable/zip';
+import { forkJoin } from 'rxjs/observable/forkJoin';
 
 import { PasswordConfirmationComponent } from './password-confirmation/password-confirmation.component';
 import { ConnectionModalComponent } from '../../shared/components/connection-modal/connection-modal.component';
@@ -21,6 +21,7 @@ import { TumbleRequest } from './classes/tumble-request';
 import { CycleInfo } from './classes/cycle-info';
 import { ModalService } from '../../shared/services/modal.service';
 import { CompositeDisposable } from '../../shared/classes/composite-disposable';
+import { Observable } from 'rxjs';
 
 @Component({
   // tslint:disable-next-line:component-selector
@@ -35,7 +36,6 @@ export class TumblebitComponent implements OnDestroy {
   public confirmedBalance: number;
   public unconfirmedBalance: number;
   public totalBalance: number;
-  private walletBalanceSubscription: Subscription;
   private destroyed$ = new ReplaySubject<any>();
   public destinationWalletName: string;
   public destinationConfirmedBalance: number;
@@ -45,19 +45,16 @@ export class TumblebitComponent implements OnDestroy {
   public connectionSubscription: Subscription;
   public isConnected = false;
   public isSynced = false;
-  private walletStatusSubscription: Subscription;
+  private walletInfosSubscription: Subscription;
   public tumblerAddressCopied = false;
   public tumblerParameters: any;
   public estimate: number;
   public fee: number;
   public denomination: number;
-  private tumbleStatus: any;
-  private tumbleStateSubscription: Subscription;
   private progressSubscription: Subscription;
   public progressDataArray: CycleInfo[];
   public tumbleForm: FormGroup;
   public tumbling = false;
-  private connectForm: FormGroup;
   public wallets: [string];
   public tumblerAddress = 'Connecting...';
   public hasRegistrations = false;
@@ -135,8 +132,6 @@ export class TumblebitComponent implements OnDestroy {
           this.getWalletBalance()
         ]);
 
-        console.log('started');
-
         this.started = true;
     });
 
@@ -162,6 +157,11 @@ export class TumblebitComponent implements OnDestroy {
     if (this.startSubscriptions) {
       this.startSubscriptions.unsubscribe();
       this.startSubscriptions = null;
+    }
+
+    if (this.walletInfosSubscription) {
+      this.walletInfosSubscription.unsubscribe();
+      this.walletInfosSubscription = null;
     }
 
     this.stopConnectionRequest();
@@ -209,37 +209,38 @@ export class TumblebitComponent implements OnDestroy {
   }
 
   private checkWalletStatus(): Subscription {
-
-    this.isSynced = false;
-
     const walletInfo = new WalletInfo(this.globalService.getWalletName());
+    return Observable.interval(this.apiService.pollingInterval)
+                     .subscribe(x => this.getWalletInfos(walletInfo));
+  }
 
-    return zip(this.apiService.getGeneralInfo(walletInfo, 'Bitcoin'), 
-               this.apiService.getGeneralInfo(walletInfo, 'Stratis'))
-      .subscribe(
-        x => this.onCoinsGeneralInfo(x[0], x[1]),
-        error => {
-          console.log(error);
-          if (error.status === 0) {
-            this.genericModalService.openModal(
-              Error.toDialogOptions('Failed to get general wallet information. Reason: API is not responding or timing out.', null));
-          } else if (error.status >= 400) {
-            const firstError = Error.getFirstError(error);
-            if (!firstError) {
-              console.log(error);
-            } else if (firstError.description) {
-              this.genericModalService.openModal(Error.toDialogOptions(error, null));
-            }
-          }
-        }
-      );
+  private getWalletInfos(walletInfo: WalletInfo): void {
+    if (this.walletInfosSubscription) {
+      this.walletInfosSubscription.unsubscribe();
+    }
+    this.walletInfosSubscription = forkJoin(this.apiService.getGeneralInfoForCoin(walletInfo, 'Bitcoin'), 
+                                            this.apiService.getGeneralInfoForCoin(walletInfo, 'Stratis')).
+                                   subscribe(x => this.onCoinsGeneralInfo(x[0], x[1]), e => this.onCoinsGeneralInfoError(e));
+  
   }
 
   private onCoinsGeneralInfo(bitcoinInfo, stratisInfo) {
-    const success = bitcoinInfo.status >= 200 && bitcoinInfo.status < 400 && 
-                    stratisInfo.status >= 200 && stratisInfo.status < 400;
-    if (success) {
-      this.isSynced = TumblebitComponent.isCoinSynced(bitcoinInfo) && TumblebitComponent.isCoinSynced(stratisInfo);
+    this.isSynced = TumblebitComponent.isCoinSynced(bitcoinInfo) && 
+                    TumblebitComponent.isCoinSynced(stratisInfo);
+  }
+
+  private onCoinsGeneralInfoError(error: any) {
+    console.log(error);
+    if (error.status === 0) {
+      this.genericModalService.openModal(
+        Error.toDialogOptions('Failed to get general wallet information. Reason: API is not responding or timing out.', null));
+    } else if (error.status >= 400) {
+      const firstError = Error.getFirstError(error);
+      if (!firstError) {
+        console.log(error);
+      } else if (firstError.description) {
+        this.genericModalService.openModal(Error.toDialogOptions(error, null));
+      }
     }
   }
 
@@ -263,7 +264,6 @@ export class TumblebitComponent implements OnDestroy {
               this.hasRegistrations = false;
             }
 
-            // if (!this.isConnected && this.hasRegistrations && this.isSynced) {
             if (!this.isConnected && this.isSynced) {
               this.connectToTumbler();
             }
@@ -660,9 +660,5 @@ export class TumblebitComponent implements OnDestroy {
       clearTimeout(this.timer);
     }
     this.connectionInProgress = false;
-  }
-
-  private updateWalletFileDisplay(walletName: string) {
-    this.tumbleForm.patchValue({selectWallet: walletName})
   }
 }
