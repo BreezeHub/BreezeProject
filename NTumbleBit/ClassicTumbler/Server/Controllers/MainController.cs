@@ -213,7 +213,7 @@ namespace NTumbleBit.ClassicTumbler.Server.Controllers
 
 			var solverServerSession = new SolverServerSession(Runtime.TumblerKey, Parameters.CreateSolverParamaters());
 			solverServerSession.SetChannelId(request.ChannelId);
-		    Logs.Tumbler.LogDebug($"BeginSignVoucher - escrowedCoin : {escrowedCoin.Amount}, escrowKey : {key}");
+		    Logs.Tumbler.LogDebug($"BeginSignVoucher - escrowedCoin : {escrowedCoin}, escrowKey : {key}");
             solverServerSession.ConfigureEscrowedCoin(escrowedCoin, key);
             await Services.BlockExplorerService.TrackAsync(escrowedCoin.ScriptPubKey);
 

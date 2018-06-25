@@ -227,10 +227,14 @@ namespace NTumbleBit.ClassicTumbler
 			InternalState.Status = TumblerClientSessionStates.PromisePhase;
 			var session = new PromiseClientSession(Parameters.CreatePromiseParamaters());
 			session.SetChannelId(InternalState.ChannelId);
-		    Logs.Tumbler.LogDebug($"ReceiveTumblerEscrowedCoin - escrowedCoin : {escrowedCoin.Amount}, escrowKey : {InternalState.TumblerEscrowKey}");
+
+		    Logs.Tumbler.LogDebug($"ReceiveTumblerEscrowedCoin - escrowedCoin : {escrowedCoin}, escrowKey : {InternalState.TumblerEscrowKey}");
             session.ConfigureEscrowedCoin(escrowedCoin, InternalState.TumblerEscrowKey);
 			InternalState.TumblerEscrowKey = null;
-			return session;
+
+            LogInternalState(session);
+
+            return session;
 		}
 
 		public EscrowScriptPubKeyParameters GetTumblerEscrowParameters(PubKey pubkey)
@@ -258,5 +262,15 @@ namespace NTumbleBit.ClassicTumbler
 			if(state != InternalState.Status)
 				throw new InvalidStateException("Invalid state, actual " + InternalState.Status + " while expected is " + state);
 		}
+
+	    private void LogInternalState(PromiseClientSession session)
+	    {
+	        var sessionInternalState = session.GetInternalState();
+
+            if (sessionInternalState != null)
+	        {
+	            Logs.Tumbler.LogDebug($"EscrowedCoin : {sessionInternalState.EscrowedCoin}, EscrowKey : {sessionInternalState.EscrowKey}, Status : {sessionInternalState.Status}, ChannelId : {sessionInternalState.ChannelId}.");
+	        }
+        }	        
 	}
 }

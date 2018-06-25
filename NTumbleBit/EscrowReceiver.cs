@@ -46,13 +46,16 @@ namespace NTumbleBit
 		public void SetChannelId(uint160 channelId)
 		{
             InternalState.ChannelId = channelId ?? throw new ArgumentNullException(nameof(channelId));
-		}
+
+		    Logs.Tumbler.LogDebug($"ChannelId : {InternalState.ChannelId}");
+        }
+
 		public virtual void ConfigureEscrowedCoin(ScriptCoin escrowedCoin, Key escrowKey)
 		{
             InternalState.EscrowKey = escrowKey ?? throw new ArgumentNullException(nameof(escrowKey));
 			InternalState.EscrowedCoin = escrowedCoin ?? throw new ArgumentNullException(nameof(escrowedCoin));
 
-		    Logs.Tumbler.LogDebug($"EscrowKey : { InternalState.EscrowKey }, EscrowedCoin : {InternalState.EscrowedCoin}");
+		    Logs.Tumbler.LogDebug($"EscrowKey : {InternalState.EscrowKey}, EscrowedCoin : {InternalState.EscrowedCoin}");
         }
 
 		public ScriptCoin EscrowedCoin

@@ -192,7 +192,7 @@ namespace NTumbleBit.PuzzleSolver
 		public override void ConfigureEscrowedCoin(uint160 channelId, ScriptCoin escrowedCoin, Key escrowKey, Script redeemDestination)
 		{
 			AssertState(SolverClientStates.WaitingEscrow);
-		    Logs.Tumbler.LogDebug($"escrowedCoin : {escrowedCoin.Amount}, escrowKey : {escrowKey}");
+		    Logs.Tumbler.LogDebug($"escrowedCoin : {escrowedCoin}, escrowKey : {escrowKey}");
             base.ConfigureEscrowedCoin(channelId, escrowedCoin, escrowKey, redeemDestination);
 			InternalState.Status = SolverClientStates.WaitingPuzzle;
 		}

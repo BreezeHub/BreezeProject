@@ -220,7 +220,7 @@ namespace NTumbleBit.PuzzlePromise
 		public override void ConfigureEscrowedCoin(ScriptCoin escrowedCoin, Key escrowKey)
 		{
             AssertState(PromiseClientStates.WaitingEscrow);
-		    Logs.Tumbler.LogDebug($"escrowedCoin : {escrowedCoin.Amount}, escrowKey : {escrowKey}");
+		    Logs.Tumbler.LogDebug($"escrowedCoin : {escrowedCoin}, escrowKey : {escrowKey}");
 			base.ConfigureEscrowedCoin(escrowedCoin, escrowKey);
 			InternalState.Status = PromiseClientStates.WaitingSignatureRequest;
 		}
