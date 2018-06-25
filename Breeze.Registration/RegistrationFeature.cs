@@ -90,6 +90,7 @@ namespace Breeze.Registration
             this.logger.LogTrace("()");
 
             IList<RegistrationRecord> registrationRecords = this.registrationStore.GetAll();
+            this.logger.LogInformation("Restored {0} masternode registrations from the configuration file", registrationRecords.Count);
 
             // If there are no registrations then revert back to the block height of when the MasterNodes were set-up.
             if (registrationRecords.Count == 0)
@@ -97,7 +98,7 @@ namespace Breeze.Registration
             else
                 VerifyRegistrationStore(registrationRecords);
 
-            // Only need to subscribe to receive blocks and transactions on the Stratis network
+            // Only need to subscribe to receive blocks and transactions on the Stratis network.
             this.blockSubscriberdDisposable =
                 this.signals.SubscribeForBlocks(new RegistrationBlockObserver(this.chain, this.registrationManager));
 
@@ -112,7 +113,7 @@ namespace Breeze.Registration
             var syncHeight = this.network == Network.StratisMain ? SyncHeightMain :
                 this.network == Network.StratisTest ? SyncHeightTest : SyncHeightRegTest;
 
-            this.logger.LogInformation("Syncing from height {0} in order to get masternode registrations", syncHeight);
+            this.logger.LogInformation("No registrations have been found; Syncing from height {0} in order to get masternode registrations", syncHeight);
 
             this.walletSyncManager.SyncFromHeight(syncHeight);
 

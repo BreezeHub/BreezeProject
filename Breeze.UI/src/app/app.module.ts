@@ -21,6 +21,7 @@ import { GlobalService } from './shared/services/global.service';
 import { Log } from './shared/services/logger.service';
 import { TumblebitService } from './wallet/tumblebit/tumblebit.service';
 import { ModalService } from './shared/services/modal.service';
+import { LicenseService } from './shared/services/license.service';
 
 import { SendComponent } from './wallet/send/send.component';
 import { SendConfirmationComponent } from './wallet/send/send-confirmation/send-confirmation.component';
@@ -28,6 +29,7 @@ import { ReceiveComponent } from './wallet/receive/receive.component';
 import { TransactionDetailsComponent } from './wallet/transaction-details/transaction-details.component';
 import { PasswordConfirmationComponent } from './wallet/tumblebit/password-confirmation/password-confirmation.component';
 import { LogoutConfirmationComponent } from './wallet/logout-confirmation/logout-confirmation.component';
+import { LicenseAgreementComponent } from './wallet/license-agreement/license-agreement.component';
 
 import { CustomReuseStrategy } from './reuse-strategy';
 
@@ -55,7 +57,8 @@ import { CustomReuseStrategy } from './reuse-strategy';
     SendComponent,
     SendConfirmationComponent,
     ReceiveComponent,
-    TransactionDetailsComponent
+    TransactionDetailsComponent,
+    LicenseAgreementComponent
   ],
   entryComponents: [
     PasswordConfirmationComponent,
@@ -68,7 +71,7 @@ import { CustomReuseStrategy } from './reuse-strategy';
     TransactionDetailsComponent,
     LogoutConfirmationComponent
   ],
-  providers: [ ApiService, GlobalService, ModalService, Title, TumblebitService,
+  providers: [ ApiService, GlobalService, ModalService, Title, TumblebitService, LicenseService,
     { provide: RouteReuseStrategy, useClass: CustomReuseStrategy } ],
   bootstrap: [ AppComponent ]
 })

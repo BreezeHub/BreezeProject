@@ -45,7 +45,7 @@ namespace Breeze.TumbleBit.Client
             OnlyMonitor
         }
 
-        private const int MINIMUM_MASTERNODE_COUNT = 1;
+        public static readonly int MINIMUM_MASTERNODE_COUNT = 1;
 
         private static Random random = new Random();
 
@@ -67,11 +67,11 @@ namespace Breeze.TumbleBit.Client
         private StateMachinesExecutor stateMachine;
         private BroadcasterJob broadcasterJob;
 
-        public TumblingState tumblingState { get; private set; }
-        public TumbleState State { get; private set; } = TumbleState.OnlyMonitor;
+        public TumblingState TumblingState { get; private set; }
+        public TumbleState State => (stateMachine != null && stateMachine.IsTumbling) ? TumbleState.Tumbling : TumbleState.OnlyMonitor;
         public ClassicTumblerParameters TumblerParameters { get; private set; } = null;
         public string TumblerAddress { get; private set; } = null;
-        public RegistrationStore registrationStore { get; private set; }
+        public RegistrationStore RegistrationStore { get; private set; }
 
         public TumbleBitManager(
             ILoggerFactory loggerFactory,
@@ -109,11 +109,11 @@ namespace Breeze.TumbleBit.Client
                 {
                     if (option.Value != null)
                     {
-                        this.registrationStore = new RegistrationStore(option.Value);
+                        this.RegistrationStore = new RegistrationStore(option.Value);
                     }
                     else
                     {
-                        this.registrationStore = new RegistrationStore(this.nodeSettings.DataDir);
+                        this.RegistrationStore = new RegistrationStore(this.nodeSettings.DataDir);
                     }
                 }
 
@@ -126,7 +126,7 @@ namespace Breeze.TumbleBit.Client
                 }
             }
 
-            this.tumblingState = new TumblingState(
+            this.TumblingState = new TumblingState(
                 this.loggerFactory,
                 this.chain,
                 this.walletManager,
@@ -140,11 +140,11 @@ namespace Breeze.TumbleBit.Client
                 this.connectionManager);
 
             // Load saved state e.g. previously selected server
-            if (File.Exists(this.tumblingState.GetStateFilePath()))
+            if (File.Exists(this.TumblingState.GetStateFilePath()))
             {
                 try
                 {
-                    this.tumblingState.LoadStateFromMemory();
+                    this.TumblingState.LoadStateFromMemory();
                 }
                 catch (NullReferenceException)
                 {
@@ -153,16 +153,19 @@ namespace Breeze.TumbleBit.Client
                 }
             }
 
-            this.tumblingState.Save();
+            this.TumblingState.Save();
 
             // If there was a server address saved, that means we were previously
             // connected to it, and should try to reconnect to it by default when
             // the connect method is invoked by the UI
-            if ((this.TumblerAddress == null) && (this.tumblingState.TumblerUri != null))
-                this.TumblerAddress = this.tumblingState.TumblerUri.ToString();
+            if ((this.TumblerAddress == null) && (this.TumblingState.TumblerUri != null))
+                this.TumblerAddress = this.TumblingState.TumblerUri.ToString();
 
             // Remove the progress file from previous session as it is now stale
-            ProgressInfo.RemoveProgressFile();
+            string dataDir = TumblingState.NodeSettings.DataDir;
+            string tumbleBitDataDir = FullNodeTumblerClientConfiguration.GetTumbleBitDataDir(dataDir);
+
+            ProgressInfo.RemoveProgressFile(tumbleBitDataDir);
         }
 
         public async Task DummyRegistration(string originWalletName, string originWalletPassword)
@@ -344,12 +347,12 @@ namespace Breeze.TumbleBit.Client
             //   tumbling_state.json, and will have been loaded into this.TumblerAddress already
             if (this.TumblerAddress == null)
             {
-                List<RegistrationRecord> registrations = this.registrationStore.GetAll();
+                List<RegistrationRecord> registrations = this.RegistrationStore.GetAll();
 
                 if (registrations.Count < MINIMUM_MASTERNODE_COUNT)
                 {
                     this.logger.LogDebug($"Not enough masternode registrations downloaded yet: {registrations.Count}");
-                    return Result.Fail<ClassicTumblerParameters>("Not enough masternode registrations downloaded yet");
+                    return Result.Fail<ClassicTumblerParameters>("Not enough masternode registrations downloaded yet", PostResultActionType.CanContinue);
                 }
 
                 registrations.Shuffle();
@@ -360,43 +363,34 @@ namespace Breeze.TumbleBit.Client
                     this.TumblerAddress = $"ctb://{record.Record.OnionAddress}.onion?h={record.Record.ConfigurationHash}";
 
                     //Do not attempt a connection to the Masternode which is blacklisted
-                    if (masternodeBlacklist != null && masternodeBlacklist.Contains(this.TumblerAddress)) {
+                    if (masternodeBlacklist != null && masternodeBlacklist.Contains(this.TumblerAddress))
+                    {
                         this.logger.LogDebug($"Skipping connection attempt to blacklisted masternode {this.TumblerAddress}");
                         continue;
                     }
 
-                    try
-                    {
-                        var tumblerParameterResult = await TryUseServer();
-
-                        if (tumblerParameterResult.Success)
-                        {
-                            return tumblerParameterResult;
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        this.logger.LogDebug(e, $"Unable to connect to masternode: {this.TumblerAddress}");
-                    }
-                }
-
-                this.logger.LogDebug($"Attempted connection to {registrations.Count} masternodes and did not find a valid registration");
-                return Result.Fail<ClassicTumblerParameters>("Did not find a valid registration");
-            }
-            else
-            {
-                try
-                {
                     var tumblerParameterResult = await TryUseServer();
 
                     if (tumblerParameterResult.Success)
                     {
                         return tumblerParameterResult;
                     }
+                    else if (tumblerParameterResult.PostResultAction == PostResultActionType.ShouldStop)
+                    {
+                        return tumblerParameterResult;
+                    }
                 }
-                catch (Exception e)
+
+                this.logger.LogDebug($"Attempted connection to {registrations.Count} masternodes and did not find a valid registration");
+                return Result.Fail<ClassicTumblerParameters>("Did not find a valid registration", PostResultActionType.ShouldStop);
+            }
+            else
+            {
+                var tumblerParameterResult = await TryUseServer();
+
+                if (tumblerParameterResult.Success)
                 {
-                    this.logger.LogDebug(e, $"Unable to connect to masternode: {this.TumblerAddress}");
+                    return tumblerParameterResult;
                 }
 
                 // Blacklist masternode address which we have just failed to connect to so that
@@ -419,8 +413,6 @@ namespace Breeze.TumbleBit.Client
                 await this.stateMachine.Stop().ConfigureAwait(false);
             }
 
-            this.State = TumbleState.OnlyMonitor;
-
             // Blacklist masternode address which we are currently connected to so that
             // we won't attempt to connect to it again in the next call to ConnectToTumblerAsync.
             HashSet<string> blacklistedMasternodes = new HashSet<string>() { this.TumblerAddress };
@@ -435,17 +427,17 @@ namespace Breeze.TumbleBit.Client
         {
             logger.LogInformation($"Attempting connection to the masternode at address {this.TumblerAddress}");
 
-            this.tumblingState.TumblerUri = new Uri(this.TumblerAddress);
+            this.TumblingState.TumblerUri = new Uri(this.TumblerAddress);
 
             FullNodeTumblerClientConfiguration config;
             if (this.TumblerAddress.Contains("127.0.0.1"))
             {
-                config = new FullNodeTumblerClientConfiguration(this.tumblingState, onlyMonitor: false,
+                config = new FullNodeTumblerClientConfiguration(this.TumblingState, onlyMonitor: false,
                     connectionTest: true, useProxy: false);
             }
             else
             {
-                config = new FullNodeTumblerClientConfiguration(this.tumblingState, onlyMonitor: false,
+                config = new FullNodeTumblerClientConfiguration(this.TumblingState, onlyMonitor: false,
                     connectionTest: true, useProxy: true);
             }
 
@@ -460,18 +452,20 @@ namespace Breeze.TumbleBit.Client
 
                 return Result.Ok(rt.TumblerParameters);
             }
-            catch (Exception cex) when (cex is PrivacyProtocolConfigException || cex is ConfigException)
+            catch (PrivacyProtocolConfigException e)
             {
-                this.logger.LogError("Error obtaining tumbler parameters: " + cex);
-                return Result.Fail<ClassicTumblerParameters>(
-                    cex is PrivacyProtocolConfigException
-                        ? "Tor is required for connectivity to an active Stratis Masternode. Please restart Breeze Wallet with Privacy Protocol and ensure that an instance of Tor is running."
-                        : cex.Message);
+                this.logger.LogError(e, "Privacy protocol exception: {0}", e.Message);
+                return Result.Fail<ClassicTumblerParameters>("TOR is required for connectivity to an active Stratis Masternode. Please restart Breeze Wallet with Privacy Protocol and ensure that an instance of TOR is running.", PostResultActionType.ShouldStop);
+            }
+            catch (ConfigException e)
+            {
+                this.logger.LogError(e, "Privacy protocol config exception: {0}", e.Message);
+                return Result.Fail<ClassicTumblerParameters>(e.Message, PostResultActionType.CanContinue);
             }
             catch (Exception e)
             {
-                this.logger.LogError("Error obtaining tumbler parameters: " + e);
-                return Result.Fail<ClassicTumblerParameters>("Error obtaining tumbler parameters");
+                this.logger.LogError(e, "Error obtaining tumbler parameters: {0}", e.Message);
+                return Result.Fail<ClassicTumblerParameters>("Error obtaining tumbler parameters", PostResultActionType.CanContinue);
             }
             finally
             {
@@ -489,7 +483,7 @@ namespace Breeze.TumbleBit.Client
                 throw new Exception("Tumbling is already running");
             }
 
-            this.tumblingState.TumblerUri = new Uri(this.TumblerAddress);
+            this.TumblingState.TumblerUri = new Uri(this.TumblerAddress);
 
             // Check if in initial block download
             if (!this.chain.IsDownloaded())
@@ -498,24 +492,13 @@ namespace Breeze.TumbleBit.Client
                 throw new Exception("Chain is still being downloaded");
             }
 
-            Wallet destinationWallet = this.walletManager.GetWallet(destinationWalletName);
             Wallet originWallet = this.walletManager.GetWallet(originWalletName);
+            Wallet destinationWallet = this.walletManager.GetWallet(destinationWalletName);
 
-            // Check if origin wallet has a sufficient balance to begin tumbling at least 1 cycle
-            Money originBalance = this.walletManager.GetSpendableTransactionsInWallet(originWalletName)
-                .Sum(s => s.Transaction.Amount);
-
-            // Should ideally take network's transaction fee into account too, but that is dynamic
-            if (originBalance <= (this.TumblerParameters.Denomination + this.TumblerParameters.Fee))
-            {
-                this.logger.LogDebug("Insufficient funds in origin wallet");
-                throw new Exception("Insufficient funds in origin wallet");
-            }
-            
             // Check if password is valid before starting any cycles
             try
             {
-                HdAddress tempAddress = originWallet.GetAccountsByCoinType(this.tumblingState.CoinType).First()
+                HdAddress tempAddress = originWallet.GetAccountsByCoinType(this.TumblingState.CoinType).First()
                     .GetFirstUnusedReceivingAddress();
                 originWallet.GetExtendedPrivateKeyForAddress(originWalletPassword, tempAddress);
             }
@@ -526,16 +509,16 @@ namespace Breeze.TumbleBit.Client
             }
 
             // Update the state and save
-            this.tumblingState.DestinationWallet = destinationWallet ?? throw new Exception($"Destination wallet not found. Have you created a wallet with name {destinationWalletName}?");
-            this.tumblingState.DestinationWalletName = destinationWalletName;
-            this.tumblingState.OriginWallet = originWallet ?? throw new Exception($"Origin wallet not found. Have you created a wallet with name {originWalletName}?");
-            this.tumblingState.OriginWalletName = originWalletName;
-            this.tumblingState.OriginWalletPassword = originWalletPassword;
+            this.TumblingState.DestinationWallet = destinationWallet ?? throw new Exception($"Destination wallet not found. Have you created a wallet with name {destinationWalletName}?");
+            this.TumblingState.DestinationWalletName = destinationWalletName;
+            this.TumblingState.OriginWallet = originWallet ?? throw new Exception($"Origin wallet not found. Have you created a wallet with name {originWalletName}?");
+            this.TumblingState.OriginWalletName = originWalletName;
+            this.TumblingState.OriginWalletPassword = originWalletPassword;
 
-            var accounts = this.tumblingState.DestinationWallet.GetAccountsByCoinType(this.tumblingState.CoinType);
+            var accounts = this.TumblingState.DestinationWallet.GetAccountsByCoinType(this.TumblingState.CoinType);
             // TODO: Possibly need to preserve destination account name in tumbling state. Default to first account for now
             string accountName = accounts.First().Name;
-            HdAccount destAccount = this.tumblingState.DestinationWallet.GetAccountByCoinType(accountName, this.tumblingState.CoinType);
+            HdAccount destAccount = this.TumblingState.DestinationWallet.GetAccountByCoinType(accountName, this.TumblingState.CoinType);
             string key = destAccount.ExtendedPubKey;
             KeyPath keyPath = new KeyPath("0");
 
@@ -550,23 +533,30 @@ namespace Breeze.TumbleBit.Client
             FullNodeTumblerClientConfiguration config;
             if (this.TumblerAddress.Contains("127.0.0.1"))
             {
-                config = new FullNodeTumblerClientConfiguration(this.tumblingState, onlyMonitor: false,
+                config = new FullNodeTumblerClientConfiguration(this.TumblingState, onlyMonitor: false,
                     connectionTest: false, useProxy: false);
             }
             else
             {
-                config = new FullNodeTumblerClientConfiguration(this.tumblingState, onlyMonitor: false,
+                config = new FullNodeTumblerClientConfiguration(this.TumblingState, onlyMonitor: false,
                     connectionTest: false, useProxy: true);
             }
 
             this.runtime = await TumblerClientRuntime.FromConfigurationAsync(config).ConfigureAwait(false);
+
+            // Check if origin wallet has a sufficient balance to begin tumbling at least 1 cycle
+            if (!runtime.HasEnoughFundsForCycle(true))
+            {
+                this.logger.LogDebug("Insufficient funds in origin wallet");
+                throw new Exception("Insufficient funds in origin wallet");
+            }
 
             BitcoinExtPubKey extPubKey = new BitcoinExtPubKey(key, this.runtime.Network);
             if (key != null)
                 this.runtime.DestinationWallet =
                     new ClientDestinationWallet(extPubKey, keyPath, this.runtime.Repository, this.runtime.Network);
             this.TumblerParameters = this.runtime.TumblerParameters;
-            
+
             // Run onlymonitor mode
             this.broadcasterJob = this.runtime.CreateBroadcasterJob();
             this.broadcasterJob.Start();
@@ -574,8 +564,6 @@ namespace Breeze.TumbleBit.Client
             // Run tumbling mode
             this.stateMachine = new StateMachinesExecutor(this.runtime);
             this.stateMachine.Start();
-
-            this.State = TumbleState.Tumbling;
         }
 
         public async Task OnlyMonitorAsync()
@@ -585,29 +573,27 @@ namespace Breeze.TumbleBit.Client
             {
                 await this.stateMachine.Stop().ConfigureAwait(false);
             }
-            this.State = TumbleState.OnlyMonitor;
         }
 
         public int RegistrationCount()
         {
             try
             {
-                return this.registrationStore.GetAll().Count;
+                return this.RegistrationStore.GetAll().Count;
             }
             catch (Exception)
             {
                 return 0;
             }
         }
-        
+
         public async Task Initialize()
         {
             // Start broadcasterJob (onlymonitor mode)
             if (this.broadcasterJob == null || !this.broadcasterJob.Started)
             {
-                var config = new FullNodeTumblerClientConfiguration(this.tumblingState, onlyMonitor: true);
+                var config = new FullNodeTumblerClientConfiguration(this.TumblingState, onlyMonitor: true);
                 this.runtime = await TumblerClientRuntime.FromConfigurationAsync(config).ConfigureAwait(false);
-                this.State = TumbleState.OnlyMonitor;
                 this.broadcasterJob = this.runtime.CreateBroadcasterJob();
                 this.broadcasterJob.Start();
             }
@@ -617,7 +603,7 @@ namespace Breeze.TumbleBit.Client
         public void ProcessBlock(int height, Block block)
         {
             // TODO: This double spend removal logic should be incorporated into the wallet
-            if (this.tumblingState.OriginWallet != null && this.tumblingState.DestinationWallet != null)
+            if (this.TumblingState.OriginWallet != null && this.TumblingState.DestinationWallet != null)
             {
                 this.logger.LogDebug("Checking origin/destination wallets for double spends");
 
@@ -631,8 +617,8 @@ namespace Breeze.TumbleBit.Client
 
                 // Build cache of prevOuts from confirmed destination wallet transactions
                 // TODO: This can probably be substantially optimised, e.g. make cache persistent between blocks
-                foreach (TransactionData destTx in this.tumblingState.DestinationWallet.GetAllTransactionsByCoinType(
-                    this.tumblingState.CoinType))
+                foreach (TransactionData destTx in this.TumblingState.DestinationWallet.GetAllTransactionsByCoinType(
+                    this.TumblingState.CoinType))
                 {
                     foreach (TxIn input in destTx.Transaction.Inputs)
                     {
@@ -642,8 +628,8 @@ namespace Breeze.TumbleBit.Client
 
                 // Now check inputs of unconfirmed transactions in origin wallet.
                 // It is implicitly assumed that a confirmed transaction is usually not double spending.
-                foreach (TransactionData originTx in this.tumblingState.OriginWallet.GetAllTransactionsByCoinType(
-                    this.tumblingState.CoinType))
+                foreach (TransactionData originTx in this.TumblingState.OriginWallet.GetAllTransactionsByCoinType(
+                    this.TumblingState.CoinType))
                 {
                     if (originTx.IsConfirmed())
                         continue;
@@ -663,8 +649,8 @@ namespace Breeze.TumbleBit.Client
                 {
                     this.logger.LogDebug("Detected double spend transaction in origin wallet, deleting: " + tx.Id);
 
-                    foreach (HdAccount account in this.tumblingState.OriginWallet.GetAccountsByCoinType(
-                        this.tumblingState.CoinType))
+                    foreach (HdAccount account in this.TumblingState.OriginWallet.GetAccountsByCoinType(
+                        this.TumblingState.CoinType))
                     {
                         foreach (HdAddress address in account.FindAddressesForTransaction(transaction =>
                             transaction.Id == tx.Id))
@@ -682,8 +668,8 @@ namespace Breeze.TumbleBit.Client
 
                 // Build cache of prevOuts from confirmed origin wallet transactions
                 // TODO: This can probably be substantially optimised, e.g. make cache persistent between blocks
-                foreach (TransactionData originTx in this.tumblingState.OriginWallet.GetAllTransactionsByCoinType(
-                    this.tumblingState.CoinType))
+                foreach (TransactionData originTx in this.TumblingState.OriginWallet.GetAllTransactionsByCoinType(
+                    this.TumblingState.CoinType))
                 {
                     foreach (TxIn input in originTx.Transaction.Inputs)
                     {
@@ -693,8 +679,8 @@ namespace Breeze.TumbleBit.Client
 
                 // Now check inputs of unconfirmed transactions in destination wallet.
                 // It is implicitly assumed that a confirmed transaction is usually not double spending.
-                foreach (TransactionData destTx in this.tumblingState.DestinationWallet.GetAllTransactionsByCoinType(
-                    this.tumblingState.CoinType))
+                foreach (TransactionData destTx in this.TumblingState.DestinationWallet.GetAllTransactionsByCoinType(
+                    this.TumblingState.CoinType))
                 {
                     if (destTx.IsConfirmed())
                         continue;
@@ -714,8 +700,8 @@ namespace Breeze.TumbleBit.Client
                 {
                     this.logger.LogDebug("Detected double spend transaction in destination wallet, deleting: " + tx.Id);
 
-                    foreach (HdAccount account in this.tumblingState.DestinationWallet.GetAccountsByCoinType(
-                        this.tumblingState.CoinType))
+                    foreach (HdAccount account in this.TumblingState.DestinationWallet.GetAccountsByCoinType(
+                        this.TumblingState.CoinType))
                     {
                         foreach (HdAddress address in account.FindAddressesForTransaction(transaction =>
                             transaction.Id == tx.Id))
@@ -729,12 +715,12 @@ namespace Breeze.TumbleBit.Client
 
                 txToRemove.Clear();
 
-                foreach (TransactionData originTx in this.tumblingState.OriginWallet.GetAllTransactionsByCoinType(this.tumblingState.CoinType))
+                foreach (TransactionData originTx in this.TumblingState.OriginWallet.GetAllTransactionsByCoinType(this.TumblingState.CoinType))
                 {
                     if (originTx.IsConfirmed())
                         continue;
 
-                    foreach (TransactionData comparedTx in this.tumblingState.OriginWallet.GetAllTransactionsByCoinType(this.tumblingState.CoinType))
+                    foreach (TransactionData comparedTx in this.TumblingState.OriginWallet.GetAllTransactionsByCoinType(this.TumblingState.CoinType))
                     {
                         if (originTx.Id == comparedTx.Id)
                             continue;
@@ -754,7 +740,7 @@ namespace Breeze.TumbleBit.Client
 
                 foreach (TransactionData tx in txToRemove)
                 {
-                    foreach (HdAccount account in this.tumblingState.OriginWallet.GetAccountsByCoinType(this.tumblingState.CoinType))
+                    foreach (HdAccount account in this.TumblingState.OriginWallet.GetAccountsByCoinType(this.TumblingState.CoinType))
                     {
                         foreach (HdAddress address in account.FindAddressesForTransaction(transaction => transaction.Id == tx.Id))
                         {
@@ -765,12 +751,12 @@ namespace Breeze.TumbleBit.Client
 
                 txToRemove.Clear();
 
-                foreach (TransactionData destTx in this.tumblingState.DestinationWallet.GetAllTransactionsByCoinType(this.tumblingState.CoinType))
+                foreach (TransactionData destTx in this.TumblingState.DestinationWallet.GetAllTransactionsByCoinType(this.TumblingState.CoinType))
                 {
                     if (destTx.IsConfirmed())
                         continue;
 
-                    foreach (TransactionData comparedTx in this.tumblingState.DestinationWallet.GetAllTransactionsByCoinType(this.tumblingState.CoinType))
+                    foreach (TransactionData comparedTx in this.TumblingState.DestinationWallet.GetAllTransactionsByCoinType(this.TumblingState.CoinType))
                     {
                         if (destTx.Id == comparedTx.Id)
                             continue;
@@ -790,7 +776,7 @@ namespace Breeze.TumbleBit.Client
 
                 foreach (TransactionData tx in txToRemove)
                 {
-                    foreach (HdAccount account in this.tumblingState.DestinationWallet.GetAccountsByCoinType(this.tumblingState.CoinType))
+                    foreach (HdAccount account in this.TumblingState.DestinationWallet.GetAccountsByCoinType(this.TumblingState.CoinType))
                     {
                         foreach (HdAddress address in account.FindAddressesForTransaction(transaction => transaction.Id == tx.Id))
                         {
@@ -801,8 +787,8 @@ namespace Breeze.TumbleBit.Client
             }
 
             // TumbleBit housekeeping
-            this.tumblingState.LastBlockReceivedHeight = height;
-            this.tumblingState.Save();
+            this.TumblingState.LastBlockReceivedHeight = height;
+            this.TumblingState.Save();
         }
 
         public void Dispose()

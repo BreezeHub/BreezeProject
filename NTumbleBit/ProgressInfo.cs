@@ -34,7 +34,10 @@ namespace NTumbleBit
 			get { return this.PhaseEnum.ToString(); }
 		}
 
-		public CycleProgressInfo(CyclePeriod period, int height, int blocksLeft, int start, PaymentStateMachineStatus status, CyclePhase phase, string asciiArt)
+		[JsonProperty("SafetyPeriod")]
+		public bool IsSafetyPeriod { get; set; }
+
+        public CycleProgressInfo(CyclePeriod period, int height, int blocksLeft, int start, PaymentStateMachineStatus status, CyclePhase phase, bool isSafetyPeriod, string asciiArt)
 		{
 			this.Period = period;
 			this.Height = height;
@@ -42,7 +45,8 @@ namespace NTumbleBit
 			this.Start = start;
 			this.StatusEnum = status;
 			this.PhaseEnum = phase;
-			this.AsciiArt = asciiArt;
+            this.IsSafetyPeriod = isSafetyPeriod;
+            this.AsciiArt = asciiArt;
 
 		    this.CheckForFailedState();
 		}
@@ -69,23 +73,30 @@ namespace NTumbleBit
         }
     }
 
-	public class ProgressInfo
+    public class ProgressInfo
     {
-		public int Height { get; private set; }
+        [JsonIgnore]
+        public static readonly string TumbleProgressFileName = "tb_progress.json";
+
+        [JsonIgnore]
+        public string RootFolderName { get; set; }
+
+        public int Height { get; private set; }
 
 		public List<CycleProgressInfo> CycleProgressInfoList = new List<CycleProgressInfo>();
 
-	    public ProgressInfo(int height)
+	    public ProgressInfo(int height, string rootFolderName)
 	    {
 		    this.Height = height;
-	    }
+            this.RootFolderName = rootFolderName;
+        }
 
 	    public void Save()
         {
             try
             {
-                if (!Directory.Exists(ProgressInfo.Folder)) Directory.CreateDirectory(ProgressInfo.Folder);
-                string filename = Path.Combine(ProgressInfo.Folder, "tb_progress.json");
+                if (!Directory.Exists(this.RootFolderName)) Directory.CreateDirectory(this.RootFolderName);
+                string filename = Path.Combine(this.RootFolderName, ProgressInfo.TumbleProgressFileName);
 
                 using (var file = File.CreateText(filename))
                 {
@@ -98,20 +109,15 @@ namespace NTumbleBit
             catch (Exception){}
         }
 
-	    public static void RemoveProgressFile()
+	    public static void RemoveProgressFile(string rootFolderName)
 	    {
-		    string filename = Path.Combine(ProgressInfo.Folder, "tb_progress.json");
+            string filename = Path.Combine(rootFolderName, ProgressInfo.TumbleProgressFileName);
 			if (File.Exists(filename)) File.Delete(filename);
 		}
 
-        private static string Folder
+        public void RemoveProgressFile()
         {
-            get
-            {
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                    return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "StratisNode\\bitcoin\\TumbleBit");
-                return Path.Combine(Environment.GetEnvironmentVariable("HOME"), ".stratisnode", "bitcoin", "TumbleBit");
-            }
+            RemoveProgressFile(this.RootFolderName);
         }
-	}
+    }
 }

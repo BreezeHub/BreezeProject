@@ -6,11 +6,19 @@
 		Error
 	}
 
+    public enum PostResultActionType
+    {
+        CanContinue,
+        ShouldStop
+    }
+
 	public class Result
 	{
 	    public Result()
 	    {
 	    }
+
+        public PostResultActionType PostResultAction { get; private set; }
 
 		public ResultStatus Status { get; private set; }
 		public bool Success => this.Status == ResultStatus.Success; 
@@ -19,20 +27,21 @@
 
 	    public bool Failure => !Success;
 
-	    protected Result(ResultStatus status, string message = null)
+        protected Result(ResultStatus status, string message = null, PostResultActionType postResultAction = PostResultActionType.CanContinue)
 	    {
-	        this.Status = status;
+            this.PostResultAction = postResultAction;
+            this.Status = status;
 	        this.Message = message;
 	    }
 
-	    public static Result Fail(string message)
+	    public static Result Fail(string message, PostResultActionType postResultAction)
 	    {
-	        return new Result(ResultStatus.Error, message);
+	        return new Result(ResultStatus.Error, message, postResultAction);
 	    }
 
-	    public static Result<T> Fail<T>(string message)
+	    public static Result<T> Fail<T>(string message, PostResultActionType postResultAction)
 	    {
-	        return new Result<T>(default(T), ResultStatus.Error, message);
+	        return new Result<T>(default(T), ResultStatus.Error, message, postResultAction);
 	    }
 
 	    public static Result Ok()
@@ -69,8 +78,8 @@
 
 		public T Value { get; set; }
 
-	    protected internal Result(T value, ResultStatus status, string message = null)
-	        : base(status, message)
+	    protected internal Result(T value, ResultStatus status, string message = null, PostResultActionType postResultAction = PostResultActionType.CanContinue)
+	        : base(status, message, postResultAction)
 	    { 
 	    	Value = value;
 	    }

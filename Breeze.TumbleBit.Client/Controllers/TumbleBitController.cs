@@ -16,6 +16,7 @@ using Stratis.Bitcoin.Features.Wallet.Models;
 using Stratis.Bitcoin.Utilities;
 using Stratis.Bitcoin.Utilities.JsonErrors;
 using Stratis.Bitcoin.Features.Wallet.Interfaces;
+using NTumbleBit;
 
 namespace Breeze.TumbleBit.Controllers
 {
@@ -163,10 +164,10 @@ namespace Breeze.TumbleBit.Controllers
                 {
                     ["tumbler"] = this.tumbleBitManager.TumblerAddress,
                     ["state"] = this.tumbleBitManager.State.ToString(),
-                    ["originWallet"] = this.tumbleBitManager.tumblingState.OriginWalletName,
-                    ["destinationWallet"] = this.tumbleBitManager.tumblingState.DestinationWalletName,
+                    ["originWallet"] = this.tumbleBitManager.TumblingState.OriginWalletName,
+                    ["destinationWallet"] = this.tumbleBitManager.TumblingState.DestinationWalletName,
                     ["registrations"] = this.tumbleBitManager.RegistrationCount().ToString(),
-                    ["minRegistrations"] = "1"
+                    ["minRegistrations"] = TumbleBitManager.MINIMUM_MASTERNODE_COUNT.ToString()
                 };
 
                 return this.Json(parameterDictionary);
@@ -260,14 +261,12 @@ namespace Breeze.TumbleBit.Controllers
 	    {
 		    try
 		    {
-		        string folder;
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                    folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "StratisNode\\bitcoin\\TumbleBit");
-                else
-                    folder = Path.Combine(Environment.GetEnvironmentVariable("HOME"), ".stratisnode", "bitcoin", "TumbleBit");
+                var t = tumbleBitManager.TumblingState.NodeSettings;
+
+                string dataDir = tumbleBitManager.TumblingState.NodeSettings.DataDir;
+                string tumbleBitDataDir = FullNodeTumblerClientConfiguration.GetTumbleBitDataDir(dataDir);
                   
-                if (!Directory.Exists(folder)) Directory.CreateDirectory(folder);
-			    string filename = Path.Combine(folder, "tb_progress.json");
+			    string filename = Path.Combine(tumbleBitDataDir, ProgressInfo.TumbleProgressFileName);
 			    if (System.IO.File.Exists(filename) == false)
 				    return this.Json(string.Empty);
 			    else

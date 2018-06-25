@@ -84,6 +84,7 @@ namespace NTumbleBit.ClassicTumbler.Client
 
             if (!configuration.OnlyMonitor)
             {
+                DataDir = configuration.DataDir;
                 TumblerServer = configuration.TumblerServer;
                 BobSettings = configuration.BobConnectionSettings;
                 AliceSettings = configuration.AliceConnectionSettings;
@@ -180,7 +181,12 @@ namespace NTumbleBit.ClassicTumbler.Client
 			return new BroadcasterJob(Services);
 		}
 
-		public ConnectionSettingsBase BobSettings
+        public string DataDir
+        {
+            get; set;
+        }
+
+        public ConnectionSettingsBase BobSettings
 		{
 			get; set;
 		}
@@ -290,5 +296,26 @@ namespace NTumbleBit.ClassicTumbler.Client
 			get;
 			private set;
 		}
-	}
+
+        public bool HasEnoughFundsForCycle(bool firstCycle)
+        {
+            Money walletBalance = this.Services.WalletService.GetBalance();
+            FeeRate networkFeeRate = this.Services.FeeService.GetFeeRateAsync().GetAwaiter().GetResult();
+            Money networkFee = networkFeeRate.FeePerK * 1;
+
+            Money minimumBalance = this.TumblerParameters.Denomination + this.TumblerParameters.Fee + networkFee;
+            Money fundsAllocatedToPreviousCycle = minimumBalance;
+
+            if (firstCycle)
+            {
+                Logs.Client.LogInformation($"Performing wallet balance check; walletBalance = {walletBalance}, {minimumBalance}(minimumBalance) = {this.TumblerParameters.Denomination}(denomination) + {this.TumblerParameters.Fee}(masternode fee) + {networkFee}(network fees)");
+                return walletBalance >= minimumBalance;
+            }
+            else
+            {
+                Logs.Client.LogInformation($"Performing wallet balance check taking into account funds already allocated to previous cycle; {walletBalance - fundsAllocatedToPreviousCycle}(walletBalance) = {walletBalance}(current balance) - {fundsAllocatedToPreviousCycle}(fundsAllocatedToPreviousCycle), {minimumBalance}(minimumBalance) = {this.TumblerParameters.Denomination}(denomination) + {this.TumblerParameters.Fee}(masternode fee) + {networkFee}(network fees)");
+                return walletBalance >= minimumBalance + fundsAllocatedToPreviousCycle;
+            }
+        }
+    }
 }

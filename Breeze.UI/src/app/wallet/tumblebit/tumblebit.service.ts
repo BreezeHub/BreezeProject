@@ -2,6 +2,10 @@ import { Injectable } from '@angular/core';
 import { Http, Headers, Response, RequestOptions, URLSearchParams } from '@angular/http';
 import { Observable } from 'rxjs/Observable';
 import 'rxjs/add/operator/map';
+import 'rxjs/add/operator/mergeMap';
+import 'rxjs/add/operator/take';
+import 'rxjs/add/operator/concat';
+import 'rxjs/add/observable/throw';
 
 import { TumblerConnectionRequest } from './classes/tumbler-connection-request';
 import { TumbleRequest } from './classes/tumble-request';
@@ -28,7 +32,7 @@ export class TumblebitService {
       .get(`${this.tumblerClientUrl}${operation}`)
       .retryWhen(e => {
         return e
-           .flatMap((error: any) => {
+           .mergeMap((error: any) => {
               if (error.status  === 0) {
                 return Observable.of(error.status).delay(5000)
               }
@@ -45,7 +49,7 @@ export class TumblebitService {
       .get(`${this.tumblerClientUrl}changeserver`)
       .retryWhen(e => {
         return e
-           .flatMap((error: any) => {
+           .mergeMap((error: any) => {
               if (error.status  === 0) {
                 return Observable.of(error.status).delay(5000)
               }
@@ -65,7 +69,7 @@ export class TumblebitService {
         () => this.http.get(`${this.tumblerClientUrl}tumbling-state`)
                       .retryWhen(e => {
                         return e
-                           .flatMap((error: any) => {
+                           .mergeMap((error: any) => {
                               if (error.status  === 0) {
                                 return Observable.of(error.status).delay(5000)
                               }
@@ -98,7 +102,7 @@ export class TumblebitService {
         () => this.http.get(`${this.tumblerClientUrl}progress`)
                   .retryWhen(e => {
                     return e
-                       .flatMap((error: any) => {
+                       .mergeMap((error: any) => {
                           if (error.status  === 0) {
                             return Observable.of(error.status).delay(5000)
                           }
