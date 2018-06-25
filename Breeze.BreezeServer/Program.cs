@@ -1,6 +1,6 @@
 ﻿using System;
 using System.IO;
-
+using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -32,7 +32,12 @@ namespace Breeze.BreezeServer
 
 			// Check OS-specific default config path for the config file. Create default file if it does not exist
 			string configDir = BreezeConfiguration.GetDefaultDataDir("BreezeServer");
-			string configPath = Path.Combine(configDir, "breeze.conf");
+		    if (args.Contains("testnet"))
+		        configDir = Path.Combine(configDir, "TestNet");
+            else if (args.Contains("regtest"))
+		        configDir = Path.Combine(configDir, "RegTest");
+
+            string configPath = Path.Combine(configDir, "breeze.conf");
 
 			logger.LogInformation("{Time} Configuration file path {Path}", DateTime.Now, configPath);
 
