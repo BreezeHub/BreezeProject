@@ -1,10 +1,7 @@
 ﻿using NBitcoin;
-using NTumbleBit.ClassicTumbler;
-using NTumbleBit.PuzzleSolver;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using NTumbleBit.Logging;
 
 namespace NTumbleBit
 {
@@ -54,7 +51,9 @@ namespace NTumbleBit
 		{
             InternalState.EscrowKey = escrowKey ?? throw new ArgumentNullException(nameof(escrowKey));
 			InternalState.EscrowedCoin = escrowedCoin ?? throw new ArgumentNullException(nameof(escrowedCoin));
-		}
+
+		    Logs.Tumbler.LogDebug($"EscrowKey : { InternalState.EscrowKey }, EscrowedCoin : {InternalState.EscrowedCoin}");
+        }
 
 		public ScriptCoin EscrowedCoin
 		{

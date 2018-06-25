@@ -213,8 +213,9 @@ namespace NTumbleBit.ClassicTumbler.Server.Controllers
 
 			var solverServerSession = new SolverServerSession(Runtime.TumblerKey, Parameters.CreateSolverParamaters());
 			solverServerSession.SetChannelId(request.ChannelId);
-			solverServerSession.ConfigureEscrowedCoin(escrowedCoin, key);
-			await Services.BlockExplorerService.TrackAsync(escrowedCoin.ScriptPubKey);
+		    Logs.Tumbler.LogDebug($"BeginSignVoucher - escrowedCoin : {escrowedCoin.Amount}, escrowKey : {key}");
+            solverServerSession.ConfigureEscrowedCoin(escrowedCoin, key);
+            await Services.BlockExplorerService.TrackAsync(escrowedCoin.ScriptPubKey);
 
 			//Without this one, someone could spam the nonce db by replaying this request with different channelId
 			if(!Repository.MarkUsedNonce(cycle.Start, Hashes.Hash160(escrowedCoin.Outpoint.ToBytes())))
@@ -334,7 +335,8 @@ namespace NTumbleBit.ClassicTumbler.Server.Controllers
 							var coin = tx.Outputs.AsCoins().First(o => o.ScriptPubKey == txOut.ScriptPubKey && o.TxOut.Value == txOut.Value);
 							var session = new PromiseServerSession(Parameters.CreatePromiseParamaters());
 							var redeem = await Services.WalletService.GenerateAddressAsync().ConfigureAwait(false);
-							session.ConfigureEscrowedCoin(channelId, coin.ToScriptCoin(escrow.ToScript()), escrowKey, redeem.ScriptPubKey);
+						    Logs.Tumbler.LogDebug($"BeginOpenChannel - channelId : {channelId}, escrowedCoin : {coin.ToScriptCoin(escrow.ToScript())}, escrowKey : {escrowKey}, redeemDestination : {redeem.ScriptPubKey}");
+                            session.ConfigureEscrowedCoin(channelId, coin.ToScriptCoin(escrow.ToScript()), escrowKey, redeem.ScriptPubKey);
 							var redeemTx = session.CreateRedeemTransaction(fee);
 							Services.TrustedBroadcastService.Broadcast(cycle.Start, TransactionType.TumblerRedeem, correlation, redeemTx);
 							Repository.Save(cycle.Start, session);

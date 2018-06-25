@@ -1,15 +1,9 @@
 ﻿using NBitcoin;
-using NBitcoin.Crypto;
-using NTumbleBit.BouncyCastle.Math;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.IO;
-using Newtonsoft.Json.Converters;
-using Newtonsoft.Json;
-using NTumbleBit.ClassicTumbler;
+using Microsoft.Extensions.Logging;
+using NTumbleBit.Logging;
 
 namespace NTumbleBit.PuzzleSolver
 {
@@ -176,7 +170,8 @@ namespace NTumbleBit.PuzzleSolver
 		public override void ConfigureEscrowedCoin(ScriptCoin escrowedCoin, Key escrowKey)
 		{
 			AssertState(SolverServerStates.WaitingEscrow);
-			base.ConfigureEscrowedCoin(escrowedCoin, escrowKey);
+		    Logs.Tumbler.LogDebug($"escrowedCoin : {escrowedCoin.Amount}, escrowKey : {escrowKey}");
+            base.ConfigureEscrowedCoin(escrowedCoin, escrowKey);
 			InternalState.Status = SolverServerStates.WaitingPuzzles;
 		}
 

@@ -1,14 +1,12 @@
 ﻿using NBitcoin;
 using NBitcoin.Crypto;
-using Newtonsoft.Json;
 using NTumbleBit.PuzzleSolver;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using NTumbleBit.ClassicTumbler;
+using NTumbleBit.Logging;
 
 namespace NTumbleBit.PuzzlePromise
 {
@@ -114,7 +112,8 @@ namespace NTumbleBit.PuzzlePromise
 		public override void ConfigureEscrowedCoin(uint160 channelId, ScriptCoin escrowedCoin, Key escrowKey, Script redeemDestination)
 		{
 			AssertState(PromiseServerStates.WaitingEscrow);
-			base.ConfigureEscrowedCoin(channelId, escrowedCoin, escrowKey, redeemDestination);
+		    Logs.Tumbler.LogDebug($"escrowedCoin : {escrowedCoin.Amount}, escrowKey : {escrowKey}");
+            base.ConfigureEscrowedCoin(channelId, escrowedCoin, escrowKey, redeemDestination);
 			InternalState.Status = PromiseServerStates.WaitingHashes;
 		}
 

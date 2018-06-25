@@ -5,11 +5,8 @@ using NTumbleBit.PuzzleSolver;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.IO;
-using Newtonsoft.Json;
-using NTumbleBit.ClassicTumbler;
+using Microsoft.Extensions.Logging;
+using NTumbleBit.Logging;
 
 namespace NTumbleBit.PuzzlePromise
 {
@@ -222,7 +219,8 @@ namespace NTumbleBit.PuzzlePromise
 
 		public override void ConfigureEscrowedCoin(ScriptCoin escrowedCoin, Key escrowKey)
 		{
-			AssertState(PromiseClientStates.WaitingEscrow);
+            AssertState(PromiseClientStates.WaitingEscrow);
+		    Logs.Tumbler.LogDebug($"escrowedCoin : {escrowedCoin.Amount}, escrowKey : {escrowKey}");
 			base.ConfigureEscrowedCoin(escrowedCoin, escrowKey);
 			InternalState.Status = PromiseClientStates.WaitingSignatureRequest;
 		}

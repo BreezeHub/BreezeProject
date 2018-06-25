@@ -1,11 +1,9 @@
 ﻿using NBitcoin;
 using NTumbleBit.PuzzleSolver;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using NTumbleBit.ClassicTumbler;
-using NBitcoin.BuilderExtensions;
+using NTumbleBit.Logging;
 
 namespace NTumbleBit
 {
@@ -65,7 +63,9 @@ namespace NTumbleBit
 			InternalState.EscrowedCoin = escrowedCoin;
 			InternalState.EscrowKey = escrowKey;
 			InternalState.RedeemDestination = redeemDestination ?? throw new ArgumentNullException(nameof(redeemDestination));
-		}
+
+		    Logs.Tumbler.LogDebug($"ChannelId : { InternalState.ChannelId }, EscrowedCoin : {InternalState.EscrowedCoin}, EscrowKey : {InternalState.EscrowKey}, RedeemDestination : {InternalState.RedeemDestination}");
+        }
 
 		public TrustedBroadcastRequest CreateRedeemTransaction(FeeRate feeRate)
 		{
