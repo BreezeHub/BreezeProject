@@ -13,7 +13,7 @@ namespace Breeze.BreezeServer
 {
 	public class Program
 	{
-        public static void Main(string[] args)
+		public static void Main(string[] args)
 		{
 			var serviceProvider = new ServiceCollection()
 				.AddLogging()
@@ -32,10 +32,10 @@ namespace Breeze.BreezeServer
 
 			// Check OS-specific default config path for the config file. Create default file if it does not exist
 			string configDir = BreezeConfiguration.GetDefaultDataDir("BreezeServer");
-		    if (args.Contains("testnet"))
-		        configDir = Path.Combine(configDir, "TestNet");
-            else if (args.Contains("regtest"))
-		        configDir = Path.Combine(configDir, "RegTest");
+			if (args.Contains("testnet"))
+				configDir = Path.Combine(configDir, "TestNet");
+			else if (args.Contains("regtest"))
+				configDir = Path.Combine(configDir, "RegTest");
 
             string configPath = Path.Combine(configDir, "breeze.conf");
 
