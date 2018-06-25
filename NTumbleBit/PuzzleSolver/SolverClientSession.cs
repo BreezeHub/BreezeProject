@@ -152,7 +152,7 @@ namespace NTumbleBit.PuzzleSolver
         {
             AssertState(SolverClientStates.WaitingEscrow);
             Logs.Tumbler.LogDebug(
-                $"escrowedCoin.Outpoint.Hash : {escrowedCoin.Outpoint.Hash}, escrowedCoin.Outpoint.N : {escrowedCoin.Outpoint.N}");
+                $"SolverClientSession.ConfigureEscrowedCoin() - escrowedCoin.Outpoint.Hash : {escrowedCoin.Outpoint.Hash}, escrowedCoin.Outpoint.N : {escrowedCoin.Outpoint.N}");
             InternalState.Status = SolverClientStates.WaitingPuzzle;
         }
 

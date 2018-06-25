@@ -204,7 +204,7 @@ namespace NTumbleBit.ClassicTumbler.Server.Controllers
 
             var solverServerSession = new SolverServerSession(Runtime.TumblerKey, Parameters.CreateSolverParamaters());
             solverServerSession.SetChannelId(request.ChannelId);
-            Logs.Tumbler.LogDebug($"BeginSignVoucher - escrowedCoin.Outpoint.Hash : {escrowedCoin.Outpoint.Hash}, escrowedCoin.Outpoint.N : {escrowedCoin.Outpoint.N}, escrowKey.GetWif() : {key.GetWif(this.Parameters.Network)}");
+            Logs.Tumbler.LogDebug($"MainControllers.BeginSignVoucher() - escrowedCoin.Outpoint.Hash : {escrowedCoin.Outpoint.Hash}, escrowedCoin.Outpoint.N : {escrowedCoin.Outpoint.N}, escrowKey.GetWif() : {key.GetWif(this.Parameters.Network)}");
             solverServerSession.ConfigureEscrowedCoin(escrowedCoin, key);
             await Services.BlockExplorerService.TrackAsync(escrowedCoin.ScriptPubKey);
 

@@ -127,7 +127,7 @@ namespace NTumbleBit.ClassicTumbler
 
             var escrowedCoin = new Coin(output).ToScriptCoin(InternalState.ClientEscrow);
             Logs.Tumbler.LogDebug(
-                $"SetClientSignedTransaction - channelId : {channelId}, escrowedCoin.Outpoint.Hash : {escrowedCoin.Outpoint.Hash}, escrowedCoin.Outpoint.N : {escrowedCoin.Outpoint.N}, escrowKey.GetWif() : {InternalState.ClientEscrowKey.GetWif(this.Parameters.Network)}, redeemDestination : {redeemDestination.ToString()}");
+                $"ClientChannelNegotiation.SetClientSignedTransaction() - channelId : {channelId}, escrowedCoin.Outpoint.Hash : {escrowedCoin.Outpoint.Hash}, escrowedCoin.Outpoint.N : {escrowedCoin.Outpoint.N}, escrowKey.GetWif() : {InternalState.ClientEscrowKey.GetWif(this.Parameters.Network)}, redeemDestination : {redeemDestination.ToString()}");
             solver.ConfigureEscrowedCoin(channelId, escrowedCoin, InternalState.ClientEscrowKey, redeemDestination);
 
             InternalState.Status = TumblerClientSessionStates.WaitingSolvedVoucher;
@@ -186,7 +186,7 @@ namespace NTumbleBit.ClassicTumbler
             session.SetChannelId(InternalState.ChannelId);
 
             Logs.Tumbler.LogDebug(
-                $"ReceiveTumblerEscrowedCoin - escrowedCoin : {escrowedCoin}, escrowKey.GetWif() : {InternalState.TumblerEscrowKey.GetWif(this.Parameters.Network)}");
+                $"ClientChannelNegotiation.ReceiveTumblerEscrowedCoin() - escrowedCoin.Outpoint.Hash : {escrowedCoin.Outpoint.Hash}, escrowedCoin.Outpoint.N : {escrowedCoin.Outpoint.N}, escrowKey.GetWif() : {InternalState.TumblerEscrowKey.GetWif(this.Parameters.Network)}");
             session.ConfigureEscrowedCoin(escrowedCoin, InternalState.TumblerEscrowKey);
             InternalState.TumblerEscrowKey = null;
 

@@ -46,7 +46,7 @@ namespace NTumbleBit
                 redeemDestination ?? throw new ArgumentNullException(nameof(redeemDestination));
 
             Logs.Tumbler.LogDebug(
-                $"ChannelId : {InternalState.ChannelId}, EscrowedCoin.Outpoint.Hash : {InternalState.EscrowedCoin.Outpoint.Hash}, EscrowedCoin.Outpoint.N : {InternalState.EscrowedCoin.Outpoint.N}, RedeemDestination : {InternalState.RedeemDestination}");
+                $"EscrowInitiator.ConfigureEscrowedCoin() - ChannelId : {InternalState.ChannelId}, EscrowedCoin.Outpoint.Hash : {InternalState.EscrowedCoin.Outpoint.Hash}, EscrowedCoin.Outpoint.N : {InternalState.EscrowedCoin.Outpoint.N}, RedeemDestination : {InternalState.RedeemDestination}");
         }
 
         public TrustedBroadcastRequest CreateRedeemTransaction(FeeRate feeRate)

@@ -84,7 +84,7 @@ namespace NTumbleBit.PuzzlePromise
         {
             AssertState(PromiseServerStates.WaitingEscrow);
             Logs.Tumbler.LogDebug(
-                $"escrowedCoin.Outpoint.Hash : {escrowedCoin.Outpoint.Hash}, escrowedCoin.Outpoint.N : {escrowedCoin.Outpoint.N}");
+                $"PromiseServerSession.ConfigureEscrowedCoin() - escrowedCoin.Outpoint.Hash : {escrowedCoin.Outpoint.Hash}, escrowedCoin.Outpoint.N : {escrowedCoin.Outpoint.N}");
             base.ConfigureEscrowedCoin(channelId, escrowedCoin, escrowKey, redeemDestination);
             InternalState.Status = PromiseServerStates.WaitingHashes;
         }

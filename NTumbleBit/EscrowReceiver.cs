@@ -38,7 +38,7 @@ namespace NTumbleBit
             InternalState.EscrowedCoin = escrowedCoin ?? throw new ArgumentNullException(nameof(escrowedCoin));
 
             Logs.Tumbler.LogDebug(
-                $"EscrowedCoin.Outpoint.Hash : {InternalState.EscrowedCoin.Outpoint.Hash}, EscrowedCoin.Outpoint.N : {InternalState.EscrowedCoin.Outpoint.N}");
+                $"EscrowReceiver.ConfigureEscrowedCoin() - EscrowedCoin.Outpoint.Hash : {InternalState.EscrowedCoin.Outpoint.Hash}, EscrowedCoin.Outpoint.N : {InternalState.EscrowedCoin.Outpoint.N}");
         }
 
         public ScriptCoin EscrowedCoin
