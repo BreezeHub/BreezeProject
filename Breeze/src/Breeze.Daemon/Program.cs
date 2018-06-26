@@ -249,6 +249,7 @@ namespace Breeze.Daemon
             config.LoggingRules.Add(new LoggingRule("Stratis.Bitcoin.Features.Wallet.*", LogLevel.Debug, tbTarget));
             config.LoggingRules.Add(new LoggingRule("Stratis.Bitcoin.P2P.*", LogLevel.Debug, tbTarget)); // Quite verbose Trace logs
             config.LoggingRules.Add(new LoggingRule("BreezeCommon.*", LogLevel.Debug, tbTarget));
+            config.LoggingRules.Add(new LoggingRule("NTumbleBit.*", LogLevel.Debug, tbTarget));
         }
     }
 }
