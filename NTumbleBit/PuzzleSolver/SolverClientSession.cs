@@ -151,8 +151,8 @@ namespace NTumbleBit.PuzzleSolver
             Script redeemDestination)
         {
             AssertState(SolverClientStates.WaitingEscrow);
-            Logs.Tumbler.LogDebug(
-                $"SolverClientSession.ConfigureEscrowedCoin() - escrowedCoin.Outpoint.Hash : {escrowedCoin.Outpoint.Hash}, escrowedCoin.Outpoint.N : {escrowedCoin.Outpoint.N}");
+            Logs.Tumbler.LogDebug($"SolverClientSession.ConfigureEscrowedCoin() - escrowedCoin.Outpoint.Hash : {escrowedCoin.Outpoint.Hash}, escrowedCoin.Outpoint.N : {escrowedCoin.Outpoint.N}");
+            base.ConfigureEscrowedCoin(channelId, escrowedCoin, escrowKey, redeemDestination);
             InternalState.Status = SolverClientStates.WaitingPuzzle;
         }
 
