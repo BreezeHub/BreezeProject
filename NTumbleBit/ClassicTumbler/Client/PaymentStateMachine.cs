@@ -86,10 +86,12 @@ namespace NTumbleBit.ClassicTumbler.Client
 				return Runtime.TumblerParameters;
 			}
 		}
+
 		public int StartCycle
 		{
 			get; set;
 		}
+
 		public ClientChannelNegotiation ClientChannelNegotiation
 		{
 			get; set;

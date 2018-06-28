@@ -204,51 +204,57 @@ namespace Breeze.Daemon
 
         private static void SetupLogs(NLogConfig config, FileTarget tbTarget)
         {
-            SetupLogDebug(config, tbTarget);
-            SetupLogError(config, tbTarget);
-            SetupLogInfo(config, tbTarget);
-            SetupLogWarning(config, tbTarget);
+            SetupLogDebug(config, tbTarget, LogLevel.Debug);
+            SetupLogError(config, tbTarget, LogLevel.Error);
+            SetupLogInfo(config, tbTarget, LogLevel.Info);
+            SetupLogFatal(config, tbTarget, LogLevel.Fatal);
+            SetupLogWarning(config, tbTarget, LogLevel.Warn);
         }
 
-        private static void SetupLogWarning(NLogConfig config, FileTarget tbTarget)
+        private static void SetupLogWarning(NLogConfig config, FileTarget tbTarget, LogLevel logLevel)
         {
             // Catch all for any remaining warnings/errors that slip through the filters
-            config.LoggingRules.Add(new LoggingRule("*", LogLevel.Warn, tbTarget));
+            config.LoggingRules.Add(new LoggingRule("*", logLevel, tbTarget));
         }
 
-        private static void SetupLogInfo(NLogConfig config, FileTarget tbTarget)
+        private static void SetupLogInfo(NLogConfig config, FileTarget tbTarget, LogLevel logLevel)
         {
-            config.LoggingRules.Add(new LoggingRule("Stratis.Bitcoin.Features.WatchOnlyWallet.*", LogLevel.Info, tbTarget));
+            config.LoggingRules.Add(new LoggingRule("Stratis.Bitcoin.Features.WatchOnlyWallet.*", logLevel, tbTarget));
 
-            config.LoggingRules.Add(new LoggingRule("Stratis.Bitcoin.BlockPulling.*", LogLevel.Info, tbTarget)); // Has quite verbose Trace logs
-            config.LoggingRules.Add(new LoggingRule("Stratis.Bitcoin.Connection.*", LogLevel.Info, tbTarget));
-            config.LoggingRules.Add(new LoggingRule("Stratis.Bitcoin.FullNode", LogLevel.Info, tbTarget));
-            config.LoggingRules.Add(new LoggingRule("Stratis.Bitcoin.Utilities.*", LogLevel.Info, tbTarget));
+            config.LoggingRules.Add(new LoggingRule("Stratis.Bitcoin.BlockPulling.*", logLevel, tbTarget)); // Has quite verbose Trace logs
+            config.LoggingRules.Add(new LoggingRule("Stratis.Bitcoin.Connection.*", logLevel, tbTarget));
+            config.LoggingRules.Add(new LoggingRule("Stratis.Bitcoin.FullNode", logLevel, tbTarget));
+            config.LoggingRules.Add(new LoggingRule("Stratis.Bitcoin.Utilities.*", logLevel, tbTarget));
 
             config.LoggingRules.Add(new LoggingRule("api.request.logger", LogLevel.Info, tbTarget)); // Shows incoming API requests. Errors should be trapped by feature logs
 
             // The log rules specific to Breeze Privacy Protocol and masternode functionality.
             // Note however that the NTB runtime performs its own logging internally, and it is non-trivial to override it.
-            config.LoggingRules.Add(new LoggingRule("Breeze.TumbleBit.Client.*", LogLevel.Info, tbTarget));
-            config.LoggingRules.Add(new LoggingRule("Breeze.Registration.*", LogLevel.Info, tbTarget));
+            config.LoggingRules.Add(new LoggingRule("Breeze.TumbleBit.Client.*", logLevel, tbTarget));
+            config.LoggingRules.Add(new LoggingRule("Breeze.Registration.*", logLevel, tbTarget));
         }
 
-        private static void SetupLogError(NLogConfig config, FileTarget tbTarget)
+        private static void SetupLogError(NLogConfig config, FileTarget tbTarget, LogLevel logLevel)
         {
-            //config.LoggingRules.Add(new LoggingRule("Stratis.Bitcoin.Features.BlockStore.*", LogLevel.Error, tbTarget));
-            //config.LoggingRules.Add(new LoggingRule("Stratis.Bitcoin.Features.Consensus.*", LogLevel.Error, tbTarget));
-            //config.LoggingRules.Add(new LoggingRule("Stratis.Bitcoin.Features.MemoryPool.*", LogLevel.Error, tbTarget));
-            //config.LoggingRules.Add(new LoggingRule("Stratis.Bitcoin.Features.Notifications.*", LogLevel.Error, tbTarget));
-            config.LoggingRules.Add(new LoggingRule("Stratis.Bitcoin.Features.RPC.*", LogLevel.Error, tbTarget));
+            config.LoggingRules.Add(new LoggingRule("Stratis.Bitcoin.Features.RPC.*", logLevel, tbTarget));
+            config.LoggingRules.Add(new LoggingRule("Breeze.*", logLevel, tbTarget));
+            config.LoggingRules.Add(new LoggingRule("NTumbleBit.*", logLevel, tbTarget));
         }
 
-        private static void SetupLogDebug(NLogConfig config, FileTarget tbTarget)
+        private static void SetupLogFatal(NLogConfig config, FileTarget tbTarget, LogLevel logLevel)
         {
-            config.LoggingRules.Add(new LoggingRule("Stratis.Bitcoin.Features.Api.*", LogLevel.Debug, tbTarget));
-            config.LoggingRules.Add(new LoggingRule("Stratis.Bitcoin.Features.LightWallet.*", LogLevel.Debug, tbTarget));
-            config.LoggingRules.Add(new LoggingRule("Stratis.Bitcoin.Features.Wallet.*", LogLevel.Debug, tbTarget));
-            config.LoggingRules.Add(new LoggingRule("Stratis.Bitcoin.P2P.*", LogLevel.Debug, tbTarget)); // Quite verbose Trace logs
-            config.LoggingRules.Add(new LoggingRule("BreezeCommon.*", LogLevel.Debug, tbTarget));
+            config.LoggingRules.Add(new LoggingRule("Breeze.*", logLevel, tbTarget));
+            config.LoggingRules.Add(new LoggingRule("NTumbleBit.*", logLevel, tbTarget));
+        }
+
+        private static void SetupLogDebug(NLogConfig config, FileTarget tbTarget, LogLevel logLevel)
+        {
+            config.LoggingRules.Add(new LoggingRule("Stratis.Bitcoin.Features.Api.*", logLevel, tbTarget));
+            config.LoggingRules.Add(new LoggingRule("Stratis.Bitcoin.Features.LightWallet.*", logLevel, tbTarget));
+            config.LoggingRules.Add(new LoggingRule("Stratis.Bitcoin.Features.Wallet.*", logLevel, tbTarget));
+            config.LoggingRules.Add(new LoggingRule("Stratis.Bitcoin.P2P.*", logLevel, tbTarget)); // Quite verbose Trace logs
+            config.LoggingRules.Add(new LoggingRule("BreezeCommon.*", logLevel, tbTarget));
+            config.LoggingRules.Add(new LoggingRule("NTumbleBit.*", logLevel, tbTarget));
         }
     }
 }
