@@ -65,6 +65,9 @@ namespace Breeze.Daemon
                     //    return;
 
                     Network network = isTestNet ? Network.StratisTest : Network.StratisMain;
+	                if (args.Contains("-regtest"))
+		                network = Network.StratisRegTest;
+
                     if (isTestNet)
                         args = args.Append("-addnode=51.141.28.47").ToArray(); // TODO: fix this temp hack
 
