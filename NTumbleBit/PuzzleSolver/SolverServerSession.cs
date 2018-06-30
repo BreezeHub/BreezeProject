@@ -124,6 +124,7 @@ namespace NTumbleBit.PuzzleSolver
         public override void ConfigureEscrowedCoin(ScriptCoin escrowedCoin, Key escrowKey)
         {
             AssertState(SolverServerStates.WaitingEscrow);
+			base.ConfigureEscrowedCoin(escrowedCoin, escrowKey);
             InternalState.Status = SolverServerStates.WaitingPuzzles;
         }
 

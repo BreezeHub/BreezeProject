@@ -358,8 +358,8 @@ namespace NTumbleBit.Logging
 		public void WriteMessageToDisk(string message)
 		{
 			// TODO: Split log daily or rotate
-			//if (!Directory.Exists(logFilePath)) Directory.CreateDirectory(logFilePath);
 			string filePath = Path.Combine(Logs.LogDir, "NTumbleBit.txt");
+			if (!Directory.Exists(Logs.LogDir)) Directory.CreateDirectory(Logs.LogDir);
 
 			using (var file = File.AppendText(filePath))
 			{
