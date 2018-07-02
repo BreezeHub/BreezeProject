@@ -13,6 +13,7 @@ using Stratis.Bitcoin.Signals;
 using NTumbleBit.Services;
 using BreezeCommon;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Text;
 using Stratis.Bitcoin;
 using Stratis.Bitcoin.Features.Wallet.Interfaces;
@@ -796,18 +797,18 @@ namespace Breeze.TumbleBit.Client
              */
             const int cycleDuration = 117;
             const int cycleOverlap = 24;
-            const double networkFee = 0.0001;
 
             var demonination = tumblerParameters.Value.Denomination.ToUnit(MoneyUnit.BTC) ;
             var tumblerFee = tumblerParameters.Value.Fee.ToUnit(MoneyUnit.BTC);
+            var networkFee = new Money(tumblerParameters.Value.Network.MinTxFee).ToUnit(MoneyUnit.BTC);
 
-            var  cycleCost = (double)demonination + (double)tumblerFee + networkFee;
+            var  cycleCost = demonination + tumblerFee + networkFee;
 
-            var numberOfCycles = Math.Truncate((double)walletBalance.ToUnit(MoneyUnit.BTC) / cycleCost);
+            var numberOfCycles = Math.Truncate(walletBalance.ToUnit(MoneyUnit.BTC) / cycleCost);
             var durationInBlocks = cycleDuration + ((numberOfCycles - 1) * cycleOverlap);
             var durationInHours = durationInBlocks * 10 / 60;
 
-            var estimateTublingDuration = TimeSpanInWordFormat(durationInHours);   
+            var estimateTublingDuration = TimeSpanInWordFormat(durationInHours.ToString(CultureInfo.InvariantCulture));   
 
             return estimateTublingDuration;
         }
@@ -844,9 +845,12 @@ namespace Breeze.TumbleBit.Client
             }
         }
 
-        private static string TimeSpanInWordFormat(double fromHours)
+        private static string TimeSpanInWordFormat(string fromHours)
         {
-            var timeSpan = TimeSpan.FromHours(fromHours);
+            if (!double.TryParse(fromHours, out var parsedHours))
+                return string.Empty;
+
+            var timeSpan = TimeSpan.FromHours(parsedHours);
 
             var days = timeSpan.Days.ToString();
             var hours = timeSpan.Hours.ToString();

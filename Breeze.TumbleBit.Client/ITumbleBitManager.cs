@@ -65,7 +65,7 @@ namespace Breeze.TumbleBit.Client
         /// Returns the days and hours that the tumbling will take.
         /// </summary>
         /// <param name="walletBalance">Origin wallet balance.</param>
-        /// <param name="tumblerParameters">Tumber parameters which include.</param>
+        /// <param name="tumblerParameters">Tumbler parameters - Denomination, TumblerFee and NetWorkFee used as part of the calculation.</param>
         string TumblingDuration(Money walletBalance, Result<ClassicTumblerParameters> tumblerParameters);
     }
 }
