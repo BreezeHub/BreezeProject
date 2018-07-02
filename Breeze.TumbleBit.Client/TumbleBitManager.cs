@@ -17,6 +17,7 @@ using Stratis.Bitcoin.Signals;
 using NTumbleBit.Services;
 using BreezeCommon;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Text;
 using Stratis.Bitcoin;
 using Stratis.Bitcoin.Features.Wallet.Interfaces;
@@ -791,6 +792,35 @@ namespace Breeze.TumbleBit.Client
             this.TumblingState.Save();
         }
 
+        public string TumblingDuration(Money walletBalance, Result<ClassicTumblerParameters> tumblerParameters)
+        {
+
+            /* Tumbling cycles occur up to 117 blocks (endBlock) and overlap every 24 blocks (cycleOverlap) :-
+
+                Start block	End block
+                ----------- ---------
+                0	        117
+                24	        141
+                48	        165
+             */
+            const int endBlock = 117;
+            const int cycleOverlap = 24;
+            const double networkFee = 0.0001;
+
+            var demonination = tumblerParameters.Value.Denomination.ToUnit(MoneyUnit.BTC) ;
+            var tumblerFee = tumblerParameters.Value.Fee.ToUnit(MoneyUnit.BTC);
+
+            var  cycleCost = (double)demonination + (double)tumblerFee + networkFee;
+
+            var numberOfCycles = Math.Truncate((double)walletBalance.ToUnit(MoneyUnit.BTC) / cycleCost);
+            var durationInBlocks = endBlock + (numberOfCycles - 1) * cycleOverlap;
+            var durationInHours = durationInBlocks * 10 / 60;
+
+            var estimateTublingDuration = TimeSpanInWordFormat(durationInHours);   
+
+            return estimateTublingDuration;
+        }
+
         public void Dispose()
         {
             if (this.broadcasterJob != null && this.broadcasterJob.Started)
@@ -821,6 +851,31 @@ namespace Breeze.TumbleBit.Client
                     return -1;
                 }
             }
+        }
+
+        private static string TimeSpanInWordFormat(double fromHours)
+        {
+            var timeSpan = TimeSpan.FromHours(fromHours);
+
+            var days = timeSpan.Days.ToString();
+            var hours = timeSpan.Hours.ToString();
+
+            var formattedTimeSpan = string.Empty;
+
+            if (timeSpan.Days > 0)
+            {
+                formattedTimeSpan = days + " days";
+
+                if (timeSpan.Hours > 0)
+                    formattedTimeSpan += ", and " + hours + " hours";
+            }
+            else
+            {
+                if (timeSpan.Hours > 0)
+                    formattedTimeSpan = hours + " hours";
+            }
+
+            return formattedTimeSpan;
         }
     }
 
