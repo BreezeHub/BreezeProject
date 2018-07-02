@@ -808,9 +808,9 @@ namespace Breeze.TumbleBit.Client
             var durationInBlocks = cycleDuration + ((numberOfCycles - 1) * cycleOverlap);
             var durationInHours = durationInBlocks * 10 / 60;
 
-            var estimateTublingDuration = TimeSpanInWordFormat(durationInHours.ToString(CultureInfo.InvariantCulture));   
+            var estimateTumblingDuration = TimeSpanInWordFormat(durationInHours.ToString(CultureInfo.InvariantCulture));   
 
-            return estimateTublingDuration;
+            return estimateTumblingDuration;
         }
 
         public void Dispose()
