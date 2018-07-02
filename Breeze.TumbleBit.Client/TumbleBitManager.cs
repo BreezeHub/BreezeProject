@@ -5,32 +5,23 @@ using Breeze.TumbleBit.Client.Models;
 using Microsoft.Extensions.Logging;
 using NBitcoin;
 using NTumbleBit.ClassicTumbler;
-using NTumbleBit.ClassicTumbler.CLI;
 using NTumbleBit.ClassicTumbler.Client;
-using Stratis.Bitcoin.Builder;
 using Stratis.Bitcoin.Configuration;
-using Stratis.Bitcoin.Features.BlockStore;
-using Stratis.Bitcoin.Features.MemoryPool;
 using Stratis.Bitcoin.Features.Wallet;
 using Stratis.Bitcoin.Features.WatchOnlyWallet;
 using Stratis.Bitcoin.Signals;
 using NTumbleBit.Services;
 using BreezeCommon;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Text;
 using Stratis.Bitcoin;
 using Stratis.Bitcoin.Features.Wallet.Interfaces;
 using Stratis.Bitcoin.Interfaces;
 using System.IO;
-using System.Runtime.CompilerServices;
-using Breeze.TumbleBit.Client.Services;
 using NTumbleBit;
 using NTumbleBit.Configuration;
 using Stratis.Bitcoin.Connection;
-using Stratis.Bitcoin.Features.Wallet.Models;
 using TransactionData = Stratis.Bitcoin.Features.Wallet.TransactionData;
-using Breeze.Registration;
 
 namespace Breeze.TumbleBit.Client
 {
@@ -795,7 +786,7 @@ namespace Breeze.TumbleBit.Client
         public string TumblingDuration(Money walletBalance, Result<ClassicTumblerParameters> tumblerParameters)
         {
 
-            /* Tumbling cycles occur up to 117 blocks (endBlock) and overlap every 24 blocks (cycleOverlap) :-
+            /* Tumbling cycles occur up to 117 blocks (cycleDuration) and overlap every 24 blocks (cycleOverlap) :-
 
                 Start block	End block
                 ----------- ---------
@@ -803,7 +794,7 @@ namespace Breeze.TumbleBit.Client
                 24	        141
                 48	        165
              */
-            const int endBlock = 117;
+            const int cycleDuration = 117;
             const int cycleOverlap = 24;
             const double networkFee = 0.0001;
 
@@ -813,7 +804,7 @@ namespace Breeze.TumbleBit.Client
             var  cycleCost = (double)demonination + (double)tumblerFee + networkFee;
 
             var numberOfCycles = Math.Truncate((double)walletBalance.ToUnit(MoneyUnit.BTC) / cycleCost);
-            var durationInBlocks = endBlock + (numberOfCycles - 1) * cycleOverlap;
+            var durationInBlocks = cycleDuration + ((numberOfCycles - 1) * cycleOverlap);
             var durationInHours = durationInBlocks * 10 / 60;
 
             var estimateTublingDuration = TimeSpanInWordFormat(durationInHours);   
@@ -864,15 +855,15 @@ namespace Breeze.TumbleBit.Client
 
             if (timeSpan.Days > 0)
             {
-                formattedTimeSpan = days + " days";
+                formattedTimeSpan = $"{days} days";
 
                 if (timeSpan.Hours > 0)
-                    formattedTimeSpan += ", and " + hours + " hours";
+                    formattedTimeSpan += $", and {hours} hours";
             }
             else
             {
                 if (timeSpan.Hours > 0)
-                    formattedTimeSpan = hours + " hours";
+                    formattedTimeSpan = $"{hours} hours";
             }
 
             return formattedTimeSpan;
