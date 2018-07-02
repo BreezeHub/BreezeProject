@@ -960,7 +960,6 @@ input.cmn-toggle-round-flat:checked + label:after {
   padding: 1rem;
   border: 1px solid #D7E0ED;
   border-radius: 8px;
-  max-height: 200px;
   height: auto;
   overflow-y: scroll;
 }

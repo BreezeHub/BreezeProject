@@ -68,6 +68,7 @@ export class TumblebitComponent implements OnDestroy {
   private routerSubscriptions: CompositeDisposable;
   private startSubscriptions: CompositeDisposable;
   private connectionFatalError = false;
+  public parametersAreStandard = false;
 
   tumbleFormErrors = {
     'selectWallet': ''
@@ -323,6 +324,7 @@ export class TumblebitComponent implements OnDestroy {
             this.estimate = this.tumblerParameters.estimate / 3600;
             this.fee = this.tumblerParameters.fee;
             this.denomination = this.tumblerParameters.denomination;
+            this.parametersAreStandard = this.tumblerParameters.parameters_are_standard;
 
             if (!!this.connectionModal) {
               this.connectionModal.dismiss();
@@ -343,6 +345,7 @@ export class TumblebitComponent implements OnDestroy {
             this.connectionModal.componentInstance.fees = this.fee;
             this.connectionModal.componentInstance.estimatedTime = this.estimate;
             this.connectionModal.componentInstance.coinUnit = this.coinUnit;
+            this.connectionModal.componentInstance.isStandardServer = this.parametersAreStandard;
             this.connectionModal.result.then(result => {
               this.stopConnectionRequest();
               if (result === 'skip') {
@@ -463,21 +466,23 @@ export class TumblebitComponent implements OnDestroy {
                   const cycleFailed = cycle.Failed;
                   const cycleAsciiArt = cycle.AsciiArt;
                   const cycleStatus = cycle.Status;
-                  const cyclePhase = this.getPhaseString(cycle.Phase);
+                  const cyclePhase = this.getPhaseString(cycle.Phase, cycle.SafetyPeriod);
                   const cyclePhaseNumber = this.getPhaseNumber(cycle.Phase);
 
-                  this.progressDataArray.push(
-                    new CycleInfo(
-                      periodStart,
-                      periodEnd,
-                      height,
-                      blocksLeft,
-                      cycleStart,
-                      cycleFailed,
-                      cycleAsciiArt,
-                      cycleStatus,
-                      cyclePhase,
-                      cyclePhaseNumber));
+                  const item = new CycleInfo(
+                    periodStart,
+                    periodEnd,
+                    height,
+                    blocksLeft,
+                    cycleStart,
+                    cycleFailed,
+                    cycleAsciiArt,
+                    cycleStatus,
+                    cyclePhase,
+                    cyclePhaseNumber);
+
+                  this.progressDataArray.push(item);
+                  
                   this.progressDataArray.sort(function(cycle1, cycle2) {
                     return cycle1.cycleStart - cycle2.cycleStart;
                   })
@@ -520,21 +525,29 @@ export class TumblebitComponent implements OnDestroy {
     }
   }
 
-  private getPhaseString(phase: string) {
+  private getPhaseString(phase: string, isSafetyPeriod: boolean): string {
+    let result;
     switch (phase) {
       case 'Registration':
-        return 'Registration';
+        result = 'Registration'; 
+        break;
       case 'ClientChannelEstablishment':
-        return 'Client Channel Establishment';
+        result = 'Client Channel Establishment'; 
+        break;
       case 'TumblerChannelEstablishment':
-        return 'Tumbler Channel Establishment';
+        result = 'Tumbler Channel Establishment'; 
+        break;
       case 'PaymentPhase':
-        return 'Payment Phase';
+        result = 'Payment Phase'; 
+        break;
       case 'TumblerCashoutPhase':
-        return 'Tumbler Cashout Phase';
+        result = 'Tumbler Cashout Phase'; 
+        break;
       case 'ClientCashoutPhase':
-        return 'Client Cashout Phase';
+        result = 'Client Cashout Phase'; 
+        break;
     }
+    return result && isSafetyPeriod ? `${result} Safety Period` : result;
   }
 
   // TODO: move into a shared service

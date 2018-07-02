@@ -27,7 +27,7 @@
               <p class="help mt-4" *ngIf="!isConnected">Please wait until a connection the MasterNode server is established. This can take up to 10min.</p>
               <!-- <p class="help mt-4" *ngIf="!hasRegistrations">Not enough masternodes registered to start the Breeze Privacy Protocol. Please wait.</p> -->
             </form>
-  
+
             <div class="col-11 mx-auto cycles mt-3" *ngIf="(tumbling && isConnected) && progressDataArray">
               <div *ngFor="let cycle of progressDataArray" class="cycle-line">
                 <ul class="list-inline">
@@ -70,7 +70,7 @@
                       <app-connection-progress *ngIf="!isConnected" style="display: inline-flex; vertical-align: middle"
                                   [durationSeconds]="connectionRequestTimeoutSeconds" [run]="connectionInProgress"></app-connection-progress>
                     </div>
-                    <div *ngIf="!isSynced">
+                    <div *ngIf="!isConnected && !isSynced">
                       <code data-toggle="tooltip" style="float: left; margin-right:15px"  data-placement="top">Synchronizing wallets...</code>                   
                     </div>
                   </td>
