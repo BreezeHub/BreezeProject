@@ -59,5 +59,11 @@ namespace Breeze.TumbleBit.Client
         /// Returns -1 if the block time is undefined for any reason.
         /// </summary>
         int LastBlockTime { get; }
+
+        /// <summary>
+        /// Calculates the tumbling duration, based on the origin wallet and various tumbler parameters.   
+        /// Returns the days/hours.
+        /// </summary>
+        string CalculateTumblingDuration();
     }
 }

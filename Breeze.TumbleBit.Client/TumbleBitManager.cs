@@ -5,31 +5,24 @@ using Breeze.TumbleBit.Client.Models;
 using Microsoft.Extensions.Logging;
 using NBitcoin;
 using NTumbleBit.ClassicTumbler;
-using NTumbleBit.ClassicTumbler.CLI;
 using NTumbleBit.ClassicTumbler.Client;
-using Stratis.Bitcoin.Builder;
 using Stratis.Bitcoin.Configuration;
-using Stratis.Bitcoin.Features.BlockStore;
-using Stratis.Bitcoin.Features.MemoryPool;
 using Stratis.Bitcoin.Features.Wallet;
 using Stratis.Bitcoin.Features.WatchOnlyWallet;
 using Stratis.Bitcoin.Signals;
 using NTumbleBit.Services;
 using BreezeCommon;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Text;
 using Stratis.Bitcoin;
 using Stratis.Bitcoin.Features.Wallet.Interfaces;
 using Stratis.Bitcoin.Interfaces;
 using System.IO;
-using System.Runtime.CompilerServices;
-using Breeze.TumbleBit.Client.Services;
 using NTumbleBit;
 using NTumbleBit.Configuration;
 using Stratis.Bitcoin.Connection;
-using Stratis.Bitcoin.Features.Wallet.Models;
 using TransactionData = Stratis.Bitcoin.Features.Wallet.TransactionData;
-using Breeze.Registration;
 
 namespace Breeze.TumbleBit.Client
 {
@@ -791,6 +784,37 @@ namespace Breeze.TumbleBit.Client
             this.TumblingState.Save();
         }
 
+        public string CalculateTumblingDuration()
+        {
+            if (TumblerParameters == null)
+                return string.Empty;
+
+            /* Tumbling cycles occur up to 117 blocks (cycleDuration) and overlap every 24 blocks (cycleOverlap) :-
+
+                Start block	End block
+                ----------- ---------
+                0	        117
+                24	        141
+                48	        165
+             */
+            const int cycleDuration = 117;
+            const int cycleOverlap = 24;
+
+            var walletBalance = new Money(this.walletManager.GetSpendableTransactionsInWallet(this.TumblingState.OriginWalletName).Sum(s => s.Transaction.Amount));
+
+            var demonination = TumblerParameters.Denomination.ToUnit(MoneyUnit.BTC);
+            var tumblerFee = TumblerParameters.Fee.ToUnit(MoneyUnit.BTC);
+            var networkFee = new Money(TumblerParameters.Network.MinTxFee).ToUnit(MoneyUnit.BTC);
+
+            var cycleCost = demonination + tumblerFee + networkFee;
+
+            var numberOfCycles = Math.Truncate(walletBalance.ToUnit(MoneyUnit.BTC) / cycleCost);
+            var durationInBlocks = cycleDuration + ((numberOfCycles - 1) * cycleOverlap);
+            var durationInHours = durationInBlocks * 10 / 60;
+
+            return TimeSpanInWordFormat(durationInHours.ToString(CultureInfo.InvariantCulture)); ;
+        }
+
         public void Dispose()
         {
             if (this.broadcasterJob != null && this.broadcasterJob.Started)
@@ -821,6 +845,34 @@ namespace Breeze.TumbleBit.Client
                     return -1;
                 }
             }
+        }
+
+        private static string TimeSpanInWordFormat(string fromHours)
+        {
+            if (!double.TryParse(fromHours, out var parsedHours))
+                return string.Empty;
+
+            var timeSpan = TimeSpan.FromHours(parsedHours);
+
+            var days = timeSpan.Days.ToString();
+            var hours = timeSpan.Hours.ToString();
+
+            var formattedTimeSpan = string.Empty;
+
+            if (timeSpan.Days > 0)
+            {
+                formattedTimeSpan = $"{days} days";
+
+                if (timeSpan.Hours > 0)
+                    formattedTimeSpan += $", and {hours} hours";
+            }
+            else
+            {
+                if (timeSpan.Hours > 0)
+                    formattedTimeSpan = $"{hours} hours";
+            }
+
+            return formattedTimeSpan;
         }
     }
 

@@ -3,18 +3,14 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Breeze.TumbleBit.Client;
-using Breeze.TumbleBit.Client.Models;
 using Breeze.TumbleBit.Models;
 using NBitcoin;
-using NTumbleBit.ClassicTumbler;
 using Stratis.Bitcoin.Features.Wallet;
 using Stratis.Bitcoin.Features.Wallet.Models;
 using Stratis.Bitcoin.Utilities;
-using Stratis.Bitcoin.Utilities.JsonErrors;
 using Stratis.Bitcoin.Features.Wallet.Interfaces;
 using NTumbleBit;
 
@@ -56,17 +52,13 @@ namespace Breeze.TumbleBit.Controllers
                 if (tumblerParameters.Failure)
                     return Client.ErrorHelpers.BuildErrorResponse(HttpStatusCode.InternalServerError, tumblerParameters.Message, tumblerParameters.Message);
 
-                var periods = tumblerParameters.Value.CycleGenerator.FirstCycle.GetPeriods();
-                var lengthBlocks = periods.Total.End - periods.Total.Start;
-                var cycleLengthSeconds = lengthBlocks * 10 * 60;
-
                 var parameterDictionary = new Dictionary<string, string>()
                 {
                     ["tumbler"] = this.tumbleBitManager.TumblerAddress,
                     ["denomination"] = tumblerParameters.Value.Denomination.ToString(),
                     ["fee"] = tumblerParameters.Value.Fee.ToString(),
                     ["network"] = tumblerParameters.Value.Network.Name,
-                    ["estimate"] = cycleLengthSeconds.ToString(),
+                    ["estimate"] = this.tumbleBitManager.CalculateTumblingDuration(),
 					["parameters_are_standard"] = tumblerParameters.Value.IsStandard().ToString()
                 };
 
@@ -74,7 +66,7 @@ namespace Breeze.TumbleBit.Controllers
             }
             catch (Exception e)
             {
-                return Client.ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, $"An error occured connecting to the tumbler with uri {this.tumbleBitManager.TumblerAddress}.", e.ToString());
+                return Client.ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, $"An error occurred connecting to the tumbler with URI {this.tumbleBitManager.TumblerAddress}.", e.ToString());
             }
         }
 
@@ -113,7 +105,8 @@ namespace Breeze.TumbleBit.Controllers
 		/// </summary>
 		[Route("changeserver")]
 		[HttpGet]
-		public async Task<IActionResult> ChangeServerAsync()
+		public async Task<IActionResult> 
+		    ChangeServerAsync()
 		{
 			// Checks the request is valid
 			if (!this.ModelState.IsValid)
@@ -129,17 +122,13 @@ namespace Breeze.TumbleBit.Controllers
 				if (tumblerParameters.Failure)
 					return Client.ErrorHelpers.BuildErrorResponse(HttpStatusCode.InternalServerError, tumblerParameters.Message, tumblerParameters.Message);
 
-				var periods = tumblerParameters.Value.CycleGenerator.FirstCycle.GetPeriods();
-				var lengthBlocks = periods.Total.End - periods.Total.Start;
-				var cycleLengthSeconds = lengthBlocks * 10 * 60;
-
 				var parameterDictionary = new Dictionary<string, string>()
 				{
 					["tumbler"] = this.tumbleBitManager.TumblerAddress,
 					["denomination"] = tumblerParameters.Value.Denomination.ToString(),
 					["fee"] = tumblerParameters.Value.Fee.ToString(),
 					["network"] = tumblerParameters.Value.Network.Name,
-					["estimate"] = cycleLengthSeconds.ToString(),
+					["estimate"] = this.tumbleBitManager.CalculateTumblingDuration(),
 					["parameters_are_standard"] = tumblerParameters.Value.IsStandard().ToString()
 				};
 
@@ -147,7 +136,7 @@ namespace Breeze.TumbleBit.Controllers
 			}
 			catch (Exception e)
 			{
-				return Client.ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, $"An error occured connecting to the tumbler with uri {this.tumbleBitManager.TumblerAddress}.", e.ToString());
+				return Client.ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, $"An error occurred connecting to the tumbler with URI {this.tumbleBitManager.TumblerAddress}.", e.ToString());
 			}
 		}
 
