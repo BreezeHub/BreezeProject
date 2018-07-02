@@ -784,8 +784,10 @@ namespace Breeze.TumbleBit.Client
             this.TumblingState.Save();
         }
 
-        public string TumblingDuration(Money walletBalance, Result<ClassicTumblerParameters> tumblerParameters)
+        public string CalculateTumblingDuration()
         {
+            if (TumblerParameters == null)
+                return string.Empty;
 
             /* Tumbling cycles occur up to 117 blocks (cycleDuration) and overlap every 24 blocks (cycleOverlap) :-
 
@@ -798,19 +800,19 @@ namespace Breeze.TumbleBit.Client
             const int cycleDuration = 117;
             const int cycleOverlap = 24;
 
-            var demonination = tumblerParameters.Value.Denomination.ToUnit(MoneyUnit.BTC) ;
-            var tumblerFee = tumblerParameters.Value.Fee.ToUnit(MoneyUnit.BTC);
-            var networkFee = new Money(tumblerParameters.Value.Network.MinTxFee).ToUnit(MoneyUnit.BTC);
+            var walletBalance = new Money(this.walletManager.GetSpendableTransactionsInWallet(this.TumblingState.OriginWalletName).Sum(s => s.Transaction.Amount));
 
-            var  cycleCost = demonination + tumblerFee + networkFee;
+            var demonination = TumblerParameters.Denomination.ToUnit(MoneyUnit.BTC);
+            var tumblerFee = TumblerParameters.Fee.ToUnit(MoneyUnit.BTC);
+            var networkFee = new Money(TumblerParameters.Network.MinTxFee).ToUnit(MoneyUnit.BTC);
+
+            var cycleCost = demonination + tumblerFee + networkFee;
 
             var numberOfCycles = Math.Truncate(walletBalance.ToUnit(MoneyUnit.BTC) / cycleCost);
             var durationInBlocks = cycleDuration + ((numberOfCycles - 1) * cycleOverlap);
             var durationInHours = durationInBlocks * 10 / 60;
 
-            var estimateTumblingDuration = TimeSpanInWordFormat(durationInHours.ToString(CultureInfo.InvariantCulture));   
-
-            return estimateTumblingDuration;
+            return TimeSpanInWordFormat(durationInHours.ToString(CultureInfo.InvariantCulture)); ;
         }
 
         public void Dispose()

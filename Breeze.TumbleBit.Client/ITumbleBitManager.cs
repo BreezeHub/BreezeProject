@@ -61,11 +61,9 @@ namespace Breeze.TumbleBit.Client
         int LastBlockTime { get; }
 
         /// <summary>
-        /// Calculates the tumbling duration, based on the origin wallet and tumbler parameters.   
-        /// Returns the days and hours that the tumbling will take.
+        /// Calculates the tumbling duration, based on the origin wallet and various tumbler parameters.   
+        /// Returns the days/hours.
         /// </summary>
-        /// <param name="walletBalance">Origin wallet balance.</param>
-        /// <param name="tumblerParameters">Tumbler parameters - Denomination, TumblerFee and NetWorkFee used as part of the calculation.</param>
-        string TumblingDuration(Money walletBalance, Result<ClassicTumblerParameters> tumblerParameters);
+        string CalculateTumblingDuration();
     }
 }

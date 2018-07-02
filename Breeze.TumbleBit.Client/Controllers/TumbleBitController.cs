@@ -52,15 +52,13 @@ namespace Breeze.TumbleBit.Controllers
                 if (tumblerParameters.Failure)
                     return Client.ErrorHelpers.BuildErrorResponse(HttpStatusCode.InternalServerError, tumblerParameters.Message, tumblerParameters.Message);
 
-                var originWalletBalance = new Money(this.walletManager.GetSpendableTransactionsInWallet(this.tumbleBitManager.TumblingState.OriginWalletName).Sum(s => s.Transaction.Amount));
-
                 var parameterDictionary = new Dictionary<string, string>()
                 {
                     ["tumbler"] = this.tumbleBitManager.TumblerAddress,
                     ["denomination"] = tumblerParameters.Value.Denomination.ToString(),
                     ["fee"] = tumblerParameters.Value.Fee.ToString(),
                     ["network"] = tumblerParameters.Value.Network.Name,
-                    ["estimate"] = this.tumbleBitManager.TumblingDuration(originWalletBalance, tumblerParameters),
+                    ["estimate"] = this.tumbleBitManager.CalculateTumblingDuration(),
 					["parameters_are_standard"] = tumblerParameters.Value.IsStandard().ToString()
                 };
 
@@ -107,7 +105,8 @@ namespace Breeze.TumbleBit.Controllers
 		/// </summary>
 		[Route("changeserver")]
 		[HttpGet]
-		public async Task<IActionResult> ChangeServerAsync()
+		public async Task<IActionResult> 
+		    ChangeServerAsync()
 		{
 			// Checks the request is valid
 			if (!this.ModelState.IsValid)
@@ -123,17 +122,13 @@ namespace Breeze.TumbleBit.Controllers
 				if (tumblerParameters.Failure)
 					return Client.ErrorHelpers.BuildErrorResponse(HttpStatusCode.InternalServerError, tumblerParameters.Message, tumblerParameters.Message);
 
-				var periods = tumblerParameters.Value.CycleGenerator.FirstCycle.GetPeriods();
-				var lengthBlocks = periods.Total.End - periods.Total.Start;
-				var cycleLengthSeconds = lengthBlocks * 10 * 60;
-
 				var parameterDictionary = new Dictionary<string, string>()
 				{
 					["tumbler"] = this.tumbleBitManager.TumblerAddress,
 					["denomination"] = tumblerParameters.Value.Denomination.ToString(),
 					["fee"] = tumblerParameters.Value.Fee.ToString(),
 					["network"] = tumblerParameters.Value.Network.Name,
-					["estimate"] = cycleLengthSeconds.ToString(),
+					["estimate"] = this.tumbleBitManager.CalculateTumblingDuration(),
 					["parameters_are_standard"] = tumblerParameters.Value.IsStandard().ToString()
 				};
 
@@ -141,7 +136,7 @@ namespace Breeze.TumbleBit.Controllers
 			}
 			catch (Exception e)
 			{
-				return Client.ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, $"An error occured connecting to the tumbler with uri {this.tumbleBitManager.TumblerAddress}.", e.ToString());
+				return Client.ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, $"An error occurred connecting to the tumbler with URI {this.tumbleBitManager.TumblerAddress}.", e.ToString());
 			}
 		}
 
