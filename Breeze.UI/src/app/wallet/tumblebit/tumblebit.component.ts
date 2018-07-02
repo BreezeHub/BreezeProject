@@ -321,7 +321,7 @@ export class TumblebitComponent implements OnDestroy {
           if (response.status >= 200 && response.status < 400) {
             this.tumblerParameters = response.json();
             this.tumblerAddress = this.tumblerParameters.tumbler
-            this.estimate = this.tumblerParameters.estimate / 3600;
+            this.estimate = this.tumblerParameters.estimate;
             this.fee = this.tumblerParameters.fee;
             this.denomination = this.tumblerParameters.denomination;
             this.parametersAreStandard = this.tumblerParameters.parameters_are_standard;
