@@ -15,6 +15,7 @@ export class ConnectionModalComponent implements OnInit {
   @Input() public fees = '';
   @Input() public estimatedTime = '';
   @Input() public coinUnit = '';
+  @Input() public isStandardServer = false;
 
   constructor(public activeModal: NgbActiveModal, private router: Router) {}
 
