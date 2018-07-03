@@ -11,6 +11,6 @@ namespace NTumbleBit.Services
         Task<IDestination> GenerateAddressAsync();
         Task<Transaction> FundTransactionAsync(TxOut txOut, FeeRate feeRate);
         Task<Transaction> ReceiveAsync(ScriptCoin escrowedCoin, TransactionSignature clientSignature, Key escrowKey, FeeRate feeRate);
-        Money GetBalance();
+        Money GetBalance(string walletName = null);
     }
 }
