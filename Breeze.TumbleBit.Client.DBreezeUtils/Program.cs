@@ -20,17 +20,24 @@ namespace Breeze.TumbleBit.Client.DBreezeUtils
             // args[0] = path to folder containing db2 directory & wallet jsons
             // args[1] = origin wallet filename
             // args[2] = destination wallet filename
+			// args[3] = short output
             
-            //string repoPath = Path.Combine(args[0], "db2");
-            string repoPath = Path.Combine(@"C:\Users\Kevin\Downloads\Projects\TBdata\regtest17", "db2_server");
+            string repoPath = Path.Combine(args[0], "TumbleBit\\db2");
             var network = Network.RegTest;
             var api = (network != Network.RegTest ? new SmartBitApi(network) : null);
             var repo = new DBreezeUtils(repoPath, network);
-            //var walletUtils = new WalletUtils(args[0], args[1], args[2]);
-            var walletUtils = new WalletUtils(@"C:\Users\Kevin\Downloads\Projects\TBdata\regtest17", "alice.wallet.json", "bob.wallet.json");
+            var walletUtils = new WalletUtils(args[0], args[1], args[2]);
+
             var textOutput = new TextOutput(repo, api, walletUtils);
             
             textOutput.DumpServers();
+	        if (args.Length >= 4 && args[3] == "-s")
+	        {
+		        textOutput.DumpCycleTransactionsShort();
+		        repo.Dispose();
+				return;
+	        }
+
             textOutput.DumpCycleTransactions(false);
             
             Console.WriteLine("=====");
@@ -135,6 +142,7 @@ namespace Breeze.TumbleBit.Client.DBreezeUtils
                 }
             }
 
+			repo.Dispose();
             Console.ReadLine();
         }
     }
