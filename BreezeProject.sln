@@ -65,6 +65,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{DD6076E3
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NTumbleBit.Tests", "NTumbleBit.Tests\NTumbleBit.Tests.csproj", "{D68E659F-BDC6-4F94-B8DA-D524C5969C2D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Breeze.IntegrationTestConsole", "Breeze.IntegrationTestConsole\Breeze.IntegrationTestConsole.csproj", "{1EDE98AC-9C61-4CCD-B210-51342DE22760}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -183,6 +185,10 @@ Global
 		{D68E659F-BDC6-4F94-B8DA-D524C5969C2D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D68E659F-BDC6-4F94-B8DA-D524C5969C2D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D68E659F-BDC6-4F94-B8DA-D524C5969C2D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1EDE98AC-9C61-4CCD-B210-51342DE22760}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1EDE98AC-9C61-4CCD-B210-51342DE22760}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1EDE98AC-9C61-4CCD-B210-51342DE22760}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1EDE98AC-9C61-4CCD-B210-51342DE22760}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
