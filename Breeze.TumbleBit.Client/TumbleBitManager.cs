@@ -21,6 +21,7 @@ using Stratis.Bitcoin.Interfaces;
 using System.IO;
 using NTumbleBit;
 using NTumbleBit.Configuration;
+using NTumbleBit.Logging;
 using Stratis.Bitcoin.Connection;
 using TransactionData = Stratis.Bitcoin.Features.Wallet.TransactionData;
 
@@ -538,7 +539,7 @@ namespace Breeze.TumbleBit.Client
             this.runtime = await TumblerClientRuntime.FromConfigurationAsync(config).ConfigureAwait(false);
 
             // Check if origin wallet has a sufficient balance to begin tumbling at least 1 cycle
-            if (!runtime.HasEnoughFundsForCycle(true))
+            if (!this.runtime.HasEnoughFundsForCycle(true))
             {
                 this.logger.LogDebug("Insufficient funds in origin wallet");
                 throw new Exception("Insufficient funds in origin wallet");
@@ -784,12 +785,12 @@ namespace Breeze.TumbleBit.Client
             this.TumblingState.Save();
         }
 
-        public string CalculateTumblingDuration()
+        public string CalculateTumblingDuration(string originWalletName)
         {
             if (TumblerParameters == null)
                 return string.Empty;
 
-            /* Tumbling cycles occur up to 117 blocks (cycleDuration) and overlap every 24 blocks (cycleOverlap) :-
+			/* Tumbling cycles occur up to 117 blocks (cycleDuration) and overlap every 24 blocks (cycleOverlap) :-
 
                 Start block	End block
                 ----------- ---------
@@ -797,25 +798,37 @@ namespace Breeze.TumbleBit.Client
                 24	        141
                 48	        165
              */
-            const int cycleDuration = 117;
+			const int cycleDuration = 117;
             const int cycleOverlap = 24;
 
-            var walletBalance = new Money(this.walletManager.GetSpendableTransactionsInWallet(this.TumblingState.OriginWalletName).Sum(s => s.Transaction.Amount));
+	        Money walletBalance = this.runtime.Services.WalletService.GetBalance(originWalletName);
+	        FeeRate networkFeeRate = this.runtime.Services.FeeService.GetFeeRateAsync().GetAwaiter().GetResult();
 
-            var demonination = TumblerParameters.Denomination.ToUnit(MoneyUnit.BTC);
-            var tumblerFee = TumblerParameters.Fee.ToUnit(MoneyUnit.BTC);
-            var networkFee = new Money(TumblerParameters.Network.MinTxFee).ToUnit(MoneyUnit.BTC);
+			if (!this.HasEnoughFundsForCycle(true, originWalletName))
+		        return TimeSpanInWordFormat(0);
+
+			var demonination = TumblerParameters.Denomination;
+            var tumblerFee = TumblerParameters.Fee;
+	        var networkFee = networkFeeRate.GetFee(TumblerClientRuntime.AverageClientEscrowTransactionSizeInBytes);
 
             var cycleCost = demonination + tumblerFee + networkFee;
 
-            var numberOfCycles = Math.Truncate(walletBalance.ToUnit(MoneyUnit.BTC) / cycleCost);
+            var numberOfCycles = Math.Truncate(walletBalance.ToUnit(MoneyUnit.BTC) / cycleCost.ToDecimal(MoneyUnit.BTC));
             var durationInBlocks = cycleDuration + ((numberOfCycles - 1) * cycleOverlap);
             var durationInHours = durationInBlocks * 10 / 60;
 
-            return TimeSpanInWordFormat(durationInHours.ToString(CultureInfo.InvariantCulture)); ;
+            return TimeSpanInWordFormat(durationInHours);
         }
 
-        public void Dispose()
+	    public bool HasEnoughFundsForCycle(bool firstCycle, string originWalletName)
+	    {
+			Money walletBalance = this.runtime.Services.WalletService.GetBalance(originWalletName);
+		    FeeRate networkFeeRate = this.runtime.Services.FeeService.GetFeeRateAsync().GetAwaiter().GetResult();
+
+		    return TumblerClientRuntime.HasEnoughFundsForCycle(firstCycle, walletBalance, networkFeeRate, TumblerParameters.Denomination, TumblerParameters.Fee);
+	    }
+
+		public void Dispose()
         {
             if (this.broadcasterJob != null && this.broadcasterJob.Started)
             {
@@ -847,12 +860,12 @@ namespace Breeze.TumbleBit.Client
             }
         }
 
-        private static string TimeSpanInWordFormat(string fromHours)
+        private static string TimeSpanInWordFormat(decimal fromHours)
         {
-            if (!double.TryParse(fromHours, out var parsedHours))
-                return string.Empty;
+	        if (fromHours == 0)
+		        return "N/A";
 
-            var timeSpan = TimeSpan.FromHours(parsedHours);
+            var timeSpan = TimeSpan.FromHours((double)fromHours);
 
             var days = timeSpan.Days.ToString();
             var hours = timeSpan.Hours.ToString();

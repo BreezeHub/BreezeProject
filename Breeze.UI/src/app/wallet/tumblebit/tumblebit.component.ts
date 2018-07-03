@@ -18,6 +18,7 @@ import { Error } from '../../shared/classes/error';
 import { TumblebitService } from './tumblebit.service';
 import { TumblerConnectionRequest } from './classes/tumbler-connection-request';
 import { TumbleRequest } from './classes/tumble-request';
+import { ConnectRequest } from './classes/connect-request';
 import { CycleInfo } from './classes/cycle-info';
 import { ModalService } from '../../shared/services/modal.service';
 import { CompositeDisposable } from '../../shared/classes/composite-disposable';
@@ -312,8 +313,12 @@ export class TumblebitComponent implements OnDestroy {
       this.connectionSubscription.unsubscribe();
     }
 
+    const connectRequest = new ConnectRequest(
+      this.globalService.getWalletName()
+    );
+	
     this.connectionSubscription = this.tumblebitService
-      .connectToTumbler(this.operation)
+      .connectToTumbler(this.operation, connectRequest)
       .subscribe(
         // TODO abstract into shared utility method
         response => {
@@ -324,7 +329,7 @@ export class TumblebitComponent implements OnDestroy {
             this.estimate = this.tumblerParameters.estimate;
             this.fee = this.tumblerParameters.fee;
             this.denomination = this.tumblerParameters.denomination;
-            this.parametersAreStandard = this.tumblerParameters.parameters_are_standard;
+            this.parametersAreStandard = this.tumblerParameters.parameters_are_standard.toLowerCase() === "true";
 
             if (!!this.connectionModal) {
               this.connectionModal.dismiss();
