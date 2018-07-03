@@ -45,8 +45,10 @@ export class SidebarComponent implements OnInit {
     } else if (currentNetwork === 'TestNet') {
       this.globalService.setCoinName('TestBitcoin');
       this.globalService.setCoinUnit('TBTC');
+    } else if (currentNetwork === 'RegTest') {
+      this.globalService.setCoinName('TestBitcoin');
+      this.globalService.setCoinUnit('TBTC');
     }
-
     this.bitcoinActive = true;
     this.stratisActive = false;
     this.router.navigate(['/wallet']);
@@ -60,8 +62,10 @@ export class SidebarComponent implements OnInit {
     } else if (currentNetwork === 'TestNet') {
       this.globalService.setCoinName('TestStratis');
       this.globalService.setCoinUnit('TSTRAT');
+    } else if (currentNetwork === 'RegTest') {
+      this.globalService.setCoinName('TestStratis');
+      this.globalService.setCoinUnit('TSTRAT');
     }
-
     this.bitcoinActive = false;
     this.stratisActive = true;
     this.router.navigate(['/wallet/stratis-wallet']);

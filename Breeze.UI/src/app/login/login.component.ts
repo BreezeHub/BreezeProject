@@ -178,7 +178,10 @@ export class LoginComponent implements OnInit {
             } else if (responseMessage.network === 'TestNet') {
               this.globalService.setCoinName('TestBitcoin');
               this.globalService.setCoinUnit('TBTC');
-            }
+            } else if (responseMessage.network === 'RegTest') {
+              this.globalService.setCoinName('TestBitcoin');
+              this.globalService.setCoinUnit('TBTC');
+            }			
           }
         },
         error => {
