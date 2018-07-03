@@ -38,10 +38,22 @@ namespace Breeze.TumbleBit.Models
         public string OriginWalletPassword { get; set; }
     }
 
-    /// <summary>
-    /// Object used to perform a dummy registration.
-    /// </summary>
-    public class DummyRegistrationRequest : RequestModel
+	public class ConnectRequest : RequestModel
+	{
+		[Required(ErrorMessage = "The name of the origin wallet is required.")]
+		public string OriginWalletName { get; set; }
+	}
+
+	public class ChangeServerRequest : RequestModel
+	{
+		[Required(ErrorMessage = "The name of the origin wallet is required.")]
+		public string OriginWalletName { get; set; }
+	}
+
+	/// <summary>
+	/// Object used to perform a dummy registration.
+	/// </summary>
+	public class DummyRegistrationRequest : RequestModel
     {
         [Required(ErrorMessage = "A wallet name is required.")]
         public string OriginWallet { get; set; }

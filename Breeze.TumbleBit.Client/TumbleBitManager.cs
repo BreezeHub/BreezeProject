@@ -784,7 +784,7 @@ namespace Breeze.TumbleBit.Client
             this.TumblingState.Save();
         }
 
-        public string CalculateTumblingDuration()
+        public string CalculateTumblingDuration(string originWalletName)
         {
             if (TumblerParameters == null)
                 return string.Empty;
@@ -800,7 +800,7 @@ namespace Breeze.TumbleBit.Client
             const int cycleDuration = 117;
             const int cycleOverlap = 24;
 
-            var walletBalance = new Money(this.walletManager.GetSpendableTransactionsInWallet(this.TumblingState.OriginWalletName).Sum(s => s.Transaction.Amount));
+            var walletBalance = new Money(this.walletManager.GetSpendableTransactionsInWallet(originWalletName).Sum(s => s.Transaction.Amount));
 
             var demonination = TumblerParameters.Denomination.ToUnit(MoneyUnit.BTC);
             var tumblerFee = TumblerParameters.Fee.ToUnit(MoneyUnit.BTC);

@@ -64,6 +64,6 @@ namespace Breeze.TumbleBit.Client
         /// Calculates the tumbling duration, based on the origin wallet and various tumbler parameters.   
         /// Returns the days/hours.
         /// </summary>
-        string CalculateTumblingDuration();
+        string CalculateTumblingDuration(string originWalletName);
     }
 }

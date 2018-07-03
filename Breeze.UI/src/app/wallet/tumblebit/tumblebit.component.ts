@@ -18,6 +18,7 @@ import { Error } from '../../shared/classes/error';
 import { TumblebitService } from './tumblebit.service';
 import { TumblerConnectionRequest } from './classes/tumbler-connection-request';
 import { TumbleRequest } from './classes/tumble-request';
+import { ConnectRequest } from './classes/connect-request';
 import { CycleInfo } from './classes/cycle-info';
 import { ModalService } from '../../shared/services/modal.service';
 import { CompositeDisposable } from '../../shared/classes/composite-disposable';
@@ -312,8 +313,12 @@ export class TumblebitComponent implements OnDestroy {
       this.connectionSubscription.unsubscribe();
     }
 
+    const connectRequest = new ConnectRequest(
+      this.sourceWalletName = this.globalService.getWalletName(),
+    )	
+	
     this.connectionSubscription = this.tumblebitService
-      .connectToTumbler(this.operation)
+      .connectToTumbler(this.operation, connectRequest)
       .subscribe(
         // TODO abstract into shared utility method
         response => {
