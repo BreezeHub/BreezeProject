@@ -329,7 +329,7 @@ export class TumblebitComponent implements OnDestroy {
             this.estimate = this.tumblerParameters.estimate;
             this.fee = this.tumblerParameters.fee;
             this.denomination = this.tumblerParameters.denomination;
-            this.parametersAreStandard = this.tumblerParameters.parameters_are_standard;
+            this.parametersAreStandard = this.tumblerParameters.parameters_are_standard.toLowerCase() === "true";
 
             if (!!this.connectionModal) {
               this.connectionModal.dismiss();
