@@ -9,7 +9,7 @@ import 'rxjs/add/observable/throw';
 
 import { TumblerConnectionRequest } from './classes/tumbler-connection-request';
 import { TumbleRequest } from './classes/tumble-request';
-import { ConnectRequest } from '../classes/connect-request';
+import { ConnectRequest } from './classes/connect-request';
 import { GlobalService } from '../../shared/services/global.service';
 
 @Injectable()

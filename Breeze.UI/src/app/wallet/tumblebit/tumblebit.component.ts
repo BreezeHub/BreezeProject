@@ -314,8 +314,8 @@ export class TumblebitComponent implements OnDestroy {
     }
 
     const connectRequest = new ConnectRequest(
-      this.sourceWalletName = this.globalService.getWalletName(),
-    )	
+      this.globalService.getWalletName()
+    );
 	
     this.connectionSubscription = this.tumblebitService
       .connectToTumbler(this.operation, connectRequest)
