@@ -269,9 +269,14 @@ namespace NTumbleBit.ClassicTumbler.Client
 							ClientChannelNegotiation.ReceiveTumblerEscrowKey(key.PubKey, key.KeyIndex);
 							//Client create the escrow
 							var escrowTxOut = ClientChannelNegotiation.BuildClientEscrowTxOut();
-							feeRate = GetFeeRate();
 
-							Transaction clientEscrowTx = null;
+						    Logs.Client.LogDebug($"Alice ClientChannelEstablishment escrowTxOut.ScriptPubKey: {escrowTxOut.ScriptPubKey.ToHex()}, value: {escrowTxOut.Value})");
+
+                            feeRate = GetFeeRate();
+
+						    Logs.Client.LogDebug($"Alice ClientChannelEstablishment feeRate.FeePerK: {feeRate.FeePerK})");
+
+                            Transaction clientEscrowTx = null;
 							try
 							{
 								clientEscrowTx = Services.WalletService.FundTransactionAsync(escrowTxOut, feeRate).GetAwaiter().GetResult();
@@ -281,21 +286,25 @@ namespace NTumbleBit.ClassicTumbler.Client
 								Logs.Client.LogInformation($"Not enough funds in the wallet to tumble. Missing about {ex.Missing}. Denomination is {Parameters.Denomination}.");
 								break;
 							}
-							NeedSave = true;
+
+						    Logs.Client.LogDebug($"Alice ClientChannelEstablishment clientEscrowTx: {clientEscrowTx})");
+
+                            NeedSave = true;
 							var redeemDestination = Services.WalletService.GenerateAddressAsync().GetAwaiter().GetResult().ScriptPubKey;
 							var channelId = new uint160(RandomUtils.GetBytes(20));
 							SolverClientSession = ClientChannelNegotiation.SetClientSignedTransaction(channelId, clientEscrowTx, redeemDestination);
 
-
-							correlation = new CorrelationId(SolverClientSession.Id);
+                            correlation = new CorrelationId(SolverClientSession.Id);
 
 							Tracker.AddressCreated(cycle.Start, TransactionType.ClientEscrow, escrowTxOut.ScriptPubKey, correlation);
 							Tracker.TransactionCreated(cycle.Start, TransactionType.ClientEscrow, clientEscrowTx.GetHash(), correlation);
 							Services.BlockExplorerService.TrackAsync(escrowTxOut.ScriptPubKey).GetAwaiter().GetResult();
-
-
+                            
 							var redeemTx = SolverClientSession.CreateRedeemTransaction(feeRate);
-							Tracker.AddressCreated(cycle.Start, TransactionType.ClientRedeem, redeemDestination, correlation);
+
+						    Logs.Client.LogDebug($"Alice ClientChannelEstablishment redeemTx.Transaction: {redeemTx.Transaction}, redeemTx.BroadcastableHeight: {redeemTx.BroadcastableHeight})");
+
+                            Tracker.AddressCreated(cycle.Start, TransactionType.ClientRedeem, redeemDestination, correlation);
 
 							//redeemTx does not be to be recorded to the tracker, this is TrustedBroadcastService job
 
@@ -388,9 +397,13 @@ namespace NTumbleBit.ClassicTumbler.Client
 							var outpoint = new OutPoint(tumblerEscrow.Transaction.GetHash(), tumblerEscrow.OutputIndex);
 							var escrowCoin = new Coin(outpoint, txOut).ToScriptCoin(ClientChannelNegotiation.GetTumblerEscrowParameters(tumblerEscrow.EscrowInitiatorKey).ToScript());
 
-							Console.WriteLine("TumblerEscrow hex: " + tumblerEscrow.Transaction.ToHex());
+						    Logs.Client.LogDebug($"tumblerEscrow.Transaction: {tumblerEscrow.Transaction}");
+                            Logs.Client.LogDebug($"TumblerEscrow hex: {tumblerEscrow.Transaction.ToHex()}");
 
 							PromiseClientSession = ClientChannelNegotiation.ReceiveTumblerEscrowedCoin(escrowCoin);
+
+
+
 							Logs.Client.LogInformation("Tumbler expected escrowed coin received");
 							//Tell to the block explorer we need to track that address (for checking if it is confirmed in payment phase)
 							Services.BlockExplorerService.TrackAsync(PromiseClientSession.EscrowedCoin.ScriptPubKey).GetAwaiter().GetResult();

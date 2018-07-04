@@ -23,6 +23,8 @@ namespace Breeze.TumbleBit.Client
             this.tumblingState = tumblingState ?? throw new ArgumentNullException(nameof(tumblingState));
             Network = tumblingState.TumblerNetwork ?? throw new ArgumentNullException(nameof(tumblingState.TumblerNetwork));
 
+            Logs.LogDir = this.tumblingState.NodeSettings.DataDir;
+
             if (!onlyMonitor || connectionTest)
             {
                 TorPath = "tor";

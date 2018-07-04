@@ -229,7 +229,7 @@ namespace NTumbleBit.ClassicTumbler
             if (sessionInternalState != null)
             {
                 Logs.Tumbler.LogDebug(
-                    $"EscrowedCoin : {sessionInternalState.EscrowedCoin}, EscrowKey : {sessionInternalState.EscrowKey}, Status : {sessionInternalState.Status}, ChannelId : {sessionInternalState.ChannelId}.");
+                    $"ClientChannelNegotiation.LogInternalState() - EscrowedCoin.Outpoint.Hash : {sessionInternalState.EscrowedCoin.Outpoint.Hash}, EscrowedCoin.Outpoint.N : {sessionInternalState.EscrowedCoin.Outpoint.N}, EscrowKey : {sessionInternalState.EscrowKey.GetWif(this.Parameters.Network)}, Status : {sessionInternalState.Status}, ChannelId : {sessionInternalState.ChannelId}.");
             }
         }
     }

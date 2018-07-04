@@ -24,7 +24,7 @@ namespace Breeze.BreezeServer.Services
         public TumblerConfiguration config { get; set; }
         public TumblerRuntime runtime { get; set; }
         
-        public void StartTumbler(BreezeConfiguration breezeConfig, bool getConfigOnly, string ntumblebitServerConf = null, string datadir = null, bool torMandatory = true)
+        public void StartTumbler(BreezeConfiguration breezeConfig, bool getConfigOnly, string ntumblebitServerConf = null, string dataDir = null, bool torMandatory = true)
         {
             var argsTemp = new List<string>();
             argsTemp.Add("-debug");
@@ -38,8 +38,8 @@ namespace Breeze.BreezeServer.Services
             if (ntumblebitServerConf != null)
                 argsTemp.Add("-conf=" + ntumblebitServerConf);
 
-            if (datadir != null)
-                argsTemp.Add("-datadir=" + datadir);
+            if (dataDir != null)
+                argsTemp.Add("-datadir=" + dataDir);
 
             string[] args = argsTemp.ToArray();
             var argsConf = new TextFileConfiguration(args);
@@ -47,19 +47,25 @@ namespace Breeze.BreezeServer.Services
 
             ConsoleLoggerProcessor loggerProcessor = new ConsoleLoggerProcessor();
 
-            string dataDir;
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            if (dataDir == null)
             {
-                dataDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "StratisNode");
-                dataDir = argsConf.GetOrDefault<string>("dataDir", dataDir);
-            }
-            else
-            {
-                dataDir = Path.Combine(Environment.GetEnvironmentVariable("HOME"), ".stratisnode");
-                dataDir = argsConf.GetOrDefault<string>("dataDir", dataDir);
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    dataDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "StratisNode");
+                    dataDir = argsConf.GetOrDefault<string>("dataDir", dataDir);
+                }
+                else
+                {
+                    dataDir = Path.Combine(Environment.GetEnvironmentVariable("HOME"), ".stratisnode");
+                    dataDir = argsConf.GetOrDefault<string>("dataDir", dataDir);
+                }
             }
 
             string logDir = Path.Combine(dataDir, breezeConfig.TumblerNetwork.RootFolderName, breezeConfig.TumblerNetwork.Name, "Logs");
+
+            if (!Directory.Exists(logDir))
+                Directory.CreateDirectory(logDir);
+
             Logs.Configure(new FuncLoggerFactory(i => new CustomerConsoleLogger(i, Logs.SupportDebug(debug), false, loggerProcessor)), logDir);
 
             if (getConfigOnly)

@@ -33,6 +33,7 @@ using NBitcoin.RPC;
 using NTumbleBit.Logging;
 using Stratis.Bitcoin.IntegrationTests.EnvironmentMockUpHelpers;
 using Stratis.Bitcoin.Utilities.Extensions;
+using ILogger = Microsoft.Extensions.Logging.ILogger;
 using LogLevel = Microsoft.Extensions.Logging.LogLevel;
 
 namespace Breeze.IntegrationTestConsole
@@ -615,10 +616,6 @@ namespace Breeze.IntegrationTestConsole
 
             ConfigurationOptionWrapper<string>[] configurationOptions = { registrationStoreDirectory, masternodeUri };
 
-            // Logging for NTB client code
-            ConsoleLoggerProcessor loggerProcessor = new ConsoleLoggerProcessor();
-            Logs.Configure(new FuncLoggerFactory(i => new CustomerConsoleLogger(i, Logs.SupportDebug(true), false, loggerProcessor)));
-
             List<CoreNode> clientNodes = new List<CoreNode>();
 
             int apiPortNum = 37229;
@@ -686,7 +683,7 @@ namespace Breeze.IntegrationTestConsole
                 coreRpc.SendToAddress(BitcoinAddress.Create(destination1.Address, Network.RegTest), new Money(5.0m, MoneyUnit.BTC));
             }
 
-            Console.WriteLine("Waiting for transactions to propagate and finalise");
+            clientNodes[0].FullNode.Settings.Logger.LogInformation("Waiting for transactions to propagate and finalise");
             Thread.Sleep(5000);
 
             coreRpc.Generate(1);
@@ -723,31 +720,28 @@ namespace Breeze.IntegrationTestConsole
                     // Note that the TB client takes about 30 seconds to completely start up, as it has to check the server parameters and RSA key proofs
                 }
 
-                //logger1.LogError("(1) About to start tumbling loop");
+                clientNodes[i].FullNode.Settings.Logger.LogInformation($"Client ({i}) About to start tumbling loop");
             }
-            
-            //var loggerFactory1 = node1.FullNode.NodeService<ILogger>();
-            //var logger1 = loggerFactory1.CreateLogger(this.GetType().FullName);
 
             for (int n = 0; n < 200; n++)
             {
                 for (int i = 0; i < numClients; i++)
                 {
-                    Console.WriteLine($"Wallet {i} balance height: " + clientNodes[i].FullNode.Chain.Height);
+                    clientNodes[i].FullNode.Settings.Logger.LogInformation($"Wallet {i} balance height: " + clientNodes[i].FullNode.Chain.Height);
 
                     var wm1 = clientNodes[i].FullNode.NodeService<IWalletManager>() as WalletManager;
 
                     HdAccount alice1 = wm1.GetWalletByName($"alice{i}").GetAccountByCoinType("account 0", (CoinType) Network.RegTest.Consensus.CoinType);
 
-                    Console.WriteLine($"(A{i}) Confirmed: " + alice1.GetSpendableAmount().ConfirmedAmount.ToString());
-                    Console.WriteLine($"(A{i}) Unconfirmed: " + alice1.GetSpendableAmount().UnConfirmedAmount.ToString());
+                    clientNodes[i].FullNode.Settings.Logger.LogInformation($"(A{i}) Confirmed: " + alice1.GetSpendableAmount().ConfirmedAmount.ToString());
+                    clientNodes[i].FullNode.Settings.Logger.LogInformation($"(A{i}) Unconfirmed: " + alice1.GetSpendableAmount().UnConfirmedAmount.ToString());
 
                     HdAccount bob1 = wm1.GetWalletByName($"bob{i}").GetAccountByCoinType("account 0", (CoinType) Network.RegTest.Consensus.CoinType);
 
-                    Console.WriteLine($"(B{i}) Confirmed: " + bob1.GetSpendableAmount().ConfirmedAmount.ToString());
-                    Console.WriteLine($"(B{i}) Unconfirmed: " + bob1.GetSpendableAmount().UnConfirmedAmount.ToString());
+                    clientNodes[i].FullNode.Settings.Logger.LogInformation($"(B{i}) Confirmed: " + bob1.GetSpendableAmount().ConfirmedAmount.ToString());
+                    clientNodes[i].FullNode.Settings.Logger.LogInformation($"(B{i}) Unconfirmed: " + bob1.GetSpendableAmount().UnConfirmedAmount.ToString());
 
-                    Console.WriteLine("===");
+                    clientNodes[i].FullNode.Settings.Logger.LogInformation("===");
                 }
 
                 coreRpc.Generate(1);
@@ -787,7 +781,7 @@ namespace Breeze.IntegrationTestConsole
             var test = new IntegrationTest();
             //test.TestWithoutTor();
             //test.TestDualClientWithoutTor();
-            test.TestMultiClientWithoutTor(4);
+            test.TestMultiClientWithoutTor(1);
         }
     }
 }

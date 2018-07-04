@@ -632,7 +632,7 @@ namespace Breeze.TumbleBit.Client
                     {
                         if (inputsSpent.Contains(input.PrevOut))
                         {
-                            this.logger.LogDebug("Found double spend in origin wallet " + originTx + " spending " + input.PrevOut.Hash);
+                            this.logger.LogDebug($"Found double spend in origin wallet with txid {originTx.Id} spending {input.PrevOut.Hash} index {input.PrevOut.N}");
                             txToRemove.Add(originTx);
                         }
                     }
@@ -641,7 +641,7 @@ namespace Breeze.TumbleBit.Client
                 // Now remove the transactions identified as double spends from the origin wallet
                 foreach (TransactionData tx in txToRemove)
                 {
-                    this.logger.LogDebug("Detected double spend transaction in origin wallet, deleting: " + tx.Id);
+                    this.logger.LogDebug($"Detected double spend transaction in origin wallet, deleting {tx.Id}");
 
                     foreach (HdAccount account in this.TumblingState.OriginWallet.GetAccountsByCoinType(
                         this.TumblingState.CoinType))
@@ -683,7 +683,7 @@ namespace Breeze.TumbleBit.Client
                     {
                         if (inputsSpent.Contains(input.PrevOut))
                         {
-                            this.logger.LogDebug("Found double spend in destination wallet " + destTx + " spending " + input.PrevOut.Hash);
+                            this.logger.LogDebug($"Found double spend in destination wallet with txid {destTx.Id} spending {input.PrevOut.Hash} index {input.PrevOut.N}");
                             txToRemove.Add(destTx);
                         }
                     }
@@ -692,8 +692,6 @@ namespace Breeze.TumbleBit.Client
                 // Now remove the transactions identified as double spends from the destination wallet
                 foreach (TransactionData tx in txToRemove)
                 {
-                    this.logger.LogDebug("Detected double spend transaction in destination wallet, deleting: " + tx.Id);
-
                     foreach (HdAccount account in this.TumblingState.DestinationWallet.GetAccountsByCoinType(
                         this.TumblingState.CoinType))
                     {
@@ -725,6 +723,8 @@ namespace Breeze.TumbleBit.Client
                             {
                                 if (input.PrevOut == comparedTxInput.PrevOut)
                                 {
+                                    this.logger.LogDebug($"Detected unconfirmed double spend transaction in origin wallet, deleting {originTx.Id}");
+
                                     txToRemove.Add(originTx);
                                 }
                             }
@@ -761,6 +761,8 @@ namespace Breeze.TumbleBit.Client
                             {
                                 if (input.PrevOut == comparedTxInput.PrevOut)
                                 {
+                                    this.logger.LogDebug($"Detected unconfirmed double spend transaction in destination wallet, deleting {destTx.Id}");
+
                                     txToRemove.Add(destTx);
                                 }
                             }
