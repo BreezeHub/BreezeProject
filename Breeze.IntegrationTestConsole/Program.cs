@@ -216,13 +216,10 @@ namespace Breeze.IntegrationTestConsole
 
                 // Sample returned output
                 // {"tumbler":"ctb://<onionaddress>.onion?h=<confighash>","denomination":"0.01000000","fee":"0.00010000","network":"RegTest","estimate":"22200"}
-                var connectResponse = client.GetStringAsync(apiSettings.ApiUri + "api/TumbleBit/connect").GetAwaiter().GetResult();
 
-                //Assert.StartsWith("[{\"", connectResponse);
-
-                var tumbleModel = new TumbleRequest { OriginWalletName = "alice", OriginWalletPassword = "TumbleBit1", DestinationWalletName = "bob" };
-                var tumbleContent = new StringContent(tumbleModel.ToString(), Encoding.UTF8, "application/json");
-
+                var connectContent = new StringContent(new ConnectRequest { OriginWalletName = "alice" }.ToString(), Encoding.UTF8, "application/json");
+                var connectResponse = client.PostAsync(apiSettings.ApiUri + "api/TumbleBit/connect", connectContent).GetAwaiter().GetResult();
+                var tumbleContent = new StringContent(new TumbleRequest { OriginWalletName = "alice", OriginWalletPassword = "TumbleBit1", DestinationWalletName = "bob" }.ToString(), Encoding.UTF8, "application/json");
                 var tumbleResponse = client.PostAsync(apiSettings.ApiUri + "api/TumbleBit/tumble", tumbleContent).GetAwaiter().GetResult();
 
                 // Note that the TB client takes about 30 seconds to completely start up, as it has to check the server parameters and
@@ -465,13 +462,10 @@ namespace Breeze.IntegrationTestConsole
                     client.DefaultRequestHeaders.Accept.Clear();
                     client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
-                    var connectResponse = client.GetStringAsync(apiSettings1.ApiUri + "api/TumbleBit/connect").GetAwaiter().GetResult();
-                    var tumbleModel = new TumbleRequest { OriginWalletName = "alice1", OriginWalletPassword = "TumbleBit1", DestinationWalletName = "bob1" };
-                    var tumbleContent = new StringContent(tumbleModel.ToString(), Encoding.UTF8, "application/json");
+                    var connectContent = new StringContent(new ConnectRequest { OriginWalletName = "alice1" }.ToString(), Encoding.UTF8, "application/json");
+                    var connectResponse = client.PostAsync(apiSettings1.ApiUri + "api/TumbleBit/connect", connectContent).GetAwaiter().GetResult();
+                    var tumbleContent = new StringContent(new TumbleRequest { OriginWalletName = "alice1", OriginWalletPassword = "TumbleBit1", DestinationWalletName = "bob1" }.ToString(), Encoding.UTF8, "application/json");
                     var tumbleResponse = client.PostAsync(apiSettings1.ApiUri + "api/TumbleBit/tumble", tumbleContent).GetAwaiter().GetResult();
-
-                    // Note that the TB client takes about 30 seconds to completely start up, as it has to check the server parameters and
-                    // RSA key proofs
                 }
 
                 using (client = new HttpClient())
@@ -479,9 +473,9 @@ namespace Breeze.IntegrationTestConsole
                     client.DefaultRequestHeaders.Accept.Clear();
                     client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
-                    var connectResponse = client.GetStringAsync(apiSettings2.ApiUri + "api/TumbleBit/connect").GetAwaiter().GetResult();
-                    var tumbleModel = new TumbleRequest { OriginWalletName = "alice2", OriginWalletPassword = "TumbleBit1", DestinationWalletName = "bob2" };
-                    var tumbleContent = new StringContent(tumbleModel.ToString(), Encoding.UTF8, "application/json");
+                    var connectContent = new StringContent(new ConnectRequest { OriginWalletName = "alice2" }.ToString(), Encoding.UTF8, "application/json");
+                    var connectResponse = client.PostAsync(apiSettings2.ApiUri + "api/TumbleBit/connect", connectContent).GetAwaiter().GetResult();
+                    var tumbleContent = new StringContent(new TumbleRequest { OriginWalletName = "alice2", OriginWalletPassword = "TumbleBit1", DestinationWalletName = "bob2" }.ToString(), Encoding.UTF8, "application/json");
                     var tumbleResponse = client.PostAsync(apiSettings2.ApiUri + "api/TumbleBit/tumble", tumbleContent).GetAwaiter().GetResult();
                 }
 
