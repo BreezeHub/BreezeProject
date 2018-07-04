@@ -71,7 +71,7 @@ namespace NTumbleBit.ClassicTumbler.Client
                                 }
                             } else
                             {
-                                Logs.Client.LogInformation("There is no enough funds to sustain another tumbling cycle.");
+                                Logs.Client.LogInformation("There are not enough funds to sustain another tumbling cycle.");
                             }
                         }
 
