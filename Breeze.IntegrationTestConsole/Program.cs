@@ -723,7 +723,7 @@ namespace Breeze.IntegrationTestConsole
                 clientNodes[i].FullNode.Settings.Logger.LogInformation($"Client ({i}) About to start tumbling loop");
             }
 
-            for (int n = 0; n < 200; n++)
+            while (true)
             {
                 for (int i = 0; i < numClients; i++)
                 {
@@ -745,7 +745,6 @@ namespace Breeze.IntegrationTestConsole
                 }
 
                 coreRpc.Generate(1);
-                builder.SyncNodes();
 
                 // Try to ensure the invalid phase error does not occur
                 // (seems to occur when the server has not yet processed a new block and the client has)
