@@ -52,16 +52,13 @@ To skip a build, for example if you've made very minor changes, include the text
 
 If you want the :sparkles: latest :sparkles: (unstable :bomb:) version of the Breeze app, you can get it here: 
 
-|    | x86 Release | x64 Release | Notes |
-|:---|----------------:|------------------:|------------------:|
-|**Windows 7**| [download][7] | [download][8] | continuous build - up to date with commits |
-|**Windows 10**| [download][9] | [download][10] | continuous build - up to date with commits | 
-|**Ubuntu 14.04**| - | [download][11] | continuous build - up to date with commits |
-|**OS X 10.12**| - | [download][14] |  continuous build - up to date with commits |
+https://github.com/BreezeHub/BreezeProject/releases
 
 This is early release, alpha software, is provided for experiment, testing and development purposes and should only be used on **testnet**.
 
 For **testnet** only.
+
+In the case you heed all warnings and choose to run the Mainnet software, be aware that we are still facing an issue where funds get locked in Escrow. It is possible but complicated to manually return funds. Still, beware that you are likely to lose funds.
 
 [7]: https://ci.appveyor.com/api/projects/breezehubadmin/breezeproject/artifacts/breeze_out/breeze-win7-x86-Release.zip?job=Environment%3A%20win_runtime%3Dwin7-x86%2C%20arch%3Dia32%2C%20plat%3Dwin32
 [8]: https://ci.appveyor.com/api/projects/breezehubadmin/breezeproject/artifacts/breeze_out/breeze-win7-x64-Release.zip?job=Environment%3A%20win_runtime%3Dwin7-x64%2C%20arch%3Dx64%2C%20plat%3Dwin32
