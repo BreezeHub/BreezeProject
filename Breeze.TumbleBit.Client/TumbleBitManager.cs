@@ -155,11 +155,7 @@ namespace Breeze.TumbleBit.Client
             if ((this.TumblerAddress == null) && (this.TumblingState.TumblerUri != null))
                 this.TumblerAddress = this.TumblingState.TumblerUri.ToString();
 
-            // Remove the progress file from previous session as it is now stale
-            string dataDir = TumblingState.NodeSettings.DataDir;
-            string tumbleBitDataDir = FullNodeTumblerClientConfiguration.GetTumbleBitDataDir(dataDir);
-
-            ProgressInfo.RemoveProgressFile(tumbleBitDataDir);
+            RemoveProgress();
         }
 
         public async Task DummyRegistration(string originWalletName, string originWalletPassword)
@@ -565,6 +561,8 @@ namespace Breeze.TumbleBit.Client
             // Onlymonitor is running by default, so it's enough if statemachine is stopped
             if (this.stateMachine != null && this.stateMachine.Started)
             {
+                RemoveProgress();
+
                 await this.stateMachine.Stop().ConfigureAwait(false);
             }
         }
@@ -886,6 +884,15 @@ namespace Breeze.TumbleBit.Client
             }
 
             return formattedTimeSpan;
+        }
+
+        private void RemoveProgress()
+        {
+            // Remove the progress file from previous session as it is now stale
+            string dataDir = TumblingState.NodeSettings.DataDir;
+            string tumbleBitDataDir = FullNodeTumblerClientConfiguration.GetTumbleBitDataDir(dataDir);
+
+            ProgressInfo.RemoveProgressFile(tumbleBitDataDir);
         }
     }
 
