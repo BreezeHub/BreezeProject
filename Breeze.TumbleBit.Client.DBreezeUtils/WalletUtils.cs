@@ -19,22 +19,27 @@ namespace Breeze.TumbleBit.Client.DBreezeUtils
             _coinType = coinType;
         }
 
-        public bool FindTransaction(string txId)
-        {
-            foreach (var tx in _sourceWallet.GetAllTransactionsByCoinType(_coinType))
-            {
-                if (tx.Id.ToString().Equals(txId))
-                    return true;
-            }
+	    public TransactionData FindTransaction(string txId)
+	    {
+		    foreach (var tx in _sourceWallet.GetAllTransactionsByCoinType(_coinType))
+		    {
+			    if (tx.Id.ToString().Equals(txId))
+				    return tx;
+		    }
 
-            foreach (var tx in _destWallet.GetAllTransactionsByCoinType(_coinType))
-            {
-                if (tx.Id.ToString().Equals(txId))
-                    return true;
-            }
+		    foreach (var tx in _destWallet.GetAllTransactionsByCoinType(_coinType))
+		    {
+			    if (tx.Id.ToString().Equals(txId))
+				    return tx;
+		    }
 
-            return false;
-        }
+		    return null;
+	    }
+
+		public bool TransactionExistsInWallet(string txId)
+		{
+			return FindTransaction(txId) != null;
+		}
 
         /*
         public Money GetFee(string txId)

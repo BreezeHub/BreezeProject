@@ -30,7 +30,7 @@ namespace Breeze.TumbleBit.Client.DBreezeUtils
         }
     }
     
-    public class DBreezeUtils
+    public class DBreezeUtils : IDisposable
     {
         private string _path;
         private DBreezeRepository _repository;
@@ -42,6 +42,11 @@ namespace Breeze.TumbleBit.Client.DBreezeUtils
             _repository = new DBreezeRepository(path);
             _network = network;
         }
+
+	    public void Dispose()
+	    {
+		    _repository.Dispose();
+		}
 
         public List<string> GetServerAddresses()
         {
