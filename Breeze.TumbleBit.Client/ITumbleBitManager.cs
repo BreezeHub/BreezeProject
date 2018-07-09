@@ -17,12 +17,12 @@ namespace Breeze.TumbleBit.Client
         /// </summary>
         Task<Result<ClassicTumblerParameters>> ConnectToTumblerAsync(HashSet<string> masternodeBlacklist = null);
 
-		/// <summary>
-		/// Disconnects from the currently connected masternode and attempts to connect to a new one.
-		/// </summary>
-		Task<Result<ClassicTumblerParameters>> ChangeServerAsync();
+        /// <summary>
+        /// Disconnects from the currently connected masternode and attempts to connect to a new one.
+        /// </summary>
+        Task<Result<ClassicTumblerParameters>> ChangeServerAsync();
 
-		Task TumbleAsync(string originWalletName, string destinationWalletName, string originWalletPassword);
+        Task TumbleAsync(string originWalletName, string destinationWalletName, string originWalletPassword);
 
         /// <summary>
         /// Flip the Breeze Privacy Protocol client runtime to onlymonitor mode.
@@ -34,8 +34,6 @@ namespace Breeze.TumbleBit.Client
 
         int RegistrationCount();
         
-        Task DummyRegistration(string originWalletName, string originWalletPassword);
-
         /// <summary>
         /// The state of the connection with the masternode server.
         /// </summary>

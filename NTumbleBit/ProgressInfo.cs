@@ -16,6 +16,7 @@ namespace NTumbleBit
 		public int BlocksLeft { get; private set; }
 		public int Start { get; private set; }
 		public bool Failed { get; private set; } = false;
+	    public bool ShouldStayConnected { get; set; } = false;
 
 		[JsonIgnore]
 		public PaymentStateMachineStatus StatusEnum { get; private set; }
