@@ -269,9 +269,14 @@ namespace NTumbleBit.ClassicTumbler.Client
 							ClientChannelNegotiation.ReceiveTumblerEscrowKey(key.PubKey, key.KeyIndex);
 							//Client create the escrow
 							var escrowTxOut = ClientChannelNegotiation.BuildClientEscrowTxOut();
-							feeRate = GetFeeRate();
 
-							Transaction clientEscrowTx = null;
+						    Logs.Client.LogDebug($"Alice ClientChannelEstablishment escrowTxOut.ScriptPubKey: {escrowTxOut.ScriptPubKey.ToHex()}, value: {escrowTxOut.Value})");
+
+                            feeRate = GetFeeRate();
+
+						    Logs.Client.LogDebug($"Alice ClientChannelEstablishment feeRate.FeePerK: {feeRate.FeePerK})");
+
+                            Transaction clientEscrowTx = null;
 							try
 							{
 								clientEscrowTx = Services.WalletService.FundTransactionAsync(escrowTxOut, feeRate).GetAwaiter().GetResult();
@@ -281,21 +286,25 @@ namespace NTumbleBit.ClassicTumbler.Client
 								Logs.Client.LogInformation($"Not enough funds in the wallet to tumble. Missing about {ex.Missing}. Denomination is {Parameters.Denomination}.");
 								break;
 							}
-							NeedSave = true;
+
+						    Logs.Client.LogDebug($"Alice ClientChannelEstablishment clientEscrowTx: {clientEscrowTx})");
+
+                            NeedSave = true;
 							var redeemDestination = Services.WalletService.GenerateAddressAsync().GetAwaiter().GetResult().ScriptPubKey;
 							var channelId = new uint160(RandomUtils.GetBytes(20));
 							SolverClientSession = ClientChannelNegotiation.SetClientSignedTransaction(channelId, clientEscrowTx, redeemDestination);
 
-
-							correlation = new CorrelationId(SolverClientSession.Id);
+                            correlation = new CorrelationId(SolverClientSession.Id);
 
 							Tracker.AddressCreated(cycle.Start, TransactionType.ClientEscrow, escrowTxOut.ScriptPubKey, correlation);
 							Tracker.TransactionCreated(cycle.Start, TransactionType.ClientEscrow, clientEscrowTx.GetHash(), correlation);
 							Services.BlockExplorerService.TrackAsync(escrowTxOut.ScriptPubKey).GetAwaiter().GetResult();
-
-
+                            
 							var redeemTx = SolverClientSession.CreateRedeemTransaction(feeRate);
-							Tracker.AddressCreated(cycle.Start, TransactionType.ClientRedeem, redeemDestination, correlation);
+
+						    Logs.Client.LogDebug($"Alice ClientChannelEstablishment redeemTx.Transaction: {redeemTx.Transaction}, redeemTx.BroadcastableHeight: {redeemTx.BroadcastableHeight})");
+
+                            Tracker.AddressCreated(cycle.Start, TransactionType.ClientRedeem, redeemDestination, correlation);
 
 							//redeemTx does not be to be recorded to the tracker, this is TrustedBroadcastService job
 
@@ -388,10 +397,12 @@ namespace NTumbleBit.ClassicTumbler.Client
 							var outpoint = new OutPoint(tumblerEscrow.Transaction.GetHash(), tumblerEscrow.OutputIndex);
 							var escrowCoin = new Coin(outpoint, txOut).ToScriptCoin(ClientChannelNegotiation.GetTumblerEscrowParameters(tumblerEscrow.EscrowInitiatorKey).ToScript());
 
-							Console.WriteLine("TumblerEscrow hex: " + tumblerEscrow.Transaction.ToHex());
+						    Logs.Client.LogDebug($"tumblerEscrow.Transaction: {tumblerEscrow.Transaction}");
+                            Logs.Client.LogDebug($"TumblerEscrow hex: {tumblerEscrow.Transaction.ToHex()}");
 
 							PromiseClientSession = ClientChannelNegotiation.ReceiveTumblerEscrowedCoin(escrowCoin);
-							Logs.Client.LogInformation("Tumbler expected escrowed coin received");
+
+                            Logs.Client.LogInformation("Tumbler expected escrowed coin received");
 							//Tell to the block explorer we need to track that address (for checking if it is confirmed in payment phase)
 							Services.BlockExplorerService.TrackAsync(PromiseClientSession.EscrowedCoin.ScriptPubKey).GetAwaiter().GetResult();
 							Services.BlockExplorerService.TrackPrunedTransactionAsync(tumblerEscrow.Transaction, tumblerEscrow.MerkleProof).GetAwaiter().GetResult();
@@ -457,8 +468,10 @@ namespace NTumbleBit.ClassicTumbler.Client
 							var offerRedeem = SolverClientSession.CreateOfferRedeemTransaction(feeRate);
 							Logs.Client.LogDebug("Puzzle solver protocol ended...");
 
-							//May need to find solution in the fulfillment transaction
-							Services.BlockExplorerService.TrackAsync(offerRedeem.PreviousScriptPubKey).GetAwaiter().GetResult();
+						    Logs.Client.LogDebug($"offerRedeem.Transaction: {offerRedeem.Transaction} at height {offerRedeem.BroadcastableHeight}");
+
+                            //May need to find solution in the fulfillment transaction
+                            Services.BlockExplorerService.TrackAsync(offerRedeem.PreviousScriptPubKey).GetAwaiter().GetResult();
 							Tracker.AddressCreated(cycle.Start, TransactionType.ClientOfferRedeem, SolverClientSession.GetInternalState().RedeemDestination, correlation);
 							Services.TrustedBroadcastService.Broadcast(cycle.Start, TransactionType.ClientOfferRedeem, correlation, offerRedeem);
 							try
@@ -469,7 +482,8 @@ namespace NTumbleBit.ClassicTumbler.Client
 								var transaction = PromiseClientSession.GetSignedTransaction(tumblingSolution);
 								Logs.Client.LogDebug("Got puzzle solution cooperatively from the tumbler");
 
-								Logs.Client.LogDebug("TumblerCashOut hex: {0}", transaction.ToHex());
+							    Logs.Client.LogDebug($"TumblerCashOut 1: {transaction}");
+                                Logs.Client.LogDebug($"TumblerCashOut hex 1: {transaction.ToHex()}");
 
 								Status = PaymentStateMachineStatus.PuzzleSolutionObtained;
 								Services.TrustedBroadcastService.Broadcast(cycle.Start, TransactionType.TumblerCashout, correlation, new TrustedBroadcastRequest()
@@ -512,7 +526,11 @@ namespace NTumbleBit.ClassicTumbler.Client
 								Status = PaymentStateMachineStatus.PuzzleSolutionObtained;
 								var tumblingSolution = SolverClientSession.GetSolution();
 								var transaction = PromiseClientSession.GetSignedTransaction(tumblingSolution);
-								Tracker.TransactionCreated(cycle.Start, TransactionType.TumblerCashout, transaction.GetHash(), correlation);
+
+							    Logs.Client.LogDebug($"TumblerCashOut 2: {transaction}");
+							    Logs.Client.LogDebug($"TumblerCashOut hex 2: {transaction.ToHex()}");
+
+                                Tracker.TransactionCreated(cycle.Start, TransactionType.TumblerCashout, transaction.GetHash(), correlation);
 								Services.BroadcastService.BroadcastAsync(transaction).GetAwaiter().GetResult();
 							}
 						}
