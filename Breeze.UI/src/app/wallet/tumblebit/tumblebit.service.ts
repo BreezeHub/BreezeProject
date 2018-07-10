@@ -9,6 +9,7 @@ import 'rxjs/add/observable/throw';
 
 import { TumblerConnectionRequest } from './classes/tumbler-connection-request';
 import { TumbleRequest } from './classes/tumble-request';
+import { ConnectRequest } from './classes/connect-request';
 import { GlobalService } from '../../shared/services/global.service';
 
 @Injectable()
@@ -27,9 +28,9 @@ export class TumblebitService {
 
   // Might make sense to populate tumblerParams here because services are singletons
 
-  connectToTumbler(operation: 'connect' | 'changeserver'): Observable<any> {
+  connectToTumbler(operation: 'connect' | 'changeserver', body: ConnectRequest): Observable<any> {
     return this.http
-      .get(`${this.tumblerClientUrl}${operation}`)
+      .post(`${this.tumblerClientUrl}${operation}`, JSON.stringify(body), {headers: this.headers})
       .retryWhen(e => {
         return e
            .mergeMap((error: any) => {
@@ -44,9 +45,9 @@ export class TumblebitService {
       .map((response: Response) => response);
   };
 
-  changeTumblerServer(): Observable<any> {
+  changeTumblerServer(body: ConnectRequest): Observable<any> {
     return this.http
-      .get(`${this.tumblerClientUrl}changeserver`)
+      .post(`${this.tumblerClientUrl}changeserver`, JSON.stringify(body), {headers: this.headers})
       .retryWhen(e => {
         return e
            .mergeMap((error: any) => {

@@ -114,7 +114,7 @@ namespace NTumbleBit.Services.RPC
             return await task;
         }
 
-        public Money GetBalance()
+        public Money GetBalance(string walletName = null)
         {
             // This was introduced for the Breeze version of the services only; included to silence an error
             throw new NotImplementedException();

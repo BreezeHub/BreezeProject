@@ -35,8 +35,8 @@ namespace Breeze.TumbleBit.Controllers
         /// Connect to a masternode running the Breeze Privacy Protocol.
         /// </summary>
         [Route("connect")]
-        [HttpGet]
-        public async Task<IActionResult> ConnectAsync()
+        [HttpPost]
+        public async Task<IActionResult> ConnectAsync([FromBody] ConnectRequest request)
         {
             // Checks the request is valid
             if (!this.ModelState.IsValid)
@@ -58,7 +58,7 @@ namespace Breeze.TumbleBit.Controllers
                     ["denomination"] = tumblerParameters.Value.Denomination.ToString(),
                     ["fee"] = tumblerParameters.Value.Fee.ToString(),
                     ["network"] = tumblerParameters.Value.Network.Name,
-                    ["estimate"] = this.tumbleBitManager.CalculateTumblingDuration(),
+                    ["estimate"] = this.tumbleBitManager.CalculateTumblingDuration(request.OriginWalletName),
 					["parameters_are_standard"] = tumblerParameters.Value.IsStandard().ToString()
                 };
 
@@ -104,9 +104,8 @@ namespace Breeze.TumbleBit.Controllers
 		/// Disconnects from the currently connected masternode and attempts to connect to a new one.
 		/// </summary>
 		[Route("changeserver")]
-		[HttpGet]
-		public async Task<IActionResult> 
-		    ChangeServerAsync()
+		[HttpPost]
+		public async Task<IActionResult> ChangeServerAsync([FromBody] ChangeServerRequest request)
 		{
 			// Checks the request is valid
 			if (!this.ModelState.IsValid)
@@ -128,7 +127,7 @@ namespace Breeze.TumbleBit.Controllers
 					["denomination"] = tumblerParameters.Value.Denomination.ToString(),
 					["fee"] = tumblerParameters.Value.Fee.ToString(),
 					["network"] = tumblerParameters.Value.Network.Name,
-					["estimate"] = this.tumbleBitManager.CalculateTumblingDuration(),
+					["estimate"] = this.tumbleBitManager.CalculateTumblingDuration(request.OriginWalletName),
 					["parameters_are_standard"] = tumblerParameters.Value.IsStandard().ToString()
 				};
 

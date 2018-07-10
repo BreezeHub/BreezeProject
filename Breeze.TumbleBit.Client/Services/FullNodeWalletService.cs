@@ -158,14 +158,16 @@ namespace Breeze.TumbleBit.Client.Services
             return tx;
         }
 
-        /// <summary>
-        /// Retrieves the remaining unspent balance in the origin wallet. Includes unconfirmed transactions.
-        /// </summary>
-        public Money GetBalance()
-        {
-            var unspentOutputs = this.TumblingState.WalletManager.GetSpendableTransactionsInWallet(this.TumblingState.OriginWalletName);
+	    /// <summary>
+	    /// Retrieves the remaining unspent balance in the origin wallet. Includes unconfirmed transactions.
+	    /// </summary>
+	    public Money GetBalance(string walletName = null)
+	    {
+			if (walletName == null)
+				walletName = this.TumblingState.OriginWalletName;
+			var unspentOutputs = this.TumblingState.WalletManager.GetSpendableTransactionsInWallet(walletName);
 
-            return new Money(unspentOutputs.Sum(s => s.Transaction.Amount));
-        }
-    }
+		    return new Money(unspentOutputs.Sum(s => s.Transaction.Amount));
+	    }
+	}
 }
