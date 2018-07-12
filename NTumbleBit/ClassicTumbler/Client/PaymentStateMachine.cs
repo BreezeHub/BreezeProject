@@ -455,6 +455,14 @@ namespace NTumbleBit.ClassicTumbler.Client
                                 Logs.Client.LogDebug("Still solving puzzles...");
                                 break;
                             }
+
+							int connectionCount = Services.BlockExplorerService.GetConnectionCount();
+							if (connectionCount < 4)
+							{
+								Logs.Client.LogWarning("There are too few bitcoin peers connected; payment will not be processed");
+								break;
+							}
+
                             var revelation2 = SolverClientSession.Reveal(commitments);
                             var solutionKeys = alice.CheckRevelation(SolverClientSession.Id, revelation2);
                             var blindFactors = SolverClientSession.GetBlindFactors(solutionKeys);
