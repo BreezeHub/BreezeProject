@@ -1,13 +1,13 @@
 {
   "name": "Breeze",
   "description": "Graphical User Interface for Breeze Wallet.",
-  "version": "0.3.32",
+  "version": "0.3.33",
   "author": {
     "name": "Breeze Team",
     "email": "support@stratisplatform.com"
   },
   "license": "MIT",
-  "homepage": "https://github.com/stratisproject/breeze",
+  "homepage": "https://github.com/BreezeHub/BreezeProject",
   "keywords": [
     "breeze",
     "ui",
