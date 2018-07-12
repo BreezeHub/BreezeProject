@@ -222,7 +222,8 @@ export class TumblebitComponent implements OnDestroy {
     }
     this.walletInfosSubscription = forkJoin(this.apiService.getGeneralInfoForCoin(walletInfo, 'Bitcoin'), 
                                             this.apiService.getGeneralInfoForCoin(walletInfo, 'Stratis')).
-                                   subscribe(x => this.onCoinsGeneralInfo(x[0], x[1]), e => this.onCoinsGeneralInfoError(e));
+                                   subscribe(x => this.onCoinsGeneralInfo(x[0], x[1]), 
+                                             e => this.onPollingError(e, 'Failed to get general wallet information. Reason: API is not responding or timing out.'));
   
   }
 
@@ -231,11 +232,10 @@ export class TumblebitComponent implements OnDestroy {
                     TumblebitComponent.isCoinSynced(stratisInfo);
   }
 
-  private onCoinsGeneralInfoError(error: any) {
+  private onPollingError(error: any, errorMessage: string) {
     console.log(error);
     if (error.status === 0) {
-      this.genericModalService.openModal(
-        Error.toDialogOptions('Failed to get general wallet information. Reason: API is not responding or timing out.', null));
+      this.genericModalService.openModal(Error.toDialogOptions(errorMessage, null));
     } else if (error.status >= 400) {
       const firstError = Error.getFirstError(error);
       if (!firstError) {
@@ -285,19 +285,7 @@ export class TumblebitComponent implements OnDestroy {
             }
           }
         },
-        error => {
-          console.error(error);
-          if (error.status === 0) {
-            this.genericModalService.openModal(
-              Error.toDialogOptions('Failed to get tumbling state. Reason: API is not responding or timing out.', null));
-          } else if (error.status >= 400) {
-            if (!error.json().errors[0]) {
-              console.error(error);
-            } else {
-              this.genericModalService.openModal(Error.toDialogOptions(error, null));
-            }
-          }
-        }
+        e => this.onPollingError(e, 'Failed to get tumbling state. Reason: API is not responding or timing out.')
       );
   }
 
@@ -423,19 +411,7 @@ export class TumblebitComponent implements OnDestroy {
                 this.progressSubscription.unsubscribe();
               }
             },
-            error => {
-              console.error(error);
-              if (error.status === 0) {
-                this.genericModalService.openModal(
-                  Error.toDialogOptions('Failed to stop tumbler. Reason: API is not responding or timing out.', null));
-              } else if (error.status >= 400) {
-                if (!error.json().errors[0]) {
-                  console.error(error);
-                } else {
-                  this.genericModalService.openModal(Error.toDialogOptions(error, null));
-                }
-              }
-            }
+            e => this.onPollingError(e, 'Failed to stop tumbler. Reason: API is not responding or timing out.')
           );
         });
   }
@@ -496,19 +472,7 @@ export class TumblebitComponent implements OnDestroy {
             }
           }
         },
-        error => {
-          console.error(error);
-          if (error.status === 0) {
-            this.genericModalService.openModal(
-              Error.toDialogOptions('Failed to get tumbling progress. Reason: API is not responding or timing out.', null));
-          } else if (error.status >= 400) {
-            if (!error.json().errors[0]) {
-              console.error(error);
-            } else {
-              this.genericModalService.openModal(Error.toDialogOptions(error, null));
-            }
-          }
-        }
+        e => this.onPollingError(e, 'Failed to get tumbling progress. Reason: API is not responding or timing out.')
       )
     ;
   }
@@ -568,19 +532,7 @@ export class TumblebitComponent implements OnDestroy {
             this.totalBalance = this.confirmedBalance + this.unconfirmedBalance;
           }
         },
-        error => {
-          console.log(error);
-          if (error.status === 0) {
-            this.genericModalService.openModal(
-              Error.toDialogOptions('Failed to get wallet balance. Reason: API is not responding or timing out.', null));
-          } else if (error.status >= 400) {
-            if (!error.json().errors[0]) {
-              console.log(error);
-            } else {
-              this.genericModalService.openModal(Error.toDialogOptions(error, null));
-            }
-          }
-        }
+        e => this.onPollingError(e, 'Failed to get wallet balance. Reason: API is not responding or timing out.')
       );
   };
 
@@ -598,20 +550,7 @@ export class TumblebitComponent implements OnDestroy {
             this.destinationTotalBalance = this.destinationConfirmedBalance + this.destinationUnconfirmedBalance;
           }
         },
-        error => {
-          console.log(error);
-          if (error.status === 0) {
-            this.genericModalService.openModal(
-              Error.toDialogOptions(
-                'Failed to get general wallet informationdestination wallet balance. Reason: API is not responding or timing out.', null));
-          } else if (error.status >= 400) {
-            if (!error.json().errors[0]) {
-              console.log(error);
-            } else {
-              this.genericModalService.openModal(Error.toDialogOptions(error, null));
-            }
-          }
-        }
+        e => this.onPollingError(e, 'Failed to get general wallet informationdestination wallet balance. Reason: API is not responding or timing out.')
       )
     ;
   };
@@ -639,29 +578,10 @@ export class TumblebitComponent implements OnDestroy {
 
               this.removeSourceWallet();
 
-              // this.updateWalletFileDisplay(this.wallets[0]);
-            } else {
             }
           }
         },
-        error => {
-          if (error.status === 0) {
-            this.genericModalService.openModal(
-              Error.toDialogOptions('Failed to get wallet files. Reason: API is not responding or timing out.', null));
-          } else if (error.status >= 400) {
-            if (!error.json().errors[0]) {
-              console.log(error);
-            } else {
-              this.genericModalService.openModal(
-                  Error.toDialogOptionsWithFallbackMsg(
-                    error, null, 'Failed to get wallet files. Reason: API returned a bad request but message was not specified.'));
-            }
-          }
-        },
-        () => {
-          // this.destinationWalletName = this.tumbleForm.get("selectWallet").value;
-          // this.getDestinationWalletBalance()
-        }
+        e => this.onPollingError(e, 'Failed to get Wallet files')
       )
     ;
   }

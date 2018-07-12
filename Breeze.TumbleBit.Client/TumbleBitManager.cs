@@ -155,181 +155,7 @@ namespace Breeze.TumbleBit.Client
             if ((this.TumblerAddress == null) && (this.TumblingState.TumblerUri != null))
                 this.TumblerAddress = this.TumblingState.TumblerUri.ToString();
 
-            // Remove the progress file from previous session as it is now stale
-            string dataDir = TumblingState.NodeSettings.DataDir;
-            string tumbleBitDataDir = FullNodeTumblerClientConfiguration.GetTumbleBitDataDir(dataDir);
-
-            ProgressInfo.RemoveProgressFile(tumbleBitDataDir);
-        }
-
-        public async Task DummyRegistration(string originWalletName, string originWalletPassword)
-        {
-            // TODO: Move this functionality into the tests
-            var token = new List<byte>();
-
-            // Server ID
-            token.AddRange(Encoding.ASCII.GetBytes("".PadRight(34)));
-
-            // IPv4 address
-            token.Add(0x00);
-            token.Add(0x00);
-            token.Add(0x00);
-            token.Add(0x00);
-
-            // IPv6 address
-            token.Add(0x00);
-            token.Add(0x00);
-            token.Add(0x00);
-            token.Add(0x00);
-            token.Add(0x00);
-            token.Add(0x00);
-            token.Add(0x00);
-            token.Add(0x00);
-            token.Add(0x00);
-            token.Add(0x00);
-            token.Add(0x00);
-            token.Add(0x00);
-            token.Add(0x00);
-            token.Add(0x00);
-            token.Add(0x00);
-            token.Add(0x00);
-
-            // Onion address
-            token.Add(0x00);
-            token.Add(0x00);
-            token.Add(0x00);
-            token.Add(0x00);
-            token.Add(0x00);
-            token.Add(0x00);
-            token.Add(0x00);
-            token.Add(0x00);
-            token.Add(0x00);
-            token.Add(0x00);
-            token.Add(0x00);
-            token.Add(0x00);
-            token.Add(0x00);
-            token.Add(0x00);
-            token.Add(0x00);
-            token.Add(0x00);
-
-            // Port number
-            byte[] portNumber = BitConverter.GetBytes(37123);
-            token.Add(portNumber[0]);
-            token.Add(portNumber[1]);
-
-            // RSA sig length
-            byte[] rsaLength = BitConverter.GetBytes(256);
-            token.Add(rsaLength[0]);
-            token.Add(rsaLength[1]);
-
-            // RSA signature
-            byte[] rsaSig = new byte[256];
-            token.AddRange(rsaSig);
-
-            // ECDSA sig length
-            byte[] ecdsaLength = BitConverter.GetBytes(128);
-            token.Add(ecdsaLength[0]);
-            token.Add(ecdsaLength[1]);
-
-            // ECDSA signature
-            byte[] ecdsaSig = new byte[128];
-            token.AddRange(ecdsaSig);
-
-            // Configuration hash
-            token.AddRange(Encoding.ASCII.GetBytes("aa4e984c5655a677716539acc8cbc0ce29331429"));
-
-            // Finally add protocol byte and computed length to beginning of header
-            byte[] protocolVersionByte = BitConverter.GetBytes(254);
-            byte[] headerLength = BitConverter.GetBytes(token.Count);
-
-            token.Insert(0, protocolVersionByte[0]);
-            token.Insert(1, headerLength[0]);
-            token.Insert(2, headerLength[1]);
-
-            Money outputValue = new Money(0.0001m, MoneyUnit.BTC);
-
-            Transaction sendTx = new Transaction();
-
-            // Recognisable string used to tag the transaction within the blockchain
-            byte[] bytes = Encoding.UTF8.GetBytes("BREEZE_REGISTRATION_MARKER");
-            sendTx.Outputs.Add(new TxOut()
-            {
-                Value = outputValue,
-                ScriptPubKey = TxNullDataTemplate.Instance.GenerateScriptPubKey(bytes)
-            });
-
-            // Add each data-encoding PubKey as a TxOut
-            foreach (PubKey pubKey in BlockChainDataConversions.BytesToPubKeys(token.ToArray()))
-            {
-                TxOut destTxOut = new TxOut()
-                {
-                    Value = outputValue,
-                    ScriptPubKey = pubKey.ScriptPubKey
-                };
-
-                sendTx.Outputs.Add(destTxOut);
-            }
-
-            HdAccount highestAcc = null;
-            foreach (HdAccount account in this.walletManager.GetAccounts(originWalletName))
-            {
-                if (highestAcc == null)
-                {
-                    highestAcc = account;
-                }
-
-                if (account.GetSpendableAmount().ConfirmedAmount > highestAcc.GetSpendableAmount().ConfirmedAmount)
-                {
-                    highestAcc = account;
-                }
-            }
-
-            // This fee rate is primarily for regtest, testnet and mainnet have actual estimators that work
-            FeeRate feeRate = new FeeRate(new Money(10000, MoneyUnit.Satoshi));
-            WalletAccountReference accountRef = new WalletAccountReference(originWalletName, highestAcc.Name);
-            List<Recipient> recipients = new List<Recipient>();
-            TransactionBuildContext txBuildContext = new TransactionBuildContext(accountRef, recipients);
-            txBuildContext.WalletPassword = originWalletPassword;
-            txBuildContext.OverrideFeeRate = feeRate;
-            txBuildContext.Sign = true;
-            txBuildContext.MinConfirmations = 0;
-
-            this.walletTransactionHandler.FundTransaction(txBuildContext, sendTx);
-
-            this.logger.LogDebug("Trying to broadcast transaction: " + sendTx.GetHash());
-
-            await this.broadcasterManager.BroadcastTransactionAsync(sendTx).ConfigureAwait(false);
-            var bcResult = this.broadcasterManager.GetTransaction(sendTx.GetHash()).State;
-            switch (bcResult)
-            {
-                case Stratis.Bitcoin.Broadcasting.State.Broadcasted:
-                case Stratis.Bitcoin.Broadcasting.State.Propagated:
-                    this.logger.LogDebug("Broadcasted transaction: " + sendTx.GetHash());
-                    break;
-                case Stratis.Bitcoin.Broadcasting.State.ToBroadcast:
-                    // Wait for propagation
-                    var waited = TimeSpan.Zero;
-                    var period = TimeSpan.FromSeconds(1);
-                    while (TimeSpan.FromSeconds(21) > waited)
-                    {
-                        // Check BroadcasterManager for broadcast success
-                        var transactionEntry = this.broadcasterManager.GetTransaction(sendTx.GetHash());
-                        if (transactionEntry != null &&
-                            transactionEntry.State == Stratis.Bitcoin.Broadcasting.State.Propagated)
-                        {
-                            // TODO: This is cluttering up the console, only need to log it once
-                            this.logger.LogDebug("Propagated transaction: " + sendTx.GetHash());
-                        }
-                        await Task.Delay(period).ConfigureAwait(false);
-                        waited += period;
-                    }
-                    break;
-                case Stratis.Bitcoin.Broadcasting.State.CantBroadcast:
-                    // Do nothing
-                    break;
-            }
-
-            this.logger.LogDebug("Uncertain if transaction was propagated: " + sendTx.GetHash());
+            RemoveProgress();
         }
 
         /// <inheritdoc />
@@ -565,6 +391,8 @@ namespace Breeze.TumbleBit.Client
             // Onlymonitor is running by default, so it's enough if statemachine is stopped
             if (this.stateMachine != null && this.stateMachine.Started)
             {
+                RemoveProgress();
+
                 await this.stateMachine.Stop().ConfigureAwait(false);
             }
         }
@@ -632,7 +460,7 @@ namespace Breeze.TumbleBit.Client
                     {
                         if (inputsSpent.Contains(input.PrevOut))
                         {
-                            this.logger.LogDebug("Found double spend in origin wallet " + originTx + " spending " + input.PrevOut.Hash);
+                            this.logger.LogDebug($"Found double spend in origin wallet with txid {originTx.Id} spending {input.PrevOut.Hash} index {input.PrevOut.N}");
                             txToRemove.Add(originTx);
                         }
                     }
@@ -641,7 +469,7 @@ namespace Breeze.TumbleBit.Client
                 // Now remove the transactions identified as double spends from the origin wallet
                 foreach (TransactionData tx in txToRemove)
                 {
-                    this.logger.LogDebug("Detected double spend transaction in origin wallet, deleting: " + tx.Id);
+                    this.logger.LogDebug($"Detected double spend transaction in origin wallet, deleting {tx.Id}");
 
                     foreach (HdAccount account in this.TumblingState.OriginWallet.GetAccountsByCoinType(
                         this.TumblingState.CoinType))
@@ -683,7 +511,7 @@ namespace Breeze.TumbleBit.Client
                     {
                         if (inputsSpent.Contains(input.PrevOut))
                         {
-                            this.logger.LogDebug("Found double spend in destination wallet " + destTx + " spending " + input.PrevOut.Hash);
+                            this.logger.LogDebug($"Found double spend in destination wallet with txid {destTx.Id} spending {input.PrevOut.Hash} index {input.PrevOut.N}");
                             txToRemove.Add(destTx);
                         }
                     }
@@ -692,8 +520,6 @@ namespace Breeze.TumbleBit.Client
                 // Now remove the transactions identified as double spends from the destination wallet
                 foreach (TransactionData tx in txToRemove)
                 {
-                    this.logger.LogDebug("Detected double spend transaction in destination wallet, deleting: " + tx.Id);
-
                     foreach (HdAccount account in this.TumblingState.DestinationWallet.GetAccountsByCoinType(
                         this.TumblingState.CoinType))
                     {
@@ -725,6 +551,8 @@ namespace Breeze.TumbleBit.Client
                             {
                                 if (input.PrevOut == comparedTxInput.PrevOut)
                                 {
+                                    this.logger.LogDebug($"Detected unconfirmed double spend transaction in origin wallet, deleting {originTx.Id}");
+
                                     txToRemove.Add(originTx);
                                 }
                             }
@@ -761,6 +589,8 @@ namespace Breeze.TumbleBit.Client
                             {
                                 if (input.PrevOut == comparedTxInput.PrevOut)
                                 {
+                                    this.logger.LogDebug($"Detected unconfirmed double spend transaction in destination wallet, deleting {destTx.Id}");
+
                                     txToRemove.Add(destTx);
                                 }
                             }
@@ -886,6 +716,15 @@ namespace Breeze.TumbleBit.Client
             }
 
             return formattedTimeSpan;
+        }
+
+        private void RemoveProgress()
+        {
+            // Remove the progress file from previous session as it is now stale
+            string dataDir = TumblingState.NodeSettings.DataDir;
+            string tumbleBitDataDir = FullNodeTumblerClientConfiguration.GetTumbleBitDataDir(dataDir);
+
+            ProgressInfo.RemoveProgressFile(tumbleBitDataDir);
         }
     }
 

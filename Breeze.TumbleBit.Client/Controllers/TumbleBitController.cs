@@ -232,14 +232,6 @@ namespace Breeze.TumbleBit.Controllers
             }
         }
 
-        [Route("dummy-registration")]
-        [HttpGet]
-        public IActionResult DummyRegistration([FromQuery] DummyRegistrationRequest request)
-        {
-            this.tumbleBitManager.DummyRegistration(request.OriginWallet, request.OriginWalletPassword);
-            return this.Ok();
-        }
-
 	    /// <summary>
 	    /// Tumbling Progress expressed as json.
 	    /// </summary>

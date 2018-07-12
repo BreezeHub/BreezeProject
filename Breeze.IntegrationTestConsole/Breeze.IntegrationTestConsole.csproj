@@ -1,0 +1,15 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp2.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Breeze.BreezeServer\Breeze.BreezeServer.csproj" />
+    <ProjectReference Include="..\Breeze.TumbleBit.Client\Breeze.TumbleBit.Client.csproj" />
+    <ProjectReference Include="..\StratisBitcoinFullNode\src\NBitcoin\NBitcoin.csproj" />
+    <ProjectReference Include="..\StratisBitcoinFullNode\src\Stratis.Bitcoin.IntegrationTests\Stratis.Bitcoin.IntegrationTests.csproj" />
+  </ItemGroup>
+
+</Project>

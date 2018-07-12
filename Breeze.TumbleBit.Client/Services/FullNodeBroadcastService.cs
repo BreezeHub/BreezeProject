@@ -174,14 +174,18 @@ namespace Breeze.TumbleBit.Client.Services
 
         private bool IsDoubleSpend(Transaction tx)
         {
-            Console.WriteLine("Checking double spends for transaction: " + tx.GetHash());
+            Logs.Broadcasters.LogDebug("Checking double spends for transaction: " + tx.GetHash());
             var spentInputs = new HashSet<OutPoint>(tx.Inputs.Select(txin => txin.PrevOut));
             var allTransactions = Cache.FindAllTransactionsAsync().Result;
             foreach (var entry in allTransactions)
             {
                 if (entry.Confirmations > 0)
                 {
+                    // In the case where a transaction has already appeared in the wallet (and has confirmed), it has been broadcast before.
+                    // Therefore this is regarded as a double spend and it is not broadcast again.
+
                     var walletTransaction = allTransactions.Where(x => x.Transaction.GetHash() == entry.Transaction.GetHash()).FirstOrDefault();
+
                     if (walletTransaction != null)
                     {
                         foreach (TxIn input in walletTransaction.Transaction.Inputs)
@@ -190,12 +194,14 @@ namespace Breeze.TumbleBit.Client.Services
                             {
                                 if (spentInput == input.PrevOut)
                                 {
-                                    Console.WriteLine("FOUND in transaction: " + walletTransaction.Transaction.GetHash());
-                                    Console.WriteLine("---- Hex for " + tx.GetHash() + "---");
-                                    Console.WriteLine(tx.ToHex());
-                                    Console.WriteLine("---- Hex for " + walletTransaction.Transaction.GetHash() + "---");
-                                    Console.WriteLine(walletTransaction.Transaction.ToHex());
-                                    Console.WriteLine("----");
+                                    // TODO: Maybe suppress these log entries when tx.GetHash() == walletTransaction.GetHash()?
+
+                                    Logs.Broadcasters.LogDebug("FOUND in transaction: " + walletTransaction.Transaction.GetHash());
+                                    Logs.Broadcasters.LogDebug("-- Hex for " + tx.GetHash() + "--");
+                                    Logs.Broadcasters.LogDebug(tx.ToHex());
+                                    Logs.Broadcasters.LogDebug("-- Hex for " + walletTransaction.Transaction.GetHash() + "--");
+                                    Logs.Broadcasters.LogDebug(walletTransaction.Transaction.ToHex());
+                                    Logs.Broadcasters.LogDebug("---");
                                     return true;
                                 }
                             }
@@ -204,7 +210,7 @@ namespace Breeze.TumbleBit.Client.Services
                 }
             }
 
-            Console.WriteLine("Double spend NOT found for transaction: " + tx.GetHash());
+            Logs.Broadcasters.LogDebug("Double spend NOT found for transaction: " + tx.GetHash());
             return false;
         }
 

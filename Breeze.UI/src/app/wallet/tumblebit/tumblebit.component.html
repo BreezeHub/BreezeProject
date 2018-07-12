@@ -20,12 +20,10 @@
                   <option *ngFor="let wallet of wallets" [value]="wallet">{{ wallet }}</option>
                 </select>
               </div>
-              <!-- <button type="button" class="btn btn-lg btn-primary mt-4" (click)="startTumbling()" [disabled]="((!isConnected && !tumbling) || !hasRegistrations) || !isSynced" *ngIf="!tumbling">Start</button> -->
               <button type="button" class="btn btn-lg btn-primary mt-4" (click)="startTumbling()" [ngClass]="{ 'btn-disabled': !this.destinationWalletName }" [disabled]="(!isConnected && !tumbling) || !isSynced" *ngIf="!tumbling">Start</button>
-              <button type="button" class="btn btn-danger" (click)="stopTumbling()" [disabled]="(!isConnected && tumbling) || !isSynced" *ngIf="tumbling">Stop</button>
-              <p class="help mt-4" *ngIf="!isSynced">Please wait until the wallet is fully synced.</p>
+              <button type="button" class="btn btn-danger" (click)="stopTumbling()" *ngIf="isConnected && tumbling">Stop</button>
+              <p class="help mt-4" *ngIf="!isSynced && !isConnected">Please wait until the wallet is fully synced.</p>
               <p class="help mt-4" *ngIf="!isConnected">Please wait until a connection to the MasterNode server is established. This can take up to 10min.</p>
-              <!-- <p class="help mt-4" *ngIf="!hasRegistrations">Not enough masternodes registered to start the Breeze Privacy Protocol. Please wait.</p> -->
             </form>
 
             <div class="col-11 mx-auto cycles mt-3" *ngIf="(tumbling && isConnected) && progressDataArray">
@@ -65,13 +63,10 @@
               <tbody>
                 <tr>
                   <td>
-                    <div *ngIf="isSynced">
-                      <code data-toggle="tooltip" style="float: left; margin-right:15px"  data-placement="top" title="{{ tumblerAddress }}">{{ tumblerAddress }}</code>
-                      <app-connection-progress *ngIf="!isConnected" style="display: inline-flex; vertical-align: middle"
+                    <div>
+                      <code data-toggle="tooltip" style="float: left; margin-right:15px" data-placement="top">{{ !isSynced&&!isConnected ? "Synchronizing wallets..." : tumblerAddress }}</code>
+                      <app-connection-progress *ngIf="isSynced && !isConnected" style="display: inline-flex; vertical-align: middle"
                                   [durationSeconds]="connectionRequestTimeoutSeconds" [run]="connectionInProgress"></app-connection-progress>
-                    </div>
-                    <div *ngIf="!isConnected && !isSynced">
-                      <code data-toggle="tooltip" style="float: left; margin-right:15px"  data-placement="top">Synchronizing wallets...</code>                   
                     </div>
                   </td>
                 </tr>

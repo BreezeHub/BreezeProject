@@ -363,7 +363,7 @@ namespace NTumbleBit.Logging
 
 			using (var file = File.AppendText(filePath))
 			{
-				file.WriteLine(message);
+				file.Write(message);
 			}
 		}
 
