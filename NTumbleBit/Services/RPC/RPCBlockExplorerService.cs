@@ -258,5 +258,10 @@ namespace NTumbleBit.Services.RPC
 			}).ConfigureAwait(false);
 			return success;
 		}
+
+		public int GetConnectionCount()
+		{
+			throw new NotImplementedException("Method GetConnectionCount is not implemented in RPCBlockExplorerService");
+		}
 	}
 }

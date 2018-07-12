@@ -32,5 +32,6 @@ namespace NTumbleBit.Services
 		Task TrackAsync(Script scriptPubkey);
 		int GetBlockConfirmations(uint256 blockId);
 		Task<bool> TrackPrunedTransactionAsync(Transaction transaction, MerkleBlock merkleProof);
-	}
+	    int GetConnectionCount();
+    }
 }

@@ -148,5 +148,10 @@ namespace Breeze.TumbleBit.Client.Services
 
             return true;
         }
+
+	    public int GetConnectionCount()
+	    {
+		    return this.TumblingState.ConnectionManager.ConnectedPeers.Count();
+	    }
     }
 }
