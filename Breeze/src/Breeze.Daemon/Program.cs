@@ -48,10 +48,19 @@ namespace Breeze.Daemon
         public static async Task MainAsync(string[] args)
         {
             try
-            { 
-                var isTestNet = args.Contains("-testnet");
-                var isStratis = args.Contains("stratis");
-                var agent = "Breeze";
+            {
+	            var comparer = new CommandlineArgumentComparer();
+
+	            var isRegTest = args.Contains("regtest", comparer);
+                var isTestNet = args.Contains("testnet", comparer);
+				var isStratis = args.Contains("stratis", comparer);
+				var isLight = args.Contains("light", comparer);
+
+				var useRegistration = args.Contains("registration", comparer);
+				var useTumblebit = args.Contains("tumblebit", comparer);
+				var useTor = !args.Contains("noTor", comparer);
+				var useHttpTumblerProtocol = !args.Contains("useHttp", comparer);
+				var agent = "Breeze";
 
                 // This setting is not in NodeSettings yet, so get it directly from the args
                 ConfigurationOptionWrapper<string> registrationStoreDirectory = new ConfigurationOptionWrapper<string>("RegistrationStoreDirectory", args.GetValueOf("-storedir"));
@@ -64,12 +73,20 @@ namespace Breeze.Daemon
                     //if (NodeSettings.PrintHelp(args, Network.StratisMain))
                     //    return;
 
-                    Network network = isTestNet ? Network.StratisTest : Network.StratisMain;
-	                if (args.Contains("-regtest"))
+                    Network network;
+	                if (isRegTest)
+	                {
 		                network = Network.StratisRegTest;
-
-                    if (isTestNet)
-                        args = args.Append("-addnode=51.141.28.47").ToArray(); // TODO: fix this temp hack
+	                }
+                    else if (isTestNet)
+	                {
+		                args = args.Append("-addnode=51.141.28.47").ToArray(); // TODO: fix this temp hack
+		                network = Network.StratisTest;
+					}
+	                else
+	                {
+		                network = Network.StratisMain;
+					}
 
                     nodeSettings = new NodeSettings(network, ProtocolVersion.ALT_PROTOCOL_VERSION, agent, args: args, loadConfiguration: false);
                 }
@@ -80,7 +97,7 @@ namespace Breeze.Daemon
 
                 IFullNodeBuilder fullNodeBuilder = null;
 
-                if (args.Contains("light"))
+                if (isLight)
                 {
                     fullNodeBuilder = new FullNodeBuilder()
                         .UseNodeSettings(nodeSettings)
@@ -95,7 +112,7 @@ namespace Breeze.Daemon
                     fullNodeBuilder = new FullNodeBuilder()
                         .UseNodeSettings(nodeSettings);
 
-                    if (args.Contains("stratis"))
+                    if (isStratis)
                         fullNodeBuilder.UsePosConsensus();
                     else
                         fullNodeBuilder.UsePowConsensus();
@@ -107,7 +124,7 @@ namespace Breeze.Daemon
 		                .UseWallet()
 		                .UseWatchOnlyWallet();
 
-	                if (args.Contains("stratis"))
+	                if (isStratis)
 		                fullNodeBuilder.AddPowPosMining();
 	                else
 		                fullNodeBuilder.AddMining();
@@ -116,7 +133,7 @@ namespace Breeze.Daemon
                         .UseApi();
                 }
 
-                if (args.Contains("registration"))
+                if (useRegistration)
                 {
                     //fullNodeBuilder.UseInterNodeCommunication();
                     fullNodeBuilder.UseRegistration();
@@ -139,7 +156,7 @@ namespace Breeze.Daemon
                 SetupTumbleBitConsoleLogs(nodeSettings);
 
                 // Currently TumbleBit is bitcoin only
-                if (args.Contains("-tumblebit"))
+                if (useTumblebit)
                 {
                     // We no longer pass the URI in via the command line, the registration feature selects a random one
                     fullNodeBuilder.UseTumbleBit(configurationOptions);
