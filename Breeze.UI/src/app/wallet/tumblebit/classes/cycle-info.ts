@@ -1,6 +1,16 @@
 export class CycleInfo {
 
-    constructor(periodStart: number, periodEnd: number, height: number, blocksLeft: number, cycleStart: number, cycleFailed: boolean, cycleAsciiArt: string, cycleStatus: string, cyclePhase: string, cyclePhaseNumber: number) {
+    constructor(periodStart: number, 
+                periodEnd: number, 
+                height: number, 
+                blocksLeft: number, 
+                cycleStart: number, 
+                cycleFailed: boolean, 
+                cycleAsciiArt: string, 
+                cycleStatus: string, 
+                cyclePhase: string, 
+                cyclePhaseNumber: number, 
+                public shouldStayConnected: boolean) {
       this.periodStart = periodStart;
       this.periodEnd = periodEnd;
       this.height = height;
@@ -23,4 +33,5 @@ export class CycleInfo {
     cycleStatus: string;
     cyclePhase: string;
     cyclePhaseNumber: number;
+
   }
