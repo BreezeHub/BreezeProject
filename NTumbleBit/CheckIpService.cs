@@ -30,7 +30,7 @@ namespace NTumbleBit
 				{
 					while(true)
 					{
-						var ip = GetExternalIp(runtime.CreateTumblerClient(0, Identity.Alice), "https://myexternalip.com/raw").GetAwaiter().GetResult();
+						var ip = GetExternalIp(runtime.CreateTumblerClient(0, runtime.TumblerProtocol, Identity.Alice), "https://myexternalip.com/raw").GetAwaiter().GetResult();
 						var ipLife = (DateTimeOffset.UtcNow - lastChangeAddress);
 
 						if(lastIp == null)

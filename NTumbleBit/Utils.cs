@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -200,6 +201,17 @@ namespace NTumbleBit
 				return;
 			}
 			// depending on your use case, consider throwing an exception here
+		}
+
+		public static IPAddress GetInternetConnectedAddress()
+		{
+			using (Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, 0))
+			{
+				socket.Connect("8.8.8.8", 65530);
+				IPEndPoint endPoint = socket.LocalEndPoint as IPEndPoint;
+				IPAddress networkAddress = endPoint.Address;
+				return networkAddress;
+			}
 		}
 	}
 }

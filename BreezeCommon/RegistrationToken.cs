@@ -68,6 +68,10 @@ namespace BreezeCommon
 		public IPAddress Ipv6Addr { get; set; }
 
 		public string OnionAddress { get; set; }
+
+		[JsonIgnore]
+		public bool IsDummyAddress => OnionAddress.Contains("-");
+
 		public int Port { get; set; }
 
 		public byte[] RsaSignature { get; set; }

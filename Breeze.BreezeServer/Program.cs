@@ -46,16 +46,15 @@ namespace Breeze.BreezeServer
 			logger.LogInformation("{Time} Pre-initialising server to obtain parameters for configuration", DateTime.Now);
 			
 			var preTumblerConfig = serviceProvider.GetService<ITumblerService>();
-			preTumblerConfig.StartTumbler(config, true);
+			preTumblerConfig.StartTumbler(config, true, torMandatory: false);
 
 			string configurationHash = preTumblerConfig.runtime.ClassicTumblerParameters.GetHash().ToString();
 			string onionAddress = preTumblerConfig.runtime.TorUri.Host.Substring(0, 16);
 			NTumbleBit.RsaKey tumblerKey = preTumblerConfig.runtime.TumblerKey;
-			
-			// Mustn't be occupying hidden service URL when the TumblerService is reinitialised
-			preTumblerConfig.runtime.TorConnection.Dispose();
-			
+
 			// No longer need this instance of the class
+			if (config.UseTor)
+				preTumblerConfig.runtime.TorConnection.Dispose();
 			preTumblerConfig = null;
 			
 			string regStorePath = Path.Combine(configDir, "registrationHistory.json");
@@ -84,7 +83,7 @@ namespace Breeze.BreezeServer
 
 			var tumbler = serviceProvider.GetService<ITumblerService>();
 			
-			tumbler.StartTumbler(config, false);
+			tumbler.StartTumbler(config, false, torMandatory: false);
 		}
 	}
 }

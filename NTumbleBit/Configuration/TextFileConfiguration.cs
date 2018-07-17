@@ -223,6 +223,10 @@ namespace NTumbleBit.Configuration
 			{
 				return (T)(object)int.Parse(str, CultureInfo.InvariantCulture);
 			}
+			else if (typeof(T).IsEnum)
+			{
+				return (T)Enum.Parse(typeof(T), str, true);
+			}
 			else
 			{
 				throw new NotSupportedException("Configuration value does not support time " + typeof(T).Name);

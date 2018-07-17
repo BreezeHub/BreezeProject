@@ -71,7 +71,10 @@ namespace Breeze.BreezeServer.Services
             if (getConfigOnly)
             {
                 config = new TumblerConfiguration();
-                config.LoadArgs(args);                
+	            if (!torMandatory)
+		            config.TorMandatory = false;
+
+				config.LoadArgs(args);                
                 runtime = TumblerRuntime.FromConfiguration(config, new AcceptAllClientInteraction());
                 return;
             }

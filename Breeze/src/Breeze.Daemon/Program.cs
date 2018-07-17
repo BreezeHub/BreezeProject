@@ -31,6 +31,7 @@ using Stratis.Bitcoin.Utilities.Extensions;
 using Stratis.Bitcoin;
 using System.Threading.Tasks;
 using System.Runtime.InteropServices;
+using NTumbleBit.ClassicTumbler.Server;
 using NLogConfig = NLog.Config.LoggingConfiguration;
 
 namespace Breeze.Daemon
@@ -59,14 +60,17 @@ namespace Breeze.Daemon
 				var useRegistration = args.Contains("registration", comparer);
 				var useTumblebit = args.Contains("tumblebit", comparer);
 				var useTor = !args.Contains("noTor", comparer);
-				var useHttpTumblerProtocol = !args.Contains("useHttp", comparer);
+				var useHttpTumblerProtocol = args.Contains("useHttp", comparer);
 				var agent = "Breeze";
 
                 // This setting is not in NodeSettings yet, so get it directly from the args
-                ConfigurationOptionWrapper<string> registrationStoreDirectory = new ConfigurationOptionWrapper<string>("RegistrationStoreDirectory", args.GetValueOf("-storedir"));
-                ConfigurationOptionWrapper<string>[] configurationOptions = { registrationStoreDirectory };
+                ConfigurationOptionWrapper<object> registrationStoreDirectory = new ConfigurationOptionWrapper<object>("RegistrationStoreDirectory", args.GetValueOf("-storedir"));
+	            ConfigurationOptionWrapper<object> torOption = new ConfigurationOptionWrapper<object>("Tor", useTor);
+	            ConfigurationOptionWrapper<object> tumblerProtocolOption = new ConfigurationOptionWrapper<object>("TumblerProtocol", useHttpTumblerProtocol ? TumblerProtocolType.Http : TumblerProtocolType.Tcp);
+                ConfigurationOptionWrapper<object>[] tumblebitConfigurationOptions = { registrationStoreDirectory, torOption, tumblerProtocolOption };
 
-                NodeSettings nodeSettings;
+
+				NodeSettings nodeSettings;
 
                 if (isStratis)
                 {
@@ -135,8 +139,8 @@ namespace Breeze.Daemon
 
                 if (useRegistration)
                 {
-                    //fullNodeBuilder.UseInterNodeCommunication();
-                    fullNodeBuilder.UseRegistration();
+					//fullNodeBuilder.UseInterNodeCommunication();
+					fullNodeBuilder.UseRegistration();
                 }
 
                 // Need this to happen for both TB and non-TB daemon
@@ -159,7 +163,7 @@ namespace Breeze.Daemon
                 if (useTumblebit)
                 {
                     // We no longer pass the URI in via the command line, the registration feature selects a random one
-                    fullNodeBuilder.UseTumbleBit(configurationOptions);
+                    fullNodeBuilder.UseTumbleBit(tumblebitConfigurationOptions);
                 }
                 
                 IFullNode node = fullNodeBuilder.Build();

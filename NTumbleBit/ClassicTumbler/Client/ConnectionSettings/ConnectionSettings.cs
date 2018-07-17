@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Text;
+using NTumbleBit.ClassicTumbler.Server;
 using TCPServer.Client;
 
 namespace NTumbleBit.ClassicTumbler.Client.ConnectionSettings
@@ -29,14 +30,23 @@ namespace NTumbleBit.ClassicTumbler.Client.ConnectionSettings
 			else
 				throw new ConfigException(prefix + ".proxy.type is not supported, should be socks or http");
 		}
-		public virtual HttpMessageHandler CreateHttpHandler(TimeSpan? connectTimeout)
+		public virtual HttpMessageHandler CreateHttpHandler(TumblerProtocolType tumblerProtocol, TimeSpan? connectTimeout)
 		{
-			var handler = new TCPHttpMessageHandler(new ClientOptions() { IncludeHeaders = false });
+			if (tumblerProtocol == TumblerProtocolType.Http)
+			{
+				return new HttpClientHandler();
+			}
+			else if (tumblerProtocol == TumblerProtocolType.Tcp)
+			{
+				var handler = new TCPHttpMessageHandler(new ClientOptions() { IncludeHeaders = false });
 
-            if (connectTimeout != null)
-                handler.Options.ConnectTimeout = connectTimeout.Value;
+				if (connectTimeout != null)
+					handler.Options.ConnectTimeout = connectTimeout.Value;
 
-            return handler;
+				return handler;
+			}
+
+			throw new NotImplementedException($"Tumbler Protocol type {tumblerProtocol} is not implemented.");
 		}
 	}
 }

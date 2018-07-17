@@ -25,16 +25,16 @@ namespace Breeze.RegistrationTester
 			Console.WriteLine("Decoding registration transaction HEX");
 	        Console.WriteLine("*************************************************************");
 	        Console.WriteLine();
+
 	        Console.WriteLine("Transaction HEX");
 	        Console.WriteLine("*************************************************************");
-			Console.WriteLine(args[0]);
+	        Console.WriteLine(args[0]);
 	        Console.WriteLine();
 
 			Transaction tx;
-
-			//Set the Timestamp flag to true in order to be compatibile with Stratis transactions
 			try
 	        {
+		        //Set the Timestamp flag to true in order to be compatibile with Stratis transactions
 		        Transaction.TimeStamp = true;
 		        tx = Transaction.Parse(args[0]);
 	        }

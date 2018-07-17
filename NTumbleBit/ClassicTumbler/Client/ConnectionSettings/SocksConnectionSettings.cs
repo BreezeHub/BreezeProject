@@ -10,6 +10,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 using System.Diagnostics;
+using NTumbleBit.ClassicTumbler.Server;
 using NTumbleBit.Tor;
 using TCPServer.Client;
 
@@ -82,14 +83,23 @@ namespace NTumbleBit.ClassicTumbler.Client.ConnectionSettings
 			return false;
 		}
 
-		public override HttpMessageHandler CreateHttpHandler(TimeSpan? connectTimeout = null)
+		public override HttpMessageHandler CreateHttpHandler(TumblerProtocolType tumblerProtocol, TimeSpan? connectTimeout = null)
 		{
-            var handler = new Tor.SocksMessageHandler(Proxy, new ClientOptions() { IncludeHeaders = false });
+			if (tumblerProtocol == TumblerProtocolType.Http)
+			{
+				return new HttpClientHandler();
+			}
+			else if (tumblerProtocol == TumblerProtocolType.Tcp)
+			{
+				var handler = new Tor.SocksMessageHandler(Proxy, new ClientOptions() { IncludeHeaders = false });
 
-            if (connectTimeout != null)
-                handler.Options.ConnectTimeout = connectTimeout.Value;
+				if (connectTimeout != null)
+					handler.Options.ConnectTimeout = connectTimeout.Value;
 
-            return handler;
+				return handler;
+			}
+
+			throw new NotImplementedException($"Tumbler Protocol type {tumblerProtocol} is not implemented.");
 		}
 	}
 }

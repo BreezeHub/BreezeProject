@@ -5,7 +5,7 @@ using System;
 using System.Net;
 using System.Text;
 using System.IO;
-
+using BreezeCommon;
 using NBitcoin;
 using NTumbleBit;
 
@@ -17,6 +17,8 @@ namespace Breeze.BreezeServer
     public class BreezeConfiguration
     {
         public Network TumblerNetwork { get; set; }
+
+	    public bool UseTor { get; set; }
 
         public string RpcUser { get; set; }
         public string RpcPassword { get; set; }
@@ -45,6 +47,7 @@ namespace Breeze.BreezeServer
                     StringBuilder builder = new StringBuilder();
                     builder.AppendLine("# Breeze TumbleBit daemon settings");
                     builder.AppendLine("#network=testnet");
+                    builder.AppendLine("#tor.enabled=");
                     builder.AppendLine("#rpc.user=");
                     builder.AppendLine("#rpc.password=");
                     builder.AppendLine("#rpc.url=http://127.0.0.1:16174");
@@ -73,7 +76,12 @@ namespace Breeze.BreezeServer
                     TumblerNetwork = Network.TestNet;
                 }
 
-                if (configFile.GetOrDefault<string>("network", "testnet").Equals("regtest"))
+	            if (configFile.GetOrDefault<string>("tor.enabled", "true").Equals("true"))
+	            {
+		            UseTor = true;
+	            }
+
+				if (configFile.GetOrDefault<string>("network", "testnet").Equals("regtest"))
                 {
                     TumblerNetwork = Network.RegTest;
                 }
@@ -95,7 +103,7 @@ namespace Breeze.BreezeServer
                 try
                 {
                     // Assume that if it parses it's valid
-                    Ipv4Address = IPAddress.Parse(configFile.GetOrDefault<string>("breeze.ipv4", null));
+                    Ipv4Address = IPAddress.Parse(configFile.GetOrDefault<string>("breeze.ipv4", NTumbleBit.Utils.GetInternetConnectedAddress().ToString()));
                 }
                 catch (Exception)
                 {

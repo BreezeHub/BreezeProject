@@ -8,6 +8,7 @@ using NTumbleBit;
 using NTumbleBit.ClassicTumbler;
 using NTumbleBit.ClassicTumbler.Client;
 using NTumbleBit.ClassicTumbler.Client.ConnectionSettings;
+using NTumbleBit.ClassicTumbler.Server;
 using NTumbleBit.Tor;
 
 namespace Breeze.TorTester.CLI
@@ -50,7 +51,7 @@ namespace Breeze.TorTester.CLI
             
             var settings = new SocksConnectionSettings();
             settings.Proxy = endpoint;
-            var handler = settings.CreateHttpHandler();
+            var handler = settings.CreateHttpHandler(TumblerProtocolType.Tcp);
             if (handler != null)
                 client.SetHttpHandler(handler);
             else

@@ -130,11 +130,11 @@ namespace Breeze.TumbleBit.Client.Tests
                 var serverAddress = File.ReadAllText(Path.Combine(coreNode.DataFolder, "uri.txt"));
 
                 // Not used for this test
-                ConfigurationOptionWrapper<string> registrationStoreDirectory = new ConfigurationOptionWrapper<string>("RegistrationStoreDirectory", "");
+                ConfigurationOptionWrapper<object> registrationStoreDirectory = new ConfigurationOptionWrapper<object>("RegistrationStoreDirectory", "");
 
                 // Force SBFN to connect to the server
-                ConfigurationOptionWrapper<string> masternodeUri = new ConfigurationOptionWrapper<string>("MasterNodeUri", serverAddress);
-                ConfigurationOptionWrapper<string>[] configurationOptions = { registrationStoreDirectory, masternodeUri };
+                ConfigurationOptionWrapper<object> masternodeUri = new ConfigurationOptionWrapper<object>("MasterNodeUri", serverAddress);
+                ConfigurationOptionWrapper<object>[] configurationOptions = { registrationStoreDirectory, masternodeUri };
 
                 // Logging for NTB client code
                 ConsoleLoggerProcessor loggerProcessor = new ConsoleLoggerProcessor();
@@ -389,11 +389,11 @@ namespace Breeze.TumbleBit.Client.Tests
                 var serverAddress = File.ReadAllText(Path.Combine(coreNode.DataFolder, "uri.txt"));
 
                 // Not used for this test
-                ConfigurationOptionWrapper<string> registrationStoreDirectory = new ConfigurationOptionWrapper<string>("RegistrationStoreDirectory", "");
+                ConfigurationOptionWrapper<object> registrationStoreDirectory = new ConfigurationOptionWrapper<object>("RegistrationStoreDirectory", "");
 
                 // Force SBFN to connect to the server
-                ConfigurationOptionWrapper<string> masternodeUri = new ConfigurationOptionWrapper<string>("MasterNodeUri", serverAddress);
-                ConfigurationOptionWrapper<string>[] configurationOptions = { registrationStoreDirectory, masternodeUri };
+                ConfigurationOptionWrapper<object> masternodeUri = new ConfigurationOptionWrapper<object>("MasterNodeUri", serverAddress);
+                ConfigurationOptionWrapper<object>[] configurationOptions = { registrationStoreDirectory, masternodeUri };
 
                 // Logging for NTB client code
                 ConsoleLoggerProcessor loggerProcessor = new ConsoleLoggerProcessor();
@@ -643,12 +643,12 @@ namespace Breeze.TumbleBit.Client.Tests
                 var serverAddress = File.ReadAllText(Path.Combine(coreNode.DataFolder, "uri.txt"));
 
                 // Not used for this test
-                ConfigurationOptionWrapper<string> registrationStoreDirectory = new ConfigurationOptionWrapper<string>("RegistrationStoreDirectory", "");
+                ConfigurationOptionWrapper<object> registrationStoreDirectory = new ConfigurationOptionWrapper<object>("RegistrationStoreDirectory", "");
 
                 // Force SBFN to use the temporary hidden service to connect to the server
-                ConfigurationOptionWrapper<string> masternodeUri = new ConfigurationOptionWrapper<string>("MasterNodeUri", serverAddress);
+                ConfigurationOptionWrapper<object> masternodeUri = new ConfigurationOptionWrapper<object>("MasterNodeUri", serverAddress);
 
-                ConfigurationOptionWrapper<string>[] configurationOptions = { registrationStoreDirectory, masternodeUri };
+                ConfigurationOptionWrapper<object>[] configurationOptions = { registrationStoreDirectory, masternodeUri };
 
                 // Logging for NTB client code
                 ConsoleLoggerProcessor loggerProcessor = new ConsoleLoggerProcessor();

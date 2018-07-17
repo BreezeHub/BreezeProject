@@ -92,9 +92,10 @@ namespace NTumbleBit.ClassicTumbler
 			{
 				if(value != null)
 				{
-					if(!value.EndsWith(".onion", StringComparison.Ordinal)
-						&& !IsIp(value))
-						throw new FormatException("Host can only be an onion address or an IP");
+					if(!value.EndsWith(".onion", StringComparison.Ordinal) &&
+					   !value.EndsWith(".dummy", StringComparison.Ordinal) &&
+					   !IsIp(value))
+						throw new FormatException("Host can only be an onion address, dummy regtest address or an IP");
 
 				}
 				_Host = value;
