@@ -68,7 +68,32 @@ namespace NTumbleBit.ClassicTumbler
 		{
 			_Debug = debug;
 
-			_Shorty = new StandardCycle()
+            // Kotori with higher denomination
+            _Breeze = new StandardCycle()
+            {
+                FriendlyName = "Breeze",
+                Consensus = consensus,
+                Denomination = Money.Coins(0.01m),
+                Generator = new OverlappedCycleGenerator()
+                {
+                    RegistrationOverlap = 1,
+                    FirstCycle = new CycleParameters()
+                    {
+                        Start = 0,
+                        //one cycle per day
+                        RegistrationDuration = GetBlocksCount(consensus, 60 * 4) + 1,
+                        //make sure tor circuit get renewed
+                        SafetyPeriodDuration = GetBlocksCount(consensus, 20),
+                        ClientChannelEstablishmentDuration = GetBlocksCount(consensus, 120),
+                        TumblerChannelEstablishmentDuration = GetBlocksCount(consensus, 120),
+                        PaymentPhaseDuration = GetBlocksCount(consensus, 30),
+                        TumblerCashoutDuration = GetBlocksCount(consensus, 5 * 60),
+                        ClientCashoutDuration = GetBlocksCount(consensus, 5 * 60)
+                    }
+                }
+            };
+
+            _Shorty = new StandardCycle()
 			{
 				FriendlyName = "Shorty",
 				Consensus = consensus,
