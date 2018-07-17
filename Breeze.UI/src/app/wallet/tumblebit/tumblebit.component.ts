@@ -70,6 +70,7 @@ export class TumblebitComponent implements OnDestroy {
   private startSubscriptions: CompositeDisposable;
   private connectionFatalError = false;
   public parametersAreStandard = false;
+  public shouldStayConnected = false;
 
   tumbleFormErrors = {
     'selectWallet': ''
@@ -429,6 +430,7 @@ export class TumblebitComponent implements OnDestroy {
   }
 
   private getProgress() {
+
     this.progressSubscription = this.tumblebitService.getProgress()
       .subscribe(
         response => {
@@ -460,14 +462,24 @@ export class TumblebitComponent implements OnDestroy {
                     cycleAsciiArt,
                     cycleStatus,
                     cyclePhase,
-                    cyclePhaseNumber);
+                    cyclePhaseNumber, 
+                    cycle.ShouldStayConnected);
 
                   this.progressDataArray.push(item);
                   
                   this.progressDataArray.sort(function(cycle1, cycle2) {
                     return cycle1.cycleStart - cycle2.cycleStart;
-                  })
+                  });
                 }
+
+                this.shouldStayConnected = false;
+                for (const item of this.progressDataArray) {
+                  if (item.shouldStayConnected) {
+                    this.shouldStayConnected = true;
+                    break;
+                  }
+                }
+                
               }
             }
           }
@@ -525,14 +537,19 @@ export class TumblebitComponent implements OnDestroy {
     return this.apiService.getWalletBalance(walletInfo)
       .subscribe(
         response =>  {
+          console.log("getWalletBalance: " + response.status);
           if (response.status >= 200 && response.status < 400) {
+            var milli = new Date().getMilliseconds();
             const balanceResponse = response.json();
             this.confirmedBalance = balanceResponse.balances[0].amountConfirmed;
             this.unconfirmedBalance = balanceResponse.balances[0].amountUnconfirmed;
             this.totalBalance = this.confirmedBalance + this.unconfirmedBalance;
+            console.log("getWalletBalance: " + this.totalBalance);
           }
         },
-        e => this.onPollingError(e, 'Failed to get wallet balance. Reason: API is not responding or timing out.')
+        e => {
+          this.onPollingError(e, 'Failed to get wallet balance. Reason: API is not responding or timing out.');
+        }
       );
   };
 
