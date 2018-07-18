@@ -456,8 +456,9 @@ namespace NTumbleBit.ClassicTumbler.Client
                                 break;
                             }
 
+	                        bool isRegtest = Runtime.Network.Name == Network.RegTest.Name;
 							int connectionCount = Services.BlockExplorerService.GetConnectionCount();
-							if (connectionCount < 4)
+							if (connectionCount < 4 && !isRegtest)
 							{
 								Logs.Client.LogWarning("There are too few bitcoin peers connected; payment will not be processed");
 								break;

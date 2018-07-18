@@ -60,15 +60,38 @@ namespace Breeze.Daemon
 				var useRegistration = args.Contains("registration", comparer);
 				var useTumblebit = args.Contains("tumblebit", comparer);
 				var useTor = !args.Contains("noTor", comparer);
-				var useHttpTumblerProtocol = args.Contains("useHttp", comparer);
+	            string registrationStoreDirectoryPath = args.GetValueOf("-storedir");
+
+				TumblerProtocolType tumblerProtocol;
+	            try
+	            {
+		            string tumblerProtocolString = args.GetValueOf("-tumblerProtocol");
+		            if (!isRegTest && (tumblerProtocolString != null || !useTor))
+		            {
+			            Console.WriteLine("Options -TumblerProtocol and -NoTor can only be used in combination with -RegTest switch.");
+						return;
+		            }
+
+		            tumblerProtocol = Enum.Parse<TumblerProtocolType>(tumblerProtocolString, true);
+		            if (useTor && tumblerProtocol == TumblerProtocolType.Http)
+		            {
+			            Console.WriteLine("TumblerProtocol can only be changed to Http when Tor is disabled. Please use -NoTor switch to disable Tor.");
+			            return;
+					}
+				}
+	            catch
+	            {
+					Console.WriteLine($"Incorrect tumbling prococol specified; the valid values are {TumblerProtocolType.Tcp} and {TumblerProtocolType.Http}");
+					return;
+	            }
+
 				var agent = "Breeze";
 
-                // This setting is not in NodeSettings yet, so get it directly from the args
-                ConfigurationOptionWrapper<object> registrationStoreDirectory = new ConfigurationOptionWrapper<object>("RegistrationStoreDirectory", args.GetValueOf("-storedir"));
+				// Those settings are not in NodeSettings yet, so get it directly from the args
+				ConfigurationOptionWrapper<object> registrationStoreDirectory = new ConfigurationOptionWrapper<object>("RegistrationStoreDirectory", registrationStoreDirectoryPath);
 	            ConfigurationOptionWrapper<object> torOption = new ConfigurationOptionWrapper<object>("Tor", useTor);
-	            ConfigurationOptionWrapper<object> tumblerProtocolOption = new ConfigurationOptionWrapper<object>("TumblerProtocol", useHttpTumblerProtocol ? TumblerProtocolType.Http : TumblerProtocolType.Tcp);
+	            ConfigurationOptionWrapper<object> tumblerProtocolOption = new ConfigurationOptionWrapper<object>("TumblerProtocol", tumblerProtocol);
                 ConfigurationOptionWrapper<object>[] tumblebitConfigurationOptions = { registrationStoreDirectory, torOption, tumblerProtocolOption };
-
 
 				NodeSettings nodeSettings;
 

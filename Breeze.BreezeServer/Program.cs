@@ -15,6 +15,35 @@ namespace Breeze.BreezeServer
 	{
 		public static void Main(string[] args)
 		{
+			var comparer = new CommandlineArgumentComparer();
+			var isRegTest = args.Contains("regtest", comparer);
+			var isTestNet = args.Contains("testnet", comparer);
+
+			var useTor = !args.Contains("noTor", comparer);
+
+			TumblerProtocolType tumblerProtocol;
+			try
+			{
+				string tumblerProtocolString = args.Where(a => a.StartsWith("-tumblerProtocol=")).Select(a => a.Substring("-tumblerProtocol=".Length).Replace("\"", "")).FirstOrDefault();
+				if (!isRegTest && (tumblerProtocolString != null || !useTor))
+				{
+					Console.WriteLine("Options -TumblerProtocol and -NoTor can only be used in combination with -RegTest switch.");
+					return;
+				}
+
+				tumblerProtocol = Enum.Parse<TumblerProtocolType>(tumblerProtocolString, true);
+				if (useTor && tumblerProtocol == TumblerProtocolType.Http)
+				{
+					Console.WriteLine("TumblerProtocol can only be changed to Http when Tor is disabled. Please use -NoTor switch to disable Tor.");
+					return;
+				}
+			}
+			catch
+			{
+				Console.WriteLine($"Incorrect tumbling prococol specified; the valid values are {TumblerProtocolType.Tcp} and {TumblerProtocolType.Http}");
+				return;
+			}
+
 			var serviceProvider = new ServiceCollection()
 				.AddLogging()
 				.AddSingleton<ITumblerService, TumblerService>()
@@ -32,21 +61,25 @@ namespace Breeze.BreezeServer
 
 			// Check OS-specific default config path for the config file. Create default file if it does not exist
 			string configDir = BreezeConfiguration.GetDefaultDataDir("BreezeServer");
-			if (args.Contains("testnet"))
-				configDir = Path.Combine(configDir, "TestNet");
-			else if (args.Contains("regtest"))
-				configDir = Path.Combine(configDir, "RegTest");
+			if (isRegTest)
+				configDir = Path.Combine(configDir, "StratisRegTest");
+			else if (isTestNet)
+				configDir = Path.Combine(configDir, "StratisTest");
+			else
+				configDir = Path.Combine(configDir, "StratisMain");
 
-            string configPath = Path.Combine(configDir, "breeze.conf");
+			string configPath = Path.Combine(configDir, "breeze.conf");
 
 			logger.LogInformation("{Time} Configuration file path {Path}", DateTime.Now, configPath);
 
             BreezeConfiguration config = new BreezeConfiguration(configPath);
+			if (!useTor)
+				config.UseTor = false;
 
 			logger.LogInformation("{Time} Pre-initialising server to obtain parameters for configuration", DateTime.Now);
 			
 			var preTumblerConfig = serviceProvider.GetService<ITumblerService>();
-			preTumblerConfig.StartTumbler(config, true, torMandatory: false);
+			preTumblerConfig.StartTumbler(config, true, torMandatory: !useTor, tumblerProtocol: tumblerProtocol);
 
 			string configurationHash = preTumblerConfig.runtime.ClassicTumblerParameters.GetHash().ToString();
 			string onionAddress = preTumblerConfig.runtime.TorUri.Host.Substring(0, 16);
@@ -83,7 +116,7 @@ namespace Breeze.BreezeServer
 
 			var tumbler = serviceProvider.GetService<ITumblerService>();
 			
-			tumbler.StartTumbler(config, false, torMandatory: false);
+			tumbler.StartTumbler(config, false, torMandatory: !useTor, tumblerProtocol: tumblerProtocol);
 		}
 	}
 }

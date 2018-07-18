@@ -67,8 +67,8 @@ namespace Breeze.TumbleBit.Client
         public ClassicTumblerParameters TumblerParameters { get; private set; } = null;
         public string TumblerAddress { get; private set; } = null;
         public RegistrationStore RegistrationStore { get; private set; }
-	    public bool UseTor { get; set; }
-		public TumblerProtocolType TumblerProtocol { get; set; }
+	    public bool UseTor { get; set; } = true;
+	    public TumblerProtocolType TumblerProtocol { get; set; } = TumblerProtocolType.Tcp;
 
 	    public TumbleBitManager(
             ILoggerFactory loggerFactory,
@@ -279,7 +279,7 @@ namespace Breeze.TumbleBit.Client
             this.TumblingState.TumblerUri = new Uri(this.TumblerAddress);
 
             FullNodeTumblerClientConfiguration config;
-            if (this.TumblerAddress.Contains("127.0.0.1"))
+            if (this.TumblerAddress.Contains("127.0.0.1") || !UseTor)
             {
                 config = new FullNodeTumblerClientConfiguration(this.TumblingState, onlyMonitor: false,
                     connectionTest: true, useProxy: false);
@@ -380,7 +380,7 @@ namespace Breeze.TumbleBit.Client
 
             // Bypass Tor for integration tests
             FullNodeTumblerClientConfiguration config;
-            if (this.TumblerAddress.Contains("127.0.0.1"))
+            if (this.TumblerAddress.Contains("127.0.0.1") || !UseTor)
             {
                 config = new FullNodeTumblerClientConfiguration(this.TumblingState, onlyMonitor: false,
                     connectionTest: false, useProxy: false);

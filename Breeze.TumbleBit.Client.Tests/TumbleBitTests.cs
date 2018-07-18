@@ -227,9 +227,10 @@ namespace Breeze.TumbleBit.Client.Tests
                     client.DefaultRequestHeaders.Accept.Clear();
                     client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
-                    // Sample returned output
-                    // {"tumbler":"ctb://<onionaddress>.onion?h=<confighash>","denomination":"0.01000000","fee":"0.00010000","network":"RegTest","estimate":"22200"}
-                    var connectResponse = client.GetStringAsync(apiSettings.ApiUri + "api/TumbleBit/connect").GetAwaiter().GetResult();
+					// Sample returned output
+					// {"tumbler":"ctb://<onionaddress>.onion?h=<confighash>","denomination":"0.01000000","fee":"0.00010000","network":"RegTest","estimate":"22200"}
+	                var connectContent = new StringContent(new ConnectRequest { OriginWalletName = "alice" }.ToString(), Encoding.UTF8, "application/json");
+	                var connectResponse = client.PostAsync(apiSettings.ApiUri + "api/TumbleBit/connect", connectContent).GetAwaiter().GetResult();
 
                     //Assert.StartsWith("[{\"", connectResponse);
 
@@ -244,8 +245,8 @@ namespace Breeze.TumbleBit.Client.Tests
                     //Assert.StartsWith("[{\"", tumbleResponse);
                 }
 
-                HdAccount alice;
-                HdAccount bob;
+                HdAccount alice = null;
+                HdAccount bob = null;
                 // TODO: Move forward specific numbers of blocks and check interim states? TB tests already do that
                 for (int i = 0; i < 80; i++)
                 {
@@ -285,11 +286,14 @@ namespace Breeze.TumbleBit.Client.Tests
                     Thread.Sleep(20000);
                 }
 
-                // Check destination wallet for tumbled coins
+				// Check destination wallet for tumbled coins
+				Assert.True(alice.GetSpendableAmount().ConfirmedAmount < new Money(5.0m, MoneyUnit.BTC));
+	            Assert.True(bob.GetSpendableAmount().ConfirmedAmount > new Money(0.0m, MoneyUnit.BTC));
 
-                // TODO: Need to amend TumblerService so that it can be shut down within the test
 
-                if (client != null)
+				// TODO: Need to amend TumblerService so that it can be shut down within the test
+
+				if (client != null)
                 {
                     client.Dispose();
                     client = null;
@@ -360,6 +364,7 @@ namespace Breeze.TumbleBit.Client.Tests
                     "rpc.url=http://127.0.0.1:" + coreRpc.Address.Port + "/",
                     "rpc.user=" + coreRpc.CredentialString.UserPassword.UserName,
                     "rpc.password=" + coreRpc.CredentialString.UserPassword.Password,
+	                "listen=127.0.0.1",
                     //"cycle=kotori",
                     "tor.enabled=false"
                 };
@@ -488,11 +493,12 @@ namespace Breeze.TumbleBit.Client.Tests
 
                     // Sample returned output
                     // {"tumbler":"ctb://<onionaddress>.onion?h=<confighash>","denomination":"0.01000000","fee":"0.00010000","network":"RegTest","estimate":"22200"}
-                    var connectResponse = client.GetStringAsync(apiSettings.ApiUri + "api/TumbleBit/connect").GetAwaiter().GetResult();
+					var connectContent = new StringContent(new ConnectRequest { OriginWalletName = "alice" }.ToString(), Encoding.UTF8, "application/json");
+	                var connectResponse = client.PostAsync(apiSettings.ApiUri + "api/TumbleBit/connect", connectContent).GetAwaiter().GetResult();
 
-                    //Assert.StartsWith("[{\"", connectResponse);
+					//Assert.StartsWith("[{\"", connectResponse);
 
-                    var tumbleModel = new TumbleRequest { OriginWalletName = "alice", OriginWalletPassword = "TumbleBit1", DestinationWalletName = "bob" };
+					var tumbleModel = new TumbleRequest { OriginWalletName = "alice", OriginWalletPassword = "TumbleBit1", DestinationWalletName = "bob" };
                     var tumbleContent = new StringContent(tumbleModel.ToString(), Encoding.UTF8, "application/json");
 
                     var tumbleResponse = client.PostAsync(apiSettings.ApiUri + "api/TumbleBit/tumble", tumbleContent).GetAwaiter().GetResult();
@@ -503,10 +509,10 @@ namespace Breeze.TumbleBit.Client.Tests
                     //Assert.StartsWith("[{\"", tumbleResponse);
                 }
 
-                HdAccount alice;
-                HdAccount bob;
-                // TODO: Move forward specific numbers of blocks and check interim states? TB tests already do that
-                for (int i = 0; i < 200; i++)
+                HdAccount alice = null;
+                HdAccount bob = null;
+				// TODO: Move forward specific numbers of blocks and check interim states? TB tests already do that
+				for (int i = 0; i < 200; i++)
                 {
                     Console.WriteLine("Wallet balance height: " + node1.FullNode.Chain.Height);
 
@@ -541,14 +547,16 @@ namespace Breeze.TumbleBit.Client.Tests
                         }
                     }
 
-                    Thread.Sleep(20000);
+                    Thread.Sleep(2000);
                 }
 
-                // Check destination wallet for tumbled coins
+				// Check destination wallet for tumbled coins
+				Assert.True(alice.GetSpendableAmount().ConfirmedAmount < new Money(5.0m, MoneyUnit.BTC));
+	            Assert.True(bob.GetSpendableAmount().ConfirmedAmount > new Money(0.0m, MoneyUnit.BTC));
 
-                // TODO: Need to amend TumblerService so that it can be shut down within the test
+				// TODO: Need to amend TumblerService so that it can be shut down within the test
 
-                if (client != null)
+				if (client != null)
                 {
                     client.Dispose();
                     client = null;
@@ -615,7 +623,8 @@ namespace Breeze.TumbleBit.Client.Tests
                     "rpc.user=" + rpc3.CredentialString.UserPassword.UserName,
                     "rpc.password=" + rpc3.CredentialString.UserPassword.Password,
                     //"cycle=kotori",
-                    "tor.enabled=false"
+	                "listen=127.0.0.1",
+					"tor.enabled=false"
                 };
 
                 File.WriteAllLines(ntbServerConfigPath, ntbServerConfig);
@@ -784,9 +793,11 @@ namespace Breeze.TumbleBit.Client.Tests
 
                     // Sample returned output
                     // {"tumbler":"ctb://<onionaddress>.onion?h=<confighash>","denomination":"0.01000000","fee":"0.00010000","network":"RegTest","estimate":"22200"}
-                    var connectResponse = client.GetStringAsync(apiSettings1.ApiUri + "api/TumbleBit/connect").GetAwaiter().GetResult();
-                    //Assert.StartsWith("[{\"", connectResponse);
-                    var tumbleModel = new TumbleRequest { OriginWalletName = "alice1", OriginWalletPassword = "TumbleBit1", DestinationWalletName = "bob1" };
+	                var connectContent = new StringContent(new ConnectRequest { OriginWalletName = "alice1" }.ToString(), Encoding.UTF8, "application/json");
+	                var connectResponse = client.PostAsync(apiSettings1.ApiUri + "api/TumbleBit/connect", connectContent).GetAwaiter().GetResult();
+
+					//Assert.StartsWith("[{\"", connectResponse);
+					var tumbleModel = new TumbleRequest { OriginWalletName = "alice1", OriginWalletPassword = "TumbleBit1", DestinationWalletName = "bob1" };
                     var tumbleContent = new StringContent(tumbleModel.ToString(), Encoding.UTF8, "application/json");
                     var tumbleResponse = client.PostAsync(apiSettings1.ApiUri + "api/TumbleBit/tumble", tumbleContent).GetAwaiter().GetResult();
 
@@ -801,8 +812,10 @@ namespace Breeze.TumbleBit.Client.Tests
                     client.DefaultRequestHeaders.Accept.Clear();
                     client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                     
-                    var connectResponse = client.GetStringAsync(apiSettings2.ApiUri + "api/TumbleBit/connect").GetAwaiter().GetResult();
-                    var tumbleModel = new TumbleRequest { OriginWalletName = "alice2", OriginWalletPassword = "TumbleBit1", DestinationWalletName = "bob2" };
+	                var connectContent = new StringContent(new ConnectRequest { OriginWalletName = "alice2" }.ToString(), Encoding.UTF8, "application/json");
+	                var connectResponse = client.PostAsync(apiSettings2.ApiUri + "api/TumbleBit/connect", connectContent).GetAwaiter().GetResult();
+
+					var tumbleModel = new TumbleRequest { OriginWalletName = "alice2", OriginWalletPassword = "TumbleBit1", DestinationWalletName = "bob2" };
                     var tumbleContent = new StringContent(tumbleModel.ToString(), Encoding.UTF8, "application/json");
                     var tumbleResponse = client.PostAsync(apiSettings2.ApiUri + "api/TumbleBit/tumble", tumbleContent).GetAwaiter().GetResult();
 

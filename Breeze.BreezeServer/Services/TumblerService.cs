@@ -24,7 +24,7 @@ namespace Breeze.BreezeServer.Services
         public TumblerConfiguration config { get; set; }
         public TumblerRuntime runtime { get; set; }
         
-        public void StartTumbler(BreezeConfiguration breezeConfig, bool getConfigOnly, string ntumblebitServerConf = null, string dataDir = null, bool torMandatory = true)
+        public void StartTumbler(BreezeConfiguration breezeConfig, bool getConfigOnly, string ntumblebitServerConf = null, string dataDir = null, bool torMandatory = true, TumblerProtocolType? tumblerProtocol = null)
         {
             var argsTemp = new List<string>();
             argsTemp.Add("-debug");
@@ -40,6 +40,9 @@ namespace Breeze.BreezeServer.Services
 
             if (dataDir != null)
                 argsTemp.Add("-datadir=" + dataDir);
+
+			if (tumblerProtocol.HasValue)
+				argsTemp.Add($"-tumblerProtocol={tumblerProtocol.Value}");
 
             string[] args = argsTemp.ToArray();
             var argsConf = new TextFileConfiguration(args);

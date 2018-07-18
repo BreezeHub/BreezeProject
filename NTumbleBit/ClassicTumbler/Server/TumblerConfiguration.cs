@@ -104,7 +104,7 @@ namespace NTumbleBit.ClassicTumbler.Server
 		{
 			ConfigurationFile = args.Where(a => a.StartsWith("-conf=", StringComparison.Ordinal)).Select(a => a.Substring("-conf=".Length).Replace("\"", "")).FirstOrDefault();
 			DataDir = args.Where(a => a.StartsWith("-datadir=", StringComparison.Ordinal)).Select(a => a.Substring("-datadir=".Length).Replace("\"", "")).FirstOrDefault();
-			if(DataDir != null && ConfigurationFile != null)
+			if (DataDir != null && ConfigurationFile != null)
 			{
 				var isRelativePath = Path.GetFullPath(ConfigurationFile).Length > ConfigurationFile.Length;
 				if(isRelativePath)
@@ -176,7 +176,7 @@ namespace NTumbleBit.ClassicTumbler.Server
 			var defaultPort = config.GetOrDefault<int>("port", 37123);
 
 			OnlyMonitor = config.GetOrDefault<bool>("onlymonitor", false);
-			string listenAddress = config.GetOrDefault<string>("listen", "127.0.0.1");
+			string listenAddress = config.GetOrDefault<string>("listen", Utils.GetInternetConnectedAddress().ToString());
 			Listen = new IPEndPoint(IPAddress.Parse(listenAddress), defaultPort);
 
 			RPC = RPCArgs.Parse(config, Network);

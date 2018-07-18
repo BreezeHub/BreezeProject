@@ -122,25 +122,31 @@ namespace NTumbleBit.ClassicTumbler.Server
 
 				TumblerUrlBuilder httpUri;
 
-				//Add onion style address, this address will be used in the registration
-				httpUri = new TumblerUrlBuilder()
+				//Set the Tor URI only if the Tor address has not been already set
+				if (TorUri == null)
 				{
-					Host = $"{dummyOnionAddress}.dummy",
-					Port = conf.Listen.Port
-				};
-				TorUri = httpUri.GetRoutableUri(false);
-				TumblerUris.Add(httpUri);
-
-				//Add IP address of the network card with Internet connection
-				httpUri = new TumblerUrlBuilder()
+					//Add IP address of the network card with Internet connection
+					httpUri = new TumblerUrlBuilder()
+					{
+						Host = LocalEndpoint.Address.ToString(),
+						Port = LocalEndpoint.Port
+					};
+					TumblerUris.Add(httpUri);
+					TorUri = httpUri.GetRoutableUri(false);
+				}
+				else
 				{
-					Host = Utils.GetInternetConnectedAddress().ToString(),
-					Port = conf.Listen.Port
-				};
-				TumblerUris.Add(httpUri);
+					//Add onion style address, this is just a display address used when running MasterNode without Tor
+					httpUri = new TumblerUrlBuilder()
+					{
+						Host = $"{dummyOnionAddress}.dummy",
+						Port = conf.Listen.Port
+					};
+					TumblerUris.Add(httpUri);
+				}
 
 				if (String.IsNullOrEmpty(ClassicTumblerParameters.ExpectedAddress))
-					ClassicTumblerParameters.ExpectedAddress = httpUri.GetRoutableUri(false).AbsoluteUri;
+					ClassicTumblerParameters.ExpectedAddress = TorUri.AbsoluteUri;
 			}
 			ClassicTumblerParametersHash = ClassicTumblerParameters.GetHash();
 			var configurationHash = ClassicTumblerParameters.GetHash();
