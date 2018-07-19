@@ -12,6 +12,12 @@ const os = require('os');
 
 let serve;
 let testnet = false;
+let regtest = false;
+let noTor;
+let tumblerProtocol;
+let dataDir;
+let bitcoinPort;
+let stratisPort;
 (<any>global).bitcoinApiPort = 37220;
 (<any>global).stratisApiPort = 37221;
 const args = process.argv.slice(1);
@@ -21,11 +27,48 @@ if (args.some(val => val === '--testnet' || val === '-testnet')) {
   testnet = true;
   (<any>global).bitcoinApiPort = 38220;
   (<any>global).stratisApiPort = 38221;
+} else if (args.some(val => val === '--regtest' || val === '-regtest')) {
+  regtest = true;
+  (<any>global).bitcoinApiPort = 37220;
+  (<any>global).stratisApiPort = 37221;
 } else if (args.some(val => val === '--mainnet' || val === '-mainnet')) {
-  testnet = false;
   (<any>global).bitcoinApiPort = 37220;
   (<any>global).stratisApiPort = 37221;
 }
+
+//Set custom blockchain protocol ports
+if (args.some(val => val.indexOf("--bitcoinPort=") == 0 || val.indexOf("-bitcoinPort=") == 0)) {
+	let bitcoinPort : string;
+	bitcoinPort = args.filter(val => val.indexOf("--bitcoinPort=") == 0 || val.indexOf("-bitcoinPort=") == 0)[0].split("=")[1];
+}
+if (args.some(val => val.indexOf("--stratisPort=") == 0 || val.indexOf("-stratisPort=") == 0)) {
+	let stratisPort : string;
+	stratisPort = args.filter(val => val.indexOf("--stratisPort=") == 0 || val.indexOf("-stratisPort=") == 0)[0].split("=")[1];
+}
+
+//Set custom API ports
+if (args.some(val => val.indexOf("--bitcoinApiPort=") == 0 || val.indexOf("-bitcoinApiPort=") == 0)) {
+	let customBitcoinApiPort : String;
+	customBitcoinApiPort = args.filter(val => val.indexOf("--bitcoinApiPort=") == 0 || val.indexOf("-bitcoinApiPort=") == 0)[0].split("=")[1];
+	(<any>global).bitcoinApiPort = customBitcoinApiPort;
+}
+if (args.some(val => val.indexOf("--stratisApiPort=") == 0 || val.indexOf("-stratisApiPort=") == 0)) {
+	let customStratisApiPort : String;
+	customStratisApiPort = args.filter(val => val.indexOf("--stratisApiPort=") == 0 || val.indexOf("-stratisApiPort=") == 0)[0].split("=")[1];
+	(<any>global).stratisApiPort = customStratisApiPort;
+}
+
+//Set datadir parameter
+if (args.some(val => val.indexOf("--datadir=") == 0 || val.indexOf("-datadir=") == 0)) {
+	dataDir = args.filter(val => val.indexOf("--datadir=") == 0 || val.indexOf("-datadir=") == 0)[0].split("=")[1];
+}
+
+//Set Regtest Tor and Tumbling protocol settings
+noTor = args.some(val => val === '--noTor' || val === '-noTor');
+if (args.some(val => val.indexOf("--tumblerProtocol=") == 0 || val.indexOf("-tumblerProtocol=") == 0)) {
+	tumblerProtocol = args.filter(val => val.indexOf("--tumblerProtocol=") == 0 || val.indexOf("-tumblerProtocol=") == 0)[0].split("=")[1];
+}
+
 
 if (serve) {
   require('electron-reload')(__dirname, {
@@ -80,6 +123,9 @@ function createWindow() {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.on('ready', function () {
+  console.log("Bitcoin port: " + (<any>global).bitcoinApiPort)
+  console.log("Stratis port: " + (<any>global).stratisApiPort)
+  
   if (serve) {
     console.log('Breeze UI was started in development mode. This requires the user to be running the Breeze Daemon himself.')
   } else {
@@ -165,15 +211,47 @@ function startBitcoinApi() {
     }
   }
 
-  if(!testnet) {
-    bitcoinProcess = spawnBitcoin(apiPath, ['light', '-tumblebit', 'registration', stratisDir], {
+  /*****/
+   let commandLineArguments = [];
+   commandLineArguments.push("-light");
+   commandLineArguments.push("-apiport=" + (<any>global).bitcoinApiPort);
+   if(bitcoinPort != null)
+	 commandLineArguments.push("-port=" + bitcoinPort);
+
+   if(testnet)
+	 commandLineArguments.push("-testnet");
+   if(regtest)
+	 commandLineArguments.push("-regtest");
+ 
+   if (noTor)
+	 commandLineArguments.push("-noTor");   
+
+   if (tumblerProtocol != null)
+	 commandLineArguments.push("-tumblerProtocol=" + tumblerProtocol);   
+ 
+   commandLineArguments.push("-tumblebit");
+   commandLineArguments.push("-registration");
+   if (dataDir != null)
+     commandLineArguments.push("-datadir=" + dataDir);   
+   
+   commandLineArguments.push(stratisDir);
+   
+   console.log("Starting Bitcoin daemon with parameters: " + commandLineArguments);
+   bitcoinProcess = spawnBitcoin(apiPath, commandLineArguments, {
+      detached: false
+    });
+  
+  /*****/
+  /*
+  if(testnet) {
+    bitcoinProcess = spawnBitcoin(apiPath, ['-light', '-testnet', '-tumblebit', '-registration', stratisDir], {
       detached: false
     });
   } else {
-    bitcoinProcess = spawnBitcoin(apiPath, ['light', '-testnet', '-tumblebit', 'registration', stratisDir], {
+    bitcoinProcess = spawnBitcoin(apiPath, ['-light', '-tumblebit', '-registration', stratisDir], {
       detached: false
     });
-  }
+  }*/
 
   bitcoinProcess.stdout.on('data', (data) => {
     writeLog(`Bitcoin: ${data}`);
@@ -193,16 +271,40 @@ function startStratisApi() {
   } else {
     apiPath = path.resolve(__dirname, '..//..//resources//daemon//Breeze.Daemon');
   }
-
-  if (!testnet) {
-    stratisProcess = spawnStratis(apiPath, ['stratis', 'light', 'registration'], {
+  
+  /*********/
+  let commandLineArguments = [];
+  commandLineArguments.push("-stratis");
+  commandLineArguments.push("-apiport=" + (<any>global).stratisApiPort);
+   if(stratisPort != null)
+	 commandLineArguments.push("-port=" + stratisPort);
+  
+  commandLineArguments.push("-light");
+  if(testnet)
+	commandLineArguments.push("-testnet");
+  if(regtest)
+    commandLineArguments.push("-regtest");
+ 
+  commandLineArguments.push("-registration");
+  if (dataDir != null)
+	commandLineArguments.push("-datadir=" + dataDir);
+  
+  console.log("Starting Stratis daemon with parameters: " + commandLineArguments);
+  stratisProcess = spawnStratis(apiPath, commandLineArguments, {
+    detached: false
+  });
+  /*********/
+  
+  /*
+  if (testnet) {
+    stratisProcess = spawnStratis(apiPath, ['-stratis', '-light', '-testnet', '-registration'], {
       detached: false
     });
   } else {
-    stratisProcess = spawnStratis(apiPath, ['stratis', 'light', '-testnet', 'registration'], {
+    stratisProcess = spawnStratis(apiPath, ['-stratis', '-light', '-registration'], {
       detached: false
     });
-  }
+  }*/
 
   stratisProcess.stdout.on('data', (data) => {
     writeLog(`Stratis: ${data}`);
