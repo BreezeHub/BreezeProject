@@ -232,17 +232,17 @@ namespace Breeze.TumbleBit.Client
 				Result<ClassicTumblerParameters> tumblerParameterResult = await TryUseServer();
 				Uri tumblerAddressUri = new Uri(this.TumblerAddress);
 
-				RegistrationRecord record = registrations.FirstOrDefault(r => r.Record.Ipv4Addr.ToString() == tumblerAddressUri.DnsSafeHost);
-				if (record == null)
-					return Result.Fail<ClassicTumblerParameters>($"Cannot find registration record for {this.TumblerAddress}", PostResultActionType.CanContinue);
+				RegistrationRecord record = registrations.FirstOrDefault(r => r.Record.Ipv4Addr != null && r.Record.Ipv4Addr.ToString() == tumblerAddressUri.DnsSafeHost);
+			    if (record != null)
+			    {
+			        //Overwrite tumbler address for regtest to indicate to the user that it it not a legimimate masternode
+			        if (record.Record.IsDummyAddress && UseDummyAddress)
+			            this.TumblerDisplayAddress = $"ctb://{record.Record.OnionAddress}.dummy?h={record.Record.ConfigurationHash}";
+			        else
+			            this.TumblerDisplayAddress = this.TumblerAddress;
+                }
 
-				//Overwrite tumbler address for regtest to indicate to the user that it it not a legimimate masternode
-				if (record.Record.IsDummyAddress && UseDummyAddress)
-					this.TumblerDisplayAddress = $"ctb://{record.Record.OnionAddress}.dummy?h={record.Record.ConfigurationHash}";
-				else
-					this.TumblerDisplayAddress = this.TumblerAddress;
-
-				tumblerParameterResult = await TryUseServer();
+                tumblerParameterResult = await TryUseServer();
 	            
 				if (tumblerParameterResult.Success)
                     return tumblerParameterResult;
