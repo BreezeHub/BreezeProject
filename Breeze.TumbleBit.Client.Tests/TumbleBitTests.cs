@@ -28,6 +28,7 @@ using Stratis.Bitcoin.IntegrationTests;
 using Breeze.BreezeServer;
 using Breeze.TumbleBit.Models;
 using BreezeCommon;
+using NTumbleBit.ClassicTumbler.Server;
 using NTumbleBit.Logging;
 using Stratis.Bitcoin.IntegrationTests.EnvironmentMockUpHelpers;
 using Stratis.Bitcoin.Utilities.Extensions;
@@ -130,11 +131,14 @@ namespace Breeze.TumbleBit.Client.Tests
                 var serverAddress = File.ReadAllText(Path.Combine(coreNode.DataFolder, "uri.txt"));
 
                 // Not used for this test
-                ConfigurationOptionWrapper<object> registrationStoreDirectory = new ConfigurationOptionWrapper<object>("RegistrationStoreDirectory", "");
+                ConfigurationOptionWrapper<object> registrationStoreDirectory = new ConfigurationOptionWrapper<object>("RegistrationStoreDirectory", Path.Combine(coreNode.DataFolder, "registrationHistory.json"));
 
-                // Force SBFN to connect to the server
-                ConfigurationOptionWrapper<object> masternodeUri = new ConfigurationOptionWrapper<object>("MasterNodeUri", serverAddress);
-                ConfigurationOptionWrapper<object>[] configurationOptions = { registrationStoreDirectory, masternodeUri };
+				// Force SBFN to connect to the server
+				ConfigurationOptionWrapper<object> masternodeUri = new ConfigurationOptionWrapper<object>("MasterNodeUri", serverAddress);
+	            ConfigurationOptionWrapper<object> torOption = new ConfigurationOptionWrapper<object>("Tor", true);
+	            ConfigurationOptionWrapper<object> tumblerProtocolOption = new ConfigurationOptionWrapper<object>("TumblerProtocol", TumblerProtocolType.Tcp);
+	            ConfigurationOptionWrapper<object> useDummyAddressOption = new ConfigurationOptionWrapper<object>("UseDummyAddress", false);
+				ConfigurationOptionWrapper<object>[] configurationOptions = { registrationStoreDirectory, masternodeUri, torOption, tumblerProtocolOption, useDummyAddressOption };
 
                 // Logging for NTB client code
                 ConsoleLoggerProcessor loggerProcessor = new ConsoleLoggerProcessor();
@@ -349,8 +353,9 @@ namespace Breeze.TumbleBit.Client.Tests
                     "breeze.regtxoutputvalue=1000",
                     "tumbler.url=http://127.0.0.1:37123/api/v1/",
                     "tumbler.rsakeyfile=/Users/username/.ntumblebitserver/RegTest/Tumbler.pem",
-                    "tumbler.ecdsakeyaddress=TVwRFmEKRCnQAgShf3QshBjp1Tmucm1e87"
-                };
+                    "tumbler.ecdsakeyaddress=TVwRFmEKRCnQAgShf3QshBjp1Tmucm1e87",
+	                "tor.enabled=false"
+				};
                 File.WriteAllLines(configPath, breezeServerConfig);
 
                 BreezeConfiguration config = new BreezeConfiguration(configPath);
@@ -393,11 +398,14 @@ namespace Breeze.TumbleBit.Client.Tests
                 var serverAddress = File.ReadAllText(Path.Combine(coreNode.DataFolder, "uri.txt"));
 
                 // Not used for this test
-                ConfigurationOptionWrapper<object> registrationStoreDirectory = new ConfigurationOptionWrapper<object>("RegistrationStoreDirectory", "");
+                ConfigurationOptionWrapper<object> registrationStoreDirectory = new ConfigurationOptionWrapper<object>("RegistrationStoreDirectory", Path.Combine(coreNode.DataFolder, "registrationHistory.json"));
 
                 // Force SBFN to connect to the server
                 ConfigurationOptionWrapper<object> masternodeUri = new ConfigurationOptionWrapper<object>("MasterNodeUri", serverAddress);
-                ConfigurationOptionWrapper<object>[] configurationOptions = { registrationStoreDirectory, masternodeUri };
+	            ConfigurationOptionWrapper<object> torOption = new ConfigurationOptionWrapper<object>("Tor", false);
+	            ConfigurationOptionWrapper<object> tumblerProtocolOption = new ConfigurationOptionWrapper<object>("TumblerProtocol", TumblerProtocolType.Tcp);
+	            ConfigurationOptionWrapper<object> useDummyAddressOption = new ConfigurationOptionWrapper<object>("UseDummyAddress", false);
+				ConfigurationOptionWrapper<object>[] configurationOptions = { registrationStoreDirectory, masternodeUri, torOption, tumblerProtocolOption, useDummyAddressOption };
 
                 // Logging for NTB client code
                 ConsoleLoggerProcessor loggerProcessor = new ConsoleLoggerProcessor();
@@ -607,8 +615,9 @@ namespace Breeze.TumbleBit.Client.Tests
                     "breeze.regtxoutputvalue=1000",
                     "tumbler.url=http://127.0.0.1:37123/api/v1/",
                     "tumbler.rsakeyfile=/Users/username/.ntumblebitserver/RegTest/Tumbler.pem",
-                    "tumbler.ecdsakeyaddress=TVwRFmEKRCnQAgShf3QshBjp1Tmucm1e87"
-                };
+                    "tumbler.ecdsakeyaddress=TVwRFmEKRCnQAgShf3QshBjp1Tmucm1e87",
+	                "tor.enabled=false"
+				};
                 File.WriteAllLines(configPath, breezeServerConfig);
 
                 BreezeConfiguration config = new BreezeConfiguration(configPath);
@@ -651,15 +660,17 @@ namespace Breeze.TumbleBit.Client.Tests
                 var serverAddress = File.ReadAllText(Path.Combine(coreNode.DataFolder, "uri.txt"));
 
                 // Not used for this test
-                ConfigurationOptionWrapper<object> registrationStoreDirectory = new ConfigurationOptionWrapper<object>("RegistrationStoreDirectory", "");
+                ConfigurationOptionWrapper<object> registrationStoreDirectory = new ConfigurationOptionWrapper<object>("RegistrationStoreDirectory", Path.Combine(coreNode.DataFolder, "registrationHistory.json"));
 
-                // Force SBFN to use the temporary hidden service to connect to the server
-                ConfigurationOptionWrapper<object> masternodeUri = new ConfigurationOptionWrapper<object>("MasterNodeUri", serverAddress);
+				// Force SBFN to use the temporary hidden service to connect to the server
+				ConfigurationOptionWrapper<object> masternodeUri = new ConfigurationOptionWrapper<object>("MasterNodeUri", serverAddress);
+	            ConfigurationOptionWrapper<object> torOption = new ConfigurationOptionWrapper<object>("Tor", false);
+	            ConfigurationOptionWrapper<object> tumblerProtocolOption = new ConfigurationOptionWrapper<object>("TumblerProtocol", TumblerProtocolType.Tcp);
+	            ConfigurationOptionWrapper<object> useDummyAddressOption = new ConfigurationOptionWrapper<object>("UseDummyAddress", false);
+				ConfigurationOptionWrapper<object>[] configurationOptions = { registrationStoreDirectory, masternodeUri, torOption, tumblerProtocolOption, useDummyAddressOption };
 
-                ConfigurationOptionWrapper<object>[] configurationOptions = { registrationStoreDirectory, masternodeUri };
-
-                // Logging for NTB client code
-                ConsoleLoggerProcessor loggerProcessor = new ConsoleLoggerProcessor();
+				// Logging for NTB client code
+				ConsoleLoggerProcessor loggerProcessor = new ConsoleLoggerProcessor();
                 Logs.Configure(new FuncLoggerFactory(i => new CustomerConsoleLogger(i, Logs.SupportDebug(true), false, loggerProcessor)));
 
                 CoreNode node1 = builder.CreateStratisPowNode(false, fullNodeBuilder =>
