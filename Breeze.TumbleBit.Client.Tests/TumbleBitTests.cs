@@ -554,7 +554,7 @@ namespace Breeze.TumbleBit.Client.Tests
                         }
                     }
 
-                    Thread.Sleep(5000);
+                    Thread.Sleep(20000);
                 }
 
 				// Check destination wallet for tumbled coins
@@ -861,7 +861,7 @@ namespace Breeze.TumbleBit.Client.Tests
                         }
                     }*/
 
-                    Thread.Sleep(5000);
+                    Thread.Sleep(20000);
                 }
 
 	            var alice1 = wm1.GetWalletByName("alice1").GetAccountByCoinType("account 0", (CoinType)Network.RegTest.Consensus.CoinType);

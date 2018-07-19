@@ -18,7 +18,7 @@ namespace Breeze.BreezeServer
     {
         public Network TumblerNetwork { get; set; }
 
-	    public bool UseTor { get; set; }
+        public bool UseTor { get; set; } = false;
 
         public string RpcUser { get; set; }
         public string RpcPassword { get; set; }
@@ -76,12 +76,12 @@ namespace Breeze.BreezeServer
                     TumblerNetwork = Network.TestNet;
                 }
 
-	            if (configFile.GetOrDefault<string>("tor.enabled", "true").Equals("true"))
-	            {
-		            UseTor = true;
-	            }
+                if (configFile.GetOrDefault<string>("tor.enabled", "true").Equals("true"))
+                {
+                    UseTor = true;
+                }
 
-				if (configFile.GetOrDefault<string>("network", "testnet").Equals("regtest"))
+                if (configFile.GetOrDefault<string>("network", "testnet").Equals("regtest"))
                 {
                     TumblerNetwork = Network.RegTest;
                 }
@@ -187,38 +187,38 @@ namespace Breeze.BreezeServer
             }
         }
 
-		public static string GetDefaultDataDir(string appName)
-		{
-			string directory = null;
-			var home = Environment.GetEnvironmentVariable("HOME");
-			if (!string.IsNullOrEmpty(home))
-			{
-				directory = home;
-				directory = Path.Combine(directory, "." + appName.ToLowerInvariant());
-			}
-			else
-			{
-				var localAppData = Environment.GetEnvironmentVariable("APPDATA");
-				if (!string.IsNullOrEmpty(localAppData))
-				{
-					directory = localAppData;
-					directory = Path.Combine(directory, appName);
-				}
-				else
-				{
-					throw new DirectoryNotFoundException("Could not find suitable datadir");
-				}
-			}
-			if (!Directory.Exists(directory))
-			{
-				Directory.CreateDirectory(directory);
-			}
-			//directory = Path.Combine(directory, network.Name);
-			if (!Directory.Exists(directory))
-			{
-				Directory.CreateDirectory(directory);
-			}
-			return directory;
-		}
+        public static string GetDefaultDataDir(string appName)
+        {
+            string directory = null;
+            var home = Environment.GetEnvironmentVariable("HOME");
+            if (!string.IsNullOrEmpty(home))
+            {
+                directory = home;
+                directory = Path.Combine(directory, "." + appName.ToLowerInvariant());
+            }
+            else
+            {
+                var localAppData = Environment.GetEnvironmentVariable("APPDATA");
+                if (!string.IsNullOrEmpty(localAppData))
+                {
+                    directory = localAppData;
+                    directory = Path.Combine(directory, appName);
+                }
+                else
+                {
+                    throw new DirectoryNotFoundException("Could not find suitable datadir");
+                }
+            }
+            if (!Directory.Exists(directory))
+            {
+                Directory.CreateDirectory(directory);
+            }
+            //directory = Path.Combine(directory, network.Name);
+            if (!Directory.Exists(directory))
+            {
+                Directory.CreateDirectory(directory);
+            }
+            return directory;
+        }
     }
 }
