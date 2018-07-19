@@ -66,8 +66,10 @@ namespace Breeze.TumbleBit.Client
         public TumbleState State => (stateMachine != null && stateMachine.IsTumbling) ? TumbleState.Tumbling : TumbleState.OnlyMonitor;
         public ClassicTumblerParameters TumblerParameters { get; private set; } = null;
         public string TumblerAddress { get; private set; } = null;
+        public string TumblerDisplayAddress { get; private set; } = null;
         public RegistrationStore RegistrationStore { get; private set; }
 	    public bool UseTor { get; set; } = true;
+	    public bool UseDummyAddress { get; set; } = true;
 	    public TumblerProtocolType TumblerProtocol { get; set; } = TumblerProtocolType.Tcp;
 
 	    public TumbleBitManager(
@@ -126,9 +128,13 @@ namespace Breeze.TumbleBit.Client
                 }
                 else if (option.Name.Equals("TumblerProtocol"))
                 {
-	                TumblerProtocol = (TumblerProtocolType) option.Value;
+	                TumblerProtocol = (TumblerProtocolType)option.Value;
+				}
+				else if (option.Name.Equals("UseDummyAddress"))
+                {
+	                UseDummyAddress = (bool)option.Value;
                 }
-            }
+			}
 
             this.TumblingState = new TumblingState(
                 this.loggerFactory,
@@ -201,12 +207,13 @@ namespace Breeze.TumbleBit.Client
                         continue;
                     }
 
-                    var tumblerParameterResult = await TryUseServer();
-					//Overwrite tumbler address for regtest to indicate to the user that it it not a legimimate masternode
+	                //Overwrite tumbler address for regtest to indicate to the user that it it not a legimimate masternode
+	                if (record.Record.IsDummyAddress && UseDummyAddress)
+		                this.TumblerDisplayAddress = $"ctb://{record.Record.OnionAddress}.dummy?h={record.Record.ConfigurationHash}";
+	                else
+		                this.TumblerDisplayAddress = this.TumblerAddress;
 
-	                if (record.Record.IsDummyAddress)
-						this.TumblerAddress = $"ctb://{record.Record.OnionAddress}.dummy?h={record.Record.ConfigurationHash}";
-
+					var tumblerParameterResult = await TryUseServer();
 					if (tumblerParameterResult.Success)
                     {
                         return tumblerParameterResult;
@@ -222,23 +229,21 @@ namespace Breeze.TumbleBit.Client
             }
             else
 			{
-				Result<ClassicTumblerParameters> tumblerParameterResult;
-				if (this.TumblerAddress.EndsWith(".dummy"))
-	            {
-		            RegistrationRecord record = registrations.FirstOrDefault(r => r.Record.OnionAddress == this.TumblerAddress.Substring(0, 16));
-					if (record == null)
-						return Result.Fail<ClassicTumblerParameters>($"Cannot find registration record for {this.TumblerAddress}", PostResultActionType.CanContinue);
+				Result<ClassicTumblerParameters> tumblerParameterResult = await TryUseServer();
+				Uri tumblerAddressUri = new Uri(this.TumblerAddress);
 
-					this.TumblerAddress = $"ctb://{record.Record.Ipv4Addr}:{record.Record.Port}?h={record.Record.ConfigurationHash}";
+				RegistrationRecord record = registrations.FirstOrDefault(r => r.Record.Ipv4Addr.ToString() == tumblerAddressUri.DnsSafeHost);
+				if (record == null)
+					return Result.Fail<ClassicTumblerParameters>($"Cannot find registration record for {this.TumblerAddress}", PostResultActionType.CanContinue);
 
-		            tumblerParameterResult = await TryUseServer();
-		            this.TumblerAddress = $"ctb://{record.Record.Ipv4Addr}:{record.Record.Port}?h={record.Record.ConfigurationHash}";
-				}
+				//Overwrite tumbler address for regtest to indicate to the user that it it not a legimimate masternode
+				if (record.Record.IsDummyAddress && UseDummyAddress)
+					this.TumblerDisplayAddress = $"ctb://{record.Record.OnionAddress}.dummy?h={record.Record.ConfigurationHash}";
 				else
-	            {
-		            tumblerParameterResult = await TryUseServer();
-				}
+					this.TumblerDisplayAddress = this.TumblerAddress;
 
+				tumblerParameterResult = await TryUseServer();
+	            
 				if (tumblerParameterResult.Success)
                     return tumblerParameterResult;
 
@@ -279,7 +284,7 @@ namespace Breeze.TumbleBit.Client
             this.TumblingState.TumblerUri = new Uri(this.TumblerAddress);
 
             FullNodeTumblerClientConfiguration config;
-            if (this.TumblerAddress.Contains("127.0.0.1") || !UseTor)
+            if (!UseTor)
             {
                 config = new FullNodeTumblerClientConfiguration(this.TumblingState, onlyMonitor: false,
                     connectionTest: true, useProxy: false);
@@ -380,7 +385,7 @@ namespace Breeze.TumbleBit.Client
 
             // Bypass Tor for integration tests
             FullNodeTumblerClientConfiguration config;
-            if (this.TumblerAddress.Contains("127.0.0.1") || !UseTor)
+            if (!UseTor)
             {
                 config = new FullNodeTumblerClientConfiguration(this.TumblingState, onlyMonitor: false,
                     connectionTest: false, useProxy: false);

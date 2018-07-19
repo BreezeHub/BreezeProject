@@ -72,7 +72,11 @@ namespace Breeze.Daemon
 						return;
 		            }
 
-		            tumblerProtocol = Enum.Parse<TumblerProtocolType>(tumblerProtocolString, true);
+		            if (tumblerProtocolString != null)
+			            tumblerProtocol = Enum.Parse<TumblerProtocolType>(tumblerProtocolString, true);
+		            else
+			            tumblerProtocol = TumblerProtocolType.Tcp;
+
 		            if (useTor && tumblerProtocol == TumblerProtocolType.Http)
 		            {
 			            Console.WriteLine("TumblerProtocol can only be changed to Http when Tor is disabled. Please use -NoTor switch to disable Tor.");
@@ -91,8 +95,9 @@ namespace Breeze.Daemon
 				ConfigurationOptionWrapper<object> registrationStoreDirectory = new ConfigurationOptionWrapper<object>("RegistrationStoreDirectory", registrationStoreDirectoryPath);
 	            ConfigurationOptionWrapper<object> torOption = new ConfigurationOptionWrapper<object>("Tor", useTor);
 	            ConfigurationOptionWrapper<object> tumblerProtocolOption = new ConfigurationOptionWrapper<object>("TumblerProtocol", tumblerProtocol);
-                ConfigurationOptionWrapper<object>[] tumblebitConfigurationOptions = { registrationStoreDirectory, torOption, tumblerProtocolOption };
+	            ConfigurationOptionWrapper<object> useDummyAddressOption = new ConfigurationOptionWrapper<object>("UseDummyAddress", true);
 
+				ConfigurationOptionWrapper<object>[] tumblebitConfigurationOptions = { registrationStoreDirectory, torOption, tumblerProtocolOption, useDummyAddressOption };
 				NodeSettings nodeSettings;
 
                 if (isStratis)

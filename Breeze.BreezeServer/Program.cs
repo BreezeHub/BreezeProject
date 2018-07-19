@@ -21,7 +21,7 @@ namespace Breeze.BreezeServer
 
 			var useTor = !args.Contains("noTor", comparer);
 
-			TumblerProtocolType tumblerProtocol;
+			TumblerProtocolType? tumblerProtocol = null;
 			try
 			{
 				string tumblerProtocolString = args.Where(a => a.StartsWith("-tumblerProtocol=")).Select(a => a.Substring("-tumblerProtocol=".Length).Replace("\"", "")).FirstOrDefault();
@@ -31,8 +31,10 @@ namespace Breeze.BreezeServer
 					return;
 				}
 
-				tumblerProtocol = Enum.Parse<TumblerProtocolType>(tumblerProtocolString, true);
-				if (useTor && tumblerProtocol == TumblerProtocolType.Http)
+				if (tumblerProtocolString != null)
+					tumblerProtocol = Enum.Parse<TumblerProtocolType>(tumblerProtocolString, true);
+
+				if (useTor && tumblerProtocol.HasValue && tumblerProtocol.Value == TumblerProtocolType.Http)
 				{
 					Console.WriteLine("TumblerProtocol can only be changed to Http when Tor is disabled. Please use -NoTor switch to disable Tor.");
 					return;

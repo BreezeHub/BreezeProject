@@ -120,22 +120,18 @@ namespace Breeze.BreezeServer.Services
 
                     string baseUri;
 
-                    if (runtime.TorUri == null)
-                        baseUri = runtime.LocalEndpoint.ToString();
+                    if (breezeConfig.UseTor)
+						baseUri = runtime.TorUri.ToString().TrimEnd('/'); 
                     else
-                    {
+	                    baseUri = runtime.LocalEndpoint.ToString();
 
-                        if (runtime.TorUri.ToString().EndsWith("/"))
-                            baseUri = runtime.TorUri.ToString().Substring(0, runtime.TorUri.ToString().Length - 1);
-                        else
-                            baseUri = runtime.TorUri.ToString();
-                    }
-
-                    if (!baseUri.StartsWith("http://") && (!baseUri.StartsWith("ctb://")))
+					if (!baseUri.StartsWith("http://") && (!baseUri.StartsWith("ctb://")))
                         baseUri = "http://" + baseUri;
                     
                     var tempUri = (baseUri + "?h=" + runtime.ClassicTumblerParametersHash).Replace("http:", "ctb:");
-                    File.WriteAllText(Path.Combine(config.DataDir, "uri.txt"), tempUri);
+
+					//The uri.txt is only used in the integration tests as there is no registration service running (no Stratis daemon)
+	                File.WriteAllText(Path.Combine(config.DataDir, "uri.txt"), tempUri);
 
                     interactive.StartInteractive();
                 }
