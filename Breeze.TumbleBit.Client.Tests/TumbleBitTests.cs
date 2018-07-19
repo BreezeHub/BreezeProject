@@ -288,8 +288,7 @@ namespace Breeze.TumbleBit.Client.Tests
 
 				// Check destination wallet for tumbled coins
 				Assert.True(alice.GetSpendableAmount().ConfirmedAmount < new Money(5.0m, MoneyUnit.BTC));
-	            Assert.True(bob.GetSpendableAmount().ConfirmedAmount > new Money(0.0m, MoneyUnit.BTC));
-
+	            Assert.True(bob.GetSpendableAmount().ConfirmedAmount > new Money(0.0035m, MoneyUnit.BTC));
 
 				// TODO: Need to amend TumblerService so that it can be shut down within the test
 
@@ -547,12 +546,12 @@ namespace Breeze.TumbleBit.Client.Tests
                         }
                     }
 
-                    Thread.Sleep(2000);
+                    Thread.Sleep(5000);
                 }
 
 				// Check destination wallet for tumbled coins
 				Assert.True(alice.GetSpendableAmount().ConfirmedAmount < new Money(5.0m, MoneyUnit.BTC));
-	            Assert.True(bob.GetSpendableAmount().ConfirmedAmount > new Money(0.0m, MoneyUnit.BTC));
+	            Assert.True(bob.GetSpendableAmount().ConfirmedAmount > new Money(0.0035m, MoneyUnit.BTC));
 
 				// TODO: Need to amend TumblerService so that it can be shut down within the test
 
@@ -851,14 +850,23 @@ namespace Breeze.TumbleBit.Client.Tests
                         }
                     }*/
 
-                    Thread.Sleep(20000);
+                    Thread.Sleep(5000);
                 }
 
-                // Check destination wallet for tumbled coins
+	            var alice1 = wm1.GetWalletByName("alice1").GetAccountByCoinType("account 0", (CoinType)Network.RegTest.Consensus.CoinType);
+	            var bob1 = wm1.GetWalletByName("bob1").GetAccountByCoinType("account 0", (CoinType)Network.RegTest.Consensus.CoinType);
+	            var alice2 = wm1.GetWalletByName("alice2").GetAccountByCoinType("account 0", (CoinType)Network.RegTest.Consensus.CoinType);
+	            var bob2 = wm1.GetWalletByName("bob2").GetAccountByCoinType("account 0", (CoinType)Network.RegTest.Consensus.CoinType);
 
-                // TODO: Need to amend TumblerService so that it can be shut down within the test
+				// Check destination wallet for tumbled coins
+				Assert.True(alice1.GetSpendableAmount().ConfirmedAmount < new Money(5.0m, MoneyUnit.BTC));
+	            Assert.True(bob1.GetSpendableAmount().ConfirmedAmount > new Money(0.0035m, MoneyUnit.BTC));
+				Assert.True(alice2.GetSpendableAmount().ConfirmedAmount < new Money(5.0m, MoneyUnit.BTC));
+	            Assert.True(bob2.GetSpendableAmount().ConfirmedAmount > new Money(0.0035m, MoneyUnit.BTC));
 
-                if (client != null)
+				// TODO: Need to amend TumblerService so that it can be shut down within the test
+
+				if (client != null)
                 {
                     client.Dispose();
                     client = null;
