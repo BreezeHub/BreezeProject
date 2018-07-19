@@ -211,7 +211,6 @@ function startBitcoinApi() {
     }
   }
 
-  /*****/
    let commandLineArguments = [];
    commandLineArguments.push("-light");
    commandLineArguments.push("-apiport=" + (<any>global).bitcoinApiPort);
@@ -240,18 +239,6 @@ function startBitcoinApi() {
    bitcoinProcess = spawnBitcoin(apiPath, commandLineArguments, {
       detached: false
     });
-  
-  /*****/
-  /*
-  if(testnet) {
-    bitcoinProcess = spawnBitcoin(apiPath, ['-light', '-testnet', '-tumblebit', '-registration', stratisDir], {
-      detached: false
-    });
-  } else {
-    bitcoinProcess = spawnBitcoin(apiPath, ['-light', '-tumblebit', '-registration', stratisDir], {
-      detached: false
-    });
-  }*/
 
   bitcoinProcess.stdout.on('data', (data) => {
     writeLog(`Bitcoin: ${data}`);
@@ -272,7 +259,6 @@ function startStratisApi() {
     apiPath = path.resolve(__dirname, '..//..//resources//daemon//Breeze.Daemon');
   }
   
-  /*********/
   let commandLineArguments = [];
   commandLineArguments.push("-stratis");
   commandLineArguments.push("-apiport=" + (<any>global).stratisApiPort);
@@ -293,18 +279,6 @@ function startStratisApi() {
   stratisProcess = spawnStratis(apiPath, commandLineArguments, {
     detached: false
   });
-  /*********/
-  
-  /*
-  if (testnet) {
-    stratisProcess = spawnStratis(apiPath, ['-stratis', '-light', '-testnet', '-registration'], {
-      detached: false
-    });
-  } else {
-    stratisProcess = spawnStratis(apiPath, ['-stratis', '-light', '-registration'], {
-      detached: false
-    });
-  }*/
 
   stratisProcess.stdout.on('data', (data) => {
     writeLog(`Stratis: ${data}`);
