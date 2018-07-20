@@ -91,13 +91,6 @@ namespace Breeze.Daemon
 
 				var agent = "Breeze";
 
-				// Those settings are not in NodeSettings yet, so get it directly from the args
-				ConfigurationOptionWrapper<object> registrationStoreDirectory = new ConfigurationOptionWrapper<object>("RegistrationStoreDirectory", registrationStoreDirectoryPath);
-	            ConfigurationOptionWrapper<object> torOption = new ConfigurationOptionWrapper<object>("Tor", useTor);
-	            ConfigurationOptionWrapper<object> tumblerProtocolOption = new ConfigurationOptionWrapper<object>("TumblerProtocol", tumblerProtocol);
-	            ConfigurationOptionWrapper<object> useDummyAddressOption = new ConfigurationOptionWrapper<object>("UseDummyAddress", true);
-
-				ConfigurationOptionWrapper<object>[] tumblebitConfigurationOptions = { registrationStoreDirectory, torOption, tumblerProtocolOption, useDummyAddressOption };
 				NodeSettings nodeSettings;
 
                 if (isStratis)
@@ -190,6 +183,28 @@ namespace Breeze.Daemon
                 // Currently TumbleBit is bitcoin only
                 if (useTumblebit)
                 {
+                    if (string.IsNullOrEmpty(registrationStoreDirectoryPath))
+                    {
+                        string networkName;
+                        if (isRegTest)
+                            networkName = "StratisRegTest";
+                        else if (isTestNet)
+                            networkName = "StratisTest";
+                        else
+                            networkName = "StratisMain";
+
+                        registrationStoreDirectoryPath = Path.Combine(dataDir, "stratis", networkName, "registrationHistory.json");
+                    }
+                    
+                    // Those settings are not in NodeSettings yet, so get it directly from the args
+                    ConfigurationOptionWrapper<object> registrationStoreDirectory = new ConfigurationOptionWrapper<object>("RegistrationStoreDirectory", registrationStoreDirectoryPath);
+                    ConfigurationOptionWrapper<object> torOption = new ConfigurationOptionWrapper<object>("Tor", useTor);
+                    ConfigurationOptionWrapper<object> tumblerProtocolOption = new ConfigurationOptionWrapper<object>("TumblerProtocol", tumblerProtocol);
+                    ConfigurationOptionWrapper<object> useDummyAddressOption = new ConfigurationOptionWrapper<object>("UseDummyAddress", true);
+
+                    ConfigurationOptionWrapper<object>[] tumblebitConfigurationOptions = { registrationStoreDirectory, torOption, tumblerProtocolOption, useDummyAddressOption };
+
+
                     // We no longer pass the URI in via the command line, the registration feature selects a random one
                     fullNodeBuilder.UseTumbleBit(tumblebitConfigurationOptions);
                 }
