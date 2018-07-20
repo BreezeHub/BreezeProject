@@ -15,6 +15,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Diagnostics;
+using NTumbleBit.ClassicTumbler.Server;
 using NTumbleBit.Logging;
 
 namespace NTumbleBit.ClassicTumbler.Client.ConnectionSettings
@@ -61,7 +62,7 @@ namespace NTumbleBit.ClassicTumbler.Client.ConnectionSettings
 			get; set;
 		}
 
-		public override HttpMessageHandler CreateHttpHandler(TimeSpan? connectTimeout = null)
+		public override HttpMessageHandler CreateHttpHandler(TumblerProtocolType tumblerProtocol, TimeSpan? connectTimeout = null)
 		{
 			throw new NotSupportedException();
 		}

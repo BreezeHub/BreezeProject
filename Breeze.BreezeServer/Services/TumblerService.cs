@@ -24,7 +24,7 @@ namespace Breeze.BreezeServer.Services
         public TumblerConfiguration config { get; set; }
         public TumblerRuntime runtime { get; set; }
         
-        public void StartTumbler(BreezeConfiguration breezeConfig, bool getConfigOnly, string ntumblebitServerConf = null, string dataDir = null, bool torMandatory = true)
+        public void StartTumbler(BreezeConfiguration breezeConfig, bool getConfigOnly, string ntumblebitServerConf = null, string dataDir = null, bool torMandatory = true, TumblerProtocolType? tumblerProtocol = null)
         {
             var argsTemp = new List<string>();
             argsTemp.Add("-debug");
@@ -40,6 +40,9 @@ namespace Breeze.BreezeServer.Services
 
             if (dataDir != null)
                 argsTemp.Add("-datadir=" + dataDir);
+
+			if (tumblerProtocol.HasValue)
+				argsTemp.Add($"-tumblerProtocol={tumblerProtocol.Value}");
 
             string[] args = argsTemp.ToArray();
             var argsConf = new TextFileConfiguration(args);
@@ -71,7 +74,10 @@ namespace Breeze.BreezeServer.Services
             if (getConfigOnly)
             {
                 config = new TumblerConfiguration();
-                config.LoadArgs(args);                
+	            if (!torMandatory)
+		            config.TorMandatory = false;
+
+				config.LoadArgs(args);                
                 runtime = TumblerRuntime.FromConfiguration(config, new AcceptAllClientInteraction());
                 return;
             }
@@ -114,22 +120,18 @@ namespace Breeze.BreezeServer.Services
 
                     string baseUri;
 
-                    if (runtime.TorUri == null)
-                        baseUri = runtime.LocalEndpoint.ToString();
+                    if (breezeConfig.UseTor)
+						baseUri = runtime.TorUri.ToString().TrimEnd('/'); 
                     else
-                    {
+	                    baseUri = runtime.LocalEndpoint.ToString();
 
-                        if (runtime.TorUri.ToString().EndsWith("/"))
-                            baseUri = runtime.TorUri.ToString().Substring(0, runtime.TorUri.ToString().Length - 1);
-                        else
-                            baseUri = runtime.TorUri.ToString();
-                    }
-
-                    if (!baseUri.StartsWith("http://") && (!baseUri.StartsWith("ctb://")))
+					if (!baseUri.StartsWith("http://") && (!baseUri.StartsWith("ctb://")))
                         baseUri = "http://" + baseUri;
                     
                     var tempUri = (baseUri + "?h=" + runtime.ClassicTumblerParametersHash).Replace("http:", "ctb:");
-                    File.WriteAllText(Path.Combine(config.DataDir, "uri.txt"), tempUri);
+
+					//The uri.txt is only used in the integration tests as there is no registration service running (no Stratis daemon)
+	                File.WriteAllText(Path.Combine(config.DataDir, "uri.txt"), tempUri);
 
                     interactive.StartInteractive();
                 }

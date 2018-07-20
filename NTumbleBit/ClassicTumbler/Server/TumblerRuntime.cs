@@ -48,6 +48,7 @@ namespace NTumbleBit.ClassicTumbler.Server
 			ClassicTumblerParameters = conf.ClassicTumblerParameters.Clone();
 			Network = conf.Network;
 			LocalEndpoint = conf.Listen;
+			TumblerProtocol = conf.TumblerProtocol;
 			
 			bool torConfigured = false;
 			if(conf.TorSettings != null)
@@ -58,7 +59,6 @@ namespace NTumbleBit.ClassicTumbler.Server
 					_Resources.Add(await conf.TorSettings.SetupAsync(interaction, conf.TorPath).ConfigureAwait(false));
 					Logs.Configuration.LogInformation("Successfully authenticated to Tor");
 					var torRSA = Path.Combine(conf.DataDir, "Tor.rsa");
-
 
 					TorPrivateKey = null;
 					if(File.Exists(torRSA))
@@ -78,8 +78,8 @@ namespace NTumbleBit.ClassicTumbler.Server
 
                     var tumblerUri = new TumblerUrlBuilder
                     {
-                        Port = result.HiddenServiceUri.Port,
-                        Host = result.HiddenServiceUri.Host
+	                    Host = result.HiddenServiceUri.Host,
+						Port = result.HiddenServiceUri.Port
                     };
                     TumblerUris.Add(tumblerUri);
 					TorUri = tumblerUri.GetRoutableUri(false);
@@ -102,9 +102,8 @@ namespace NTumbleBit.ClassicTumbler.Server
 					Logs.Configuration.LogWarning("Error while configuring Tor hidden service: " + error.Message);
 			}
 
-			if(!torConfigured)
+			if (!torConfigured)
 				Logs.Configuration.LogWarning("The tumbler is not configured as a Tor Hidden service");
-
 
 			var tumlerKeyData = LoadRSAKeyData(conf.DataDir, "Tumbler.pem", conf.NoRSAProof);
 			var voucherKeyData = LoadRSAKeyData(conf.DataDir, "Voucher.pem", conf.NoRSAProof);
@@ -114,17 +113,43 @@ namespace NTumbleBit.ClassicTumbler.Server
 			TumblerKey = tumlerKeyData.Item1;
 			VoucherKey = voucherKeyData.Item1;
 
-
 			if(!conf.TorMandatory)
 			{
-				var httpUri = new TumblerUrlBuilder()
+				// Construct a valid 16 character long onion address which will be used as a reference (it is not meant to be a valid IP address or hostname)
+				string dummyOnionAddress = Environment.MachineName;
+				if (dummyOnionAddress.Length < 16)
+					dummyOnionAddress = dummyOnionAddress.PadRight(16, '-');
+
+				TumblerUrlBuilder httpUri;
+
+				//Set the Tor URI only if the Tor address has not been already set
+				if (TorUri == null)
 				{
-					Host = LocalEndpoint.Address.ToString(),
-					Port = LocalEndpoint.Port,
-				};
-				TumblerUris.Add(httpUri);
-				if(String.IsNullOrEmpty(ClassicTumblerParameters.ExpectedAddress))
-					ClassicTumblerParameters.ExpectedAddress = httpUri.GetRoutableUri(false).AbsoluteUri;
+					//Add onion style address, this is just a display address used when running MasterNode without Tor
+					httpUri = new TumblerUrlBuilder()
+					{
+						Host = $"{dummyOnionAddress}.dummy",
+						Port = conf.Listen.Port
+					};
+					TumblerUris.Add(httpUri);
+					TorUri = httpUri.GetRoutableUri(false);
+
+					//Add IP address of the network card with Internet connection
+					httpUri = new TumblerUrlBuilder()
+					{
+						Host = LocalEndpoint.Address.ToString(),
+						Port = LocalEndpoint.Port
+					};
+					TumblerUris.Add(httpUri);
+
+					if (String.IsNullOrEmpty(ClassicTumblerParameters.ExpectedAddress))
+						ClassicTumblerParameters.ExpectedAddress = httpUri.GetRoutableUri(false).AbsoluteUri;
+				}
+				else
+				{
+					if (String.IsNullOrEmpty(ClassicTumblerParameters.ExpectedAddress))
+						ClassicTumblerParameters.ExpectedAddress = TorUri.AbsoluteUri;
+				}
 			}
 			ClassicTumblerParametersHash = ClassicTumblerParameters.GetHash();
 			var configurationHash = ClassicTumblerParameters.GetHash();
@@ -319,5 +344,7 @@ namespace NTumbleBit.ClassicTumbler.Server
 			get;
 			private set;
 		}
+
+		public TumblerProtocolType TumblerProtocol { get; set; }
 	}
 }

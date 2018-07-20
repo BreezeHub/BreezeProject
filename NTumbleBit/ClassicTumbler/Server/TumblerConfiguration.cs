@@ -104,7 +104,7 @@ namespace NTumbleBit.ClassicTumbler.Server
 		{
 			ConfigurationFile = args.Where(a => a.StartsWith("-conf=", StringComparison.Ordinal)).Select(a => a.Substring("-conf=".Length).Replace("\"", "")).FirstOrDefault();
 			DataDir = args.Where(a => a.StartsWith("-datadir=", StringComparison.Ordinal)).Select(a => a.Substring("-datadir=".Length).Replace("\"", "")).FirstOrDefault();
-			if(DataDir != null && ConfigurationFile != null)
+			if (DataDir != null && ConfigurationFile != null)
 			{
 				var isRelativePath = Path.GetFullPath(ConfigurationFile).Length > ConfigurationFile.Length;
 				if(isRelativePath)
@@ -176,7 +176,8 @@ namespace NTumbleBit.ClassicTumbler.Server
 			var defaultPort = config.GetOrDefault<int>("port", 37123);
 
 			OnlyMonitor = config.GetOrDefault<bool>("onlymonitor", false);
-			Listen = new IPEndPoint(IPAddress.Parse("127.0.0.1"), defaultPort);
+			string listenAddress = config.GetOrDefault<string>("listen", Utils.GetInternetConnectedAddress().ToString());
+			Listen = new IPEndPoint(IPAddress.Parse(listenAddress), defaultPort);
 
 			RPC = RPCArgs.Parse(config, Network);
 			TorPath = config.GetOrDefault<string>("torpath", "tor");		    
@@ -186,6 +187,8 @@ namespace NTumbleBit.ClassicTumbler.Server
 		    // 1% fee by default (desired value should be set in configuration anyway)
 		    var defaultFee = Money.Satoshis((decimal)ClassicTumblerParameters.Denomination.Satoshi * 0.01m);
 		    ClassicTumblerParameters.Fee = config.GetOrDefault<Money>("tumbler.fee", defaultFee);
+
+			TumblerProtocol = config.GetOrDefault<TumblerProtocolType>("tumbler.protocol", TumblerProtocolType.Tcp);
 
 			RPCClient rpc = null;
 			try
@@ -221,6 +224,8 @@ namespace NTumbleBit.ClassicTumbler.Server
 			set;
 		} = true;
 
+		public TumblerProtocolType TumblerProtocol { get; set; }
+
 		public string GetDefaultConfigurationFile(Network network)
 		{
 			var config = Path.Combine(DataDir, "server.config");
@@ -244,6 +249,7 @@ namespace NTumbleBit.ClassicTumbler.Server
 				builder.AppendLine("#tumbler.fee=0.001");
 				builder.AppendLine("## The cycle used can be one of: " + string.Join(",", new StandardCycles(Network).ToEnumerable().Select(c => c.FriendlyName)));
 				builder.AppendLine("#cycle=shorty2x");
+				builder.AppendLine("#tumbler.protocol=tcp");
 
 				builder.AppendLine();
 				builder.AppendLine();

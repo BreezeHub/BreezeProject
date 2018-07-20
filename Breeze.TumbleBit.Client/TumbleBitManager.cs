@@ -20,6 +20,7 @@ using Stratis.Bitcoin.Features.Wallet.Interfaces;
 using Stratis.Bitcoin.Interfaces;
 using System.IO;
 using NTumbleBit;
+using NTumbleBit.ClassicTumbler.Server;
 using NTumbleBit.Configuration;
 using NTumbleBit.Logging;
 using Stratis.Bitcoin.Connection;
@@ -65,9 +66,13 @@ namespace Breeze.TumbleBit.Client
         public TumbleState State => (stateMachine != null && stateMachine.IsTumbling) ? TumbleState.Tumbling : TumbleState.OnlyMonitor;
         public ClassicTumblerParameters TumblerParameters { get; private set; } = null;
         public string TumblerAddress { get; private set; } = null;
+        public string TumblerDisplayAddress { get; private set; } = null;
         public RegistrationStore RegistrationStore { get; private set; }
+	    public bool UseTor { get; set; } = true;
+	    public bool UseDummyAddress { get; set; } = true;
+	    public TumblerProtocolType TumblerProtocol { get; set; } = TumblerProtocolType.Tcp;
 
-        public TumbleBitManager(
+	    public TumbleBitManager(
             ILoggerFactory loggerFactory,
             NodeSettings nodeSettings,
             IWalletManager walletManager,
@@ -80,7 +85,7 @@ namespace Breeze.TumbleBit.Client
             IWalletFeePolicy walletFeePolicy,
             IBroadcasterManager broadcasterManager,
             FullNode fullNode,
-            ConfigurationOptionWrapper<string>[] configurationOptions)
+            ConfigurationOptionWrapper<object>[] configurationOptions)
         {
             this.walletManager = walletManager as WalletManager;
             this.watchOnlyWalletManager = watchOnlyWalletManager;
@@ -103,22 +108,33 @@ namespace Breeze.TumbleBit.Client
                 {
                     if (option.Value != null)
                     {
-                        this.RegistrationStore = new RegistrationStore(option.Value);
+                        this.RegistrationStore = new RegistrationStore((string)option.Value);
                     }
                     else
                     {
                         this.RegistrationStore = new RegistrationStore(this.nodeSettings.DataDir);
                     }
                 }
-
-                if (option.Name.Equals("MasterNodeUri"))
+	            else if (option.Name.Equals("MasterNodeUri"))
+	            {
+		            if (option.Value != null)
+		            {
+			            this.TumblerAddress = (string)option.Value;
+		            }
+	            }
+				else if (option.Name.Equals("Tor"))
                 {
-                    if (option.Value != null)
-                    {
-                        this.TumblerAddress = option.Value;
-                    }
+	                UseTor = (bool) option.Value;
                 }
-            }
+                else if (option.Name.Equals("TumblerProtocol"))
+                {
+	                TumblerProtocol = (TumblerProtocolType)option.Value;
+				}
+				else if (option.Name.Equals("UseDummyAddress"))
+                {
+	                UseDummyAddress = (bool)option.Value;
+                }
+			}
 
             this.TumblingState = new TumblingState(
                 this.loggerFactory,
@@ -161,14 +177,13 @@ namespace Breeze.TumbleBit.Client
         /// <inheritdoc />
         public async Task<Result<ClassicTumblerParameters>> ConnectToTumblerAsync(HashSet<string> masternodeBlacklist = null)
         {
-            // Assumptions about the current state coming into this method:
-            // - If this is a first connection, this.TumblerAddress will be null
-            // - If we were previously connected to a server, its URI would have been stored in the
-            //   tumbling_state.json, and will have been loaded into this.TumblerAddress already
-            if (this.TumblerAddress == null)
+			// Assumptions about the current state coming into this method:
+			// - If this is a first connection, this.TumblerAddress will be null
+			// - If we were previously connected to a server, its URI would have been stored in the
+			//   tumbling_state.json, and will have been loaded into this.TumblerAddress already
+	        List<RegistrationRecord> registrations = this.RegistrationStore.GetAll();
+			if (this.TumblerAddress == null)
             {
-                List<RegistrationRecord> registrations = this.RegistrationStore.GetAll();
-
                 if (registrations.Count < MINIMUM_MASTERNODE_COUNT)
                 {
                     this.logger.LogDebug($"Not enough masternode registrations downloaded yet: {registrations.Count}");
@@ -180,7 +195,10 @@ namespace Breeze.TumbleBit.Client
                 // Since the list is shuffled, we can simply iterate through it and try each server until one is valid & reachable.
                 foreach (RegistrationRecord record in registrations)
                 {
-                    this.TumblerAddress = $"ctb://{record.Record.OnionAddress}.onion?h={record.Record.ConfigurationHash}";
+					if (record.Record.IsDummyAddress)
+						this.TumblerAddress = $"ctb://{record.Record.Ipv4Addr}:{record.Record.Port}?h={record.Record.ConfigurationHash}";
+					else
+						this.TumblerAddress = $"ctb://{record.Record.OnionAddress}.onion?h={record.Record.ConfigurationHash}";
 
                     //Do not attempt a connection to the Masternode which is blacklisted
                     if (masternodeBlacklist != null && masternodeBlacklist.Contains(this.TumblerAddress))
@@ -189,9 +207,14 @@ namespace Breeze.TumbleBit.Client
                         continue;
                     }
 
-                    var tumblerParameterResult = await TryUseServer();
+	                //Overwrite tumbler address for regtest to indicate to the user that it it not a legimimate masternode
+	                if (record.Record.IsDummyAddress && UseDummyAddress)
+		                this.TumblerDisplayAddress = $"ctb://{record.Record.OnionAddress}.dummy?h={record.Record.ConfigurationHash}";
+	                else
+		                this.TumblerDisplayAddress = this.TumblerAddress;
 
-                    if (tumblerParameterResult.Success)
+					var tumblerParameterResult = await TryUseServer();
+					if (tumblerParameterResult.Success)
                     {
                         return tumblerParameterResult;
                     }
@@ -205,13 +228,24 @@ namespace Breeze.TumbleBit.Client
                 return Result.Fail<ClassicTumblerParameters>("Did not find a valid registration", PostResultActionType.ShouldStop);
             }
             else
-            {
-                var tumblerParameterResult = await TryUseServer();
+			{
+				Result<ClassicTumblerParameters> tumblerParameterResult = await TryUseServer();
+				Uri tumblerAddressUri = new Uri(this.TumblerAddress);
 
-                if (tumblerParameterResult.Success)
-                {
-                    return tumblerParameterResult;
+				RegistrationRecord record = registrations.FirstOrDefault(r => r.Record.Ipv4Addr != null && r.Record.Ipv4Addr.ToString() == tumblerAddressUri.DnsSafeHost);
+			    if (record != null)
+			    {
+			        //Overwrite tumbler address for regtest to indicate to the user that it it not a legimimate masternode
+			        if (record.Record.IsDummyAddress && UseDummyAddress)
+			            this.TumblerDisplayAddress = $"ctb://{record.Record.OnionAddress}.dummy?h={record.Record.ConfigurationHash}";
+			        else
+			            this.TumblerDisplayAddress = this.TumblerAddress;
                 }
+
+                tumblerParameterResult = await TryUseServer();
+	            
+				if (tumblerParameterResult.Success)
+                    return tumblerParameterResult;
 
                 // Blacklist masternode address which we have just failed to connect to so that
                 // we won't attempt to connect to it again in the next call to ConnectToTumblerAsync.
@@ -250,7 +284,7 @@ namespace Breeze.TumbleBit.Client
             this.TumblingState.TumblerUri = new Uri(this.TumblerAddress);
 
             FullNodeTumblerClientConfiguration config;
-            if (this.TumblerAddress.Contains("127.0.0.1"))
+            if (!UseTor)
             {
                 config = new FullNodeTumblerClientConfiguration(this.TumblingState, onlyMonitor: false,
                     connectionTest: true, useProxy: false);
@@ -264,7 +298,7 @@ namespace Breeze.TumbleBit.Client
             TumblerClientRuntime rt = null;
             try
             {
-                rt = await TumblerClientRuntime.FromConfigurationAsync(config, connectionTest: true)
+                rt = await TumblerClientRuntime.FromConfigurationAsync(config, TumblerProtocol, connectionTest: true)
                     .ConfigureAwait(false);
 
                 // This is overwritten by the tumble method, but it is needed at the beginning of that method for the balance check
@@ -351,7 +385,7 @@ namespace Breeze.TumbleBit.Client
 
             // Bypass Tor for integration tests
             FullNodeTumblerClientConfiguration config;
-            if (this.TumblerAddress.Contains("127.0.0.1"))
+            if (!UseTor)
             {
                 config = new FullNodeTumblerClientConfiguration(this.TumblingState, onlyMonitor: false,
                     connectionTest: false, useProxy: false);
@@ -362,7 +396,7 @@ namespace Breeze.TumbleBit.Client
                     connectionTest: false, useProxy: true);
             }
 
-            this.runtime = await TumblerClientRuntime.FromConfigurationAsync(config).ConfigureAwait(false);
+            this.runtime = await TumblerClientRuntime.FromConfigurationAsync(config, TumblerProtocol).ConfigureAwait(false);
 
             // Check if origin wallet has a sufficient balance to begin tumbling at least 1 cycle
             if (!this.runtime.HasEnoughFundsForCycle(true))
@@ -415,7 +449,7 @@ namespace Breeze.TumbleBit.Client
             if (this.broadcasterJob == null || !this.broadcasterJob.Started)
             {
                 var config = new FullNodeTumblerClientConfiguration(this.TumblingState, onlyMonitor: true);
-                this.runtime = await TumblerClientRuntime.FromConfigurationAsync(config).ConfigureAwait(false);
+                this.runtime = await TumblerClientRuntime.FromConfigurationAsync(config, TumblerProtocol).ConfigureAwait(false);
                 this.broadcasterJob = this.runtime.CreateBroadcasterJob();
                 this.broadcasterJob.Start();
             }

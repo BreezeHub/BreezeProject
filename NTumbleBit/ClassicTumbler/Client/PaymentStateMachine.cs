@@ -244,7 +244,7 @@ namespace NTumbleBit.ClassicTumbler.Client
                     case CyclePhase.Registration:
                         if (Status == PaymentStateMachineStatus.New)
                         {
-                            bob = Runtime.CreateTumblerClient(cycle.Start, Identity.Bob);
+                            bob = Runtime.CreateTumblerClient(cycle.Start, Runtime.TumblerProtocol, Identity.Bob);
                             //Client asks for voucher
                             var voucherResponse = bob.AskUnsignedVoucher();
                             NeedSave = true;
@@ -261,7 +261,7 @@ namespace NTumbleBit.ClassicTumbler.Client
                     case CyclePhase.ClientChannelEstablishment:
                         if (Status == PaymentStateMachineStatus.Registered)
                         {
-                            alice = Runtime.CreateTumblerClient(cycle.Start, Identity.Alice);
+                            alice = Runtime.CreateTumblerClient(cycle.Start, Runtime.TumblerProtocol, Identity.Alice);
                             var key = alice.RequestTumblerEscrowKey();
                             ClientChannelNegotiation.ReceiveTumblerEscrowKey(key.PubKey, key.KeyIndex);
                             //Client create the escrow
@@ -312,7 +312,7 @@ namespace NTumbleBit.ClassicTumbler.Client
                         }
                         else if (Status == PaymentStateMachineStatus.ClientChannelBroadcasted)
                         {
-                            alice = Runtime.CreateTumblerClient(cycle.Start, Identity.Alice);
+                            alice = Runtime.CreateTumblerClient(cycle.Start, Runtime.TumblerProtocol, Identity.Alice);
                             TransactionInformation clientTx = GetTransactionInformation(SolverClientSession.EscrowedCoin, true);
                             var state = ClientChannelNegotiation.GetInternalState();
                             if (clientTx != null && clientTx.Confirmations >= cycle.SafetyPeriodDuration)
@@ -335,7 +335,7 @@ namespace NTumbleBit.ClassicTumbler.Client
                         }
                         else if (Status == PaymentStateMachineStatus.TumblerVoucherSigning)
                         {
-                            alice = Runtime.CreateTumblerClient(cycle.Start, Identity.Alice);
+                            alice = Runtime.CreateTumblerClient(cycle.Start, Runtime.TumblerProtocol, Identity.Alice);
                             var voucher = alice.EndSignVoucher(SolverClientSession.Id);
                             if (voucher != null)
                             {
@@ -349,7 +349,7 @@ namespace NTumbleBit.ClassicTumbler.Client
 
                         if (Status == PaymentStateMachineStatus.TumblerVoucherObtained)
                         {
-                            bob = Runtime.CreateTumblerClient(cycle.Start, Identity.Bob);
+                            bob = Runtime.CreateTumblerClient(cycle.Start, Runtime.TumblerProtocol, Identity.Bob);
                             Logs.Client.LogInformation("Begin ask to open the channel...");
                             //Client asks the Tumbler to make a channel
                             var bobEscrowInformation = ClientChannelNegotiation.GetOpenChannelRequest();
@@ -374,7 +374,7 @@ namespace NTumbleBit.ClassicTumbler.Client
                         }
                         else if (Status == PaymentStateMachineStatus.TumblerChannelCreating)
                         {
-                            bob = Runtime.CreateTumblerClient(cycle.Start, Identity.Bob);
+                            bob = Runtime.CreateTumblerClient(cycle.Start, Runtime.TumblerProtocol, Identity.Bob);
                             var tumblerEscrow = bob.EndOpenChannel(cycle.Start, ClientChannelNegotiation.GetInternalState().ChannelId);
                             if (tumblerEscrow == null)
                             {
@@ -437,7 +437,7 @@ namespace NTumbleBit.ClassicTumbler.Client
                         //No "else if" intended
                         if (Status == PaymentStateMachineStatus.TumblerChannelSecured)
                         {
-                            alice = Runtime.CreateTumblerClient(cycle.Start, Identity.Alice);
+                            alice = Runtime.CreateTumblerClient(cycle.Start, Runtime.TumblerProtocol, Identity.Alice);
                             Logs.Client.LogDebug("Starting the puzzle solver protocol...");
                             var puzzles = SolverClientSession.GeneratePuzzles();
                             alice.BeginSolvePuzzles(SolverClientSession.Id, puzzles);
@@ -447,7 +447,7 @@ namespace NTumbleBit.ClassicTumbler.Client
                         else if (Status == PaymentStateMachineStatus.ProcessingPayment)
                         {
                             feeRate = GetFeeRate();
-                            alice = Runtime.CreateTumblerClient(cycle.Start, Identity.Alice);
+                            alice = Runtime.CreateTumblerClient(cycle.Start, Runtime.TumblerProtocol, Identity.Alice);
                             var commitments = alice.EndSolvePuzzles(SolverClientSession.Id);
                             NeedSave = true;
                             if (commitments == null)
@@ -456,8 +456,9 @@ namespace NTumbleBit.ClassicTumbler.Client
                                 break;
                             }
 
+	                        bool isRegtest = Runtime.Network.Name == Network.RegTest.Name;
 							int connectionCount = Services.BlockExplorerService.GetConnectionCount();
-							if (connectionCount < 4)
+							if (connectionCount < 4 && !isRegtest)
 							{
 								Logs.Client.LogWarning("There are too few bitcoin peers connected; payment will not be processed");
 								break;

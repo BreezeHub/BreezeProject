@@ -1,7 +1,7 @@
 {
   "name": "Breeze",
   "description": "Graphical User Interface for Breeze Wallet.",
-  "version": "0.3.33",
+  "version": "0.3.34",
   "author": {
     "name": "Breeze Team",
     "email": "support@stratisplatform.com"
@@ -22,7 +22,7 @@
   "scripts": {
     "ng": "ng",
     "lint": "ng lint",
-    "start": "npm-run-all --parallel webpack:watch electron:serve",
+    "start": "npm-run-all --parallel \"webpack:watch\" \"electron:serve -- {@}\" --",
     "webpack:watch": "webpack --watch",
     "build:electron:main": "tsc main.ts --outDir dist && copyfiles package.json dist && cd dist && npm install --prod && cd ..",
     "build": "webpack --display-error-details && npm run build:electron:main",

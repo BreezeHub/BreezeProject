@@ -68,10 +68,20 @@ namespace NTumbleBit.ClassicTumbler.Server
 				services.AddSingleton<ThreadPoolWrapper>();
 				services.AddSingleton<CustomThreadPool>(s => s.GetRequiredService<ThreadPoolWrapper>().ThreadPool);
 			});
-			builder.UseTCPServer(new ServerOptions(runtime.LocalEndpoint)
+
+			if (runtime.TumblerProtocol == TumblerProtocolType.Tcp)
 			{
-				IncludeHeaders = false
-			});
+				builder.UseTCPServer(new ServerOptions(runtime.LocalEndpoint)
+				{
+					IncludeHeaders = false
+				});
+			}
+			else if (runtime.TumblerProtocol == TumblerProtocolType.Http)
+			{
+				builder.UseKestrel()
+				.UseUrls($"http://{runtime.LocalEndpoint}");
+			}
+
 			return builder;
 		}
 	}

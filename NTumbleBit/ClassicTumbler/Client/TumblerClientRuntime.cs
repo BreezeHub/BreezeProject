@@ -14,6 +14,7 @@ using NTumbleBit.Services;
 using NTumbleBit.Configuration;
 using NTumbleBit.ClassicTumbler.Client.ConnectionSettings;
 using NTumbleBit.ClassicTumbler.CLI;
+using NTumbleBit.ClassicTumbler.Server;
 using TCPServer.Client;
 
 namespace NTumbleBit.ClassicTumbler.Client
@@ -35,17 +36,18 @@ namespace NTumbleBit.ClassicTumbler.Client
 	{
 		public static int AverageClientEscrowTransactionSizeInBytes { get; set; } = 350;
 
-		public static TumblerClientRuntime FromConfiguration(TumblerClientConfigurationBase configuration, ClientInteraction interaction = null, bool connectionTest = false)
+		public static TumblerClientRuntime FromConfiguration(TumblerClientConfigurationBase configuration, TumblerProtocolType tumblerProtocol, ClientInteraction interaction = null, bool connectionTest = false)
 		{
-			return FromConfigurationAsync(configuration, interaction, connectionTest).GetAwaiter().GetResult();
+			return FromConfigurationAsync(configuration, tumblerProtocol, interaction, connectionTest).GetAwaiter().GetResult();
 		}
 
-		public static async Task<TumblerClientRuntime> FromConfigurationAsync(TumblerClientConfigurationBase configuration, ClientInteraction interaction = null, bool connectionTest = false)
+		public static async Task<TumblerClientRuntime> FromConfigurationAsync(TumblerClientConfigurationBase configuration, TumblerProtocolType tumblerProtocol, ClientInteraction interaction = null, bool connectionTest = false)
 		{
 			TumblerClientRuntime runtime = new TumblerClientRuntime();
+			runtime.TumblerProtocol = tumblerProtocol;
 			try
 			{
-				await runtime.ConfigureAsync(configuration, interaction, connectionTest).ConfigureAwait(false);
+				await runtime.ConfigureAsync(configuration, tumblerProtocol, interaction, connectionTest).ConfigureAwait(false);
 			}
 			catch (Exception e)
 			{
@@ -55,7 +57,7 @@ namespace NTumbleBit.ClassicTumbler.Client
 			}
 			return runtime;
 		}
-		public async Task ConfigureAsync(TumblerClientConfigurationBase configuration, ClientInteraction interaction= null, bool connectionTest = false)
+		public async Task ConfigureAsync(TumblerClientConfigurationBase configuration, TumblerProtocolType tumblerProtocol, ClientInteraction interaction= null, bool connectionTest = false)
 		{
 			interaction = interaction ?? new AcceptAllClientInteraction();
 			Network = configuration.Network;
@@ -72,7 +74,7 @@ namespace NTumbleBit.ClassicTumbler.Client
                     await SetupTorAsync(interaction, configuration.TorPath).ConfigureAwait(false);
                 else if (configuration.TorMandatory)
                     throw new ConfigException("The tumbler server should use TOR");
-                var client = CreateTumblerClient(0, connectTimeout: TimeSpan.FromSeconds(15));
+                var client = CreateTumblerClient(0, tumblerProtocol, connectTimeout: TimeSpan.FromSeconds(15));
                 TumblerParameters = Retry(1, () => client.GetTumblerParameters());
                 if (TumblerParameters == null)
                     throw new ConfigException("Unable to download tumbler's parameters");                
@@ -112,7 +114,7 @@ namespace NTumbleBit.ClassicTumbler.Client
                 if (TumblerParameters != null && TumblerParameters.GetHash() != configuration.TumblerServer.ConfigurationHash)
                     TumblerParameters = null;
 
-                var client = CreateTumblerClient(0);
+                var client = CreateTumblerClient(0, tumblerProtocol);
 
                 Logs.Configuration.LogInformation("Downloading tumbler information of " + configuration.TumblerServer.ToString());
                 var parameters = Retry(3, () => client.GetTumblerParameters());
@@ -208,16 +210,16 @@ namespace NTumbleBit.ClassicTumbler.Client
 			get; set;
 		}
 
-		public TumblerClient CreateTumblerClient(int cycleId, Identity? identity = null, TimeSpan? connectTimeout = null)
+		public TumblerClient CreateTumblerClient(int cycleId, TumblerProtocolType tumblerProtocol, Identity? identity = null, TimeSpan? connectTimeout = null)
 		{
 			if(identity == null)
 				identity = RandomUtils.GetUInt32() % 2 == 0 ? Identity.Alice : Identity.Bob;
-			return CreateTumblerClient(cycleId, identity == Identity.Alice ? AliceSettings : BobSettings, connectTimeout);
+			return CreateTumblerClient(cycleId, identity == Identity.Alice ? AliceSettings : BobSettings, tumblerProtocol, connectTimeout);
 		}
 
 		DateTimeOffset previousHandlerCreationDate;
 		TimeSpan CircuitRenewInterval = TimeSpan.FromMinutes(10.0);
-		private TumblerClient CreateTumblerClient(int cycleId, ConnectionSettingsBase settings, TimeSpan? connectTimeout = null)
+		private TumblerClient CreateTumblerClient(int cycleId, ConnectionSettingsBase settings, TumblerProtocolType tumblerProtocol, TimeSpan? connectTimeout = null)
 		{
 			if(!AllowInsecure && DateTimeOffset.UtcNow - previousHandlerCreationDate < CircuitRenewInterval)
 			{
@@ -225,7 +227,7 @@ namespace NTumbleBit.ClassicTumbler.Client
 			}
 			previousHandlerCreationDate = DateTime.UtcNow;
 			var client = new TumblerClient(Network, TumblerServer, cycleId);
-			var handler = settings.CreateHttpHandler(connectTimeout);
+			var handler = settings.CreateHttpHandler(tumblerProtocol, connectTimeout);
 			if(handler != null)
 				client.SetHttpHandler(handler);
 			return client;
@@ -298,6 +300,8 @@ namespace NTumbleBit.ClassicTumbler.Client
 			get;
 			private set;
 		}
+
+		public TumblerProtocolType TumblerProtocol { get; set; }
 
 		public bool HasEnoughFundsForCycle(bool firstCycle, string originWalletName = null)
 		{

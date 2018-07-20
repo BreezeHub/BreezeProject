@@ -31,6 +31,7 @@ using Stratis.Bitcoin.Utilities.Extensions;
 using Stratis.Bitcoin;
 using System.Threading.Tasks;
 using System.Runtime.InteropServices;
+using NTumbleBit.ClassicTumbler.Server;
 using NLogConfig = NLog.Config.LoggingConfiguration;
 
 namespace Breeze.Daemon
@@ -48,28 +49,76 @@ namespace Breeze.Daemon
         public static async Task MainAsync(string[] args)
         {
             try
-            { 
-                var isTestNet = args.Contains("-testnet");
-                var isStratis = args.Contains("stratis");
-                var agent = "Breeze";
+            {
+	            var comparer = new CommandlineArgumentComparer();
 
-                // This setting is not in NodeSettings yet, so get it directly from the args
-                ConfigurationOptionWrapper<string> registrationStoreDirectory = new ConfigurationOptionWrapper<string>("RegistrationStoreDirectory", args.GetValueOf("-storedir"));
-                ConfigurationOptionWrapper<string>[] configurationOptions = { registrationStoreDirectory };
+	            var isRegTest = args.Contains("regtest", comparer);
+                var isTestNet = args.Contains("testnet", comparer);
+				var isStratis = args.Contains("stratis", comparer);
+				var isLight = args.Contains("light", comparer);
 
-                NodeSettings nodeSettings;
+				var useRegistration = args.Contains("registration", comparer);
+				var useTumblebit = args.Contains("tumblebit", comparer);
+				var useTor = !args.Contains("noTor", comparer);
+	            string registrationStoreDirectoryPath = args.GetValueOf("-storedir");
+
+				TumblerProtocolType tumblerProtocol;
+	            try
+	            {
+		            string tumblerProtocolString = args.GetValueOf("-tumblerProtocol");
+		            if (!isRegTest && (tumblerProtocolString != null || !useTor))
+		            {
+			            Console.WriteLine("Options -TumblerProtocol and -NoTor can only be used in combination with -RegTest switch.");
+						return;
+		            }
+
+		            if (tumblerProtocolString != null)
+			            tumblerProtocol = Enum.Parse<TumblerProtocolType>(tumblerProtocolString, true);
+		            else
+			            tumblerProtocol = TumblerProtocolType.Tcp;
+
+		            if (useTor && tumblerProtocol == TumblerProtocolType.Http)
+		            {
+			            Console.WriteLine("TumblerProtocol can only be changed to Http when Tor is disabled. Please use -NoTor switch to disable Tor.");
+			            return;
+					}
+				}
+	            catch
+	            {
+					Console.WriteLine($"Incorrect tumbling prococol specified; the valid values are {TumblerProtocolType.Tcp} and {TumblerProtocolType.Http}");
+					return;
+	            }
+
+				var agent = "Breeze";
+
+				// Those settings are not in NodeSettings yet, so get it directly from the args
+				ConfigurationOptionWrapper<object> registrationStoreDirectory = new ConfigurationOptionWrapper<object>("RegistrationStoreDirectory", registrationStoreDirectoryPath);
+	            ConfigurationOptionWrapper<object> torOption = new ConfigurationOptionWrapper<object>("Tor", useTor);
+	            ConfigurationOptionWrapper<object> tumblerProtocolOption = new ConfigurationOptionWrapper<object>("TumblerProtocol", tumblerProtocol);
+	            ConfigurationOptionWrapper<object> useDummyAddressOption = new ConfigurationOptionWrapper<object>("UseDummyAddress", true);
+
+				ConfigurationOptionWrapper<object>[] tumblebitConfigurationOptions = { registrationStoreDirectory, torOption, tumblerProtocolOption, useDummyAddressOption };
+				NodeSettings nodeSettings;
 
                 if (isStratis)
                 {
                     //if (NodeSettings.PrintHelp(args, Network.StratisMain))
                     //    return;
 
-                    Network network = isTestNet ? Network.StratisTest : Network.StratisMain;
-	                if (args.Contains("-regtest"))
+                    Network network;
+	                if (isRegTest)
+	                {
 		                network = Network.StratisRegTest;
-
-                    if (isTestNet)
-                        args = args.Append("-addnode=51.141.28.47").ToArray(); // TODO: fix this temp hack
+	                }
+                    else if (isTestNet)
+	                {
+		                args = args.Append("-addnode=51.141.28.47").ToArray(); // TODO: fix this temp hack
+		                network = Network.StratisTest;
+					}
+	                else
+	                {
+		                network = Network.StratisMain;
+					}
 
                     nodeSettings = new NodeSettings(network, ProtocolVersion.ALT_PROTOCOL_VERSION, agent, args: args, loadConfiguration: false);
                 }
@@ -80,7 +129,7 @@ namespace Breeze.Daemon
 
                 IFullNodeBuilder fullNodeBuilder = null;
 
-                if (args.Contains("light"))
+                if (isLight)
                 {
                     fullNodeBuilder = new FullNodeBuilder()
                         .UseNodeSettings(nodeSettings)
@@ -95,7 +144,7 @@ namespace Breeze.Daemon
                     fullNodeBuilder = new FullNodeBuilder()
                         .UseNodeSettings(nodeSettings);
 
-                    if (args.Contains("stratis"))
+                    if (isStratis)
                         fullNodeBuilder.UsePosConsensus();
                     else
                         fullNodeBuilder.UsePowConsensus();
@@ -107,7 +156,7 @@ namespace Breeze.Daemon
 		                .UseWallet()
 		                .UseWatchOnlyWallet();
 
-	                if (args.Contains("stratis"))
+	                if (isStratis)
 		                fullNodeBuilder.AddPowPosMining();
 	                else
 		                fullNodeBuilder.AddMining();
@@ -116,10 +165,10 @@ namespace Breeze.Daemon
                         .UseApi();
                 }
 
-                if (args.Contains("registration"))
+                if (useRegistration)
                 {
-                    //fullNodeBuilder.UseInterNodeCommunication();
-                    fullNodeBuilder.UseRegistration();
+					//fullNodeBuilder.UseInterNodeCommunication();
+					fullNodeBuilder.UseRegistration();
                 }
 
                 // Need this to happen for both TB and non-TB daemon
@@ -139,10 +188,10 @@ namespace Breeze.Daemon
                 SetupTumbleBitConsoleLogs(nodeSettings);
 
                 // Currently TumbleBit is bitcoin only
-                if (args.Contains("-tumblebit"))
+                if (useTumblebit)
                 {
                     // We no longer pass the URI in via the command line, the registration feature selects a random one
-                    fullNodeBuilder.UseTumbleBit(configurationOptions);
+                    fullNodeBuilder.UseTumbleBit(tumblebitConfigurationOptions);
                 }
                 
                 IFullNode node = fullNodeBuilder.Build();
