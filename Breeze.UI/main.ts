@@ -1,3 +1,17 @@
+/************************************************************************************************************************************************
+ *  BreezeD command line arguments
+ ************************************************************************************************************************************************
+ *	 -testnet			: Use testnet network; peers should be discovered automatically
+ *	 -regtest			: Use testnet network; you need to use addnode or connect in the stratis.conf or bitcoin.conf to connect to any peers
+ *	 -noTor				: Disable Tor and use TCP connection handler; only works for regtest network
+ *	 -tumblerProtocol	: Can be set to TCP (default) or Http. The Http can only be used when noTor switch is used as well
+ *	 -dataDir			: Node's data directory; this option is passed to the BreedeD as -datadir
+ *	 -bitcoinPort		: Bitcoin protocol port; this is passed to the BreedeD as -port
+ *	 -stratisPort		: Stratis protocol port; this is passed to the BreedeD as -port
+ *	 -bitcoinApiPort	: Bitcoin API port; this is passed to the BreedeD as -apiport
+ *	 -stratisApiPort	: Stratis API port; this is passed to the BreedeD as -apiport
+ ************************************************************************************************************************************************/
+
 const electron = require('electron');
 
 // Module to control application life.
