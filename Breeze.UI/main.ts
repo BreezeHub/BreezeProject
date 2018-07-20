@@ -1,3 +1,19 @@
+/************************************************************************************************************************************************
+ *  BreezeD command line arguments
+ ************************************************************************************************************************************************
+ *	 -testnet			: Use testnet network; peers should be discovered automatically
+ *	 -regtest			: Use testnet network; you need to use addnode or connect in the stratis.conf or bitcoin.conf to connect to any peers
+ *   -noDaemons			: Do not start the BreezeD daemons for stratis and bitcoin networks
+ *	 -noTor				: Disable Tor and use TCP connection handler; only works for regtest network
+ *	 -tumblerProtocol	: Can be set to TCP (default) or Http. The Http can only be used when noTor switch is used as well
+ *	 -dataDir			: Node's data directory; this option is passed to the BreezeD as -datadir
+ *	 -bitcoinPort		: Bitcoin protocol port; this is passed to the BreezeD as -port
+ *	 -stratisPort		: Stratis protocol port; this is passed to the BreezeD as -port
+ *	 -bitcoinApiPort	: Bitcoin API port; this is passed to the BreezeD as -apiport
+ *	 -stratisApiPort	: Stratis API port; this is passed to the BreezeD as -apiport
+ *   -storeDir			: Location of the registrationHistory.json file; this is passed to the BreezeD as -storeDir
+ ************************************************************************************************************************************************/
+
 const electron = require('electron');
 
 // Module to control application life.
@@ -16,12 +32,15 @@ let regtest = false;
 let noTor;
 let tumblerProtocol;
 let dataDir;
+let storeDir;
 let bitcoinPort;
 let stratisPort;
+let startDaemons;
 (<any>global).bitcoinApiPort = 37220;
 (<any>global).stratisApiPort = 37221;
 const args = process.argv.slice(1);
 serve = args.some(val => val === '--serve' || val === '-serve');
+startDaemons = !args.some(val => val === '--noDaemons' || val === '-noDaemons');
 
 if (args.some(val => val === '--testnet' || val === '-testnet')) {
   testnet = true;
@@ -48,19 +67,22 @@ if (args.some(val => val.indexOf("--stratisPort=") == 0 || val.indexOf("-stratis
 
 //Set custom API ports
 if (args.some(val => val.indexOf("--bitcoinApiPort=") == 0 || val.indexOf("-bitcoinApiPort=") == 0)) {
-	let customBitcoinApiPort : String;
+	let customBitcoinApiPort : string;
 	customBitcoinApiPort = args.filter(val => val.indexOf("--bitcoinApiPort=") == 0 || val.indexOf("-bitcoinApiPort=") == 0)[0].split("=")[1];
 	(<any>global).bitcoinApiPort = customBitcoinApiPort;
 }
 if (args.some(val => val.indexOf("--stratisApiPort=") == 0 || val.indexOf("-stratisApiPort=") == 0)) {
-	let customStratisApiPort : String;
+	let customStratisApiPort : string;
 	customStratisApiPort = args.filter(val => val.indexOf("--stratisApiPort=") == 0 || val.indexOf("-stratisApiPort=") == 0)[0].split("=")[1];
 	(<any>global).stratisApiPort = customStratisApiPort;
 }
 
-//Set datadir parameter
+//Set datadir and storedir parameters
 if (args.some(val => val.indexOf("--datadir=") == 0 || val.indexOf("-datadir=") == 0)) {
 	dataDir = args.filter(val => val.indexOf("--datadir=") == 0 || val.indexOf("-datadir=") == 0)[0].split("=")[1];
+}
+if (args.some(val => val.indexOf("--storedir=") == 0 || val.indexOf("-storedir=") == 0)) {
+	storeDir = args.filter(val => val.indexOf("--storedir=") == 0 || val.indexOf("-storedir=") == 0)[0].split("=")[1];
 }
 
 //Set Regtest Tor and Tumbling protocol settings
@@ -68,7 +90,6 @@ noTor = args.some(val => val === '--noTor' || val === '-noTor');
 if (args.some(val => val.indexOf("--tumblerProtocol=") == 0 || val.indexOf("-tumblerProtocol=") == 0)) {
 	tumblerProtocol = args.filter(val => val.indexOf("--tumblerProtocol=") == 0 || val.indexOf("-tumblerProtocol=") == 0)[0].split("=")[1];
 }
-
 
 if (serve) {
   require('electron-reload')(__dirname, {
@@ -123,12 +144,9 @@ function createWindow() {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.on('ready', function () {
-  console.log("Bitcoin port: " + (<any>global).bitcoinApiPort)
-  console.log("Stratis port: " + (<any>global).stratisApiPort)
-  
   if (serve) {
     console.log('Breeze UI was started in development mode. This requires the user to be running the Breeze Daemon himself.')
-  } else {
+  } else if (startDaemons) {
     startBitcoinApi();
     startStratisApi();
   }
@@ -198,19 +216,6 @@ function startBitcoinApi() {
     apiPath = path.resolve(__dirname, '..//..//resources//daemon//Breeze.Daemon');
   }
 
-  let stratisDir;
-  if (!testnet) {
-    stratisDir = '-storedir=' + path.join(os.homedir(), '.stratisnode', 'stratis', 'StratisMain', 'registrationHistory.json');
-    if (os.platform() == 'win32') {
-        stratisDir = '-storedir=' + path.join(os.homedir(), 'AppData', 'Roaming', 'StratisNode', 'stratis', 'StratisMain', 'registrationHistory.json');
-    }
-  } else {
-    stratisDir = '-storedir=' + path.join(os.homedir(), '.stratisnode', 'stratis', 'StratisTest', 'registrationHistory.json');
-    if (os.platform() == 'win32') {
-        stratisDir = '-storedir=' + path.join(os.homedir(), 'AppData', 'Roaming', 'StratisNode', 'stratis', 'StratisTest', 'registrationHistory.json');
-    }
-  }
-
    let commandLineArguments = [];
    commandLineArguments.push("-light");
    commandLineArguments.push("-apiport=" + (<any>global).bitcoinApiPort);
@@ -233,7 +238,8 @@ function startBitcoinApi() {
    if (dataDir != null)
      commandLineArguments.push("-datadir=" + dataDir);   
    
-   commandLineArguments.push(stratisDir);
+   if (storeDir != null)
+     commandLineArguments.push("-storedir=" + storeDir);
    
    console.log("Starting Bitcoin daemon with parameters: " + commandLineArguments);
    bitcoinProcess = spawnBitcoin(apiPath, commandLineArguments, {
