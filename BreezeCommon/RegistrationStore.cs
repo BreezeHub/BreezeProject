@@ -55,7 +55,7 @@ namespace BreezeCommon
 				//    DateFormatHandling = DateFormatHandling.IsoDateFormat
 				//};
 
-				string regJson = JsonConvert.SerializeObject(registrations);
+				string regJson = JsonConvert.SerializeObject(registrations, Formatting.Indented);
 				File.WriteAllText(StorePath, regJson);
 
 				return true;
@@ -81,7 +81,7 @@ namespace BreezeCommon
 
                 registrations.Add(regRecord);
 
-                string regJson = JsonConvert.SerializeObject(registrations);
+                string regJson = JsonConvert.SerializeObject(registrations, Formatting.Indented);
                 File.WriteAllText(StorePath, regJson);
 
                 return true;
@@ -171,7 +171,7 @@ namespace BreezeCommon
 
 				try
 				{
-					string regJson = JsonConvert.SerializeObject(modified);
+					string regJson = JsonConvert.SerializeObject(modified, Formatting.Indented);
 					File.WriteAllText(StorePath, regJson);
 				}
 				catch (IOException)

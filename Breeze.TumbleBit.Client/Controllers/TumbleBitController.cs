@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using Breeze.TumbleBit.Client;
 using Breeze.TumbleBit.Models;
 using NBitcoin;
+using Newtonsoft.Json;
 using Stratis.Bitcoin.Features.Wallet;
 using Stratis.Bitcoin.Features.Wallet.Models;
 using Stratis.Bitcoin.Utilities;
@@ -24,7 +25,7 @@ namespace Breeze.TumbleBit.Controllers
     {
         private readonly IWalletManager walletManager;
         private readonly ITumbleBitManager tumbleBitManager;
-
+        
         public TumbleBitController(ITumbleBitManager tumbleBitManager, IWalletManager walletManager)
         {
             this.tumbleBitManager = tumbleBitManager;
@@ -241,8 +242,6 @@ namespace Breeze.TumbleBit.Controllers
 	    {
 		    try
 		    {
-                var t = tumbleBitManager.TumblingState.NodeSettings;
-
                 string dataDir = tumbleBitManager.TumblingState.NodeSettings.DataDir;
                 string tumbleBitDataDir = FullNodeTumblerClientConfiguration.GetTumbleBitDataDir(dataDir);
                   
@@ -252,7 +251,8 @@ namespace Breeze.TumbleBit.Controllers
 			    else
 			    {
 				    string progress = await System.IO.File.ReadAllTextAsync(filename).ConfigureAwait(false);
-				    return this.Json(progress);
+			        ProgressInfo progressInfo = JsonConvert.DeserializeObject<ProgressInfo>(progress);
+				    return this.Json(progressInfo);
 			    }
 		    }
 			catch (Exception e)
