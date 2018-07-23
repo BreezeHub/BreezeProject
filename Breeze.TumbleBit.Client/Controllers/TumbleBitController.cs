@@ -25,7 +25,7 @@ namespace Breeze.TumbleBit.Controllers
     {
         private readonly IWalletManager walletManager;
         private readonly ITumbleBitManager tumbleBitManager;
-        
+
         public TumbleBitController(ITumbleBitManager tumbleBitManager, IWalletManager walletManager)
         {
             this.tumbleBitManager = tumbleBitManager;
@@ -60,7 +60,7 @@ namespace Breeze.TumbleBit.Controllers
                     ["fee"] = tumblerParameters.Value.Fee.ToString(),
                     ["network"] = tumblerParameters.Value.Network.Name,
                     ["estimate"] = this.tumbleBitManager.CalculateTumblingDuration(request.OriginWalletName),
-					["parameters_are_standard"] = tumblerParameters.Value.IsStandard().ToString()
+                    ["parameters_are_standard"] = tumblerParameters.Value.IsStandard().ToString()
                 };
 
                 return this.Json(parameterDictionary);
@@ -101,49 +101,49 @@ namespace Breeze.TumbleBit.Controllers
             }
         }
 
-		/// <summary>
-		/// Disconnects from the currently connected masternode and attempts to connect to a new one.
-		/// </summary>
-		[Route("changeserver")]
-		[HttpPost]
-		public async Task<IActionResult> ChangeServerAsync([FromBody] ChangeServerRequest request)
-		{
-			// Checks the request is valid
-			if (!this.ModelState.IsValid)
-			{
-				var errors = this.ModelState.Values.SelectMany(e => e.Errors.Select(m => m.ErrorMessage));
-				return Client.ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, "Formatting error", string.Join(Environment.NewLine, errors));
-			}
+        /// <summary>
+        /// Disconnects from the currently connected masternode and attempts to connect to a new one.
+        /// </summary>
+        [Route("changeserver")]
+        [HttpPost]
+        public async Task<IActionResult> ChangeServerAsync([FromBody] ChangeServerRequest request)
+        {
+            // Checks the request is valid
+            if (!this.ModelState.IsValid)
+            {
+                var errors = this.ModelState.Values.SelectMany(e => e.Errors.Select(m => m.ErrorMessage));
+                return Client.ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, "Formatting error", string.Join(Environment.NewLine, errors));
+            }
 
-			try
-			{
-				var tumblerParameters = await this.tumbleBitManager.ChangeServerAsync().ConfigureAwait(false);
+            try
+            {
+                var tumblerParameters = await this.tumbleBitManager.ChangeServerAsync().ConfigureAwait(false);
 
-				if (tumblerParameters.Failure)
-					return Client.ErrorHelpers.BuildErrorResponse(HttpStatusCode.InternalServerError, tumblerParameters.Message, tumblerParameters.Message);
+                if (tumblerParameters.Failure)
+                    return Client.ErrorHelpers.BuildErrorResponse(HttpStatusCode.InternalServerError, tumblerParameters.Message, tumblerParameters.Message);
 
-				var parameterDictionary = new Dictionary<string, string>()
-				{
-					["tumbler"] = this.tumbleBitManager.TumblerAddress,
-					["denomination"] = tumblerParameters.Value.Denomination.ToString(),
-					["fee"] = tumblerParameters.Value.Fee.ToString(),
-					["network"] = tumblerParameters.Value.Network.Name,
-					["estimate"] = this.tumbleBitManager.CalculateTumblingDuration(request.OriginWalletName),
-					["parameters_are_standard"] = tumblerParameters.Value.IsStandard().ToString()
-				};
+                var parameterDictionary = new Dictionary<string, string>()
+                {
+                    ["tumbler"] = this.tumbleBitManager.TumblerAddress,
+                    ["denomination"] = tumblerParameters.Value.Denomination.ToString(),
+                    ["fee"] = tumblerParameters.Value.Fee.ToString(),
+                    ["network"] = tumblerParameters.Value.Network.Name,
+                    ["estimate"] = this.tumbleBitManager.CalculateTumblingDuration(request.OriginWalletName),
+                    ["parameters_are_standard"] = tumblerParameters.Value.IsStandard().ToString()
+                };
 
-				return this.Json(parameterDictionary);
-			}
-			catch (Exception e)
-			{
-				return Client.ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, $"An error occurred connecting to the tumbler with URI {this.tumbleBitManager.TumblerAddress}.", e.ToString());
-			}
-		}
+                return this.Json(parameterDictionary);
+            }
+            catch (Exception e)
+            {
+                return Client.ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, $"An error occurred connecting to the tumbler with URI {this.tumbleBitManager.TumblerAddress}.", e.ToString());
+            }
+        }
 
-		/// <summary>
-		/// Is tumbler tumbling.
-		/// </summary>
-		[Route("tumbling-state")]
+        /// <summary>
+        /// Is tumbler tumbling.
+        /// </summary>
+        [Route("tumbling-state")]
         [HttpGet]
         public async Task<IActionResult> GetTumblingStateAsync()
         {
@@ -233,33 +233,33 @@ namespace Breeze.TumbleBit.Controllers
             }
         }
 
-	    /// <summary>
-	    /// Tumbling Progress expressed as json.
-	    /// </summary>
-	    [Route("progress")]
-	    [HttpGet]
-	    public async Task<IActionResult> ProgressAsync()
-	    {
-		    try
-		    {
+        /// <summary>
+        /// Tumbling Progress expressed as json.
+        /// </summary>
+        [Route("progress")]
+        [HttpGet]
+        public async Task<IActionResult> ProgressAsync()
+        {
+            try
+            {
                 string dataDir = tumbleBitManager.TumblingState.NodeSettings.DataDir;
                 string tumbleBitDataDir = FullNodeTumblerClientConfiguration.GetTumbleBitDataDir(dataDir);
-                  
-			    string filename = Path.Combine(tumbleBitDataDir, ProgressInfo.TumbleProgressFileName);
-			    if (System.IO.File.Exists(filename) == false)
-				    return this.Json(string.Empty);
-			    else
-			    {
-				    string progress = await System.IO.File.ReadAllTextAsync(filename).ConfigureAwait(false);
-			        ProgressInfo progressInfo = JsonConvert.DeserializeObject<ProgressInfo>(progress);
-				    return this.Json(progressInfo);
-			    }
-		    }
-			catch (Exception e)
-		    {
-			    return Client.ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, $"Could not get progress.", e.ToString());
-		    }
-	    }
+
+                string filename = Path.Combine(tumbleBitDataDir, ProgressInfo.TumbleProgressFileName);
+                if (System.IO.File.Exists(filename) == false)
+                    return this.Json(string.Empty);
+                else
+                {
+                    string progress = await System.IO.File.ReadAllTextAsync(filename).ConfigureAwait(false);
+                    ProgressInfo progressInfo = JsonConvert.DeserializeObject<ProgressInfo>(progress);
+                    return this.Json(progressInfo);
+                }
+            }
+            catch (Exception e)
+            {
+                return Client.ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, $"Could not get progress.", e.ToString());
+            }
+        }
 
         ///<inheritdoc/>
         [Route("last-block-mins")]
