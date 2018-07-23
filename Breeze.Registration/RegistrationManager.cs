@@ -12,6 +12,7 @@ namespace Breeze.Registration
         public static readonly int MAX_PROTOCOL_VERSION = 128; // >128 = regard as test versions
         public static readonly int MIN_PROTOCOL_VERSION = 1;
         public static readonly int WINDOW_PERIOD_BLOCK_COUNT = 30;
+        public static readonly int REGISTRATION_MATURITY_BLOCK_COUNT = 10;
 
         private ILoggerFactory loggerFactory;
         private RegistrationStore registrationStore;
@@ -105,7 +106,7 @@ namespace Breeze.Registration
                 {
 	                try
 	                {
-		                Script scriptToCheck = BitcoinAddress.Create(record.Record.ServerId, this.network).ScriptPubKey;
+                        Script scriptToCheck = BitcoinAddress.Create(record.Record.ServerId, this.network).ScriptPubKey;
 
 		                this.logger.LogDebug("Recalculating collateral balance for server: " + record.Record.ServerId);
 
@@ -138,6 +139,18 @@ namespace Breeze.Registration
 			                // TODO: Remove unneeded transactions from the watch-only wallet?
 			                // TODO: Need to make the TumbleBitFeature change its server address if this is the address it was using
 		                }
+
+                        //Check if the registration transaction has enough confirmations.
+	                    if (!record.RegistrationMature && record.BlockReceived + REGISTRATION_MATURITY_BLOCK_COUNT < height)
+	                    {
+	                        record.RegistrationMature = true;
+	                        this.logger.LogDebug($"Sufficient number of confirmations have been received for registration {record.Record.ServerId}.");
+                        }
+	                    else if (record.RegistrationMature)
+	                    {
+	                        record.RegistrationMature = false;
+	                        this.logger.LogDebug($"New registration {record.Record.ServerId} doesn't have enough confirmations. Another {record.BlockReceived + REGISTRATION_MATURITY_BLOCK_COUNT - height} are required.");
+                        }
 	                }
 	                catch (Exception e)
 	                {

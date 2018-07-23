@@ -15,6 +15,7 @@ namespace BreezeCommon
         public string RecordTxHex { get; set; }
         public RegistrationToken Record { get; set; }
         public int BlockReceived { get; set; }
+        public bool RegistrationMature { get; set; }
 
         //[JsonProperty("recordTxProof", NullValueHandling = NullValueHandling.Ignore)]
         [JsonIgnore]
@@ -29,6 +30,7 @@ namespace BreezeCommon
             Record = record;
             RecordTxProof = recordTxProof;
             BlockReceived = blockReceived;
+            RegistrationMature = false;
         }
     }
 }
