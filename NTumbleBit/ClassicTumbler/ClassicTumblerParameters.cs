@@ -259,7 +259,6 @@ namespace NTumbleBit.ClassicTumbler
 			};
 		}
 
-
 		public override bool Equals(object obj)
 		{
 			ClassicTumblerParameters item = obj as ClassicTumblerParameters;
@@ -270,7 +269,10 @@ namespace NTumbleBit.ClassicTumbler
 
 		public bool IsStandard()
 		{
-			return
+		    Money minExpectedFee = this.Denomination / 95;
+		    Money maxExpectedFee = this.Denomination / 105;
+
+            return
 				this.Version == LAST_VERSION &&
 				this.VoucherKey.CheckKey() &&
 				this.ServerKey.CheckKey() &&
@@ -278,11 +280,9 @@ namespace NTumbleBit.ClassicTumbler
 				this.RealPuzzleCount == 15 &&
 				this.RealTransactionCount == 42 &&
 				this.FakeTransactionCount == 42 &&
-				this.Fee < this.Denomination &&
+				(minExpectedFee < this.Fee && this.Fee < maxExpectedFee) &&
 				this.FakeFormat == new uint256(Enumerable.Range(0, 32).Select(o => o == 0 ? (byte)0 : (byte)1).ToArray());
-
 		}
-
 
 		string _ExpectedAddress = "";
 		public string ExpectedAddress
@@ -296,7 +296,6 @@ namespace NTumbleBit.ClassicTumbler
 				_ExpectedAddress = value;
 			}
 		}
-
 
 		public uint160 GetHash()
 		{
