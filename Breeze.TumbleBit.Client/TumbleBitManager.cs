@@ -68,7 +68,7 @@ namespace Breeze.TumbleBit.Client
         public string TumblerAddress { get; private set; } = null;
         public string TumblerDisplayAddress { get; private set; } = null;
         public RegistrationStore RegistrationStore { get; private set; }
-	    public bool UseTor { get; set; } = true;
+        public bool UseTor { get; set; } = true;
 	    public bool UseDummyAddress { get; set; } = true;
 	    public TumblerProtocolType TumblerProtocol { get; set; } = TumblerProtocolType.Tcp;
 
@@ -181,8 +181,9 @@ namespace Breeze.TumbleBit.Client
 			// - If this is a first connection, this.TumblerAddress will be null
 			// - If we were previously connected to a server, its URI would have been stored in the
 			//   tumbling_state.json, and will have been loaded into this.TumblerAddress already
-	        List<RegistrationRecord> registrations = this.RegistrationStore.GetAll();
-			if (this.TumblerAddress == null)
+            List<RegistrationRecord> registrations = this.GetValidRegistrations();
+
+            if (this.TumblerAddress == null)
             {
                 if (registrations.Count < MINIMUM_MASTERNODE_COUNT)
                 {
@@ -431,11 +432,16 @@ namespace Breeze.TumbleBit.Client
             }
         }
 
+        private List<RegistrationRecord> GetValidRegistrations()
+        {
+            return this.RegistrationStore.GetAll().Where(r => r.RegistrationMature).ToList();
+        }
+
         public int RegistrationCount()
         {
             try
             {
-                return this.RegistrationStore.GetAll().Count;
+                return this.GetValidRegistrations().Count;
             }
             catch (Exception)
             {
