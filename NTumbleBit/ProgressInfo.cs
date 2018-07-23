@@ -102,6 +102,7 @@ namespace NTumbleBit
                 using (var file = File.CreateText(filename))
                 {
                     JsonSerializer serializer = new JsonSerializer();
+                    serializer.Formatting = Formatting.Indented;
                     serializer.Serialize(file, this);
                 }
             }
