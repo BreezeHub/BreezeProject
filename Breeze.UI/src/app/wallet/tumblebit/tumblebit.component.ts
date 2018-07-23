@@ -444,7 +444,7 @@ export class TumblebitComponent implements OnDestroy {
         response => {
           if (response.status >= 200 && response.status < 400) {
             if (response.json()) {
-              const responseArray = JSON.parse(response.json()).CycleProgressInfoList;
+              const responseArray = response.json().CycleProgressInfoList;
               if (responseArray) {
                 this.progressDataArray = [];
                 const responseData = responseArray;
