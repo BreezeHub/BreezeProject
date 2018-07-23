@@ -140,6 +140,13 @@ namespace NTumbleBit.ClassicTumbler
             set { _RealTransactionCount = value; }
         }
 
+        string _ExpectedAddress = "";
+
+        public string ExpectedAddress
+        {
+            get { return _ExpectedAddress; }
+            set { _ExpectedAddress = value; }
+        }
 
         uint256 _FakeFormat;
 
@@ -223,14 +230,6 @@ namespace NTumbleBit.ClassicTumbler
                 this.FakeTransactionCount == 42 &&
                 (minExpectedFee < this.Fee && this.Fee < maxExpectedFee) &&
                 this.FakeFormat == new uint256(Enumerable.Range(0, 32).Select(o => o == 0 ? (byte) 0 : (byte) 1).ToArray());
-        }
-
-        string _ExpectedAddress = "";
-
-        public string ExpectedAddress
-        {
-            get { return _ExpectedAddress; }
-            set { _ExpectedAddress = value; }
         }
 
         public uint160 GetHash()
