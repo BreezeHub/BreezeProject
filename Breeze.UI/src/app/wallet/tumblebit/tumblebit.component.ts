@@ -115,6 +115,11 @@ export class TumblebitComponent implements OnDestroy {
   }
 
   private start(): void {
+
+    if (this.routerSubscriptions) {
+      this.routerSubscriptions.unsubscribe();
+    }
+
     const routerEvents = this.router.events;
     const $1 = routerEvents.filter(x => this.started && TumblebitComponent.isNavigationEnd(<RouterEvent>x, this.loginPath))
                            .subscribe(_ => this.stop());
@@ -169,8 +174,6 @@ export class TumblebitComponent implements OnDestroy {
 
     this.stopConnectionRequest();
     this.isConnected = false;
-
-    console.log('stopped');
 
     this.started = false;
   }
@@ -241,8 +244,13 @@ export class TumblebitComponent implements OnDestroy {
       const firstError = Error.getFirstError(error);
       if (!firstError) {
         console.log(error);
-      } else if (firstError.description) {
-        this.genericModalService.openModal(Error.toDialogOptions(error, null));
+      } else {
+        if (firstError.description) {
+          this.genericModalService.openModal(Error.toDialogOptions(error, null));
+        } else {
+          this.stop();
+          this.start();
+        }
       }
     }
   }
@@ -436,7 +444,7 @@ export class TumblebitComponent implements OnDestroy {
         response => {
           if (response.status >= 200 && response.status < 400) {
             if (response.json()) {
-              const responseArray = JSON.parse(response.json()).CycleProgressInfoList;
+              const responseArray = response.json().CycleProgressInfoList;
               if (responseArray) {
                 this.progressDataArray = [];
                 const responseData = responseArray;
@@ -537,14 +545,12 @@ export class TumblebitComponent implements OnDestroy {
     return this.apiService.getWalletBalance(walletInfo)
       .subscribe(
         response =>  {
-          console.log("getWalletBalance: " + response.status);
           if (response.status >= 200 && response.status < 400) {
             var milli = new Date().getMilliseconds();
             const balanceResponse = response.json();
             this.confirmedBalance = balanceResponse.balances[0].amountConfirmed;
             this.unconfirmedBalance = balanceResponse.balances[0].amountUnconfirmed;
             this.totalBalance = this.confirmedBalance + this.unconfirmedBalance;
-            console.log("getWalletBalance: " + this.totalBalance);
           }
         },
         e => {
@@ -572,13 +578,6 @@ export class TumblebitComponent implements OnDestroy {
     ;
   };
 
-  private removeSourceWallet() {
-    const sourceWalletIndex = this.wallets.indexOf(this.globalService.getWalletName());
-    if (sourceWalletIndex >= 0) {
-      this.wallets.splice(sourceWalletIndex, 1);
-    }
-  }
-
   private getWalletFiles(): Subscription {
     return this.apiService.getWalletFiles()
       .subscribe(
@@ -595,12 +594,20 @@ export class TumblebitComponent implements OnDestroy {
 
               this.removeSourceWallet();
 
+              this.destinationConfirmedBalance = this.destinationUnconfirmedBalance = this.destinationTotalBalance = null;
+              this.tumbleForm.controls['selectWallet'].setValue('');
             }
           }
         },
         e => this.onPollingError(e, 'Failed to get Wallet files')
-      )
-    ;
+      );
+  }
+
+  private removeSourceWallet() {
+    const sourceWalletIndex = this.wallets.indexOf(this.globalService.getWalletName());
+    if (sourceWalletIndex >= 0) {
+      this.wallets.splice(sourceWalletIndex, 1);
+    }
   }
 
   private startConnectionRequest() {
