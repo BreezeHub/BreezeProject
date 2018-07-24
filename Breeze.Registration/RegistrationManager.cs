@@ -113,7 +113,7 @@ namespace Breeze.Registration
 
                     if (!watchOnlyWallet.WatchedAddresses.ContainsKey(scriptToCheck.ToString()))
                     {
-                        this.logger.LogDebug(
+                        this.logger.LogInformation(
                             "Server address missing from watch-only wallet. Deleting stored registrations for server: " +
                             record.Record.ServerId);
                         this.registrationStore.DeleteAllForServer(record.Record.ServerId);
@@ -133,8 +133,8 @@ namespace Breeze.Registration
                         // Remove server registrations as funding has not been performed timeously,
                         // or funds have been removed from the collateral address subsequent to the
                         // registration being performed
-                        this.logger.LogDebug("Insufficient collateral within window period for server: " + record.Record.ServerId);
-                        this.logger.LogDebug("Deleting registration records for server: " + record.Record.ServerId);
+                        this.logger.LogInformation("Insufficient collateral within window period for server: " + record.Record.ServerId);
+                        this.logger.LogInformation("Deleting registration records for server: " + record.Record.ServerId);
                         this.registrationStore.DeleteAllForServer(record.Record.ServerId);
 
                         // TODO: Remove unneeded transactions from the watch-only wallet?
