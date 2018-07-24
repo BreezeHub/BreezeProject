@@ -443,58 +443,53 @@ export class TumblebitComponent implements OnDestroy {
       .subscribe(
         response => {
           if (response.status >= 200 && response.status < 400) {
-            if (response.json()) {
-              const responseArray = response.json().CycleProgressInfoList;
-              if (responseArray) {
-                this.progressDataArray = [];
-                const responseData = responseArray;
-                for (const cycle of responseData) {
-                  const periodStart = cycle.Period.Start;
-                  const periodEnd = cycle.Period.End;
-                  const height = cycle.Height;
-                  const blocksLeft = cycle.BlocksLeft;
-                  const cycleStart = cycle.Start;
-                  const cycleFailed = cycle.Failed;
-                  const cycleAsciiArt = cycle.AsciiArt;
-                  const cycleStatus = cycle.Status;
-                  const cyclePhase = this.getPhaseString(cycle.Phase, cycle.SafetyPeriod);
-                  const cyclePhaseNumber = this.getPhaseNumber(cycle.Phase);
+            const responseArray = response.json().cycleProgressInfoList;
+            if (responseArray) {
+              this.progressDataArray = [];
+              const responseData = responseArray;
+              for (const cycle of responseData) {
+                const periodStart = cycle.period.start;
+                const periodEnd = cycle.period.end;
+                const height = cycle.height;
+                const blocksLeft = cycle.blocksLeft;
+                const cycleStart = cycle.start;
+                const cycleFailed = cycle.failed;
+                const cycleAsciiArt = cycle.asciiArt;
+                const cycleStatus = cycle.status;
+                const cyclePhase = this.getPhaseString(cycle.phase, cycle.safetyPeriod);
+                const cyclePhaseNumber = this.getPhaseNumber(cycle.phase);
 
-                  const item = new CycleInfo(
-                    periodStart,
-                    periodEnd,
-                    height,
-                    blocksLeft,
-                    cycleStart,
-                    cycleFailed,
-                    cycleAsciiArt,
-                    cycleStatus,
-                    cyclePhase,
-                    cyclePhaseNumber, 
-                    cycle.ShouldStayConnected);
+                const item = new CycleInfo(
+                  periodStart,
+                  periodEnd,
+                  height,
+                  blocksLeft,
+                  cycleStart,
+                  cycleFailed,
+                  cycleAsciiArt,
+                  cycleStatus,
+                  cyclePhase,
+                  cyclePhaseNumber, 
+                  cycle.ShouldStayConnected);
 
-                  this.progressDataArray.push(item);
+                this.progressDataArray.push(item);
                   
-                  this.progressDataArray.sort(function(cycle1, cycle2) {
-                    return cycle1.cycleStart - cycle2.cycleStart;
-                  });
-                }
-
-                this.shouldStayConnected = false;
-                for (const item of this.progressDataArray) {
-                  if (item.shouldStayConnected) {
-                    this.shouldStayConnected = true;
-                    break;
-                  }
-                }
-                
+                this.progressDataArray.sort(function(cycle1, cycle2) {
+                  return cycle1.cycleStart - cycle2.cycleStart;
+                });
               }
+              this.shouldStayConnected = false;
+              for (const item of this.progressDataArray) {
+                if (item.shouldStayConnected) {
+                  this.shouldStayConnected = true;
+                  break;
+                }
+              }                
             }
           }
         },
         e => this.onPollingError(e, 'Failed to get tumbling progress. Reason: API is not responding or timing out.')
-      )
-    ;
+      );
   }
 
   private getPhaseNumber(phase: string) {
