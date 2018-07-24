@@ -100,7 +100,7 @@ export class TumblebitComponent implements OnDestroy {
   }
 
   ngOnDestroy() {
-    this.unsubscribeAll();
+    this.stop();
     if (this.routerSubscriptions) {
       this.routerSubscriptions.unsubscribe();
     }
@@ -115,42 +115,38 @@ export class TumblebitComponent implements OnDestroy {
   }
 
   private start(): void {
+
     if (this.routerSubscriptions) {
       this.routerSubscriptions.unsubscribe();
     }
 
     const routerEvents = this.router.events;
     const $1 = routerEvents.filter(x => this.started && TumblebitComponent.isNavigationEnd(<RouterEvent>x, this.loginPath))
-                           .subscribe(_ => this.unsubscribeAll());
+                           .subscribe(_ => this.stop());
 
     const $2 = routerEvents.filter(x => !this.started && TumblebitComponent.isNavigationEnd(<RouterEvent>x, this.routerPath))
-                           .subscribe(_ => this.subscribeAll());
+                           .subscribe(_ => {
+
+        this.destroyed$ = new ReplaySubject<any>();
+        this.operation = 'connect';
+        this.tumblerAddress = 'Connecting...';
+        this.coinUnit = this.globalService.getCoinUnit();
+        this.connectionFatalError = false;
+
+        this.startSubscriptions = new CompositeDisposable([
+          this.checkTumblingStatus(),
+          this.checkWalletStatus(),
+          this.getWalletFiles(),
+          this.getWalletBalance()
+        ]);
+
+        this.started = true;
+    });
 
     this.routerSubscriptions = new CompositeDisposable([$1, $2]);
   }
 
-  private subscribeAll() {
-    this.destroyed$ = new ReplaySubject<any>();
-    this.operation = 'connect';
-    this.tumblerAddress = 'Connecting...';
-    this.coinUnit = this.globalService.getCoinUnit();
-    this.connectionFatalError = false;
-
-    if (this.startSubscriptions) {
-      this.startSubscriptions.unsubscribe();
-    }
-
-    this.startSubscriptions = new CompositeDisposable([
-      this.checkTumblingStatus(),
-      this.checkWalletStatus(),
-      this.getWalletFiles(),
-      this.getWalletBalance()
-    ]);
-
-    this.started = true;
-  }
-
-  private unsubscribeAll() {
+  private stop() {
     if (this.destinationWalletBalanceSubscription) {
       this.destinationWalletBalanceSubscription.unsubscribe();
       this.destinationWalletBalanceSubscription = null;
@@ -174,11 +170,6 @@ export class TumblebitComponent implements OnDestroy {
     if (this.walletInfosSubscription) {
       this.walletInfosSubscription.unsubscribe();
       this.walletInfosSubscription = null;
-    }
-
-    if (this.routerSubscriptions) {
-      this.routerSubscriptions.unsubscribe();
-      this.routerSubscriptions = null;
     }
 
     this.stopConnectionRequest();
@@ -256,9 +247,6 @@ export class TumblebitComponent implements OnDestroy {
       } else {
         if (firstError.description) {
           this.genericModalService.openModal(Error.toDialogOptions(error, null));
-        } else {
-          this.unsubscribeAll();
-          this.subscribeAll();
         }
       }
     }
@@ -369,7 +357,7 @@ export class TumblebitComponent implements OnDestroy {
         },
         error => {
 
-          this.unsubscribeAll();
+          this.stop();
 
           console.error(error);
           this.isConnected = false;
@@ -470,18 +458,18 @@ export class TumblebitComponent implements OnDestroy {
 
                 const item = new CycleInfo(
                   periodStart,
-                  periodEnd,
-                  height,
-                  blocksLeft,
-                  cycleStart,
-                  cycleFailed,
-                  cycleAsciiArt,
-                  cycleStatus,
-                  cyclePhase,
-                  cyclePhaseNumber, 
-                  cycle.ShouldStayConnected);
+                    periodEnd,
+                    height,
+                    blocksLeft,
+                    cycleStart,
+                    cycleFailed,
+                    cycleAsciiArt,
+                    cycleStatus,
+                    cyclePhase,
+                    cyclePhaseNumber, 
+                    cycle.ShouldStayConnected);
 
-                this.progressDataArray.push(item);
+                  this.progressDataArray.push(item);
                   
                 this.progressDataArray.sort(function(cycle1, cycle2) {
                   return cycle1.cycleStart - cycle2.cycleStart;
