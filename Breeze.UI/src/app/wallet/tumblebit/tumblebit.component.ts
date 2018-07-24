@@ -100,7 +100,7 @@ export class TumblebitComponent implements OnDestroy {
   }
 
   ngOnDestroy() {
-    this.stop();
+    this.unsubscribeAll();
     if (this.routerSubscriptions) {
       this.routerSubscriptions.unsubscribe();
     }
@@ -115,38 +115,42 @@ export class TumblebitComponent implements OnDestroy {
   }
 
   private start(): void {
-
     if (this.routerSubscriptions) {
       this.routerSubscriptions.unsubscribe();
     }
 
     const routerEvents = this.router.events;
     const $1 = routerEvents.filter(x => this.started && TumblebitComponent.isNavigationEnd(<RouterEvent>x, this.loginPath))
-                           .subscribe(_ => this.stop());
+                           .subscribe(_ => this.unsubscribeAll());
 
     const $2 = routerEvents.filter(x => !this.started && TumblebitComponent.isNavigationEnd(<RouterEvent>x, this.routerPath))
-                           .subscribe(_ => {
-
-        this.destroyed$ = new ReplaySubject<any>();
-        this.operation = 'connect';
-        this.tumblerAddress = 'Connecting...';
-        this.coinUnit = this.globalService.getCoinUnit();
-        this.connectionFatalError = false;
-
-        this.startSubscriptions = new CompositeDisposable([
-          this.checkTumblingStatus(),
-          this.checkWalletStatus(),
-          this.getWalletFiles(),
-          this.getWalletBalance()
-        ]);
-
-        this.started = true;
-    });
+                           .subscribe(_ => this.subscribeAll());
 
     this.routerSubscriptions = new CompositeDisposable([$1, $2]);
   }
 
-  private stop() {
+  private subscribeAll() {
+    this.destroyed$ = new ReplaySubject<any>();
+    this.operation = 'connect';
+    this.tumblerAddress = 'Connecting...';
+    this.coinUnit = this.globalService.getCoinUnit();
+    this.connectionFatalError = false;
+
+    if (this.startSubscriptions) {
+      this.startSubscriptions.unsubscribe();
+    }
+
+    this.startSubscriptions = new CompositeDisposable([
+      this.checkTumblingStatus(),
+      this.checkWalletStatus(),
+      this.getWalletFiles(),
+      this.getWalletBalance()
+    ]);
+
+    this.started = true;
+  }
+
+  private unsubscribeAll() {
     if (this.destinationWalletBalanceSubscription) {
       this.destinationWalletBalanceSubscription.unsubscribe();
       this.destinationWalletBalanceSubscription = null;
@@ -170,6 +174,11 @@ export class TumblebitComponent implements OnDestroy {
     if (this.walletInfosSubscription) {
       this.walletInfosSubscription.unsubscribe();
       this.walletInfosSubscription = null;
+    }
+
+    if (this.routerSubscriptions) {
+      this.routerSubscriptions.unsubscribe();
+      this.routerSubscriptions = null;
     }
 
     this.stopConnectionRequest();
@@ -248,8 +257,8 @@ export class TumblebitComponent implements OnDestroy {
         if (firstError.description) {
           this.genericModalService.openModal(Error.toDialogOptions(error, null));
         } else {
-          this.stop();
-          this.start();
+          this.unsubscribeAll();
+          this.subscribeAll();
         }
       }
     }
@@ -360,7 +369,7 @@ export class TumblebitComponent implements OnDestroy {
         },
         error => {
 
-          this.stop();
+          this.unsubscribeAll();
 
           console.error(error);
           this.isConnected = false;
