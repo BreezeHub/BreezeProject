@@ -11,6 +11,7 @@ import { TumbleRequest } from './classes/tumble-request';
 import { ConnectRequest } from './classes/connect-request';
 import { GlobalService } from '../../shared/services/global.service';
 import { Error } from '../../shared/classes/error';
+import { ServiceShared } from '../../shared/services/shared';
 
 @Injectable()
 export class TumblebitService {
@@ -65,7 +66,7 @@ export class TumblebitService {
       .startWith(0)
       .switchMap(
         () => this.http.get(`${this.tumblerClientUrl}tumbling-state`)
-                      .retryWhen(e => this.onRetryWhen(e)))
+                      .retryWhen(e => ServiceShared.onRetryWhen(e)))
       .map((response: Response) => response);
   }
   
@@ -87,7 +88,7 @@ export class TumblebitService {
       .startWith(0)
       .switchMap(
         () => this.http.get(`${this.tumblerClientUrl}progress`)
-                  .retryWhen(e => this.onRetryWhen(e)))
+                  .retryWhen(e => ServiceShared.onRetryWhen(e)))
       .map((response: Response) => response);
   }
 
@@ -99,24 +100,8 @@ export class TumblebitService {
       .startWith(0)
       .switchMap(
         () => this.http.get(`${this.tumblerClientUrl}destination-balance`, new RequestOptions({headers: this.headers, search: params}))
-                        .retryWhen(e => this.onRetryWhen(e)))
+                        .retryWhen(e => ServiceShared.onRetryWhen(e)))
       .map((response: Response) => response);
-  }
-  
-  private onRetryWhen(errors) {
-    return errors.mergeMap((error: any) => {
-      const firstError = Error.getFirstError(error);
-      if (error.status  === 0) {
-        return Observable.of(error.status).delay(5000)
-      }
-      else if (error.status === 400 && !firstError.description) {
-        console.log("Retrying; MVC error.");
-        return Observable.of(error.status).delay(5000);
-      }
-      return Observable.throw(error);
-   })
-   .take(5)
-   .concat(Observable.throw(errors));
   }
 
 }

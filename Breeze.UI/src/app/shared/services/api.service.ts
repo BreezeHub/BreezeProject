@@ -17,6 +17,8 @@ import { FeeEstimation } from '../classes/fee-estimation';
 import { TransactionBuilding } from '../classes/transaction-building';
 import { TransactionSending } from '../classes/transaction-sending';
 import { Error } from '../../shared/classes/error';
+import { ServiceShared } from './shared';
+
 /**
  * For information on the API specification have a look at our swagger files
  * located at http://localhost:5000/swagger/ when running the daemon
@@ -160,7 +162,7 @@ export class ApiService {
       .startWith(0)
       .switchMap(() =>
         this.http.get(`${this.currentApiUrl}/wallet/general-info`, new RequestOptions({ headers: this.headers, search: params }))
-                 .retryWhen(e => this.onRetryWhen(e)))
+                 .retryWhen(e => ServiceShared.onRetryWhen(e)))
       .map((response: Response) => response);
   }
   getGeneralInfoForCoin(data: WalletInfo, coin: string): Observable<any> {
@@ -188,7 +190,7 @@ export class ApiService {
       .interval(this.pollingInterval)
       .startWith(0)
       .switchMap(() => this.http.get(`${this.currentApiUrl}/wallet/balance`, new RequestOptions({ headers: this.headers, search: params }))
-                                .retryWhen(e => this.onRetryWhen(e)))
+                                .retryWhen(e => ServiceShared.onRetryWhen(e)))
       .map((response: Response) => response);
   }
   /**
@@ -272,22 +274,6 @@ export class ApiService {
     return this.http
       .post(`${this.currentApiUrl}/node/shutdown`, '')
       .map((response: Response) => response);
-  }
-
-  private onRetryWhen(errors) {
-    return errors.mergeMap((error: any) => {
-      const firstError = Error.getFirstError(error);
-      if (error.status  === 0) {
-        return Observable.of(error.status).delay(5000)
-      }
-      else if (error.status === 400 && !firstError.description) {
-        console.log("Retrying; MVC error.");
-        return Observable.of(error.status).delay(5000);
-      }
-      return Observable.throw(error);
-   })
-   .take(5)
-   .concat(Observable.throw(errors));
   }
 
 }
