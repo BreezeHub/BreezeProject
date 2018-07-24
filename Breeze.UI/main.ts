@@ -57,11 +57,9 @@ if (args.some(val => val === '--testnet' || val === '-testnet')) {
 
 //Set custom blockchain protocol ports
 if (args.some(val => val.indexOf("--bitcoinPort=") == 0 || val.indexOf("-bitcoinPort=") == 0)) {
-	let bitcoinPort : string;
 	bitcoinPort = args.filter(val => val.indexOf("--bitcoinPort=") == 0 || val.indexOf("-bitcoinPort=") == 0)[0].split("=")[1];
 }
 if (args.some(val => val.indexOf("--stratisPort=") == 0 || val.indexOf("-stratisPort=") == 0)) {
-	let stratisPort : string;
 	stratisPort = args.filter(val => val.indexOf("--stratisPort=") == 0 || val.indexOf("-stratisPort=") == 0)[0].split("=")[1];
 }
 
