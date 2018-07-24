@@ -101,17 +101,17 @@
                 <tr>
                   <td>Available</td>
                   <td>{{ confirmedBalance | coinNotation }} {{ coinUnit }}</td>
-                  <td>{{ (destinationConfirmedBalance | coinNotation) || "Select destination wallet" }}  {{ (!!destinationConfirmedBalance ? coinUnit : '') }}</td>
+                  <td>{{ (destinationConfirmedBalance | coinNotation) || "Select destination wallet" }}  {{ ((destinationConfirmedBalance != null) ? coinUnit : '') }}</td>
                 </tr>
                 <tr>
                   <td>Pending</td>
                   <td>{{ unconfirmedBalance | coinNotation }} {{ coinUnit }}</td>
-                  <td>{{ (destinationUnconfirmedBalance | coinNotation) || "Select destination wallet" }} {{ (!!destinationUnconfirmedBalance ? coinUnit : '') }}</td>
+                  <td>{{ (destinationUnconfirmedBalance | coinNotation) || "Select destination wallet" }} {{ ((destinationUnconfirmedBalance != null) ? coinUnit : '') }}</td>
                 </tr>
                 <tr class="total">
                   <td>Total</td>
                   <td>{{ totalBalance | coinNotation }} {{ coinUnit }}</td>
-                  <td>{{ (destinationTotalBalance | coinNotation) || "Select destination wallet" }} {{ (!!destinationTotalBalance ? coinUnit : '') }}</td>
+                  <td>{{ (destinationTotalBalance | coinNotation) || "Select destination wallet" }} {{ ((destinationTotalBalance != null) ? coinUnit : '') }}</td>
                 </tr>
               </tbody>
             </table>
