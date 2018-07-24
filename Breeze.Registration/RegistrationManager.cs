@@ -12,6 +12,7 @@ namespace Breeze.Registration
         public static readonly int MAX_PROTOCOL_VERSION = 128; // >128 = regard as test versions
         public static readonly int MIN_PROTOCOL_VERSION = 1;
         public static readonly int WINDOW_PERIOD_BLOCK_COUNT = 30;
+        public static readonly int REGISTRATION_MATURITY_BLOCK_COUNT = 10;
 
         private ILoggerFactory loggerFactory;
         private RegistrationStore registrationStore;
@@ -67,9 +68,9 @@ namespace Breeze.Registration
                             continue;
                         }
 
-                        var merkleBlock = new MerkleBlock(block, new[] { tx.GetHash() });
+                        var merkleBlock = new MerkleBlock(block, new[] {tx.GetHash()});
                         var registrationRecord = new RegistrationRecord(DateTime.Now, Guid.NewGuid(), tx.GetHash().ToString(), tx.ToHex(), registrationToken, merkleBlock.PartialMerkleTree, height);
-                            
+
                         // Ignore protocol versions outside the accepted bounds
                         if ((registrationRecord.Record.ProtocolVersion < MIN_PROTOCOL_VERSION) ||
                             (registrationRecord.Record.ProtocolVersion > MAX_PROTOCOL_VERSION))
@@ -95,60 +96,75 @@ namespace Breeze.Registration
                         this.logger.LogDebug("Failed to parse registration transaction, exception: " + e);
                     }
                 }
-
-                WatchOnlyWallet watchOnlyWallet = this.watchOnlyWalletManager.GetWatchOnlyWallet();
-                
-                // TODO: Need to have 'current height' field in watch-only wallet so that we don't start rebalancing collateral balances before the latest block has been processed & incorporated
-                
-                // Perform watch-only wallet housekeeping - iterate through known servers
-                foreach (RegistrationRecord record in this.registrationStore.GetAll())
-                {
-	                try
-	                {
-		                Script scriptToCheck = BitcoinAddress.Create(record.Record.ServerId, this.network).ScriptPubKey;
-
-		                this.logger.LogDebug("Recalculating collateral balance for server: " + record.Record.ServerId);
-
-		                if (!watchOnlyWallet.WatchedAddresses.ContainsKey(scriptToCheck.ToString()))
-		                {
-			                this.logger.LogDebug(
-				                "Server address missing from watch-only wallet. Deleting stored registrations for server: " +
-				                record.Record.ServerId);
-			                this.registrationStore.DeleteAllForServer(record.Record.ServerId);
-			                continue;
-		                }
-
-		                Money serverCollateralBalance =
-			                this.watchOnlyWalletManager.GetRelativeBalance(record.Record.ServerId);
-
-		                this.logger.LogDebug("Collateral balance for server " + record.Record.ServerId + " is " +
-		                                     serverCollateralBalance.ToString() + ", original registration height " +
-		                                     record.BlockReceived + ", current height " + height);
-
-		                if ((serverCollateralBalance < MASTERNODE_COLLATERAL_THRESHOLD) &&
-		                    ((height - record.BlockReceived) > WINDOW_PERIOD_BLOCK_COUNT))
-		                {
-			                // Remove server registrations as funding has not been performed timeously,
-			                // or funds have been removed from the collateral address subsequent to the
-			                // registration being performed
-			                this.logger.LogDebug("Insufficient collateral within window period for server: " + record.Record.ServerId);
-			                this.logger.LogDebug("Deleting registration records for server: " + record.Record.ServerId);
-			                this.registrationStore.DeleteAllForServer(record.Record.ServerId);
-
-			                // TODO: Remove unneeded transactions from the watch-only wallet?
-			                // TODO: Need to make the TumbleBitFeature change its server address if this is the address it was using
-		                }
-	                }
-	                catch (Exception e)
-	                {
-		                this.logger.LogError("Error calculating server collateral balance: " + e);
-					}
-                }
-
-                this.logger.LogTrace("SaveWatchOnlyWallet");
-
-                this.watchOnlyWalletManager.SaveWatchOnlyWallet();
             }
+
+            WatchOnlyWallet watchOnlyWallet = this.watchOnlyWalletManager.GetWatchOnlyWallet();
+
+            // TODO: Need to have 'current height' field in watch-only wallet so that we don't start rebalancing collateral balances before the latest block has been processed & incorporated
+
+            // Perform watch-only wallet housekeeping - iterate through known servers
+            foreach (RegistrationRecord record in this.registrationStore.GetAll())
+            {
+                try
+                {
+                    Script scriptToCheck = BitcoinAddress.Create(record.Record.ServerId, this.network).ScriptPubKey;
+
+                    this.logger.LogDebug("Recalculating collateral balance for server: " + record.Record.ServerId);
+
+                    if (!watchOnlyWallet.WatchedAddresses.ContainsKey(scriptToCheck.ToString()))
+                    {
+                        this.logger.LogDebug(
+                            "Server address missing from watch-only wallet. Deleting stored registrations for server: " +
+                            record.Record.ServerId);
+                        this.registrationStore.DeleteAllForServer(record.Record.ServerId);
+                        continue;
+                    }
+
+                    Money serverCollateralBalance =
+                        this.watchOnlyWalletManager.GetRelativeBalance(record.Record.ServerId);
+
+                    this.logger.LogDebug("Collateral balance for server " + record.Record.ServerId + " is " +
+                                         serverCollateralBalance.ToString() + ", original registration height " +
+                                         record.BlockReceived + ", current height " + height);
+
+                    if ((serverCollateralBalance < MASTERNODE_COLLATERAL_THRESHOLD) &&
+                        ((height - record.BlockReceived) > WINDOW_PERIOD_BLOCK_COUNT))
+                    {
+                        // Remove server registrations as funding has not been performed timeously,
+                        // or funds have been removed from the collateral address subsequent to the
+                        // registration being performed
+                        this.logger.LogDebug("Insufficient collateral within window period for server: " + record.Record.ServerId);
+                        this.logger.LogDebug("Deleting registration records for server: " + record.Record.ServerId);
+                        this.registrationStore.DeleteAllForServer(record.Record.ServerId);
+
+                        // TODO: Remove unneeded transactions from the watch-only wallet?
+                        // TODO: Need to make the TumbleBitFeature change its server address if this is the address it was using
+                    }
+
+                    //Check if the registration transaction has enough confirmations.
+                    if (!record.RegistrationMature && record.BlockReceived + REGISTRATION_MATURITY_BLOCK_COUNT <= height)
+                    {
+                        record.RegistrationMature = true;
+                        this.registrationStore.AddWithReplace(record);
+                        this.logger.LogInformation($"Sufficient number of confirmations have been received for registration {record.Record.ServerId}.");
+                    }
+                    else if (record.RegistrationMature && record.BlockReceived + REGISTRATION_MATURITY_BLOCK_COUNT > height)
+                    {
+                        record.RegistrationMature = false;
+                        this.registrationStore.AddWithReplace(record);
+                        this.logger.LogInformation(
+                            $"New registration {record.Record.ServerId} doesn't have enough confirmations. Another {record.BlockReceived + REGISTRATION_MATURITY_BLOCK_COUNT - height} are required.");
+                    }
+                }
+                catch (Exception e)
+                {
+                    this.logger.LogError("Error calculating server collateral balance: " + e);
+                }
+            }
+
+            this.logger.LogTrace("SaveWatchOnlyWallet");
+
+            this.watchOnlyWalletManager.SaveWatchOnlyWallet();
 
             this.logger.LogTrace("(-)");
         }

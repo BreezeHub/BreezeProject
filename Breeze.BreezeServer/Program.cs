@@ -115,6 +115,10 @@ namespace Breeze.BreezeServer
             }
 
             logger.LogInformation("{Time} Starting Tumblebit server", DateTime.Now);
+            
+            //The TimeStep flag could be set to true when the Stratis network is instantiated.
+            //We need to set it to false here to ensure compatibility with the Bitcoin protocol.
+            Transaction.TimeStamp = false;
 
             var tumbler = serviceProvider.GetService<ITumblerService>();
             
