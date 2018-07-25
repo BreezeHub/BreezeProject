@@ -202,5 +202,33 @@ namespace Breeze.BreezeServer
 
             return sendTx;
         }
+
+        public bool VerifyCollateral(BreezeConfiguration config, out Money missingFunds)
+        {
+            Network network = Network.StratisMain;
+            if (config.TumblerNetwork == Network.TestNet || config.TumblerNetwork == Network.RegTest)
+            {
+                network = Network.StratisTest;
+            }
+
+            var stratisHelper = new RPCHelper(network);
+            var stratisRpc = stratisHelper.GetClient(config.RpcUser, config.RpcPassword, config.RpcUrl);
+
+            RPCResponse listAddressGroupings = stratisRpc.SendCommand("listaddressgroupings");
+            var t = listAddressGroupings.Result;
+
+            decimal collateralBalance = (from p in t
+                from e in p
+                where e.First.Value<String>() == config.TumblerEcdsaKeyAddress
+                select e.ElementAt(1).Value<decimal>()).First();
+
+            missingFunds = RegistrationParameters.MASTERNODE_COLLATERAL_THRESHOLD - new Money(collateralBalance, MoneyUnit.BTC);
+            if (missingFunds <= 0)
+            {
+                missingFunds = new Money(0m, MoneyUnit.BTC);
+                return true;
+            }
+            return false;
+        }
     }
 }
