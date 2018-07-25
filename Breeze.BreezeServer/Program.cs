@@ -115,10 +115,21 @@ namespace Breeze.BreezeServer
                 logger.LogInformation("{Time} Node registration has already been performed", DateTime.Now);
             }
 
+            // Perform collateral balance check and report the result
+            Money collateralShortfall;
+            if (registration.VerifyCollateral(config, out collateralShortfall))
+            {
+                logger.LogInformation($"{{Time}} The collateral address {config.TumblerEcdsaKeyAddress} has sufficient funds.", DateTime.Now);
+            }
+            else
+            {
+                logger.LogWarning($"{{Time}} The collateral address {config.TumblerEcdsaKeyAddress} doesn't have enough funds. Collateral requirement is {RegistrationParameters.MASTERNODE_COLLATERAL_THRESHOLD} but only {collateralShortfall} is available at the collateral address. This is expected if you have only just run the masternode for the first time. Please send funds to the collateral address no later than {RegistrationParameters.WINDOW_PERIOD_BLOCK_COUNT} blocks after the registration transaction.", DateTime.Now);
+            }
+
             logger.LogInformation("{Time} Starting Tumblebit server", DateTime.Now);
 
-            //The TimeStep and BlockSignature flags could be set to true when the Stratis network is instantiated.
-            //We need to set it to false here to ensure compatibility with the Bitcoin protocol.
+            // The TimeStamp and BlockSignature flags could be set to true when the Stratis network is instantiated.
+            // We need to set it to false here to ensure compatibility with the Bitcoin protocol.
             Transaction.TimeStamp = false;
             Block.BlockSignature = false;
 

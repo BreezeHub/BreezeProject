@@ -8,12 +8,6 @@ namespace Breeze.Registration
 {
     public class RegistrationManager : IRegistrationManager
     {
-        public static readonly Money MASTERNODE_COLLATERAL_THRESHOLD = new Money(5, MoneyUnit.BTC);
-        public static readonly int MAX_PROTOCOL_VERSION = 128; // >128 = regard as test versions
-        public static readonly int MIN_PROTOCOL_VERSION = 1;
-        public static readonly int WINDOW_PERIOD_BLOCK_COUNT = 30;
-        public static readonly int REGISTRATION_MATURITY_BLOCK_COUNT = 10;
-
         private ILoggerFactory loggerFactory;
         private RegistrationStore registrationStore;
         private Network network;
@@ -72,8 +66,8 @@ namespace Breeze.Registration
                         var registrationRecord = new RegistrationRecord(DateTime.Now, Guid.NewGuid(), tx.GetHash().ToString(), tx.ToHex(), registrationToken, merkleBlock.PartialMerkleTree, height);
 
                         // Ignore protocol versions outside the accepted bounds
-                        if ((registrationRecord.Record.ProtocolVersion < MIN_PROTOCOL_VERSION) ||
-                            (registrationRecord.Record.ProtocolVersion > MAX_PROTOCOL_VERSION))
+                        if ((registrationRecord.Record.ProtocolVersion < RegistrationParameters.MIN_PROTOCOL_VERSION) ||
+                            (registrationRecord.Record.ProtocolVersion > RegistrationParameters.MAX_PROTOCOL_VERSION))
                         {
                             this.logger.LogDebug("Registration protocol version out of bounds " + tx.GetHash());
                             continue;
@@ -127,8 +121,8 @@ namespace Breeze.Registration
                                          serverCollateralBalance.ToString() + ", original registration height " +
                                          record.BlockReceived + ", current height " + height);
 
-                    if ((serverCollateralBalance < MASTERNODE_COLLATERAL_THRESHOLD) &&
-                        ((height - record.BlockReceived) > WINDOW_PERIOD_BLOCK_COUNT))
+                    if ((serverCollateralBalance < RegistrationParameters.MASTERNODE_COLLATERAL_THRESHOLD) &&
+                        ((height - record.BlockReceived) > RegistrationParameters.WINDOW_PERIOD_BLOCK_COUNT))
                     {
                         // Remove server registrations as funding has not been performed timeously,
                         // or funds have been removed from the collateral address subsequent to the
@@ -142,18 +136,18 @@ namespace Breeze.Registration
                     }
 
                     //Check if the registration transaction has enough confirmations.
-                    if (!record.RegistrationMature && record.BlockReceived + REGISTRATION_MATURITY_BLOCK_COUNT <= height)
+                    if (!record.RegistrationMature && record.BlockReceived + RegistrationParameters.WINDOW_PERIOD_BLOCK_COUNT + RegistrationParameters.REGISTRATION_MATURITY_BLOCK_COUNT < height)
                     {
                         record.RegistrationMature = true;
                         this.registrationStore.AddWithReplace(record);
-                        this.logger.LogInformation($"Sufficient number of confirmations have been received for registration {record.Record.ServerId}.");
+                        this.logger.LogInformation($"Sufficient number of confirmations and collateral have been received for registration {record.Record.ServerId}.");
                     }
-                    else if (record.RegistrationMature && record.BlockReceived + REGISTRATION_MATURITY_BLOCK_COUNT > height)
+                    else if (record.RegistrationMature && record.BlockReceived + RegistrationParameters.WINDOW_PERIOD_BLOCK_COUNT + RegistrationParameters.REGISTRATION_MATURITY_BLOCK_COUNT >= height)
                     {
                         record.RegistrationMature = false;
                         this.registrationStore.AddWithReplace(record);
                         this.logger.LogInformation(
-                            $"New registration {record.Record.ServerId} doesn't have enough confirmations. Another {record.BlockReceived + REGISTRATION_MATURITY_BLOCK_COUNT - height} are required.");
+                            $"New registration {record.Record.ServerId} doesn't have enough confirmations or collateral. Another {record.BlockReceived + RegistrationParameters.WINDOW_PERIOD_BLOCK_COUNT + RegistrationParameters.REGISTRATION_MATURITY_BLOCK_COUNT - height} confrmations or collateral is required.");
                     }
                 }
                 catch (Exception e)
