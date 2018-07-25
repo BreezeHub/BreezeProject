@@ -142,18 +142,18 @@ namespace Breeze.Registration
                     }
 
                     //Check if the registration transaction has enough confirmations.
-                    if (!record.RegistrationMature && record.BlockReceived + REGISTRATION_MATURITY_BLOCK_COUNT <= height)
+                    if (!record.RegistrationMature && record.BlockReceived + WINDOW_PERIOD_BLOCK_COUNT + REGISTRATION_MATURITY_BLOCK_COUNT < height)
                     {
                         record.RegistrationMature = true;
                         this.registrationStore.AddWithReplace(record);
-                        this.logger.LogInformation($"Sufficient number of confirmations have been received for registration {record.Record.ServerId}.");
+                        this.logger.LogInformation($"Sufficient number of confirmations and collateral have been received for registration {record.Record.ServerId}.");
                     }
-                    else if (record.RegistrationMature && record.BlockReceived + REGISTRATION_MATURITY_BLOCK_COUNT > height)
+                    else if (record.RegistrationMature && record.BlockReceived + WINDOW_PERIOD_BLOCK_COUNT + REGISTRATION_MATURITY_BLOCK_COUNT >= height)
                     {
                         record.RegistrationMature = false;
                         this.registrationStore.AddWithReplace(record);
                         this.logger.LogInformation(
-                            $"New registration {record.Record.ServerId} doesn't have enough confirmations. Another {record.BlockReceived + REGISTRATION_MATURITY_BLOCK_COUNT - height} are required.");
+                            $"New registration {record.Record.ServerId} doesn't have enough confirmations or collateral. Another {record.BlockReceived + WINDOW_PERIOD_BLOCK_COUNT + REGISTRATION_MATURITY_BLOCK_COUNT - height} confrmations or collateral is required.");
                     }
                 }
                 catch (Exception e)
