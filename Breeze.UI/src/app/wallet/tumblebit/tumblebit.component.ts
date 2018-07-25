@@ -467,8 +467,8 @@ export class TumblebitComponent implements OnDestroy {
                     cycleStatus,
                     cyclePhase,
                     cyclePhaseNumber, 
-                    cycle.ShouldStayConnected);
-
+                    cycle.shouldStayConnected);
+                    
                   this.progressDataArray.push(item);
                   
                 this.progressDataArray.sort(function(cycle1, cycle2) {
