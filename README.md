@@ -10,7 +10,7 @@
 [6]: https://travis-ci.org/BreezeHub/BreezeProject
 
 
-# Breeze Wallet with Breeze Privacy Protocol
+# Breeze Wallet with NTumbleBit Privacy Protocol
 
 __Warning: This is an experimental build. At the moment, only bitcoin on testnet is supported but more is coming soon. Use at your own risk.__
 This is the repository of the Breeze Wallet, the first full-block SPV bitcoin wallet using Angular and Electron at the front-end and C# with .NET Core in the back-end.
@@ -23,27 +23,28 @@ Breeze daemon is the backend REST service, hosting a Bitcoin node upon which Bre
 
 ```
 # Clone and go in the directory
-git clone https://github.com/breezehub/BreezeProject
-cd Breeze
-
-# Initialize dependencies
-git submodule update --init --recursive
+mkdir C:\Opt
+cd C:\Opt
+git clone https://github.com/breezehub/BreezeProject --recursive
 
 # Go in the Breeze deamon folder
-cd Breeze/src/Breeze.Daemon
-dotnet build
+cd C:\Opt\BreezeProject\Breeze\src\Breeze.Daemon
 
 # Run the Bitcoin and Stratis light daemons on testnet in separate terminals
-dotnet run -- light registration -testnet -tumblebit -storedir=C:\Users\<username>\AppData\Roaming\StratisNode\stratis\StratisTest\registrationHistory.json
-dotnet run -- light stratis registration -testnet -addnode=13.64.76.48 -addnode=51.141.51.129 -addnode=98.229.142.125
+dotnet run -- -testnet -light -registration -tumblebit
+dotnet run -- -testnet -light -registration -stratis -addnode=13.64.76.48 -addnode=51.141.51.129 -addnode=98.229.142.125
+
+# Run Breeze GUI
+cd C:\Opt\BreezeProject\Breeze.UI
+
+# Install dependencies
+npm install
+
+# Start the Breeze GUI using testnet network
+npm start -- -testnet
 ```
 
-## UI Build
-
-[Read more...](https://github.com/stratisproject/Breeze/blob/master/Breeze.UI/README.md)
-
 ## CI Build
------------
 
 We use [AppVeyor](https://www.appveyor.com/) for Windows CI builds and [Travis CI](https://travis-ci.org/) (coming soon) for our Linux and MacOS ones.
 Every time someone pushes to the master branch or create a pull request on it, a build is triggered and a new unstable app release is created.
@@ -54,9 +55,9 @@ If you want the :sparkles: latest :sparkles: (unstable :bomb:) version of the Br
 
 https://github.com/BreezeHub/BreezeProject/releases
 
-This is early release, alpha software, is provided for experiment, testing and development purposes and should only be used on **testnet**.
+## For **testnet** only.
 
-For **testnet** only.
+This is early release, alpha software, is provided for experiment, testing and development purposes and should only be used on **testnet**.
 
 In the case you heed all warnings and choose to run the Mainnet software, be aware that we are still facing an issue where funds get locked in Escrow. It is possible but complicated to manually return funds. Still, beware that you are likely to lose funds.
 
@@ -68,5 +69,3 @@ In the case you heed all warnings and choose to run the Mainnet software, be awa
 [12]: https://github.com/breezehub/BreezeProject/releases/download/cd-unstable/breeze-ubuntu.14.04-x64-Release.zip
 [13]: https://github.com/breezehub/BreezeProject/releases/download/cd-unstable/breeze-osx.10.11-x64-Release.zip
 [14]: https://github.com/breezehub/BreezeProject/releases/download/cd-unstable/breeze-osx.10.12-x64-Release.zip
-
-With TumbleBit

@@ -103,7 +103,8 @@ namespace Breeze.BreezeServer
                 try
                 {
                     // Assume that if it parses it's valid
-                    Ipv4Address = IPAddress.Parse(configFile.GetOrDefault<string>("breeze.ipv4", NTumbleBit.Utils.GetInternetConnectedAddress().ToString()));
+                    string defaultAddress = this.UseTor ? null : NTumbleBit.Utils.GetInternetConnectedAddress().ToString();
+                    Ipv4Address = IPAddress.Parse(configFile.GetOrDefault<string>("breeze.ipv4", defaultAddress));
                 }
                 catch (Exception)
                 {

@@ -18,6 +18,7 @@ namespace Breeze.BreezeServer
             var comparer = new CommandlineArgumentComparer();
             var isRegTest = args.Contains("regtest", comparer);
             var isTestNet = args.Contains("testnet", comparer);
+            var forceRegistration = args.Contains("forceRegistration", comparer);
 
             var useTor = !args.Contains("noTor", comparer);
 
@@ -99,7 +100,7 @@ namespace Breeze.BreezeServer
 
             BreezeRegistration registration = new BreezeRegistration();
 
-            if (!registration.CheckBreezeRegistration(config, regStorePath, configurationHash, onionAddress, tumblerKey)) {
+            if (forceRegistration || !registration.CheckBreezeRegistration(config, regStorePath, configurationHash, onionAddress, tumblerKey)) {
                 logger.LogInformation("{Time} Creating or updating node registration", DateTime.Now);
                 var regTx = registration.PerformBreezeRegistration(config, regStorePath, configurationHash, onionAddress, tumblerKey);
                 if (regTx != null) {
@@ -115,10 +116,11 @@ namespace Breeze.BreezeServer
             }
 
             logger.LogInformation("{Time} Starting Tumblebit server", DateTime.Now);
-            
-            //The TimeStep flag could be set to true when the Stratis network is instantiated.
+
+            //The TimeStep and BlockSignature flags could be set to true when the Stratis network is instantiated.
             //We need to set it to false here to ensure compatibility with the Bitcoin protocol.
             Transaction.TimeStamp = false;
+            Block.BlockSignature = false;
 
             var tumbler = serviceProvider.GetService<ITumblerService>();
             
