@@ -185,7 +185,7 @@ namespace NTumbleBit.ClassicTumbler.Server
 			Tracker = new Tracker(DBreezeRepository, Network);
 
 		    // 1% fee by default (desired value should be set in configuration anyway)
-		    var defaultFee = Money.Satoshis((decimal)ClassicTumblerParameters.Denomination.Satoshi * 0.01m);
+		    var defaultFee = new Money(0.00075m, MoneyUnit.BTC);
 		    ClassicTumblerParameters.Fee = config.GetOrDefault<Money>("tumbler.fee", defaultFee);
 
 			TumblerProtocol = config.GetOrDefault<TumblerProtocolType>("tumbler.protocol", TumblerProtocolType.Tcp);
@@ -246,7 +246,7 @@ namespace NTumbleBit.ClassicTumbler.Server
 
 				builder.AppendLine("####Tumbler settings####");
 				builder.AppendLine("## The fees in BTC");
-				builder.AppendLine("#tumbler.fee=0.001");
+				builder.AppendLine("#tumbler.fee=0.00075");
 				builder.AppendLine("## The cycle used can be one of: " + string.Join(",", new StandardCycles(Network).ToEnumerable().Select(c => c.FriendlyName)));
 				builder.AppendLine("#cycle=shorty2x");
 				builder.AppendLine("#tumbler.protocol=tcp");

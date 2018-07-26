@@ -116,7 +116,7 @@ namespace NTumbleBit.ClassicTumbler
 			{
 				FriendlyName = "Kotori",
 				Consensus = consensus,
-				Denomination = Money.Coins(0.001m),
+				Denomination = Money.Coins(0.02m),
 				Generator = new OverlappedCycleGenerator()
 				{
 					RegistrationOverlap = 1,
