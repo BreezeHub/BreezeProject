@@ -225,8 +225,8 @@ namespace NTumbleBit.ClassicTumbler
                 this.RealPuzzleCount == 15 &&
                 this.RealTransactionCount == 42 &&
                 this.FakeTransactionCount == 42 &&
-                this.Denomination == new Money(0.01m, MoneyUnit.BTC) &&
-                this.Fee == new Money(0.0001m, MoneyUnit.BTC) &&
+                this.Denomination == new Money(0.02m, MoneyUnit.BTC) &&
+                this.Fee == new Money(0.00075m, MoneyUnit.BTC) &&
                 this.FakeFormat == new uint256(Enumerable.Range(0, 32).Select(o => o == 0 ? (byte) 0 : (byte) 1).ToArray());
         }
 
