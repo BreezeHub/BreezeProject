@@ -305,6 +305,13 @@ namespace Breeze.TumbleBit.Client
                 // This is overwritten by the tumble method, but it is needed at the beginning of that method for the balance check
                 this.TumblerParameters = rt.TumblerParameters;
 
+                //Check if the Server parameters are standard and do not connect if the parameters are non-standard
+                if (!rt.TumblerParameters.IsStandard())
+                {
+                    this.logger.LogDebug($"Refusing to connect to the non-standard MasterNode {this.TumblerAddress}");
+                    return Result.Fail<ClassicTumblerParameters>($"Cannot connect to the MasterNode server {this.TumblerAddress} because its parameters are non-standard.", PostResultActionType.CanContinue);
+                }
+
                 return Result.Ok(rt.TumblerParameters);
             }
             catch (PrivacyProtocolConfigException e)
