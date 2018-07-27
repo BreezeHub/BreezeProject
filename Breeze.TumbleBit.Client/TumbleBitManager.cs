@@ -69,10 +69,10 @@ namespace Breeze.TumbleBit.Client
         public string TumblerDisplayAddress { get; private set; } = null;
         public RegistrationStore RegistrationStore { get; private set; }
         public bool UseTor { get; set; } = true;
-	    public bool UseDummyAddress { get; set; } = true;
-	    public TumblerProtocolType TumblerProtocol { get; set; } = TumblerProtocolType.Tcp;
+        public bool UseDummyAddress { get; set; } = true;
+        public TumblerProtocolType TumblerProtocol { get; set; } = TumblerProtocolType.Tcp;
 
-	    public TumbleBitManager(
+        public TumbleBitManager(
             ILoggerFactory loggerFactory,
             NodeSettings nodeSettings,
             IWalletManager walletManager,
@@ -115,26 +115,26 @@ namespace Breeze.TumbleBit.Client
                         this.RegistrationStore = new RegistrationStore(this.nodeSettings.DataDir);
                     }
                 }
-	            else if (option.Name.Equals("MasterNodeUri"))
-	            {
-		            if (option.Value != null)
-		            {
-			            this.TumblerAddress = (string)option.Value;
-		            }
-	            }
-				else if (option.Name.Equals("Tor"))
+                else if (option.Name.Equals("MasterNodeUri"))
                 {
-	                UseTor = (bool) option.Value;
+                    if (option.Value != null)
+                    {
+                        this.TumblerAddress = (string)option.Value;
+                    }
+                }
+                else if (option.Name.Equals("Tor"))
+                {
+                    UseTor = (bool)option.Value;
                 }
                 else if (option.Name.Equals("TumblerProtocol"))
                 {
-	                TumblerProtocol = (TumblerProtocolType)option.Value;
-				}
-				else if (option.Name.Equals("UseDummyAddress"))
-                {
-	                UseDummyAddress = (bool)option.Value;
+                    TumblerProtocol = (TumblerProtocolType)option.Value;
                 }
-			}
+                else if (option.Name.Equals("UseDummyAddress"))
+                {
+                    UseDummyAddress = (bool)option.Value;
+                }
+            }
 
             this.TumblingState = new TumblingState(
                 this.loggerFactory,
@@ -177,10 +177,10 @@ namespace Breeze.TumbleBit.Client
         /// <inheritdoc />
         public async Task<Result<ClassicTumblerParameters>> ConnectToTumblerAsync(HashSet<string> masternodeBlacklist = null)
         {
-			// Assumptions about the current state coming into this method:
-			// - If this is a first connection, this.TumblerAddress will be null
-			// - If we were previously connected to a server, its URI would have been stored in the
-			//   tumbling_state.json, and will have been loaded into this.TumblerAddress already
+            // Assumptions about the current state coming into this method:
+            // - If this is a first connection, this.TumblerAddress will be null
+            // - If we were previously connected to a server, its URI would have been stored in the
+            //   tumbling_state.json, and will have been loaded into this.TumblerAddress already
             List<RegistrationRecord> registrations = this.GetValidRegistrations();
 
             if (this.TumblerAddress == null)
@@ -196,10 +196,10 @@ namespace Breeze.TumbleBit.Client
                 // Since the list is shuffled, we can simply iterate through it and try each server until one is valid & reachable.
                 foreach (RegistrationRecord record in registrations)
                 {
-					if (record.Record.IsDummyAddress)
-						this.TumblerAddress = $"ctb://{record.Record.Ipv4Addr}:{record.Record.Port}?h={record.Record.ConfigurationHash}";
-					else
-						this.TumblerAddress = $"ctb://{record.Record.OnionAddress}.onion?h={record.Record.ConfigurationHash}";
+                    if (record.Record.IsDummyAddress)
+                        this.TumblerAddress = $"ctb://{record.Record.Ipv4Addr}:{record.Record.Port}?h={record.Record.ConfigurationHash}";
+                    else
+                        this.TumblerAddress = $"ctb://{record.Record.OnionAddress}.onion?h={record.Record.ConfigurationHash}";
 
                     //Do not attempt a connection to the Masternode which is blacklisted
                     if (masternodeBlacklist != null && masternodeBlacklist.Contains(this.TumblerAddress))
@@ -208,14 +208,14 @@ namespace Breeze.TumbleBit.Client
                         continue;
                     }
 
-	                //Overwrite tumbler address for regtest to indicate to the user that it it not a legimimate masternode
-	                if (record.Record.IsDummyAddress && UseDummyAddress)
-		                this.TumblerDisplayAddress = $"ctb://{record.Record.OnionAddress}.dummy?h={record.Record.ConfigurationHash}";
-	                else
-		                this.TumblerDisplayAddress = this.TumblerAddress;
+                    //Overwrite tumbler address for regtest to indicate to the user that it it not a legimimate masternode
+                    if (record.Record.IsDummyAddress && UseDummyAddress)
+                        this.TumblerDisplayAddress = $"ctb://{record.Record.OnionAddress}.dummy?h={record.Record.ConfigurationHash}";
+                    else
+                        this.TumblerDisplayAddress = this.TumblerAddress;
 
-					var tumblerParameterResult = await TryUseServer();
-					if (tumblerParameterResult.Success)
+                    var tumblerParameterResult = await TryUseServer();
+                    if (tumblerParameterResult.Success)
                     {
                         return tumblerParameterResult;
                     }
@@ -229,23 +229,23 @@ namespace Breeze.TumbleBit.Client
                 return Result.Fail<ClassicTumblerParameters>("Did not find a valid registration", PostResultActionType.ShouldStop);
             }
             else
-			{
-				Result<ClassicTumblerParameters> tumblerParameterResult = await TryUseServer();
-				Uri tumblerAddressUri = new Uri(this.TumblerAddress);
+            {
+                Result<ClassicTumblerParameters> tumblerParameterResult = await TryUseServer();
+                Uri tumblerAddressUri = new Uri(this.TumblerAddress);
 
-				RegistrationRecord record = registrations.FirstOrDefault(r => r.Record.Ipv4Addr != null && r.Record.Ipv4Addr.ToString() == tumblerAddressUri.DnsSafeHost);
-			    if (record != null)
-			    {
-			        //Overwrite tumbler address for regtest to indicate to the user that it it not a legimimate masternode
-			        if (record.Record.IsDummyAddress && UseDummyAddress)
-			            this.TumblerDisplayAddress = $"ctb://{record.Record.OnionAddress}.dummy?h={record.Record.ConfigurationHash}";
-			        else
-			            this.TumblerDisplayAddress = this.TumblerAddress;
+                RegistrationRecord record = registrations.FirstOrDefault(r => r.Record.Ipv4Addr != null && r.Record.Ipv4Addr.ToString() == tumblerAddressUri.DnsSafeHost);
+                if (record != null)
+                {
+                    //Overwrite tumbler address for regtest to indicate to the user that it it not a legimimate masternode
+                    if (record.Record.IsDummyAddress && UseDummyAddress)
+                        this.TumblerDisplayAddress = $"ctb://{record.Record.OnionAddress}.dummy?h={record.Record.ConfigurationHash}";
+                    else
+                        this.TumblerDisplayAddress = this.TumblerAddress;
                 }
 
                 tumblerParameterResult = await TryUseServer();
-	            
-				if (tumblerParameterResult.Success)
+
+                if (tumblerParameterResult.Success)
                     return tumblerParameterResult;
 
                 // Blacklist masternode address which we have just failed to connect to so that
@@ -304,6 +304,13 @@ namespace Breeze.TumbleBit.Client
 
                 // This is overwritten by the tumble method, but it is needed at the beginning of that method for the balance check
                 this.TumblerParameters = rt.TumblerParameters;
+
+                //Check if the Server parameters are standard and do not connect if the parameters are non-standard
+                if (!rt.TumblerParameters.IsStandard())
+                {
+                    this.logger.LogDebug($"Refusing to connect to the non-standard MasterNode {this.TumblerAddress}");
+                    return Result.Fail<ClassicTumblerParameters>($"Cannot connect to the MasterNode server {this.TumblerAddress} because its parameters are non-standard.", PostResultActionType.CanContinue);
+                }
 
                 return Result.Ok(rt.TumblerParameters);
             }
@@ -660,26 +667,26 @@ namespace Breeze.TumbleBit.Client
             if (TumblerParameters == null)
                 return string.Empty;
 
-			/* Tumbling cycles occur up to 117 blocks (cycleDuration) and overlap every 24 blocks (cycleOverlap) :-
+            /* Tumbling cycles occur up to 117 blocks (cycleDuration) and overlap every 24 blocks (cycleOverlap) :-
 
-                Start block	End block
+                Start block    End block
                 ----------- ---------
-                0	        117
-                24	        141
-                48	        165
+                0            117
+                24            141
+                48            165
              */
-			const int cycleDuration = 117;
+            const int cycleDuration = 117;
             const int cycleOverlap = 24;
 
-	        Money walletBalance = this.runtime.Services.WalletService.GetBalance(originWalletName);
-	        FeeRate networkFeeRate = this.runtime.Services.FeeService.GetFeeRateAsync().GetAwaiter().GetResult();
+            Money walletBalance = this.runtime.Services.WalletService.GetBalance(originWalletName);
+            FeeRate networkFeeRate = this.runtime.Services.FeeService.GetFeeRateAsync().GetAwaiter().GetResult();
 
-			if (!this.HasEnoughFundsForCycle(true, originWalletName))
-		        return TimeSpanInWordFormat(0);
+            if (!this.HasEnoughFundsForCycle(true, originWalletName))
+                return TimeSpanInWordFormat(0);
 
-			var demonination = TumblerParameters.Denomination;
+            var demonination = TumblerParameters.Denomination;
             var tumblerFee = TumblerParameters.Fee;
-	        var networkFee = networkFeeRate.GetFee(TumblerClientRuntime.AverageClientEscrowTransactionSizeInBytes);
+            var networkFee = networkFeeRate.GetFee(TumblerClientRuntime.AverageClientEscrowTransactionSizeInBytes);
 
             var cycleCost = demonination + tumblerFee + networkFee;
 
@@ -690,15 +697,15 @@ namespace Breeze.TumbleBit.Client
             return TimeSpanInWordFormat(durationInHours);
         }
 
-	    public bool HasEnoughFundsForCycle(bool firstCycle, string originWalletName)
-	    {
-			Money walletBalance = this.runtime.Services.WalletService.GetBalance(originWalletName);
-		    FeeRate networkFeeRate = this.runtime.Services.FeeService.GetFeeRateAsync().GetAwaiter().GetResult();
+        public bool HasEnoughFundsForCycle(bool firstCycle, string originWalletName)
+        {
+            Money walletBalance = this.runtime.Services.WalletService.GetBalance(originWalletName);
+            FeeRate networkFeeRate = this.runtime.Services.FeeService.GetFeeRateAsync().GetAwaiter().GetResult();
 
-		    return TumblerClientRuntime.HasEnoughFundsForCycle(firstCycle, walletBalance, networkFeeRate, TumblerParameters.Denomination, TumblerParameters.Fee);
-	    }
+            return TumblerClientRuntime.HasEnoughFundsForCycle(firstCycle, walletBalance, networkFeeRate, TumblerParameters.Denomination, TumblerParameters.Fee);
+        }
 
-		public void Dispose()
+        public void Dispose()
         {
             if (this.broadcasterJob != null && this.broadcasterJob.Started)
             {
@@ -732,8 +739,8 @@ namespace Breeze.TumbleBit.Client
 
         private static string TimeSpanInWordFormat(decimal fromHours)
         {
-	        if (fromHours == 0)
-		        return "N/A";
+            if (fromHours == 0)
+                return "N/A";
 
             var timeSpan = TimeSpan.FromHours((double)fromHours);
 
