@@ -6,6 +6,7 @@ using NTumbleBit.PuzzlePromise;
 using NTumbleBit.PuzzleSolver;
 using NTumbleBit.Services;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace NTumbleBit.ClassicTumbler.Client
@@ -575,35 +576,43 @@ namespace NTumbleBit.ClassicTumbler.Client
 
         public bool ShouldStayConnected()
         {
-            if (ClientChannelNegotiation == null)
-                return false;
-
-            var cycle = ClientChannelNegotiation.GetCycle();
-
-            if (
-                // You get the solution of the puzzle
-                Status == PaymentStateMachineStatus.PuzzleSolutionObtained &&
-                // But have not yet cashed out
-                !IsConfirmed(cycle, TransactionType.TumblerCashout))
+            try
             {
-                return true;
+                if (ClientChannelNegotiation == null)
+                    return false;
+
+                var cycle = ClientChannelNegotiation.GetCycle();
+
+                if (
+                    // You get the solution of the puzzle
+                    Status == PaymentStateMachineStatus.PuzzleSolutionObtained &&
+                    // But have not yet cashed out
+                    !IsConfirmed(cycle, TransactionType.TumblerCashout))
+                {
+                    return true;
+                }
+
+                if (
+                    // You do not have the solution
+                    Status == PaymentStateMachineStatus.UncooperativeTumbler &&
+                    // But have not yet redeemed or cashed out
+                    !(IsConfirmed(cycle, TransactionType.ClientRedeem) || IsConfirmed(cycle, TransactionType.ClientOfferRedeem) || IsConfirmed(cycle, TransactionType.TumblerCashout)))
+                {
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                Logs.Tumbler.LogWarning($"Exception while checking wheather the wallet should stay connected: {ex.Message}", ex);
             }
 
-            if (
-                // You do not have the solution
-                Status == PaymentStateMachineStatus.UncooperativeTumbler &&
-                // But have not yet redeemed or cashed out
-                !(IsConfirmed(cycle, TransactionType.ClientRedeem) || IsConfirmed(cycle, TransactionType.ClientOfferRedeem) || IsConfirmed(cycle, TransactionType.TumblerCashout)))
-            {
-                return true;
-            }
             return false;
         }
 
         private bool IsConfirmed(CycleParameters cycle, TransactionType transactionType)
         {
             foreach (var tx in Tracker.GetRecords(cycle.Start).Where(t => t.RecordType == RecordType.Transaction && t.TransactionType == transactionType))
-            {
+            { 
                 var txInfo = Services.BlockExplorerService.GetTransaction(tx.TransactionId, true);
                 if (txInfo != null && txInfo.Confirmations >= cycle.SafetyPeriodDuration)
                 {
@@ -612,7 +621,7 @@ namespace NTumbleBit.ClassicTumbler.Client
             }
             return false;
         }
-
+        
         private void CheckTumblerChannelSecured(CycleParameters cycle)
         {
             TransactionInformation tumblerTx = GetTransactionInformation(PromiseClientSession.EscrowedCoin, false);
