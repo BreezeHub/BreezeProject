@@ -16,7 +16,7 @@ namespace NTumbleBit.ClassicTumbler
 {
     public class ClassicTumblerParameters : IBitcoinSerializable
     {
-        const int LAST_VERSION = 1;
+        public const int LAST_VERSION = 1;
 
         public ClassicTumblerParameters()
         {
