@@ -187,10 +187,10 @@ namespace NTumbleBit.ClassicTumbler.Server
 		    // The worst case scenario is tumbler posting Puzzle which than fails and the tumbler has to get a refund.
 		    // This it(`T[Puzzle]`) 447B + (`T[Refund]` for (`T[Puzzle]`)) 651B = 1098B
 		    // Assuming the average transaction fee @ 50 sat / B we get: 1098B * 50 sat / B = 0.00054900 BTC just the network fees
-		    // For the denomination 0.02 BTC the 1 % fee would be 0.0002 BTC
-		    // Combining the network fees with 1 % fees for 0.02 BTC denomination gives us 0.00054900 BTC + 0.0002 BTC = 0.00074900 BTC ≈ 0.00075 BTC
-		    // The overall tumbler fee will work out to be 3.75 % of the denomination
-            var defaultFee = new Money(0.00075m, MoneyUnit.BTC);
+		    // For the denomination 0.1 BTC the 1 % fee would be 0.001 BTC
+		    // Combining the network fees with 1 % fees for 0.1 BTC denomination gives us 0.00054900 BTC + 0.001 BTC = 0.00154900 BTC ≈ 0.00155 BTC
+		    // The overall tumbler fee will work out to be 1.55 % of the denomination
+            var defaultFee = new Money(0.00155m, MoneyUnit.BTC);
 		    ClassicTumblerParameters.Fee = config.GetOrDefault<Money>("tumbler.fee", defaultFee);
 
 			TumblerProtocol = config.GetOrDefault<TumblerProtocolType>("tumbler.protocol", TumblerProtocolType.Tcp);
@@ -251,7 +251,7 @@ namespace NTumbleBit.ClassicTumbler.Server
 
 				builder.AppendLine("####Tumbler settings####");
 				builder.AppendLine("## The fees in BTC");
-				builder.AppendLine("#tumbler.fee=0.00075");
+				builder.AppendLine("#tumbler.fee=0.00155");
 				builder.AppendLine("## The cycle used can be one of: " + string.Join(",", new StandardCycles(Network).ToEnumerable().Select(c => c.FriendlyName)));
 				builder.AppendLine("#cycle=shorty2x");
 				builder.AppendLine("#tumbler.protocol=tcp");

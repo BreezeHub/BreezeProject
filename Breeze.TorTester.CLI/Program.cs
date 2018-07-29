@@ -107,7 +107,7 @@ namespace Breeze.TorTester.CLI
                 Console.WriteLine($"   - RealTransactionCount ({parameters.RealTransactionCount} =? {42}): {parameters.RealTransactionCount == 42}");
                 Console.WriteLine($"   - FakeTransactionCount ({parameters.FakeTransactionCount} =? {42}): {parameters.FakeTransactionCount == 42}");
                 Console.WriteLine($"   - Denomination ({parameters.Denomination} =? {new Money(0.1m, MoneyUnit.BTC)}): {parameters.Denomination == new Money(0.1m, MoneyUnit.BTC)}");
-                Console.WriteLine($"   - Fee ({parameters.Fee} =? {new Money(0.00075m, MoneyUnit.BTC)}): {parameters.Fee == new Money(0.00075m, MoneyUnit.BTC)}");
+                Console.WriteLine($"   - Fee ({parameters.Fee} =? {new Money(0.00155m, MoneyUnit.BTC)}): {parameters.Fee == new Money(0.00155m, MoneyUnit.BTC)}");
                 Console.WriteLine($"   - FakeFormat ({parameters.FakeFormat} =? {new uint256(Enumerable.Range(0, 32).Select(o => o == 0 ? (byte)0 : (byte)1).ToArray())}): {parameters.FakeFormat == new uint256(Enumerable.Range(0, 32).Select(o => o == 0 ? (byte)0 : (byte)1).ToArray())}");
                 Console.WriteLine();
 
