@@ -305,13 +305,12 @@ namespace Breeze.Daemon
         {
             config.LoggingRules.Add(new LoggingRule("Stratis.Bitcoin.Features.RPC.*", logLevel, tbTarget));
             config.LoggingRules.Add(new LoggingRule("Breeze.*", logLevel, tbTarget));
-            config.LoggingRules.Add(new LoggingRule("NTumbleBit.*", logLevel, tbTarget));
+            
         }
 
         private static void SetupLogFatal(NLogConfig config, FileTarget tbTarget, LogLevel logLevel)
         {
             config.LoggingRules.Add(new LoggingRule("Breeze.*", logLevel, tbTarget));
-            config.LoggingRules.Add(new LoggingRule("NTumbleBit.*", logLevel, tbTarget));
         }
 
         private static void SetupLogDebug(NLogConfig config, FileTarget tbTarget, LogLevel logLevel)
