@@ -1,4 +1,4 @@
-import { Component, OnInit, Input } from '@angular/core';
+import { Component, OnInit, Input, AfterViewInit } from '@angular/core';
 import { FormGroup, FormControl, Validators, FormBuilder } from '@angular/forms';
 
 import { NgbModal, NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
@@ -14,7 +14,7 @@ import { ModalService } from '../../../shared/services/modal.service';
   templateUrl: './password-confirmation.component.html',
   styleUrls: ['./password-confirmation.component.css']
 })
-export class PasswordConfirmationComponent implements OnInit {
+export class PasswordConfirmationComponent {
 
   @Input() sourceWalletName: string;
   @Input() destinationWalletName: string;
@@ -26,7 +26,8 @@ export class PasswordConfirmationComponent implements OnInit {
   public startingTumble: Boolean = false;
   private walletPasswordForm: FormGroup;
   public showLegalText = false;
-  
+  private termsConditionsRead = false;
+
   formErrors = {
     'walletPassword': ''
   };
@@ -43,9 +44,28 @@ export class PasswordConfirmationComponent implements OnInit {
     private fb: FormBuilder,
     private genericModalService: ModalService) {
     this.buildWalletPasswordForm();
+    this.setWalletPasswordEnabledState();
   }
 
-  ngOnInit() {
+  public onTermsConditionsRead() {
+    if (this.termsConditionsRead) {
+      this.termsConditionsRead = false;
+    } else {
+      this.termsConditionsRead = true;
+    }
+
+    this.walletPasswordForm.get('walletPassword').setValue('');
+
+    this.setWalletPasswordEnabledState();
+  }
+
+  private setWalletPasswordEnabledState() {
+    var control = this.walletPasswordForm.get('walletPassword');
+    if (this.termsConditionsRead) {
+      control.enable();
+    } else {
+      control.disable();
+    }
   }
 
   public onLegalTextClicked() {
@@ -66,6 +86,7 @@ export class PasswordConfirmationComponent implements OnInit {
   onValueChanged(data?: any) {
     if (!this.walletPasswordForm) { return; }
     const form = this.walletPasswordForm;
+
     for (const field in this.formErrors) {
       if (!this.formErrors.hasOwnProperty(field)) { continue; }
       this.formErrors[field] = '';
