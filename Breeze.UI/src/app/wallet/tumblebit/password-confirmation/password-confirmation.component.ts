@@ -9,6 +9,8 @@ import { Error } from '../../../shared/classes/error';
 
 import { ModalService } from '../../../shared/services/modal.service';
 
+const { shell } = require('electron');
+
 @Component({
   selector: 'app-password-confirmation',
   templateUrl: './password-confirmation.component.html',
@@ -27,6 +29,7 @@ export class PasswordConfirmationComponent {
   private walletPasswordForm: FormGroup;
   public showLegalText = false;
   private termsConditionsRead = false;
+  private readonly LegalTextUrl = 'https://github.com/BreezeHub/BreezeProject/blob/master/Licenses/breeze-license.txt';
 
   formErrors = {
     'walletPassword': ''
@@ -69,7 +72,7 @@ export class PasswordConfirmationComponent {
   }
 
   public onLegalTextClicked() {
-    this.showLegalText = true;
+    shell.openExternal(this.LegalTextUrl);
   }
 
   private buildWalletPasswordForm(): void {
