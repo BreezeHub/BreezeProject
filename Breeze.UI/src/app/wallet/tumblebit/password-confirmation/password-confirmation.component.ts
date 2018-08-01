@@ -29,7 +29,7 @@ export class PasswordConfirmationComponent {
   private walletPasswordForm: FormGroup;
   public showLegalText = false;
   private termsConditionsRead = false;
-  private readonly LegalTextUrl = 'https://github.com/BreezeHub/BreezeProject/blob/master/Licenses/breeze-license.txt';
+  private readonly LegalTextUrl = 'https://github.com/BreezeHub/BreezeProject/blob/master/Licenses/breezepp-license.txt';
 
   formErrors = {
     'walletPassword': ''
