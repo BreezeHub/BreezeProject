@@ -166,4 +166,4 @@ Neither Stratis or you will be liable to the other for any delay or non-performa
 20	DISPUTES AND COMPLAINTS
 
 20.1	These Terms shall be governed by and construed in accordance with the laws of England. Any dispute, controversy or claim arising out of or in relation to the Terms shall be dealt with exclusively by the courts of England.
-20.2	If you have a complaint or query about these Terms, the Software, you should contact Stratis using the details shown at clause 1.
+20.2	If you have a complaint or query about these Terms, the Software, you should contact Stratis using the details shown at clause 1. 
