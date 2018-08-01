@@ -1,11 +1,169 @@
 By  installing  this software the user agrees to all of the following:
  
-That this software is an experimental release and any use of it shall be at the users own discretion and risk.
-That  the  sole and exclusive remedy for any problem(s), malfunctions  or defects in the product, software  and / or service shall be to uninstall and/or  to stop using it .
-In no event shall Stratis, its officers, shareholders, investors, employees, agents, directors, subsidiaries, affiliates, successors, assignees or suppliers be liable for
-Any indirect, incidental, punitive, exemplary or consequential damages
-Any loss of data, use, sales, business (including profits) whether direct or indirect in any and all cases arising out of use or inability to use the software including any form of security breach, hack or attack.
-Any loss, errors, omissions or misplacement of coins or any other digital asset transacted through the software or otherwise.
-Any transaction confirmation delays or lack of completions.
-The product is provided on an "as is" basis without any representation or warranty, whether express, implied or otherwise to the maximum extent permitted by applicable law including fitness for a particular purpose, merchantability and defects.
-The product shall not be used for any unlawful activity that would violate or assist in violation of any applicable law, regulation or policy.
+1	ABOUT US
+
+1.1	Stratis Group Ltd is a private company limited by shares incorporated and registered in England and Wales. Its company number is 10550333, registered office is Palladium House, 1-4 Argyll Street, London, W1F 7LD (“Stratis”).
+1.2	Stratis can be contacted by writing to Stratis Group Ltd, Palladium House, 1-4 Argyll Street, London, W1F 7LD or by emailing info@stratisplatform.com.
+
+2	INTRODUCTION AND ACCEPTANCE
+
+2.1	In these terms and conditions (the “Terms”), capitalised words have the meanings set out in clause 5.
+2.2	By downloading and using the Software (defined below) you expressly agree to be bound by all of these Terms. You acknowledge that you have read and understood these Terms. Should you not agree to all of the terms included in these Terms, you should not use the Software.
+
+3	IMPORTANT TERMS
+
+3.1	While all of these Terms are important, you should pay particular attention to:
+(a)	the Warning of Risk set out in clause 4;
+(b)	information regarding Restricted Jurisdictions (defined below) set out in clause 10;
+(c)	what you must do set out in clause 11; 
+(d)	the disclaimers set out in clause 13; and
+(e)	Stratis’s liability to you set out in clause 14.
+
+4	WARNING OF RISK
+
+4.1	You acknowledge that Bitcoin and STRAT Tokens (defined below) are new and relatively untested. They carry inherent risks (that are outside of Stratis’s control) as they have technical vulnerabilities, may undergo a community-led change in operating model or technical features (often referred to as a ‘fork’) and their regulatory status may change at any time in any one or multiple jurisdictions. In addition to this, the value of Bitcoin and STRAT Tokens are subject to market forces and their value is not backed by any government or other entity.
+4.2	Stratis makes no warranties, representations, guarantees or equivalent (whether express or implied) as to the value, utility or legal status of Bitcoin or STRAT Tokens.
+4.3	Before using the Software, or Transferring Bitcoin STRAT Tokens into the Software, you should ensure you have carried out adequate research into the risks and disadvantages of Bitcoin and STRAT Tokens and have sufficient understanding of the functionality, usage and storage of Bitcoin, STRAT Tokens and Wallets. By Transferring Bitcoin or STRAT Tokens to the Wallet you confirm to Stratis that you have carried out such research, and understand and accept the risks and disadvantages of Bitcoin and STRAT Tokens.
+
+5	DEFINITIONS AND INTERPRETATION
+
+5.1	The following definitions and rules of interpretation apply in these Terms:
+(a)	“Bitcoin” means the blockchain distributed consensus system supported by cryptography commonly known as ‘bitcoin’ or ‘bitcoin core’;
+(b)	“Bitcoin Unit” means a unit of account in relation to Bitcoin;
+(c)	“Intellectual Property Rights” means all patents, rights to inventions, utility models, copyright and related rights, trade marks, service marks, trade, business and domain names, rights in trade dress or get-up, rights in goodwill or to sue for passing off, unfair competition rights, rights in designs, rights in computer software including both source and object code, database right, topography rights, moral rights, know-how, trade secrets and any other intellectual property rights, in each case whether registered or unregistered and including all applications for and renewals or extensions of such rights, and all similar or equivalent rights or forms of protection in any part of the world;
+(d)	“MasterNode” means the software which has been developed by Stratis for third parties to operate which is able, in the right configuration, to perform the MasterNode Service.
+(e)	“MasterNode Service” means the service of combining portions of multiple different Transfers such that it is not immediately evident which Wallet was the sending Wallet in respect of a Transfer.
+(f)	“MasterNode Fee” means the fee in respect of the MasterNode Service as set out in clause 8.3.
+(g)	“Personnel” means the affiliates, officers, directors, employees, agents, contractors, consultants, vendors, and representatives of Stratis;
+(h)	“Private Key” means the secret code or text that is personal to you and is used with an algorithm to encrypt and decrypt code allowing you to access your Wallet and the Bitcoin or STRAT Tokens attributed to your Wallet;
+(i)	“Software” means the software included in this distribution which is intended to operate as a manager of Bitcoin and STRAT Tokens wallets and, in respect of Bitcoin, to interact with the MasterNode Service.
+(j)	“Requirements” means in respect of the software code and configuration of a MasterNode, the criteria that are set out in the Software, which may vary from time to time, but at present relate to: (a) the integrity of the source code of the MasterNode; (b) the number of STRAT Tokens which the operator of the MasterNode has staked to the MasterNode; (c) the minimum units in which the MasterNode processes Bitcoin (known as the ‘Denomination’); and (d) the MasterNode Fee.
+(k)	“STRAT Token” means the ‘proof-of-stake’ cryptocurrency which goes by the symbol $STRAT, further details of which are set out at https://stratisplatform.com/stratis-token/
+(l)	“Transfer / Transferred / Transferring” in relation to Bitcoin means a cryptographically signed message instructing a ledger transfer of Bitcoin Units from one Wallet to another Wallet;
+(m)	 “Verified MasterNode” means a MasterNode which the Software has confirmed meets the Requirements, from time to time.
+(n)	“Wallet” means a wallet in relation to Bitcoin or STRAT Tokens for the collection, storage and control of Bitcoin and which has ‘Hierarchical Deterministic’ (HD) properties.
+5.2	Headings used in these Terms are for convenience of reference only and shall not be construed as altering the meaning of these Terms or any of its parts.
+5.3	A person includes a natural person, corporate or unincorporated body (whether or not having separate legal personality) and that person’s legal and personal representatives, successors and permitted assigns.
+5.4	Unless the context otherwise requires, words in the singular shall include the plural and in the plural shall include the singular and a reference to one gender shall include a reference to the other gender.
+5.5	A reference to a statute or statutory provision is a reference to it as amended, extended or re-enacted from time to time and shall include all subordinate legislation made from time to time under that statute or statutory provision.
+5.6	A reference to writing or written includes electronic mail.
+5.7	Any obligation not to do something includes an obligation not to allow that thing to be done.
+5.8	A reference to these Terms or to any other agreement or document referred to in this Terms is a reference to these Terms or such other agreement or document (as applicable) as varied or novated (in each case, other than in breach of the provisions of these Terms) from time to time.
+5.9	References to clauses are to the clauses of these Terms. 
+5.10	Any words following the terms including, include, in particular, for example or any similar expression shall be construed as illustrative and shall not limit the sense of the words, description, definition, phrase or term preceding those terms.
+
+6	THE SOFTWARE
+
+6.1	Notwithstanding clause 13, the Software is intended to operate as a Wallet to manage Bitcoin and STRAT Tokens which you have the Private Keys to, and, in respect of Bitcoin, to interact with the MasterNode Service to allow transfers of Bitcoin between two Wallets in the Software.
+6.2	Stratis does not provide the MasterNode Service.  The Software does not itself provide the MasterNode Service, but interacts with it.
+
+7	THE MASTERNODE SERVICE
+
+7.1	In respect of a Transfer using the Software, the Software searches for a list of Verified MasterNodes (ie. MasterNodes which meet the Requirements), and selects a Verified MasterNode to use in respect of the Transfer.
+7.2	The operator of the relevant MasterNode provide the MasterNode Service in respect of the Transfer, in exchange for the MasterNode Fee.  Stratis does not provide the MasterNode Service, and does not operate any MasterNode.  The MasterNode Service shall be governed by arrangements between you and the operator of the relevant MasterNode.
+7.3	Stratis does not know or have any record of the identity of the operators of the MasterNodes.
+
+8	FEES
+
+8.1	The Requirements include a criterion as to the MasterNode Fee.  This is the percent of the Transfer which the MasterNode will retain.
+8.2	In respect of a Transfer, in addition to the MasterNode Fee, the transfer of the relevant Bitcoin to the MasterNode in the first case, will also attract a transaction fee (also known as a mining fee) in the normal manner for transfers of Bitcoin Units between two wallets.  This transaction fee is in addition to the MasterNode Fee, as it is collected by the mining operators before the MasterNode receives the relevant Bitcoin Units in respect of the Transfer.
+8.3	By way of example only, if the criterion is for a MasterNode Fee of 1.55%, then a 100.0002 Bitcoin Unit Transfer may require a mining fee of 0.0002 Bitcoin Units, meaning the MasterNode would receive 100 Bitcoin Units.  The MasterNode is expected to return 98.45 Bitcoin Units to the relevant receiving Wallet, keeping 1.55 Bitcoin Units as the MasterNode Fee.  The mining fees which the MasterNode encounters in providing the MasterNode Service, and in sending the resultant Bitcoin Units to the relevant receiving Wallet are to be covered by the MasterNode from its MasterNode Fee, or otherwise.
+
+9	REGISTRATION AND IDENTITY
+
+9.1	In order to use the Software, you must create a Wallet within the Software, or import the details relating to a compatible Wallet into the Software.
+9.2	The Software requires the Private Key in relation to your Wallet(s) in order to function but does not require, store, or have the ability to store other personal information in relation to you or your identity.  There may be other information which is held by third parties which however may associate your Wallet(s) with your identity.
+
+10	RESTRICTED JURISDICTIONS
+
+10.1	The Software is not offered for use to persons or legal entities which are located in, or have their habitual residence or registered office in a jurisdiction where the holding of or the use of Bitcoin or STRAT Tokens violates applicable law or regulations (“Restricted Jurisdiction”).
+10.2	You warrant and represent that you are not located in or resident in a Restricted Jurisdiction.
+
+11	YOUR OBLIGATIONS
+
+11.1	You represent and warrant that:
+(a)	you have full ownership and sole control of any Wallet(s) which you use with the Software, along with any Cryptocurrency associated with such Wallet(s);
+(b)	you shall implement and maintain reasonable and appropriate measures designed to secure access to Private Keys (howsoever stored) required to access any relevant Wallet relating to your use of the Software;
+(c)	at the date you use the Software, you are of legal age to form a binding contract (at least 18 years old in most jurisdictions);
+(d)	the decision to make any Transfer is your sole decision, and not the decision or responsibility of Stratis;
+(e)	that you shall not use the Software in any way which:
+	(i)	is harmful, unlawful or illegal;
+	(ii)	may give rise to civil or criminal liability for Stratis or any of its Personnel;
+	(iii)	in Stratis’s sole discretion may bring Stratis or any of its Personnel into disrepute;
+	(iv)	is on behalf of a third party; or
+	(v)	is not expressly authorised by these Terms;
+(f)	you shall be solely liable for any costs or expenses, including but not limited to mining fees or taxation, which arises as a result of a transactions relating to STRAT Tokens, or a Transfer, in each case using the Software;
+(g)	your use of the Software complies with all laws and regulation applicable to you or the jurisdiction you are located in, or have habitual residence or registered office in, including, but not limited to:
+	(i)	having legal capacity and any other threshold requirements in its jurisdiction for acquiring or taking control of Bitcoin or STRAT Tokens;
+	(ii)	any foreign exchange or regulatory restrictions applicable to the use of the Software; and
+	(iii)	any governmental or other consents that may need to be obtained.
+11.2	You agree to fully reimburse and compensate Stratis on demand from and against any and all damages, liability and costs (including reasonable legal fees) incurred by Stratis in connection with any claim arising out of:
+(a)	any fraud or fraudulent misrepresentation you commit;
+(b)	any breach of applicable law or regulation by you;
+(c)	any use of the Software in respect of your Wallet(s) or Private Key(s) by a third party;
+(d)	any breach by you of these Terms; and
+(e)	third party claims arising from Your use of the Software.
+11.3	You shall cooperate with Stratis in the defence of any claim Stratis receives in relation to Your use of the Software.
+
+12	INTELLECTUAL PROPERTY RIGHTS
+
+12.1	You acknowledge that all right, title and interest in Software including all Intellectual Property Rights, belong to and are retained solely by Stratis or its third-party suppliers. These Terms do not provide you with title or ownership of any Intellectual Property Rights or other rights other than the rights specified in these Terms.
+12.2	The Software is licensed under the MIT Licence (amend this to the appropriate link for the actual release) the terms of which are incorporated into these Terms.
+
+13	DISCLAIMERS
+
+13.1	You acknowledge that Software, the internet and other technology (included but not limited to blockchain technology) upon which Stratis relies is never completely error free and technical disruptions and human error may interfere with the use of Bitcoin or STRAT Tokens.
+13.2	Notwithstanding any other provision of these Terms, the Software is provided on an “AS IS” AND “AS AVAILABLE” BASIS AND, TO THE FULLEST EXTENT PERMITTED BY APPLICABLE LAW, WITHOUT WARRANTY OR CONDITION OF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING, BUT NOT LIMITED TO, IMPLIED WARRANTIES OR CONDITIONS OF MERCHANTABILITY, SATISFACTORY QUALITY, FITNESS FOR A PARTICULAR PURPOSE, AND/OR NON-INFRINGEMENT.
+
+14	LIMITATION OF LIABILITY
+
+14.1	Nothing in these Terms shall limit or exclude liability for:
+(a)	death or personal injury caused by negligence;
+(b)	fraud or fraudulent misrepresentation; or
+(c)	any other liability which cannot be limited or excluded by applicable law.
+14.2	Subject to clauses 14.1, Stratis shall not be liable for any:
+(a)	indirect, special or consequential loss or incidental loss;
+(b)	loss of profit;
+(c)	loss of business or business opportunity;
+(d)	loss of revenue;
+(e)	loss of anticipated savings;
+(f)	wasted expenditure;
+(g)	loss of goodwill;
+(h)	loss or corruption of data;
+(i)	loss caused as a result of your negligence, lack of understanding of Bitcoin or STRAT Tokens, Transfers or Wallets or failure to follow any reasonable instructions issued by Stratis;
+(j)	loss caused as a result of the loss, theft or destruction of your Private Key(s);
+(k)	loss caused by advances in technology or cryptography (including but not limited to development of quantum computers) that effects the security of Bitcoin or STRAT Tokens;
+(l)	loss caused by mining attacks, including but not limited to double-spend attacks, majority mining power attacks, “selfish-mining” attacks, and race condition attacks;
+(m)	loss caused by a change in the exchange rate or value of any Bitcoin or STRAT Tokens (including as a result of the acts or omissions of Stratis);
+(n)	loss caused by any legal, regulatory or technical changes in any part of the world relating to Bitcoin or STRAT Tokens technology;
+(o)	loss caused by a technical vulnerability in any Bitcoin or STRAT Tokens technology;
+(p)	loss caused by a Bitcoin or STRAT Tokens community decision to change the operating model or technical features of Bitcoin or STRAT Tokens (whether or not this results in a ‘fork’);
+(q)	loss caused by an unforeseeable event set out in clause 19; or
+(r)	loss caused by you or any third party;
+(even if advised of the possibility of such loss or damage) arising under or in connection with these Terms whether in contract, tort (including negligence), breach of statutory duty, misrepresentation or otherwise.
+
+15	DELAY IN ENFORCING RIGHTS
+
+If Stratis does not insist immediately that you does something you are required to do under these Terms, or if Stratis delays in taking steps against you in respect of it breaking these Terms, this will not mean that you will not have to do those things and it will not prevent Stratis from taking steps against you at a later date.
+
+16	WHAT HAPPENS IF A COURT FINDS THESE TERMS TO BE ILLEGAL
+
+If any provision or part-provision of these Terms is or becomes invalid, illegal or unenforceable, it shall be deemed modified to the minimum extent necessary to make it valid, legal and enforceable. If such modification is not possible, the relevant provision or part-provision shall be deemed deleted. Any modification to or deletion of a provision or part-provision under this clause 17 shall not affect the validity and enforceability of the rest of these Terms.
+
+17	NO OTHER PARTY OTHER THAN STRAT TOKENSIS AND YOU HAVE RIGHTS UNDER THESE TERMS
+
+These Terms are between Stratis and you. No other person shall have any rights to enforce any of the terms. Neither Stratis nor you will need to get the agreement of any third party in order to make any changes to these Terms.
+
+18	UNFORESEEABLE EVENTS
+
+Neither Stratis or you will be liable to the other for any delay or non-performance of its obligations under these Terms arising from any cause or causes beyond its reasonable control including, without limitation, any of the following: act of God, governmental act, hacking, war, fire, flood, failure of Bitcoin or STRAT Tokens, accident, strikes, lock-outs or other industrial action, breakdown of plant or machinery, explosion or civil commotion.
+
+19	NO PARTNERSHIP OR AGENCY
+
+19.1	Nothing in these Terms is intended to, or shall be deemed to, establish any partnership or joint venture between Stratis and you, constitute any Stratis or you as agent of any other person, or authorise Stratis or you to make or enter into any commitments for or on behalf of any other person.
+19.2	Stratis and you confirm they are acting on their own behalf and not for the benefit of any other person.
+
+20	DISPUTES AND COMPLAINTS
+
+20.1	These Terms shall be governed by and construed in accordance with the laws of England. Any dispute, controversy or claim arising out of or in relation to the Terms shall be dealt with exclusively by the courts of England.
+20.2	If you have a complaint or query about these Terms, the Software, you should contact Stratis using the details shown at clause 1.
