@@ -113,18 +113,31 @@ namespace NTumbleBit.ClassicTumbler.Server
 				}
 			}
 
-			Network = args.Contains("-testnet", StringComparer.OrdinalIgnoreCase) ? Network.TestNet :
-				args.Contains("-regtest", StringComparer.OrdinalIgnoreCase) ? Network.RegTest :
-				Network.Main;
+		    if (args.Contains("-bitcoin", StringComparer.OrdinalIgnoreCase) && args.Contains("-main", StringComparer.OrdinalIgnoreCase))
+		        Network = Network.Main;
+		    else if (args.Contains("-bitcoin", StringComparer.OrdinalIgnoreCase) && args.Contains("-testnet", StringComparer.OrdinalIgnoreCase))
+		        Network = Network.TestNet;
+		    else if (args.Contains("-bitcoin", StringComparer.OrdinalIgnoreCase) && args.Contains("-regtest", StringComparer.OrdinalIgnoreCase))
+		        Network = Network.RegTest;
+		    else if (args.Contains("-stratis", StringComparer.OrdinalIgnoreCase) && args.Contains("-main", StringComparer.OrdinalIgnoreCase))
+		        Network = Network.StratisMain;
+		    else if (args.Contains("-stratis", StringComparer.OrdinalIgnoreCase) && args.Contains("-testnet", StringComparer.OrdinalIgnoreCase))
+		        Network = Network.StratisTest;
+		    else if (args.Contains("-stratis", StringComparer.OrdinalIgnoreCase) && args.Contains("-regtest", StringComparer.OrdinalIgnoreCase))
+		        Network = Network.StratisRegTest;
 
-			if(ConfigurationFile != null)
+            if (ConfigurationFile != null)
 			{
 				AssetConfigFileExists();
 				var configTemp = TextFileConfiguration.Parse(File.ReadAllText(ConfigurationFile));
 				
-				Network = configTemp.GetOrDefault<bool>("testnet", false) ? Network.TestNet :
+				Network = configTemp.GetOrDefault<bool>("main", false) ? Network.Main :
+                          configTemp.GetOrDefault<bool>("testnet", false) ? Network.TestNet :
 						  configTemp.GetOrDefault<bool>("regtest", false) ? Network.RegTest :
-						  Network.Main;
+						  configTemp.GetOrDefault<bool>("stratismain", false) ? Network.StratisMain :
+						  configTemp.GetOrDefault<bool>("stratistest", false) ? Network.StratisTest :
+						  configTemp.GetOrDefault<bool>("stratisregtest", false) ? Network.StratisRegTest :
+                          Network.Main;
 			}
 			if(DataDir == null)
 			{

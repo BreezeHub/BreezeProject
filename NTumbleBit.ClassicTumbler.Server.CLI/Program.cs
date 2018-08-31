@@ -21,6 +21,7 @@ using System.Runtime.InteropServices;
 
 namespace NTumbleBit.ClassicTumbler.Server.CLI
 {
+    //This class is not used and cold be removed
 	public partial class Program
 	{
 		public static void Main(string[] args)

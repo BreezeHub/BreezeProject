@@ -36,7 +36,7 @@ namespace BreezeCommon
         }
 
 		public string Name { get; } = "RegistrationStore";
-		public string StoreFileName { get; } = "registrationHistory.json";
+		public static string StoreFileName { get; } = "registrationHistory.json";
 
 		public bool Add(RegistrationRecord regRecord)
 		{

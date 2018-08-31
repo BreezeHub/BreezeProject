@@ -95,9 +95,6 @@ namespace Breeze.Daemon
 
                 if (isStratis)
                 {
-                    //if (NodeSettings.PrintHelp(args, Network.StratisMain))
-                    //    return;
-
                     Network network;
 	                if (isRegTest)
 	                {
@@ -180,7 +177,7 @@ namespace Breeze.Daemon
                 // Start NTumbleBit logging to the console
                 SetupTumbleBitConsoleLogs(nodeSettings);
 
-                // Currently TumbleBit is bitcoin only
+                //  Registration protocol runs only on the stratis network
                 if (useTumblebit)
                 {
                     if (string.IsNullOrEmpty(registrationStoreDirectoryPath))
@@ -193,7 +190,7 @@ namespace Breeze.Daemon
                         else
                             networkName = "StratisMain";
 
-                        registrationStoreDirectoryPath = Path.Combine(dataDir, "stratis", networkName, "registrationHistory.json");
+                        registrationStoreDirectoryPath = Path.Combine(dataDir, "stratis", networkName, RegistrationStore.StoreFileName);
                     }
                     
                     // Those settings are not in NodeSettings yet, so get it directly from the args

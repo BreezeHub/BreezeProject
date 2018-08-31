@@ -71,9 +71,29 @@ namespace Breeze.BreezeServer
 
                 var configFile = TextFileConfiguration.Parse(File.ReadAllText(configPath));
 
-                if (configFile.GetOrDefault<string>("network", "testnet").Equals("testnet"))
+                string tumblerNetwork = configFile.GetOrDefault<string>("network", "testnet").ToLower();
+                switch (tumblerNetwork)
                 {
-                    TumblerNetwork = Network.TestNet;
+                    case "main":
+                        TumblerNetwork = Network.Main;
+                        break;
+                    case "testnet":
+                        TumblerNetwork = Network.TestNet;
+                        break;
+                    case "regtest":
+                        TumblerNetwork = Network.RegTest;
+                        break;
+
+                    case "stratismain":
+                        TumblerNetwork = Network.StratisMain;
+                        break;
+                    case "stratistestnet":
+                    case "stratistest":
+                        TumblerNetwork = Network.StratisTest;
+                        break;
+                    case "stratisregtest":
+                        TumblerNetwork = Network.StratisRegTest;
+                        break;
                 }
 
                 if (configFile.GetOrDefault<string>("tor.enabled", "true").Equals("true"))
@@ -81,16 +101,6 @@ namespace Breeze.BreezeServer
                     UseTor = true;
                 }
 
-                if (configFile.GetOrDefault<string>("network", "testnet").Equals("regtest"))
-                {
-                    TumblerNetwork = Network.RegTest;
-                }
-
-                if (configFile.GetOrDefault<string>("network", "testnet").Equals("main"))
-                {
-                    TumblerNetwork = Network.Main;
-                }
-                
                 RpcUser = configFile.GetOrDefault<string>("rpc.user", null);
                 RpcPassword = configFile.GetOrDefault<string>("rpc.password", null);
                 RpcUrl = configFile.GetOrDefault<string>("rpc.url", null);

@@ -102,7 +102,8 @@ namespace Breeze.BreezeServer
         public Transaction PerformBreezeRegistration(BreezeConfiguration config, string regStorePath, string configurationHash, string onionAddress, RsaKey tumblerKey)
         {
 			Network network = Network.StratisMain;
-			if (config.TumblerNetwork == Network.TestNet || config.TumblerNetwork == Network.RegTest)
+			if (config.TumblerNetwork == Network.TestNet || config.TumblerNetwork == Network.RegTest ||
+			    config.TumblerNetwork == Network.StratisTest || config.TumblerNetwork == Network.StratisRegTest)
 			{
 				network = Network.StratisTest;
 			}

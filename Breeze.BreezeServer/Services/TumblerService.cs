@@ -28,12 +28,37 @@ namespace Breeze.BreezeServer.Services
         {
             var argsTemp = new List<string>();
             argsTemp.Add("-debug");
-			
-			if (breezeConfig.TumblerNetwork == Network.TestNet)
-				argsTemp.Add("-testnet");
-			else if (breezeConfig.TumblerNetwork == Network.RegTest)
-			    argsTemp.Add("-regtest");
-            // No else needed, mainnet is defaulted
+
+            if (breezeConfig.TumblerNetwork == Network.Main)
+            {
+                argsTemp.Add("-bitcoin");
+                argsTemp.Add("-main");
+            }
+            else if (breezeConfig.TumblerNetwork == Network.TestNet)
+            {
+                argsTemp.Add("-bitcoin");
+                argsTemp.Add("-testnet");
+            }
+            else if (breezeConfig.TumblerNetwork == Network.RegTest)
+            {
+                argsTemp.Add("-bitcoin");
+                argsTemp.Add("-regtest");
+            }
+            else if (breezeConfig.TumblerNetwork == Network.StratisMain)
+            {
+                argsTemp.Add("-stratis");
+                argsTemp.Add("-main");
+            }
+            else if (breezeConfig.TumblerNetwork == Network.StratisTest)
+            {
+                argsTemp.Add("-stratis");
+                argsTemp.Add("-testnet");
+            }
+            else if (breezeConfig.TumblerNetwork == Network.StratisRegTest)
+            {
+                argsTemp.Add("-stratis");
+                argsTemp.Add("-regtest");
+            }
             
             if (ntumblebitServerConf != null)
                 argsTemp.Add("-conf=" + ntumblebitServerConf);

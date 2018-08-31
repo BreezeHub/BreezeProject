@@ -18,6 +18,7 @@ namespace Breeze.BreezeServer
             var comparer = new CommandlineArgumentComparer();
             var isRegTest = args.Contains("regtest", comparer);
             var isTestNet = args.Contains("testnet", comparer);
+            var isStratis = args.Contains("stratis", comparer);
             var forceRegistration = args.Contains("forceRegistration", comparer);
 
             var useTor = !args.Contains("noTor", comparer);
