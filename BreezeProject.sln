@@ -69,6 +69,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Breeze.IntegrationTestConso
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Breeze.RegistrationTester", "Breeze.RegistrationTester\Breeze.RegistrationTester.csproj", "{11A829EA-16FF-4914-B30D-4AAB903145BA}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Breeze.BreezeServer.Features.Masternode", "Breeze.BreezeServer.Features.Masternode\Breeze.BreezeServer.Features.Masternode.csproj", "{15630CA6-3BD6-4A91-A1AB-C33D1F51D2DD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -195,6 +197,10 @@ Global
 		{11A829EA-16FF-4914-B30D-4AAB903145BA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{11A829EA-16FF-4914-B30D-4AAB903145BA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{11A829EA-16FF-4914-B30D-4AAB903145BA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{15630CA6-3BD6-4A91-A1AB-C33D1F51D2DD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{15630CA6-3BD6-4A91-A1AB-C33D1F51D2DD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{15630CA6-3BD6-4A91-A1AB-C33D1F51D2DD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{15630CA6-3BD6-4A91-A1AB-C33D1F51D2DD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

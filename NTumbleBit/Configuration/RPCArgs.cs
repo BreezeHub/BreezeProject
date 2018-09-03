@@ -111,18 +111,29 @@ namespace NTumbleBit.Configuration
 				Logs.Configuration.LogError("The RPC server is not using the chain " + network.Name);
 				throw new ConfigException();
 			}
-			var getNetworkInfo = rpcClient.SendCommand(RPCOperations.getnetworkinfo);
-			var version = ((JObject)getNetworkInfo.Result)["version"].Value<int>();
-			if(version < MIN_CORE_VERSION)
-			{
-				Logs.Configuration.LogError($"The minimum Bitcoin Core version required is {MIN_CORE_VERSION} (detected: {version})");
-				throw new ConfigException();
-			}
-			Logs.Configuration.LogInformation($"Bitcoin Core version detected: {version}");
+
+		    if (network.Name.ToLower().Contains("stratis"))
+		    {
+		        var getInfo = rpcClient.SendCommand(RPCOperations.getinfo);
+		        var version = ((JObject)getInfo.Result)["version"].Value<string>();
+		        Logs.Configuration.LogInformation($"Stratis Core version detected: {version}");
+            }
+		    else
+		    {
+		        var getNetworkInfo = rpcClient.SendCommand(RPCOperations.getnetworkinfo);
+		        var version = ((JObject)getNetworkInfo.Result)["version"].Value<int>();
+		        if (version < MIN_BTC_CORE_VERSION)
+		        {
+		            Logs.Configuration.LogError($"The minimum Bitcoin Core version required is {MIN_BTC_CORE_VERSION} (detected: {version})");
+		            throw new ConfigException();
+		        }
+		        Logs.Configuration.LogInformation($"Bitcoin Core version detected: {version}");
+            }
+
 			return rpcClient;
 		}
 
-		const int MIN_CORE_VERSION = 140100;
+		const int MIN_BTC_CORE_VERSION = 140100;
 		public static RPCClient ConfigureRPCClient(TextFileConfiguration confArgs, Network network, string prefix = null)
 		{
 			RPCArgs args = Parse(confArgs, network, prefix);

@@ -7,13 +7,139 @@ using Microsoft.Extensions.Logging;
 using BreezeCommon;
 using NBitcoin;
 using NTumbleBit.ClassicTumbler.Server;
-using Breeze.BreezeServer.Services;
+using Stratis.Bitcoin.Builder;
+using Stratis.Bitcoin.Features.BlockStore;
+using Stratis.Bitcoin.Features.Consensus;
+using Stratis.Bitcoin.Features.MemoryPool;
+using Stratis.Bitcoin.Features.Miner;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
+using BreezeCommon;
+using Microsoft.Extensions.Logging.Console;
+using NBitcoin;
+using NBitcoin.Protocol;
+using NLog;
+using NLog.Config;
+using NLog.Targets;
+using NTumbleBit.Logging;
+using Stratis.Bitcoin.Builder;
+using Stratis.Bitcoin.Configuration;
+using Stratis.Bitcoin.Configuration.Logging;
+using Stratis.Bitcoin.Features.BlockStore;
+using Stratis.Bitcoin.Features.Consensus;
+using Stratis.Bitcoin.Features.MemoryPool;
+using Stratis.Bitcoin.Features.Miner;
+using Stratis.Bitcoin.Features.RPC;
+using Stratis.Bitcoin.Features.Wallet;
+using Stratis.Bitcoin.Utilities;
+using Stratis.Bitcoin.Utilities.Extensions;
+using Stratis.Bitcoin;
+using System.Threading.Tasks;
+using System.Runtime.InteropServices;
+using Breeze.BreezeServer.Features.Masternode;
+using Breeze.BreezeServer.Features.Masternode.Services;
+using NTumbleBit.ClassicTumbler.Server;
+using Stratis.Bitcoin.Features.Api;
+using Stratis.Bitcoin.Features.Notifications;
+using Stratis.Bitcoin.Features.WatchOnlyWallet;
+
 
 namespace Breeze.BreezeServer
 {
     public class Program
     {
         public static void Main(string[] args)
+        {
+            var comparer = new CommandlineArgumentComparer();
+            var isRegTest = args.Contains("regtest", comparer);
+            var isTestNet = args.Contains("testnet", comparer);
+            var isStratis = args.Contains("stratis", comparer);
+            var forceRegistration = args.Contains("forceRegistration", comparer);
+
+            var useTor = !args.Contains("noTor", comparer);
+
+            TumblerProtocolType? tumblerProtocol = null;
+            try
+            {
+                string tumblerProtocolString = args.Where(a => a.StartsWith("-tumblerProtocol=")).Select(a => a.Substring("-tumblerProtocol=".Length).Replace("\"", "")).FirstOrDefault();
+                if (!isRegTest && (tumblerProtocolString != null || !useTor))
+                {
+                    Console.WriteLine("Options -TumblerProtocol and -NoTor can only be used in combination with -RegTest switch.");
+                    return;
+                }
+
+                if (tumblerProtocolString != null)
+                    tumblerProtocol = Enum.Parse<TumblerProtocolType>(tumblerProtocolString, true);
+
+                if (useTor && tumblerProtocol.HasValue && tumblerProtocol.Value == TumblerProtocolType.Http)
+                {
+                    Console.WriteLine("TumblerProtocol can only be changed to Http when Tor is disabled. Please use -NoTor switch to disable Tor.");
+                    return;
+                }
+            }
+            catch
+            {
+                Console.WriteLine($"Incorrect tumbling prococol specified; the valid values are {TumblerProtocolType.Tcp} and {TumblerProtocolType.Http}");
+                return;
+            }
+
+
+            var agent = "Masternode";
+            NodeSettings nodeSettings;
+
+            if (isStratis)
+            {
+                Network network;
+                if (isRegTest)
+                {
+                    network = Network.StratisRegTest;
+                }
+                else if (isTestNet)
+                {
+                    network = Network.StratisTest;
+                }
+                else
+                {
+                    network = Network.StratisMain;
+                }
+
+                nodeSettings = new NodeSettings(network, ProtocolVersion.ALT_PROTOCOL_VERSION, agent, args: args, loadConfiguration: false);
+            }
+            else
+            {
+                nodeSettings = new NodeSettings(agent: agent, args: args, loadConfiguration: false);
+            }
+
+            IFullNodeBuilder fullNodeBuilder = new FullNodeBuilder()
+                .UseNodeSettings(nodeSettings);
+
+            if (isStratis)
+                fullNodeBuilder.UsePosConsensus();
+            else
+                fullNodeBuilder.UsePowConsensus();
+
+            fullNodeBuilder.UseBlockStore()
+                .UseMempool()
+                .UseBlockNotification()
+                .UseTransactionNotification()
+                .UseWallet()
+                .UseWatchOnlyWallet();
+
+            if (isStratis)
+                fullNodeBuilder.AddPowPosMining();
+            else
+                fullNodeBuilder.AddMining();
+
+            fullNodeBuilder.AddRPC()
+                .UseApi()
+                .UseMasternode(forceRegistration);
+        }
+
+
+        public static void Main_oldEntry(string[] args)
         {
             var comparer = new CommandlineArgumentComparer();
             var isRegTest = args.Contains("regtest", comparer);

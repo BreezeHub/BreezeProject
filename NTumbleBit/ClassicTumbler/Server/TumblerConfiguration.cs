@@ -18,7 +18,9 @@ namespace NTumbleBit.ClassicTumbler.Server
 
     public class TumblerConfiguration
 	{
-		public TumblerConfiguration()
+	    public static int DefaultTumblerPort = 37123;
+
+        public TumblerConfiguration()
 		{
 			ClassicTumblerParameters = new ClassicTumblerParameters();
 		}
@@ -186,7 +188,7 @@ namespace NTumbleBit.ClassicTumbler.Server
 
 			Cooperative = config.GetOrDefault<bool>("cooperative", true);
 
-			var defaultPort = config.GetOrDefault<int>("port", 37123);
+            var defaultPort = config.GetOrDefault<int>("port", DefaultTumblerPort);
 
 			OnlyMonitor = config.GetOrDefault<bool>("onlymonitor", false);
 			string listenAddress = config.GetOrDefault<string>("listen", Utils.GetInternetConnectedAddress().ToString());

@@ -2,7 +2,7 @@
   "profiles": {
     "Breeze.BreezeServer Main": {
       "commandName": "Project",
-      "commandLineArgs": ""
+      "commandLineArgs": "-regtest"
     },
     "Breeze.Daemon TestNet": {
       "commandName": "Project",

@@ -26,6 +26,7 @@ using Stratis.Bitcoin.Features.WatchOnlyWallet;
 using Stratis.Bitcoin.IntegrationTests;
 
 using Breeze.BreezeServer;
+using Breeze.BreezeServer.Features.Masternode.Services;
 using Breeze.TumbleBit.Client;
 using Breeze.TumbleBit.Models;
 using BreezeCommon;
@@ -100,7 +101,7 @@ namespace Breeze.IntegrationTestConsole
             // Replicate portions of BreezeServer's Program.cs. Maybe refactor it into a class/function in future
             var serviceProvider = new ServiceCollection()
                 .AddLogging()
-                .AddSingleton<Breeze.BreezeServer.Services.ITumblerService, Breeze.BreezeServer.Services.TumblerService>()
+                .AddSingleton<ITumblerService, TumblerService>()
                 .BuildServiceProvider();
 
             serviceProvider
@@ -126,7 +127,7 @@ namespace Breeze.IntegrationTestConsole
             {
                 Thread.CurrentThread.IsBackground = true;
                 // By instantiating the TumblerService directly the registration logic is skipped
-                var tumbler = serviceProvider.GetService<Breeze.BreezeServer.Services.ITumblerService>();
+                var tumbler = serviceProvider.GetService<ITumblerService>();
                 tumbler.StartTumbler(config, false, "server.config", Path.GetFullPath(coreNode.DataFolder), false);
             }).Start();
 
@@ -306,7 +307,7 @@ namespace Breeze.IntegrationTestConsole
                 // Replicate portions of BreezeServer's Program.cs. Maybe refactor it into a class/function in future
                 var serviceProvider = new ServiceCollection()
                     .AddLogging()
-                    .AddSingleton<Breeze.BreezeServer.Services.ITumblerService, Breeze.BreezeServer.Services.TumblerService>()
+                    .AddSingleton<ITumblerService, TumblerService>()
                     .BuildServiceProvider();
 
                 serviceProvider
@@ -332,7 +333,7 @@ namespace Breeze.IntegrationTestConsole
                 {
                     Thread.CurrentThread.IsBackground = true;
                     // By instantiating the TumblerService directly the registration logic is skipped
-                    var tumbler = serviceProvider.GetService<Breeze.BreezeServer.Services.ITumblerService>();
+                    var tumbler = serviceProvider.GetService<ITumblerService>();
                     tumbler.StartTumbler(config, false, "server.config", Path.GetFullPath(coreNode.DataFolder), false);
                 }).Start();
 
@@ -567,7 +568,7 @@ namespace Breeze.IntegrationTestConsole
             // Replicate portions of BreezeServer's Program.cs. Maybe refactor it into a class/function in future
             var serviceProvider = new ServiceCollection()
                 .AddLogging()
-                .AddSingleton<Breeze.BreezeServer.Services.ITumblerService, Breeze.BreezeServer.Services.TumblerService>()
+                .AddSingleton<ITumblerService, TumblerService>()
                 .BuildServiceProvider();
 
             serviceProvider
@@ -593,7 +594,7 @@ namespace Breeze.IntegrationTestConsole
             {
                 Thread.CurrentThread.IsBackground = true;
                 // By instantiating the TumblerService directly the registration logic is skipped
-                var tumbler = serviceProvider.GetService<Breeze.BreezeServer.Services.ITumblerService>();
+                var tumbler = serviceProvider.GetService<ITumblerService>();
                 tumbler.StartTumbler(config, false, "server.config", Path.GetFullPath(coreNode.DataFolder), false);
             }).Start();
 

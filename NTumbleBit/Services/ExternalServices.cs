@@ -5,15 +5,59 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Newtonsoft.Json.Linq;
 
 namespace NTumbleBit.Services
 {
 	public class ExternalServices : IExternalServices
     {
-		public static ExternalServices CreateFromRPCClient(RPCClient rpc, IRepository repository, Tracker tracker, bool useBatching)
+        public IFeeService FeeService { get; set; }
+        public IWalletService WalletService { get; set; }
+        public IBroadcastService BroadcastService { get; set; }
+        public IBlockExplorerService BlockExplorerService { get; set; }
+        public ITrustedBroadcastService TrustedBroadcastService { get; set; }
+
+        public static ExternalServices CreateFromFullNode(IRepository repository, Tracker tracker)
+        {
+            var service = new ExternalServices();
+
+            var minimumRate = tumblingState.NodeSettings.MinRelayTxFeeRate;
+            // On regtest the estimatefee always fails
+            if (tumblingState.TumblerNetwork == Network.RegTest)
+            {
+                service.FeeService = new FullNodeFeeService(tumblingState.WalletFeePolicy)
+                {
+                    MinimumFeeRate = minimumRate,
+                    FallBackFeeRate = new FeeRate(Money.Satoshis(50), 1)
+                };
+            }
+            else // On test and mainnet fee estimation should just fail, not fall back to fixed fee
+            {
+                service.FeeService = new FullNodeFeeService(tumblingState.WalletFeePolicy)
+                {
+                    MinimumFeeRate = minimumRate
+                };
+            }
+
+            var cache = new FullNodeWalletCache(tumblingState);
+            service.WalletService = new FullNodeWalletService(tumblingState);
+            service.BroadcastService = new FullNodeBroadcastService(cache, repository, tumblingState);
+            service.BlockExplorerService = new FullNodeBlockExplorerService(cache, tumblingState);
+            service.TrustedBroadcastService = new FullNodeTrustedBroadcastService(service.BroadcastService, service.BlockExplorerService, repository, cache, tracker, tumblingState)
+            {
+                // BlockExplorer will already track the addresses, since they used a shared bitcoind, no need of tracking again (this would overwrite labels)
+                TrackPreviousScriptPubKey = false
+            };
+            return service;
+        }
+
+
+        public static ExternalServices CreateFromRPCClient(RPCClient rpc, IRepository repository, Tracker tracker, bool useBatching)
 		{
 			var info = rpc.SendCommand(RPCOperations.getinfo);
-			var minimumRate = new NBitcoin.FeeRate(NBitcoin.Money.Coins((decimal)(double)((Newtonsoft.Json.Linq.JValue)(info.Result["relayfee"])).Value * 2), 1000);
+
+		    JToken relayFee = info.Result["relayfee"] ?? info.Result["mininput"];
+            var minimumRate = new NBitcoin.FeeRate(NBitcoin.Money.Coins((decimal)(double)((Newtonsoft.Json.Linq.JValue)(relayFee)).Value * 2), 1000);
 			
 			ExternalServices service = new ExternalServices();
 			service.FeeService = new RPCFeeService(rpc) {
@@ -83,25 +127,6 @@ namespace NTumbleBit.Services
 			
 			return service;
 		}
-		public IFeeService FeeService
-		{
-			get; set;
-		}
-		public IWalletService WalletService
-		{
-			get; set;
-		}
-		public IBroadcastService BroadcastService
-		{
-			get; set;
-		}
-		public IBlockExplorerService BlockExplorerService
-		{
-			get; set;
-		}
-		public ITrustedBroadcastService TrustedBroadcastService
-		{
-			get; set;
-		}
-	}
+
+    }
 }
