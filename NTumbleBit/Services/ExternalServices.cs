@@ -17,6 +17,7 @@ namespace NTumbleBit.Services
         public IBlockExplorerService BlockExplorerService { get; set; }
         public ITrustedBroadcastService TrustedBroadcastService { get; set; }
 
+        /*
         public static ExternalServices CreateFromFullNode(IRepository repository, Tracker tracker)
         {
             var service = new ExternalServices();
@@ -49,7 +50,7 @@ namespace NTumbleBit.Services
                 TrackPreviousScriptPubKey = false
             };
             return service;
-        }
+        }*/
 
 
         public static ExternalServices CreateFromRPCClient(RPCClient rpc, IRepository repository, Tracker tracker, bool useBatching)

@@ -53,6 +53,11 @@ namespace Breeze.BreezeServer
     {
         public static void Main(string[] args)
         {
+            MainAsync(args).Wait();
+        }
+
+        public static async Task MainAsync(string[] args)
+        {
             var comparer = new CommandlineArgumentComparer();
             var isRegTest = args.Contains("regtest", comparer);
             var isTestNet = args.Contains("testnet", comparer);
@@ -136,9 +141,12 @@ namespace Breeze.BreezeServer
             fullNodeBuilder.AddRPC()
                 .UseApi()
                 .UseMasternode(forceRegistration);
+
+            IFullNode node = fullNodeBuilder.Build();
+            await node.RunAsync();
         }
 
-
+        /*
         public static void Main_oldEntry(string[] args)
         {
             var comparer = new CommandlineArgumentComparer();
@@ -263,6 +271,6 @@ namespace Breeze.BreezeServer
             var tumbler = serviceProvider.GetService<ITumblerService>();
             
             tumbler.StartTumbler(config, false, torMandatory: !isRegTest, tumblerProtocol: tumblerProtocol);
-        }
+        }*/
     }
 }

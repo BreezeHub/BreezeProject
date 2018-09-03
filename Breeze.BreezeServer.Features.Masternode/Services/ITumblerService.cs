@@ -1,4 +1,5 @@
 using NTumbleBit.ClassicTumbler.Server;
+using Stratis.Bitcoin.Configuration;
 
 namespace Breeze.BreezeServer.Features.Masternode.Services
 {
@@ -7,6 +8,6 @@ namespace Breeze.BreezeServer.Features.Masternode.Services
         TumblerConfiguration config { get; set; }
         TumblerRuntime runtime { get; set; }
         
-        void StartTumbler(BreezeConfiguration breezeConfig, bool getConfigOnly, string ntumblebitServerConf = null, string datadir = null, bool torMandatory = true, TumblerProtocolType? tumblerProtocol = null);
+        void StartTumbler(bool getConfigOnly, NodeSettings nodeSettings, MasternodeSettings masternodeSettings);
     }
 }

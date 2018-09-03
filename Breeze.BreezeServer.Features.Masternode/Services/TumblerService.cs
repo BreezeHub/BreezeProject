@@ -11,7 +11,9 @@ using NTumbleBit.ClassicTumbler.Server;
 using NTumbleBit.Configuration;
 using NTumbleBit.Logging;
 using NTumbleBit.Services;
+using Stratis.Bitcoin.Configuration;
 using ITumblerService = Breeze.BreezeServer.Features.Masternode.Services.ITumblerService;
+using TextFileConfiguration = NTumbleBit.Configuration.TextFileConfiguration;
 
 namespace Breeze.BreezeServer.Features.Masternode.Services
 {
@@ -19,51 +21,63 @@ namespace Breeze.BreezeServer.Features.Masternode.Services
     {
         public TumblerConfiguration config { get; set; }
         public TumblerRuntime runtime { get; set; }
-        
-        public void StartTumbler(BreezeConfiguration breezeConfig, bool getConfigOnly, string ntumblebitServerConf = null, string dataDir = null, bool torMandatory = true, TumblerProtocolType? tumblerProtocol = null)
+
+        /// <summary>Settings relevant to node.</summary>
+        private readonly NodeSettings nodeSettings;
+
+        /// <summary>Settings relevant to masternode.</summary>
+        private readonly MasternodeSettings masternodeSettings;
+
+        /// <summary>Instance logger.</summary>
+        private readonly ILogger logger;
+
+        public TumblerService(NodeSettings nodeSettings, MasternodeSettings masternodeSettings, ILoggerFactory loggerFactory)
+        {
+            this.nodeSettings = nodeSettings;
+            this.masternodeSettings = masternodeSettings;
+            this.logger = loggerFactory.CreateLogger(this.GetType().FullName);
+        }
+
+        public void StartTumbler(bool getConfigOnly, NodeSettings nodeSettings, MasternodeSettings masternodeSettings)
         {
             var argsTemp = new List<string>();
             argsTemp.Add("-debug");
 
-            if (breezeConfig.TumblerNetwork == Network.Main)
+            if (masternodeSettings.Network == Network.Main)
             {
                 argsTemp.Add("-bitcoin");
                 argsTemp.Add("-main");
             }
-            else if (breezeConfig.TumblerNetwork == Network.TestNet)
+            else if (masternodeSettings.Network == Network.TestNet)
             {
                 argsTemp.Add("-bitcoin");
                 argsTemp.Add("-testnet");
             }
-            else if (breezeConfig.TumblerNetwork == Network.RegTest)
+            else if (masternodeSettings.Network == Network.RegTest)
             {
                 argsTemp.Add("-bitcoin");
                 argsTemp.Add("-regtest");
             }
-            else if (breezeConfig.TumblerNetwork == Network.StratisMain)
+            else if (masternodeSettings.Network == Network.StratisMain)
             {
                 argsTemp.Add("-stratis");
                 argsTemp.Add("-main");
             }
-            else if (breezeConfig.TumblerNetwork == Network.StratisTest)
+            else if (masternodeSettings.Network == Network.StratisTest)
             {
                 argsTemp.Add("-stratis");
                 argsTemp.Add("-testnet");
             }
-            else if (breezeConfig.TumblerNetwork == Network.StratisRegTest)
+            else if (masternodeSettings.Network == Network.StratisRegTest)
             {
                 argsTemp.Add("-stratis");
                 argsTemp.Add("-regtest");
             }
             
-            if (ntumblebitServerConf != null)
-                argsTemp.Add("-conf=" + ntumblebitServerConf);
+            if (nodeSettings.DataDir != null)
+                argsTemp.Add("-datadir=" + nodeSettings.DataDir);
 
-            if (dataDir != null)
-                argsTemp.Add("-datadir=" + dataDir);
-
-			if (tumblerProtocol.HasValue)
-				argsTemp.Add($"-tumblerProtocol={tumblerProtocol.Value}");
+			argsTemp.Add($"-tumblerProtocol={masternodeSettings.TumblerProtocol}");
 
             string[] args = argsTemp.ToArray();
             var argsConf = new TextFileConfiguration(args);
@@ -71,34 +85,14 @@ namespace Breeze.BreezeServer.Features.Masternode.Services
 
             ConsoleLoggerProcessor loggerProcessor = new ConsoleLoggerProcessor();
 
-            if (dataDir == null)
-            {
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                {
-                    dataDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "StratisNode");
-                    dataDir = argsConf.GetOrDefault<string>("dataDir", dataDir);
-                }
-                else
-                {
-                    dataDir = Path.Combine(Environment.GetEnvironmentVariable("HOME"), ".stratisnode");
-                    dataDir = argsConf.GetOrDefault<string>("dataDir", dataDir);
-                }
-            }
-
-            string logDir = Path.Combine(dataDir, breezeConfig.TumblerNetwork.RootFolderName, breezeConfig.TumblerNetwork.Name, "Logs");
-
-            if (!Directory.Exists(logDir))
-                Directory.CreateDirectory(logDir);
-
-            Logs.Configure(new FuncLoggerFactory(i => new CustomerConsoleLogger(i, Logs.SupportDebug(debug), false, loggerProcessor)), logDir);
+            Logs.Configure(new FuncLoggerFactory(i => new CustomerConsoleLogger(i, Logs.SupportDebug(debug), false, loggerProcessor)), nodeSettings.DataFolder.LogPath);
 
             if (getConfigOnly)
             {
                 config = new TumblerConfiguration();
-	            if (!torMandatory)
-		            config.TorMandatory = false;
+				config.LoadArgs(args);
+                config.TorMandatory = !masternodeSettings.IsRegTest;
 
-				config.LoadArgs(args);                
                 runtime = TumblerRuntime.FromConfiguration(config, new AcceptAllClientInteraction());
                 return;
             }
@@ -107,10 +101,8 @@ namespace Breeze.BreezeServer.Features.Masternode.Services
             {
                 config = new TumblerConfiguration();
                 config.LoadArgs(args);
+                config.TorMandatory = !masternodeSettings.IsRegTest;
 
-                if (!torMandatory)
-                    config.TorMandatory = false;
-                
                 try
                 {
                     runtime = TumblerRuntime.FromConfiguration(config, new TextWriterClientInteraction(Console.Out, Console.In));
@@ -141,7 +133,7 @@ namespace Breeze.BreezeServer.Features.Masternode.Services
 
                     string baseUri;
 
-                    if (breezeConfig.UseTor)
+                    if (masternodeSettings.TorEnabled)
 						baseUri = runtime.TorUri.ToString().TrimEnd('/'); 
                     else
 	                    baseUri = runtime.LocalEndpoint.ToString();

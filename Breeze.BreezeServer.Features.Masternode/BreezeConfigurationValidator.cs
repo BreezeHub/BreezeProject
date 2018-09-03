@@ -1,6 +1,6 @@
 using System;
 
-namespace Breeze.BreezeServer
+namespace Breeze.BreezeServer.Features.Masternode
 {
     internal static class BreezeConfigurationValidator
     {

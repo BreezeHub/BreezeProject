@@ -1,7 +1,7 @@
 using System.IO;
 using NTumbleBit;
 
-namespace Breeze.BreezeServer
+namespace Breeze.BreezeServer.Features.Masternode
 {
     /// <summary>
     /// Validates or generates Tumbler.pem key file for signing registration transactions

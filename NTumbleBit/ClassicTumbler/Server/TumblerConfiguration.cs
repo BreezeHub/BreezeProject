@@ -15,7 +15,6 @@ using NTumbleBit.Services;
 
 namespace NTumbleBit.ClassicTumbler.Server
 {
-
     public class TumblerConfiguration
 	{
 	    public static int DefaultTumblerPort = 37123;

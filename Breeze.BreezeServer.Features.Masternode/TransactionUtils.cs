@@ -1,9 +1,8 @@
 using System;
-
 using NBitcoin;
 using NBitcoin.RPC;
 
-namespace Breeze.BreezeServer
+namespace Breeze.BreezeServer.Features.Masternode
 {
     public class TransactionUtils
     {

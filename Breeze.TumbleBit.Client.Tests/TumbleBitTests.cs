@@ -26,11 +26,13 @@ using Stratis.Bitcoin.Features.WatchOnlyWallet;
 using Stratis.Bitcoin.IntegrationTests;
 
 using Breeze.BreezeServer;
+using Breeze.BreezeServer.Features.Masternode;
 using Breeze.BreezeServer.Features.Masternode.Services;
 using Breeze.TumbleBit.Models;
 using BreezeCommon;
 using NTumbleBit.ClassicTumbler.Server;
 using NTumbleBit.Logging;
+using Stratis.Bitcoin.Configuration;
 using Stratis.Bitcoin.IntegrationTests.EnvironmentMockUpHelpers;
 using Stratis.Bitcoin.Utilities.Extensions;
 using LogLevel = Microsoft.Extensions.Logging.LogLevel;
@@ -92,7 +94,9 @@ namespace Breeze.TumbleBit.Client.Tests
                 };
                 File.WriteAllLines(configPath, breezeServerConfig);
 
-                BreezeConfiguration config = new BreezeConfiguration(configPath);
+                //BreezeConfiguration config = new BreezeConfiguration(configPath);
+                MasternodeSettings masternodeSettings = new MasternodeSettings(false);
+                NodeSettings nodeSettings = new NodeSettings();
 
                 var coreRpc = coreNode.CreateRPCClient();
                 string ntbServerConfigPath = Path.Combine(coreNode.DataFolder, "server.config");
@@ -117,7 +121,8 @@ namespace Breeze.TumbleBit.Client.Tests
                     Thread.CurrentThread.IsBackground = true;
                     // By instantiating the TumblerService directly the registration logic is skipped
                     var tumbler = serviceProvider.GetService<ITumblerService>();
-                    tumbler.StartTumbler(config, false, "server.config", Path.GetFullPath(coreNode.DataFolder), false);
+                    //tumbler.StartTumbler(config, false, "server.config", Path.GetFullPath(coreNode.DataFolder), false);
+                    tumbler.StartTumbler(false, nodeSettings, masternodeSettings);
                 }).Start();
 
                 // Wait for URI file to be written out by the TumblerService
@@ -359,7 +364,9 @@ namespace Breeze.TumbleBit.Client.Tests
 				};
                 File.WriteAllLines(configPath, breezeServerConfig);
 
-                BreezeConfiguration config = new BreezeConfiguration(configPath);
+                //BreezeConfiguration config = new BreezeConfiguration(configPath);
+                MasternodeSettings masternodeSettings = new MasternodeSettings(false);
+                NodeSettings nodeSettings = new NodeSettings();
 
                 var coreRpc = coreNode.CreateRPCClient();
                 string ntbServerConfigPath = Path.Combine(coreNode.DataFolder, "server.config");
@@ -384,7 +391,8 @@ namespace Breeze.TumbleBit.Client.Tests
                     Thread.CurrentThread.IsBackground = true;
                     // By instantiating the TumblerService directly the registration logic is skipped
                     var tumbler = serviceProvider.GetService<ITumblerService>();
-                    tumbler.StartTumbler(config, false, "server.config", Path.GetFullPath(coreNode.DataFolder), false);
+                    //tumbler.StartTumbler(config, false, "server.config", Path.GetFullPath(coreNode.DataFolder), false);
+                    tumbler.StartTumbler(false, nodeSettings, masternodeSettings);
                 }).Start();
 
                 // Wait for URI file to be written out by the TumblerService
@@ -621,7 +629,9 @@ namespace Breeze.TumbleBit.Client.Tests
 				};
                 File.WriteAllLines(configPath, breezeServerConfig);
 
-                BreezeConfiguration config = new BreezeConfiguration(configPath);
+                //BreezeConfiguration config = new BreezeConfiguration(configPath);
+                MasternodeSettings masternodeSettings = new MasternodeSettings(false);
+                NodeSettings nodeSettings = new NodeSettings();
 
                 var rpc3 = coreNode.CreateRPCClient();
                 string ntbServerConfigPath = Path.Combine(coreNode.DataFolder, "server.config");
@@ -646,7 +656,8 @@ namespace Breeze.TumbleBit.Client.Tests
                     Thread.CurrentThread.IsBackground = true;
                     // By instantiating the TumblerService directly the registration logic is skipped
                     var tumbler = serviceProvider.GetService<ITumblerService>();
-                    tumbler.StartTumbler(config, false, "server.config", Path.GetFullPath(coreNode.DataFolder), false);
+                    //tumbler.StartTumbler(config, false, "server.config", Path.GetFullPath(coreNode.DataFolder), false);
+                    tumbler.StartTumbler(false, nodeSettings, masternodeSettings);
                 }).Start();
 
                 // Wait for URI file to be written out by the TumblerService
