@@ -122,7 +122,39 @@ namespace Breeze.TumbleBit.Client.Services
             );
             txin2.Witnessify();
 
-            //Do not broadcast here, MainController takes care of it
+            //LogDebug("Trying to broadcast transaction: " + tx.GetHash());
+
+            await this.TumblingState.BroadcasterManager.BroadcastTransactionAsync(tx).ConfigureAwait(false);
+            var bcResult = TumblingState.BroadcasterManager.GetTransaction(tx.GetHash()).State;
+            switch (bcResult)
+            {
+                case Stratis.Bitcoin.Broadcasting.State.Broadcasted:
+                case Stratis.Bitcoin.Broadcasting.State.Propagated:
+                    //LogDebug("Broadcasted transaction: " + tx.GetHash());
+                    break;
+                case Stratis.Bitcoin.Broadcasting.State.ToBroadcast:
+                    // Wait for propagation
+                    var waited = TimeSpan.Zero;
+                    var period = TimeSpan.FromSeconds(1);
+                    while (TimeSpan.FromSeconds(21) > waited)
+                    {
+                        // Check BroadcasterManager for broadcast success
+                        var transactionEntry = this.TumblingState.BroadcasterManager.GetTransaction(tx.GetHash());
+                        if (transactionEntry != null && transactionEntry.State == Stratis.Bitcoin.Broadcasting.State.Propagated)
+                        {
+                            //LogDebug("Propagated transaction: " + tx.GetHash());
+                        }
+                        await Task.Delay(period).ConfigureAwait(false);
+                        waited += period;
+                    }
+                    break;
+                case Stratis.Bitcoin.Broadcasting.State.CantBroadcast:
+                    // Do nothing
+                    break;
+            }
+                
+            //LogDebug("Uncertain if transaction was propagated: " + tx.GetHash());
+
             return tx;
         }
 

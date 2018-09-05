@@ -14,19 +14,13 @@ using Stratis.Bitcoin.Interfaces;
 
 namespace Breeze.BreezeServer.Features.Masternode.Services
 {
-    class ClientEscapeData
-    {
-        public ScriptCoin EscrowedCoin { get; set; }
-        public TransactionSignature ClientSignature { get; set; }
-        public Key EscrowKey { get; set; }
-    }
-
     public class FullNodeWalletService : IWalletService
     {
         private Wallet tumblerWallet { get; }
         private string tumblerWalletPassword { get; }
         private IWalletTransactionHandler walletTransactionHandler;
         private IWalletManager walletManager { get; }
+        private IWalletService walletService { get; }
         private IBroadcasterManager broadcasterManager;
 
         private ReceiveBatch ReceiveBatch;
@@ -45,16 +39,17 @@ namespace Breeze.BreezeServer.Features.Masternode.Services
             }
         }
 
-        public FullNodeWalletService(Wallet tumblerWallet, string tumblerWalletPassword, IWalletTransactionHandler walletTransactionHandler, IBroadcasterManager broadcasterManager, IWalletManager walletManager)
+        public FullNodeWalletService(Wallet tumblerWallet, string tumblerWalletPassword, IWalletTransactionHandler walletTransactionHandler, IBroadcasterManager broadcasterManager, IWalletManager walletManager, IWalletService walletService)
         {
             this.tumblerWallet = tumblerWallet ?? throw new ArgumentNullException(nameof(tumblerWallet));
             this.tumblerWalletPassword = tumblerWalletPassword ?? throw new ArgumentNullException(nameof(tumblerWalletPassword));
             this.walletTransactionHandler = walletTransactionHandler;
             this.walletManager = walletManager;
+            this.walletService = walletService;
             this.broadcasterManager = broadcasterManager;
 
             FundingBatch = new FundingBatch(walletTransactionHandler, tumblerWallet, tumblerWalletPassword);
-            ReceiveBatch = new ReceiveBatch();
+            ReceiveBatch = new ReceiveBatch(walletService);
             BatchInterval = TimeSpan.Zero;
         }
 
@@ -88,80 +83,16 @@ namespace Breeze.BreezeServer.Features.Masternode.Services
         // This interface implementation method is only used by the Tumbler server
         public async Task<Transaction> ReceiveAsync(ScriptCoin escrowedCoin, TransactionSignature clientSignature, Key escrowKey, FeeRate feeRate)
         {
-            var input = new ClientEscapeData()
+            ReceiveBatch.FeeRate = feeRate;
+            var task = ReceiveBatch.WaitTransactionAsync(new ClientEscapeData()
             {
                 ClientSignature = clientSignature,
                 EscrowedCoin = escrowedCoin,
                 EscrowKey = escrowKey
-            };
+            }).ConfigureAwait(false);
 
-            var cashout = await GenerateAddressAsync();
-            var tx = new Transaction();
-
-            // Note placeholders - this step is performed again further on
-            var txin = new TxIn(input.EscrowedCoin.Outpoint);
-            txin.ScriptSig = new Script(
-            Op.GetPushOp(TrustedBroadcastRequest.PlaceholderSignature),
-            Op.GetPushOp(TrustedBroadcastRequest.PlaceholderSignature),
-            Op.GetPushOp(input.EscrowedCoin.Redeem.ToBytes())
-            );
-            txin.Witnessify();
-            tx.AddInput(txin);
-
-            tx.Outputs.Add(new TxOut()
-            {
-                ScriptPubKey = cashout.ScriptPubKey,
-                Value = input.EscrowedCoin.Amount
-            });
-
-            ScriptCoin[] coinArray = { input.EscrowedCoin };
-
-            var currentFee = tx.GetFee(coinArray);
-            tx.Outputs[0].Value -= feeRate.GetFee(tx) - currentFee;
-
-            var txin2 = tx.Inputs[0];
-            var signature = tx.SignInput(input.EscrowKey, input.EscrowedCoin);
-            txin2.ScriptSig = new Script(
-            Op.GetPushOp(input.ClientSignature.ToBytes()),
-            Op.GetPushOp(signature.ToBytes()),
-            Op.GetPushOp(input.EscrowedCoin.Redeem.ToBytes())
-            );
-            txin2.Witnessify();
-
-            //LogDebug("Trying to broadcast transaction: " + tx.GetHash());
-
-            await this.broadcasterManager.BroadcastTransactionAsync(tx).ConfigureAwait(false);
-            var bcResult = this.broadcasterManager.GetTransaction(tx.GetHash()).State;
-            switch (bcResult)
-            {
-                case Stratis.Bitcoin.Broadcasting.State.Broadcasted:
-                case Stratis.Bitcoin.Broadcasting.State.Propagated:
-                    //LogDebug("Broadcasted transaction: " + tx.GetHash());
-                    break;
-                case Stratis.Bitcoin.Broadcasting.State.ToBroadcast:
-                    // Wait for propagation
-                    var waited = TimeSpan.Zero;
-                    var period = TimeSpan.FromSeconds(1);
-                    while (TimeSpan.FromSeconds(21) > waited)
-                    {
-                        // Check BroadcasterManager for broadcast success
-                        var transactionEntry = this.broadcasterManager.GetTransaction(tx.GetHash());
-                        if (transactionEntry != null && transactionEntry.State == Stratis.Bitcoin.Broadcasting.State.Propagated)
-                        {
-                            //LogDebug("Propagated transaction: " + tx.GetHash());
-                        }
-                        await Task.Delay(period).ConfigureAwait(false);
-                        waited += period;
-                    }
-                    break;
-                case Stratis.Bitcoin.Broadcasting.State.CantBroadcast:
-                    // Do nothing
-                    break;
-            }
-                
-            //LogDebug("Uncertain if transaction was propagated: " + tx.GetHash());
-
-            return tx;
+            Logs.Tumbler.LogDebug($"ReceiveBatch batch count {ReceiveBatch.BatchCount}");
+            return await task;
         }
 
 	    /// <summary>
