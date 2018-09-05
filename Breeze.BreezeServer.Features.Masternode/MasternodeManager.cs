@@ -35,7 +35,7 @@ namespace Breeze.BreezeServer.Features.Masternode
         {
             logger.LogInformation("{Time} Pre-initialising server to obtain parameters for configuration", DateTime.Now);
 
-            tumblerService.StartTumbler(true, nodeSettings, masternodeSettings);
+            tumblerService.StartTumbler(true);
 
             string configurationHash = tumblerService.runtime.ClassicTumblerParameters.GetHash().ToString();
             string onionAddress = tumblerService.runtime.TorUri.Host.Substring(0, 16);
@@ -89,7 +89,7 @@ namespace Breeze.BreezeServer.Features.Masternode
             Transaction.TimeStamp = false;
             Block.BlockSignature = false;
 
-            tumblerService.StartTumbler(false, nodeSettings, masternodeSettings);
+            tumblerService.StartTumbler(false);
         }
 
         public void Dispose()

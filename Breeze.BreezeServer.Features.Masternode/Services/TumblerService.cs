@@ -13,7 +13,8 @@ using NTumbleBit.Logging;
 using NTumbleBit.Services;
 using Stratis.Bitcoin.Configuration;
 using ITumblerService = Breeze.BreezeServer.Features.Masternode.Services.ITumblerService;
-using TextFileConfiguration = NTumbleBit.Configuration.TextFileConfiguration;
+using TextFileConfiguration = Stratis.Bitcoin.Configuration.TextFileConfiguration;
+
 
 namespace Breeze.BreezeServer.Features.Masternode.Services
 {
@@ -38,41 +39,9 @@ namespace Breeze.BreezeServer.Features.Masternode.Services
             this.logger = loggerFactory.CreateLogger(this.GetType().FullName);
         }
 
-        public void StartTumbler(bool getConfigOnly, NodeSettings nodeSettings, MasternodeSettings masternodeSettings)
+        public void StartTumbler(bool getConfigOnly)
         {
             var argsTemp = new List<string>();
-            argsTemp.Add("-debug");
-
-            if (masternodeSettings.Network == Network.Main)
-            {
-                argsTemp.Add("-bitcoin");
-                argsTemp.Add("-main");
-            }
-            else if (masternodeSettings.Network == Network.TestNet)
-            {
-                argsTemp.Add("-bitcoin");
-                argsTemp.Add("-testnet");
-            }
-            else if (masternodeSettings.Network == Network.RegTest)
-            {
-                argsTemp.Add("-bitcoin");
-                argsTemp.Add("-regtest");
-            }
-            else if (masternodeSettings.Network == Network.StratisMain)
-            {
-                argsTemp.Add("-stratis");
-                argsTemp.Add("-main");
-            }
-            else if (masternodeSettings.Network == Network.StratisTest)
-            {
-                argsTemp.Add("-stratis");
-                argsTemp.Add("-testnet");
-            }
-            else if (masternodeSettings.Network == Network.StratisRegTest)
-            {
-                argsTemp.Add("-stratis");
-                argsTemp.Add("-regtest");
-            }
             
             if (nodeSettings.DataDir != null)
                 argsTemp.Add("-datadir=" + nodeSettings.DataDir);
@@ -81,6 +50,8 @@ namespace Breeze.BreezeServer.Features.Masternode.Services
 
             string[] args = argsTemp.ToArray();
             var argsConf = new TextFileConfiguration(args);
+            nodeSettings.ConfigReader.MergeInto(argsConf);
+            
             var debug = argsConf.GetOrDefault<bool>("debug", false);
 
             ConsoleLoggerProcessor loggerProcessor = new ConsoleLoggerProcessor();
@@ -91,6 +62,8 @@ namespace Breeze.BreezeServer.Features.Masternode.Services
             {
                 config = new TumblerConfiguration();
 				config.LoadArgs(args);
+                config.Services = ExternalServices.CreateFromFullNode(config.DBreezeRepository, config.Tracker);
+
                 config.TorMandatory = !masternodeSettings.IsRegTest;
 
                 runtime = TumblerRuntime.FromConfiguration(config, new AcceptAllClientInteraction());
@@ -101,6 +74,7 @@ namespace Breeze.BreezeServer.Features.Masternode.Services
             {
                 config = new TumblerConfiguration();
                 config.LoadArgs(args);
+                config.Services = ExternalServices.CreateFromFullNode(config.DBreezeRepository, config.Tracker);
                 config.TorMandatory = !masternodeSettings.IsRegTest;
 
                 try

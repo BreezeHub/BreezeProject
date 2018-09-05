@@ -71,6 +71,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Breeze.RegistrationTester",
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Breeze.BreezeServer.Features.Masternode", "Breeze.BreezeServer.Features.Masternode\Breeze.BreezeServer.Features.Masternode.csproj", "{15630CA6-3BD6-4A91-A1AB-C33D1F51D2DD}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stratis.TumbleBit", "Stratis.TumbleBit\Stratis.TumbleBit.csproj", "{CC656BC3-99F8-4DD9-8AD9-2262EB07B905}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -201,6 +203,10 @@ Global
 		{15630CA6-3BD6-4A91-A1AB-C33D1F51D2DD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{15630CA6-3BD6-4A91-A1AB-C33D1F51D2DD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{15630CA6-3BD6-4A91-A1AB-C33D1F51D2DD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CC656BC3-99F8-4DD9-8AD9-2262EB07B905}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CC656BC3-99F8-4DD9-8AD9-2262EB07B905}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CC656BC3-99F8-4DD9-8AD9-2262EB07B905}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CC656BC3-99F8-4DD9-8AD9-2262EB07B905}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

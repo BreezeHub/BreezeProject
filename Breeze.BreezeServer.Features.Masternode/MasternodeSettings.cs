@@ -60,14 +60,17 @@ namespace Breeze.BreezeServer.Features.Masternode
         public Money TxOutputValueSetting { get; set; }
 
         public Money TxFeeValueSetting { get; set; }
-            
+
+        public string TumblerWalletName { get; set; }
+
+        public string TumblerWalletPassword { get; set; }
+
 
         /// <summary>
         /// Initializes an instance of the object.
         /// </summary>
-        public MasternodeSettings(bool forceRegistration)
+        public MasternodeSettings()
         {
-            this.ForceRegistration = forceRegistration;
         }
 
         /// <summary>
@@ -78,6 +81,10 @@ namespace Breeze.BreezeServer.Features.Masternode
         {
             var config = nodeSettings.ConfigReader;
             this.Network = nodeSettings.Network;
+
+            this.ForceRegistration = config.GetOrDefault<bool>("ForceRegistration", false);
+            this.TumblerWalletName = config.GetOrDefault<string>("TumblerWalletName", null);
+            this.TumblerWalletPassword = config.GetOrDefault<string>("TumblerWalletPassword", null);
 
             this.TumblerPort = config.GetOrDefault<int>("MasternodePort", TumblerConfiguration.DefaultTumblerPort);
             this.CycleType = config.GetOrDefault<string>("MasternodeCycle", "Kotori");
@@ -147,6 +154,16 @@ namespace Breeze.BreezeServer.Features.Masternode
                 throw new ConfigurationException($"Invalid Onion address {OnionAddress}. The address needs to be less than 16 characters.");
             }
 
+            if (string.IsNullOrEmpty(this.TumblerWalletName))
+            {
+                throw new ConfigurationException("TumblerWalletName cannot be empty");
+            }
+
+            if (string.IsNullOrEmpty(this.TumblerWalletPassword))
+            {
+                throw new ConfigurationException("TumblerWalletPassword cannot be empty");
+            }
+
             TumblerRsaKeyFile = BreezeConfigurationValidator.ValidateTumblerRsaKeyFile(TumblerRsaKeyFile, TumblerRsaKeyFile);
         }
 
@@ -171,7 +188,10 @@ namespace Breeze.BreezeServer.Features.Masternode
             var builder = new StringBuilder();
 
             builder.AppendLine($"-MasternodePort=<0-65535>              Masternode port ");
+            builder.AppendLine($"-ForceRegistration=<0 or 1>            Forces Masternode registration");
             builder.AppendLine($"-MasternodeCycle=<string>              Name of the tumbling cycle");
+            builder.AppendLine($"-TumblerWalletName=<string>            TumblerWalletName");
+            builder.AppendLine($"-TumblerWalletPassword=<string>        TumblerWalletPassword");
             builder.AppendLine($"-MasternodeFee=<decimal>               Fee charged by the Masternode per tumbling cycle");
             builder.AppendLine($"-TumblerEcdsaKeyAddress=<http or tcp>  Collateral address");
             builder.AppendLine($"-MasternodeIPv4=<IPv4>                 MasternodeIPv4");

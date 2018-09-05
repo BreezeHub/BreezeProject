@@ -89,7 +89,7 @@ namespace NTumbleBit.ClassicTumbler.Server
 			set;
 		}
 
-		public ExternalServices Services
+		public IExternalServices Services
 		{
 			get;
 			set;
@@ -208,18 +208,6 @@ namespace NTumbleBit.ClassicTumbler.Server
 		    ClassicTumblerParameters.Fee = config.GetOrDefault<Money>("tumbler.fee", defaultFee);
 
 			TumblerProtocol = config.GetOrDefault<TumblerProtocolType>("tumbler.protocol", TumblerProtocolType.Tcp);
-
-			RPCClient rpc = null;
-			try
-			{
-				rpc = RPC.ConfigureRPCClient(Network);
-			}
-			catch
-			{
-				throw new ConfigException("Please, fix rpc settings in " + ConfigurationFile);
-			}
-
-			Services = ExternalServices.CreateFromRPCClient(rpc, DBreezeRepository, Tracker, true);
 			return this;
 		}
 

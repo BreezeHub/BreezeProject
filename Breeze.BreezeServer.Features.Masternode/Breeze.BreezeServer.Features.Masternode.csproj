@@ -21,6 +21,7 @@
     <ProjectReference Include="..\BreezeCommon\BreezeCommon.csproj" />
     <ProjectReference Include="..\NTumbleBit.ClassicTumbler.Server.CLI\NTumbleBit.ClassicTumbler.Server.CLI.csproj" />
     <ProjectReference Include="..\NTumbleBit\NTumbleBit.csproj" />
+    <ProjectReference Include="..\StratisBitcoinFullNode\src\Stratis.Bitcoin.Features.Wallet\Stratis.Bitcoin.Features.Wallet.csproj" />
     <ProjectReference Include="..\StratisBitcoinFullNode\src\Stratis.Bitcoin\Stratis.Bitcoin.csproj" />
   </ItemGroup>
 

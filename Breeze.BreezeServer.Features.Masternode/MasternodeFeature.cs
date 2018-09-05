@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using Breeze.BreezeServer.Features.Masternode.Services;
 using Microsoft.Extensions.DependencyInjection;
+using NTumbleBit.Services;
 using Stratis.Bitcoin.Builder;
 using Stratis.Bitcoin.Builder.Feature;
 using Stratis.Bitcoin.Configuration;
@@ -60,7 +61,7 @@ namespace Breeze.BreezeServer.Features.Masternode
         /// <param name="fullNodeBuilder">The object used to build the current node.</param>
         /// <param name="forceRegistration">Forces the masternode registration</param>
         /// <returns>The full node builder, enriched with the new component.</returns>
-        public static IFullNodeBuilder UseMasternode(this IFullNodeBuilder fullNodeBuilder, bool forceRegistration)
+        public static IFullNodeBuilder UseMasternode(this IFullNodeBuilder fullNodeBuilder)
         {
             fullNodeBuilder.ConfigureFeature(features =>
             {
@@ -69,8 +70,8 @@ namespace Breeze.BreezeServer.Features.Masternode
                     .FeatureServices(services =>
                     {
                         services.AddSingleton<IMasternodeManager, MasternodeManager>();
-                        services.AddSingleton<MasternodeSettings>(new MasternodeSettings(forceRegistration));
-
+                        services.AddSingleton<MasternodeSettings>(new MasternodeSettings());
+                        services.AddSingleton<IExternalServices, ExternalServices>();
                         services.AddTransient<ITumblerService, TumblerService>();
                     });
             });

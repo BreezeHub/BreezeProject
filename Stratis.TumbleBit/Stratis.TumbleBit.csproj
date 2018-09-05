@@ -1,0 +1,36 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Description>Stratis TumbleBit</Description>
+    <AssemblyTitle>Stratis.TumbleBit</AssemblyTitle>
+    <TargetFramework>netcoreapp2.0</TargetFramework>    
+    <AssemblyName>Stratis.TumbleBit</AssemblyName>
+    <PackageId>Stratis.TumbleBit</PackageId>
+    <GenerateAssemblyTitleAttribute>false</GenerateAssemblyTitleAttribute>
+    <GenerateAssemblyDescriptionAttribute>false</GenerateAssemblyDescriptionAttribute>
+    <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
+    <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
+    <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
+    <GenerateAssemblyCopyrightAttribute>false</GenerateAssemblyCopyrightAttribute>
+    <GenerateAssemblyVersionAttribute>false</GenerateAssemblyVersionAttribute>
+    <GenerateAssemblyFileVersionAttribute>false</GenerateAssemblyFileVersionAttribute>
+    <Version>1.0.10-alpha</Version>
+    <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
+  </PropertyGroup>
+
+  <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <OutputType>Library</OutputType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Breeze.BreezeServer.Features.Masternode\Breeze.BreezeServer.Features.Masternode.csproj" />
+    <ProjectReference Include="..\Breeze.TumbleBit.Client\Breeze.TumbleBit.Client.csproj" />
+    <ProjectReference Include="..\NTumbleBit\NTumbleBit.csproj" />
+    <ProjectReference Include="..\StratisBitcoinFullNode\src\NBitcoin\NBitcoin.csproj" />
+    <ProjectReference Include="..\StratisBitcoinFullNode\src\Stratis.Bitcoin\Stratis.Bitcoin.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Services\" />
+  </ItemGroup>  
+</Project>

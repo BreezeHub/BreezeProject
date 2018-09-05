@@ -62,35 +62,6 @@ namespace Breeze.BreezeServer
             var isRegTest = args.Contains("regtest", comparer);
             var isTestNet = args.Contains("testnet", comparer);
             var isStratis = args.Contains("stratis", comparer);
-            var forceRegistration = args.Contains("forceRegistration", comparer);
-
-            var useTor = !args.Contains("noTor", comparer);
-
-            TumblerProtocolType? tumblerProtocol = null;
-            try
-            {
-                string tumblerProtocolString = args.Where(a => a.StartsWith("-tumblerProtocol=")).Select(a => a.Substring("-tumblerProtocol=".Length).Replace("\"", "")).FirstOrDefault();
-                if (!isRegTest && (tumblerProtocolString != null || !useTor))
-                {
-                    Console.WriteLine("Options -TumblerProtocol and -NoTor can only be used in combination with -RegTest switch.");
-                    return;
-                }
-
-                if (tumblerProtocolString != null)
-                    tumblerProtocol = Enum.Parse<TumblerProtocolType>(tumblerProtocolString, true);
-
-                if (useTor && tumblerProtocol.HasValue && tumblerProtocol.Value == TumblerProtocolType.Http)
-                {
-                    Console.WriteLine("TumblerProtocol can only be changed to Http when Tor is disabled. Please use -NoTor switch to disable Tor.");
-                    return;
-                }
-            }
-            catch
-            {
-                Console.WriteLine($"Incorrect tumbling prococol specified; the valid values are {TumblerProtocolType.Tcp} and {TumblerProtocolType.Http}");
-                return;
-            }
-
 
             var agent = "Masternode";
             NodeSettings nodeSettings;
@@ -140,7 +111,7 @@ namespace Breeze.BreezeServer
 
             fullNodeBuilder.AddRPC()
                 .UseApi()
-                .UseMasternode(forceRegistration);
+                .UseMasternode();
 
             IFullNode node = fullNodeBuilder.Build();
             await node.RunAsync();

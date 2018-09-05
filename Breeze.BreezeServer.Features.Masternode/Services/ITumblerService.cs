@@ -8,6 +8,6 @@ namespace Breeze.BreezeServer.Features.Masternode.Services
         TumblerConfiguration config { get; set; }
         TumblerRuntime runtime { get; set; }
         
-        void StartTumbler(bool getConfigOnly, NodeSettings nodeSettings, MasternodeSettings masternodeSettings);
+        void StartTumbler(bool getConfigOnly);
     }
 }
