@@ -62,7 +62,7 @@ namespace Breeze.BreezeServer.Features.Masternode.Services
             {
                 config = new TumblerConfiguration();
 				config.LoadArgs(args);
-                config.Services = ExternalServices.CreateFromFullNode(config.DBreezeRepository, config.Tracker);
+                config.Services = ExternalServices.CreateFromFullNode(config.DBreezeRepository, config.Tracker, true);
 
                 config.TorMandatory = !masternodeSettings.IsRegTest;
 
@@ -74,7 +74,7 @@ namespace Breeze.BreezeServer.Features.Masternode.Services
             {
                 config = new TumblerConfiguration();
                 config.LoadArgs(args);
-                config.Services = ExternalServices.CreateFromFullNode(config.DBreezeRepository, config.Tracker);
+                config.Services = ExternalServices.CreateFromFullNode(config.DBreezeRepository, config.Tracker, true);
                 config.TorMandatory = !masternodeSettings.IsRegTest;
 
                 try

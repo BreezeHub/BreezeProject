@@ -20,7 +20,6 @@ namespace Breeze.BreezeServer.Features.Masternode.Services
         private string tumblerWalletPassword { get; }
         private IWalletTransactionHandler walletTransactionHandler;
         private IWalletManager walletManager { get; }
-        private IWalletService walletService { get; }
         private IBroadcasterManager broadcasterManager;
 
         private ReceiveBatch ReceiveBatch;
@@ -39,17 +38,16 @@ namespace Breeze.BreezeServer.Features.Masternode.Services
             }
         }
 
-        public FullNodeWalletService(Wallet tumblerWallet, string tumblerWalletPassword, IWalletTransactionHandler walletTransactionHandler, IBroadcasterManager broadcasterManager, IWalletManager walletManager, IWalletService walletService)
+        public FullNodeWalletService(Wallet tumblerWallet, string tumblerWalletPassword, IWalletTransactionHandler walletTransactionHandler, IBroadcasterManager broadcasterManager, IWalletManager walletManager)
         {
             this.tumblerWallet = tumblerWallet ?? throw new ArgumentNullException(nameof(tumblerWallet));
             this.tumblerWalletPassword = tumblerWalletPassword ?? throw new ArgumentNullException(nameof(tumblerWalletPassword));
             this.walletTransactionHandler = walletTransactionHandler;
             this.walletManager = walletManager;
-            this.walletService = walletService;
             this.broadcasterManager = broadcasterManager;
 
-            FundingBatch = new FundingBatch(walletTransactionHandler, tumblerWallet, tumblerWalletPassword);
-            ReceiveBatch = new ReceiveBatch(walletService);
+            FundingBatch = new FundingBatch(this, walletTransactionHandler, tumblerWallet, tumblerWalletPassword);
+            ReceiveBatch = new ReceiveBatch(this);
             BatchInterval = TimeSpan.Zero;
         }
 

@@ -5,8 +5,10 @@ using NBitcoin;
 using NTumbleBit.Services;
 using NTumbleBit.Services.RPC;
 using Stratis.Bitcoin.Configuration;
+using Stratis.Bitcoin.Connection;
 using Stratis.Bitcoin.Features.Wallet;
 using Stratis.Bitcoin.Features.Wallet.Interfaces;
+using Stratis.Bitcoin.Features.WatchOnlyWallet;
 using Stratis.Bitcoin.Interfaces;
 
 namespace Breeze.BreezeServer.Features.Masternode
@@ -21,21 +23,30 @@ namespace Breeze.BreezeServer.Features.Masternode
 
         private NodeSettings nodeSettings;
         private MasternodeSettings masternodeSettings;
+        private ConcurrentChain chain { get; set; }
         private IWalletManager walletManager;
+        public IWatchOnlyWalletManager watchOnlyWalletManager { get; set; }
         private IWalletTransactionHandler walletTransactionHandler;
         private IWalletFeePolicy walletFeePolicy;
         private IBroadcasterManager broadcasterManager;
+        private IConnectionManager connectionManager;
 
         private static ExternalServices services = null;
 
-        public ExternalServices(NodeSettings nodeSettings, MasternodeSettings masternodeSettings, IWalletManager walletManager, IWalletTransactionHandler walletTransactionHandler, IWalletFeePolicy walletFeePolicy, IBroadcasterManager broadcasterManager)
+        public ExternalServices(NodeSettings nodeSettings, MasternodeSettings masternodeSettings, ConcurrentChain chain,
+            IWalletManager walletManager, IWatchOnlyWalletManager watchOnlyWalletManager,
+            IWalletTransactionHandler walletTransactionHandler, IWalletFeePolicy walletFeePolicy,
+            IBroadcasterManager broadcasterManager, IConnectionManager connectionManager)
         {
-            this.nodeSettings = nodeSettings;
-            this.masternodeSettings = masternodeSettings;
-            this.walletManager = walletManager;
-            this.walletTransactionHandler = walletTransactionHandler;
-            this.walletFeePolicy = walletFeePolicy;
-            this.broadcasterManager = broadcasterManager;
+            this.nodeSettings = nodeSettings ?? throw new ArgumentNullException(nameof(nodeSettings));
+            this.masternodeSettings = masternodeSettings ?? throw new ArgumentNullException(nameof(masternodeSettings));
+            this.chain = chain ?? throw new ArgumentNullException(nameof(chain));
+            this.walletManager = walletManager ?? throw new ArgumentNullException(nameof(walletManager));
+            this.watchOnlyWalletManager = watchOnlyWalletManager ?? throw new ArgumentNullException(nameof(watchOnlyWalletManager));
+            this.walletTransactionHandler = walletTransactionHandler ?? throw new ArgumentNullException(nameof(walletTransactionHandler));
+            this.walletFeePolicy = walletFeePolicy ?? throw new ArgumentNullException(nameof(walletFeePolicy));
+            this.broadcasterManager = broadcasterManager ?? throw new ArgumentNullException(nameof(broadcasterManager));
+            this.connectionManager = connectionManager ?? throw new ArgumentNullException(nameof(connectionManager));
 
             if (services == null)
                 services = this;
@@ -44,7 +55,7 @@ namespace Breeze.BreezeServer.Features.Masternode
                 throw new Exception("External Services cannot be changed.");
         }
 
-        public static ExternalServices CreateFromFullNode(IRepository repository, Tracker tracker)
+        public static ExternalServices CreateFromFullNode(IRepository repository, Tracker tracker, bool useBatching)
         { 
             var minimumRate = services.nodeSettings.MinRelayTxFeeRate;
             // On regtest the estimatefee always fails
@@ -66,19 +77,18 @@ namespace Breeze.BreezeServer.Features.Masternode
 
 
             var clientBatchInterval = TimeSpan.FromMilliseconds(100);
-            if (rpc.Network != NBitcoin.Network.RegTest)
+            var tumblerWallet = services.walletManager.GetWallet(services.masternodeSettings.TumblerWalletName);
+            var cache = new FullNodeWalletCache(services.chain, services.walletManager, services.watchOnlyWalletManager, services.nodeSettings.Network);
+            if (!services.masternodeSettings.IsRegTest)
             {
-                var tumblerWallet = services.walletManager.GetWallet(services.masternodeSettings.TumblerWalletName);
                 services.WalletService = new FullNodeWalletService(tumblerWallet, services.masternodeSettings.TumblerWalletPassword, services.walletTransactionHandler, services.broadcasterManager, services.walletManager)
                 {
                     BatchInterval = useBatching ? TimeSpan.FromSeconds(160) : clientBatchInterval,
-                    AddressGenerationBatchInterval = useBatching ? TimeSpan.FromSeconds(1) : TimeSpan.FromMilliseconds(10)
                 };
 
-                //var cache = new FullNodeWalletCache(tumblingState);
-                services.BroadcastService = new FullNodeBroadcastService(cache, repository, tumblingState);
-                services.BlockExplorerService = new FullNodeBlockExplorerService(cache, tumblingState);
-                services.TrustedBroadcastService = new FullNodeTrustedBroadcastService(services.BroadcastService, services.BlockExplorerService, repository, cache, tracker, tumblingState)
+                services.BroadcastService = new FullNodeBroadcastService(cache, repository, services.chain, services.nodeSettings.Network, services.walletManager, services.watchOnlyWalletManager, services.broadcasterManager, services.connectionManager);
+                services.BlockExplorerService = new FullNodeBlockExplorerService(cache, services.chain, services.nodeSettings.Network, services.walletManager, services.watchOnlyWalletManager, services.connectionManager);
+                services.TrustedBroadcastService = new FullNodeTrustedBroadcastService(services.BroadcastService, services.BlockExplorerService, repository, cache, tracker, services.chain, services.watchOnlyWalletManager, services.nodeSettings.Network)
                 {
                     // BlockExplorer will already track the addresses, since they used a shared bitcoind, no need of tracking again (this would overwrite labels)
                     TrackPreviousScriptPubKey = false
@@ -89,14 +99,11 @@ namespace Breeze.BreezeServer.Features.Masternode
                 // For integration tests on regtest the batching needs to be almost nonexistent due to the low
                 // inter-block delays
 
-                var tumblerWallet = services.walletManager.GetWallet(services.masternodeSettings.TumblerWalletName);
                 services.WalletService = new FullNodeWalletService(tumblerWallet, services.masternodeSettings.TumblerWalletPassword, services.walletTransactionHandler, services.broadcasterManager, services.walletManager);
 
-                //var cache = new FullNodeWalletCache(tumblingState);
-
-                services.BroadcastService = new FullNodeBroadcastService(cache, repository, tumblingState);
-                services.BlockExplorerService = new FullNodeBlockExplorerService(cache, tumblingState);
-                services.TrustedBroadcastService = new FullNodeTrustedBroadcastService(services.BroadcastService, services.BlockExplorerService, repository, cache, tracker, tumblingState)
+                services.BroadcastService = new FullNodeBroadcastService(cache, repository, services.chain, services.nodeSettings.Network, services.walletManager, services.watchOnlyWalletManager, services.broadcasterManager, services.connectionManager);
+                services.BlockExplorerService = new FullNodeBlockExplorerService(cache, services.chain, services.nodeSettings.Network, services.walletManager, services.watchOnlyWalletManager, services.connectionManager);
+                services.TrustedBroadcastService = new FullNodeTrustedBroadcastService(services.BroadcastService, services.BlockExplorerService, repository, cache, tracker, services.chain, services.watchOnlyWalletManager, services.nodeSettings.Network)
                 {
                     // BlockExplorer will already track the addresses, since they used a shared bitcoind, no need of tracking again (this would overwrite labels)
                     TrackPreviousScriptPubKey = false

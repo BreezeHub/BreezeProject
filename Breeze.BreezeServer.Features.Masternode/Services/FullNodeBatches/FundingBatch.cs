@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using NBitcoin;
 using NBitcoin.RPC;
 using Newtonsoft.Json.Linq;
+using NTumbleBit.Services;
 using NTumbleBit.Services.RPC;
 using Stratis.Bitcoin.Features.Wallet;
 using Stratis.Bitcoin.Features.Wallet.Interfaces;
@@ -16,9 +17,11 @@ namespace Breeze.BreezeServer.Features.Masternode.Services.FullNodeBatches
 	    private Wallet tumblerWallet;
 	    private string tumblerWalletPassword;
 	    private IWalletTransactionHandler walletTransactionHandler;
+	    private IWalletService walletService;
 
-        public FundingBatch(IWalletTransactionHandler walletTransactionHandler, Wallet tumblerWallet, string tumblerWalletPassword)
+        public FundingBatch(IWalletService walletService, IWalletTransactionHandler walletTransactionHandler, Wallet tumblerWallet, string tumblerWalletPassword)
         {
+            this.walletService = walletService;
             this.tumblerWallet = tumblerWallet;
             this.tumblerWalletPassword = tumblerWalletPassword;
             this.walletTransactionHandler = walletTransactionHandler;
@@ -60,11 +63,7 @@ namespace Breeze.BreezeServer.Features.Masternode.Services.FullNodeBatches
 		        }
 		        catch (Exception ex)
 		        {
-		            var spandableBalance = tumblerWallet
-		                .GetAccountsByCoinType((CoinType) tumblerWallet.Network.Consensus.CoinType).First()
-		                .GetSpendableAmount();
-
-                    var balance = spandableBalance.ConfirmedAmount + spandableBalance.UnConfirmedAmount;
+                    var balance = walletService.GetBalance(tumblerWallet.Name);
 		            var needed = data.Select(r => r.Amount).Sum() + FeeRate.GetFee(2000);
 		            var missing = needed - balance;
 		            if (missing > Money.Zero)
