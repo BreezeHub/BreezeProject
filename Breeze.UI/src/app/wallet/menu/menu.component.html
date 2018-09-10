@@ -11,6 +11,9 @@
         <li class="nav-item" *ngIf="bitcoin">
           <a class="nav-link" routerLink="privacy" [routerLinkActive]="['is-active']">Privacy</a>
         </li>
+        <li class="nav-item" *ngIf="!bitcoin">
+          <a class="nav-link" routerLink="privacy-strat" [routerLinkActive]="['is-active']">Privacy</a>
+        </li>
       </ul>
       <!-- /ul-->
       <div class="ml-auto d-flex align-items-center">
