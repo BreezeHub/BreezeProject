@@ -6,15 +6,17 @@ import 'rxjs/add/operator/mergeMap';
 import 'rxjs/add/operator/take';
 import 'rxjs/add/operator/concat';
 import 'rxjs/add/observable/throw';
-import { TumblerConnectionRequest } from './classes/tumbler-connection-request';
+
 import { TumbleRequest } from './classes/tumble-request';
 import { ConnectRequest } from './classes/connect-request';
 import { GlobalService } from '../../shared/services/global.service';
-import { Error } from '../../shared/classes/error';
 import { ServiceShared } from '../../shared/services/shared';
 
 @Injectable()
 export class TumblebitService {
+
+  bitcoinTumbling = false;
+  stratisTumbling = false;
 
   // The service to connect to & operate a TumbleBit Server via the
   // TumbleBit.Client.CLI tool

@@ -17,7 +17,7 @@ import { TumblebitComponent } from './tumblebit.component';
     providers: [TumblebitService],
     templateUrl: './tumblebit.component.html',
     styleUrls: ['./tumblebit.component.css'],
-  })
+})
 export class StratisTumblebitComponent extends TumblebitComponent {
 
     constructor(apiService: ApiService,

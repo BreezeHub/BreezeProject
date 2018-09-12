@@ -17,7 +17,7 @@ import { ConnectRequest } from './classes/connect-request';
 import { CycleInfo } from './classes/cycle-info';
 import { ModalService } from '../../shared/services/modal.service';
 import { CompositeDisposable } from '../../shared/classes/composite-disposable';
-import { Observable } from 'rxjs';
+import { Observable, Subject } from 'rxjs';
 
 import { PasswordConfirmationComponent } from './password-confirmation/password-confirmation.component';
 import { ConnectionModalComponent } from '../../shared/components/connection-modal/connection-modal.component';
@@ -42,6 +42,7 @@ export class TumblebitComponent implements OnDestroy {
     private readonly loginPath = '/login';
     private routerPath;
     private _isBitcoin = true;
+    private _tumbling = false;
     public coinUnit: string;
     public confirmedBalance: number;
     public unconfirmedBalance: number;
@@ -61,7 +62,6 @@ export class TumblebitComponent implements OnDestroy {
     public denomination: number;
     public progressDataArray: CycleInfo[];
     public tumbleForm: FormGroup;
-    public tumbling = false;
     public wallets: [string];
     public tumblerAddress = 'Connecting...';
     public hasRegistrations = false;
@@ -98,6 +98,20 @@ export class TumblebitComponent implements OnDestroy {
     if (this.routerSubscriptions) {
       this.routerSubscriptions.unsubscribe();
     }
+  }
+
+  get tumbling(): boolean {
+    return this._tumbling;
+  }
+  set tumbling(value: boolean) {
+      if (this.tumbling !== value) {
+        this._tumbling = value;
+        if (this.bitcoin) {
+            this.tumblebitService.bitcoinTumbling = value;
+        } else {
+            this.tumblebitService.stratisTumbling = value;
+        }
+      }
   }
 
   private static isNavigationEnd(event: RouterEvent, path: string): boolean {
@@ -141,9 +155,6 @@ export class TumblebitComponent implements OnDestroy {
   }
 
   private start() {
-
-    console.log(this.bitcoin);
-
     this.destroyed$ = new ReplaySubject<any>();
     this.operation = 'connect';
     this.tumblerAddress = 'Connecting...';

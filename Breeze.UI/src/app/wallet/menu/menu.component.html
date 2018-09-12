@@ -8,10 +8,10 @@
         <li class="nav-item">
           <a class="nav-link" routerLink="history" [routerLinkActive]="['is-active']">History</a>
         </li>
-        <li class="nav-item" *ngIf="bitcoin">
+        <li class="nav-item" *ngIf="bitcoin && allowBitcoinPrivacy">
           <a class="nav-link" routerLink="privacy" [routerLinkActive]="['is-active']">Privacy</a>
         </li>
-        <li class="nav-item" *ngIf="!bitcoin">
+        <li class="nav-item" *ngIf="!bitcoin && allowStratisPrivacy">
           <a class="nav-link" routerLink="privacy-strat" [routerLinkActive]="['is-active']">Privacy</a>
         </li>
       </ul>
