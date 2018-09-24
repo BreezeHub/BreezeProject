@@ -42,7 +42,8 @@ namespace Breeze.BreezeServer.Features.Masternode.Services
         public void StartTumbler(bool getConfigOnly)
         {
             var argsTemp = new List<string>();
-            
+            argsTemp.Add($"-{nodeSettings.Network.Name}");
+
             if (nodeSettings.DataDir != null)
                 argsTemp.Add("-datadir=" + nodeSettings.DataDir);
 

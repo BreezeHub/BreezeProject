@@ -114,18 +114,20 @@ namespace NTumbleBit.ClassicTumbler.Server
 				}
 			}
 
-		    if (args.Contains("-bitcoin", StringComparer.OrdinalIgnoreCase) && args.Contains("-main", StringComparer.OrdinalIgnoreCase))
+		    if (args.Contains("-Main", StringComparer.OrdinalIgnoreCase))
 		        Network = Network.Main;
-		    else if (args.Contains("-bitcoin", StringComparer.OrdinalIgnoreCase) && args.Contains("-testnet", StringComparer.OrdinalIgnoreCase))
+		    else if (args.Contains("-TestNet", StringComparer.OrdinalIgnoreCase))
 		        Network = Network.TestNet;
-		    else if (args.Contains("-bitcoin", StringComparer.OrdinalIgnoreCase) && args.Contains("-regtest", StringComparer.OrdinalIgnoreCase))
+		    else if (args.Contains("-RegTest", StringComparer.OrdinalIgnoreCase))
 		        Network = Network.RegTest;
-		    else if (args.Contains("-stratis", StringComparer.OrdinalIgnoreCase) && args.Contains("-main", StringComparer.OrdinalIgnoreCase))
+		    else if (args.Contains("-StratisMain", StringComparer.OrdinalIgnoreCase))
 		        Network = Network.StratisMain;
-		    else if (args.Contains("-stratis", StringComparer.OrdinalIgnoreCase) && args.Contains("-testnet", StringComparer.OrdinalIgnoreCase))
+		    else if (args.Contains("-StratisTestNet", StringComparer.OrdinalIgnoreCase))
 		        Network = Network.StratisTest;
-		    else if (args.Contains("-stratis", StringComparer.OrdinalIgnoreCase) && args.Contains("-regtest", StringComparer.OrdinalIgnoreCase))
+		    else if (args.Contains("-StratisRegTest", StringComparer.OrdinalIgnoreCase))
 		        Network = Network.StratisRegTest;
+            else
+                throw new ArgumentException("Invalid network name specified.");
 
             if (ConfigurationFile != null)
 			{

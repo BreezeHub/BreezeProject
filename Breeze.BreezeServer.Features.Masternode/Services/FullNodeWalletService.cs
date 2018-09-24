@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Security;
 using System.Threading.Tasks;
 using Breeze.BreezeServer.Features.Masternode.Services.FullNodeBatches;
 using Microsoft.Extensions.Logging;
@@ -17,7 +18,7 @@ namespace Breeze.BreezeServer.Features.Masternode.Services
     public class FullNodeWalletService : IWalletService
     {
         private Wallet tumblerWallet { get; }
-        private string tumblerWalletPassword { get; }
+        private SecureString tumblerWalletPassword { get; }
         private IWalletTransactionHandler walletTransactionHandler;
         private IWalletManager walletManager { get; }
         private IBroadcasterManager broadcasterManager;
@@ -38,7 +39,7 @@ namespace Breeze.BreezeServer.Features.Masternode.Services
             }
         }
 
-        public FullNodeWalletService(Wallet tumblerWallet, string tumblerWalletPassword, IWalletTransactionHandler walletTransactionHandler, IBroadcasterManager broadcasterManager, IWalletManager walletManager)
+        public FullNodeWalletService(Wallet tumblerWallet, SecureString tumblerWalletPassword, IWalletTransactionHandler walletTransactionHandler, IBroadcasterManager broadcasterManager, IWalletManager walletManager)
         {
             this.tumblerWallet = tumblerWallet ?? throw new ArgumentNullException(nameof(tumblerWallet));
             this.tumblerWalletPassword = tumblerWalletPassword ?? throw new ArgumentNullException(nameof(tumblerWalletPassword));

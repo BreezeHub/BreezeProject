@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Security;
 using System.Threading.Tasks;
 using NBitcoin;
 using NBitcoin.RPC;
@@ -15,11 +16,11 @@ namespace Breeze.BreezeServer.Features.Masternode.Services.FullNodeBatches
 	public class FundingBatch : BatchBase<Recipient, Transaction>
 	{
 	    private Wallet tumblerWallet;
-	    private string tumblerWalletPassword;
+	    private SecureString tumblerWalletPassword;
 	    private IWalletTransactionHandler walletTransactionHandler;
 	    private IWalletService walletService;
 
-        public FundingBatch(IWalletService walletService, IWalletTransactionHandler walletTransactionHandler, Wallet tumblerWallet, string tumblerWalletPassword)
+        public FundingBatch(IWalletService walletService, IWalletTransactionHandler walletTransactionHandler, Wallet tumblerWallet, SecureString tumblerWalletPassword)
         {
             this.walletService = walletService;
             this.tumblerWallet = tumblerWallet;
@@ -48,7 +49,7 @@ namespace Breeze.BreezeServer.Features.Masternode.Services.FullNodeBatches
 
 		            var context = new TransactionBuildContext(
 		                walletReference,
-		                data.ToList(), tumblerWalletPassword)
+		                data.ToList(), tumblerWalletPassword.ToString())
 		            {
 		                // To avoid using un-propagated (and hence unconfirmed) transactions we require at least 1 confirmation.
 		                // If a transaction is somehow invalid, all transactions using it as an input are invalidated. This

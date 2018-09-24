@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Security;
 using System.Text;
 using BreezeCommon;
 using Microsoft.Extensions.Logging;
@@ -63,8 +64,9 @@ namespace Breeze.BreezeServer.Features.Masternode
 
         public string TumblerWalletName { get; set; }
 
-        public string TumblerWalletPassword { get; set; }
+        public SecureString TumblerWalletPassword { get; set; }
 
+        private static decimal DefaultMasternodeFee = 0.00075m;
 
         /// <summary>
         /// Initializes an instance of the object.
@@ -72,6 +74,8 @@ namespace Breeze.BreezeServer.Features.Masternode
         public MasternodeSettings()
         {
         }
+
+        
 
         /// <summary>
         /// Loads the masternode settings from the application configuration.
@@ -84,12 +88,20 @@ namespace Breeze.BreezeServer.Features.Masternode
 
             this.ForceRegistration = config.GetOrDefault<bool>("ForceRegistration", false);
             this.TumblerWalletName = config.GetOrDefault<string>("TumblerWalletName", null);
-            this.TumblerWalletPassword = config.GetOrDefault<string>("TumblerWalletPassword", null);
+            string tumblerWalletPassword = config.GetOrDefault<string>("TumblerWalletPassword", null);
+            SecureString tumblerWalletPasswordSecure = new SecureString();
+            foreach (char c in tumblerWalletPassword)
+                tumblerWalletPasswordSecure.AppendChar(c);
+            tumblerWalletPassword = null;
+
+            this.TumblerWalletPassword = tumblerWalletPasswordSecure;
 
             this.TumblerPort = config.GetOrDefault<int>("MasternodePort", TumblerConfiguration.DefaultTumblerPort);
             this.CycleType = config.GetOrDefault<string>("MasternodeCycle", "Kotori");
             this.TumblerEcdsaKeyAddress = config.GetOrDefault<string>("TumblerEcdsaKeyAddress", null);
-            this.TumblerFee = config.GetOrDefault<decimal>("MasternodeFee", 0.00075m);
+            string tumblerFeeString = config.GetOrDefault<string>("MasternodeFee", DefaultMasternodeFee.ToString());
+            this.TumblerFee = decimal.TryParse(tumblerFeeString, out decimal tumblerFee) ? tumblerFee : DefaultMasternodeFee;
+
             this.TorEnabled = config.GetOrDefault<bool>("MasternodeUseTor", true);
             string tumblerProtocolString = config.GetOrDefault<string>("MasternodeProtocol", TumblerProtocolType.Tcp.ToString());
 
@@ -159,9 +171,11 @@ namespace Breeze.BreezeServer.Features.Masternode
                 throw new ConfigurationException("TumblerWalletName cannot be empty");
             }
 
-            if (string.IsNullOrEmpty(this.TumblerWalletPassword))
+            while (this.TumblerWalletPassword == null || this.TumblerWalletPassword.Length < 1)
             {
-                throw new ConfigurationException("TumblerWalletPassword cannot be empty");
+                Console.Write("Please enter password for the Masternode wallet: ");
+                this.TumblerWalletPassword = GetPassword();
+                Console.WriteLine();
             }
 
             TumblerRsaKeyFile = BreezeConfigurationValidator.ValidateTumblerRsaKeyFile(TumblerRsaKeyFile, TumblerRsaKeyFile);
@@ -177,7 +191,17 @@ namespace Breeze.BreezeServer.Features.Masternode
             this.LoadSettingsFromConfig(nodeSettings);
 
             // Check validity of settings
-            this.CheckConfigurationValidity(nodeSettings.Logger);
+            try
+            {
+                this.CheckConfigurationValidity(nodeSettings.Logger);
+            }
+            catch
+            {
+                Console.WriteLine("If you are facing issues with starting up the Masternode please compare your configuration with the recommended setings.");
+                Console.WriteLine(DefaultConfiguration());
+                throw;
+            }
+            
         }
 
         /// <summary> Prints the help information on how to configure the masternode settings to the logger.</summary>
@@ -187,13 +211,13 @@ namespace Breeze.BreezeServer.Features.Masternode
             var defaults = NodeSettings.Default();
             var builder = new StringBuilder();
 
-            builder.AppendLine($"-MasternodePort=<0-65535>              Masternode port ");
+            builder.AppendLine($"-MasternodePort=<0-65535>              Port on which the Masternode should be run");
             builder.AppendLine($"-ForceRegistration=<0 or 1>            Forces Masternode registration");
             builder.AppendLine($"-MasternodeCycle=<string>              Name of the tumbling cycle");
-            builder.AppendLine($"-TumblerWalletName=<string>            TumblerWalletName");
-            builder.AppendLine($"-TumblerWalletPassword=<string>        TumblerWalletPassword");
+            builder.AppendLine($"-TumblerWalletName=<string>            Name of the wallet used by the masternode during tumbling");
+            builder.AppendLine($"-TumblerWalletPassword=<string>        Password of the wallet used by the masternode during tumbling");
             builder.AppendLine($"-MasternodeFee=<decimal>               Fee charged by the Masternode per tumbling cycle");
-            builder.AppendLine($"-TumblerEcdsaKeyAddress=<http or tcp>  Collateral address");
+            builder.AppendLine($"-TumblerEcdsaKeyAddress=<address>      Collateral address");
             builder.AppendLine($"-MasternodeIPv4=<IPv4>                 MasternodeIPv4");
             builder.AppendLine($"-MasternodeIPv6=<IPv6>                 MasternodeIPv6");
             builder.AppendLine($"-MasternodeOnion=<string>              MasternodeOnion");
@@ -205,6 +229,72 @@ namespace Breeze.BreezeServer.Features.Masternode
             builder.AppendLine($"-MasternodeProtocol=<http or tcp>      Protocol which should be used to communicate between Masternode and its clients (test only)");
 
             defaults.Logger.LogInformation(builder.ToString());
+        }
+
+        public static string DefaultConfiguration()
+        {
+            StringBuilder builder = new StringBuilder();
+            builder.AppendLine("####Masternode####");
+            
+            builder.AppendLine("#Port on which the Masternode should be run (default: 37123)");
+            builder.AppendLine("MasternodePort=37123");
+            builder.AppendLine("#Forces Masternode registration (default: 0)");
+            builder.AppendLine("#ForceRegistration=0");
+            builder.AppendLine("#Name of the tumbling cycle (default kotori)");
+            builder.AppendLine("#MasternodeCycle=kotori");
+            builder.AppendLine("#Name of the wallet used by the masternode during tumbling (default: Masternode)");
+            builder.AppendLine("TumblerWalletName=Masternode");
+            builder.AppendLine("#Password of the wallet used by the masternode during tumbling");
+            builder.AppendLine("TumblerWalletPassword=<please make this a secure password>");
+            builder.AppendLine($"#Fee charged by the Masternode per tumbling cycle (default: {DefaultMasternodeFee})");
+            builder.AppendLine($"MasternodeFee={DefaultMasternodeFee}");
+            builder.AppendLine("#Collateral address");
+            builder.AppendLine("TumblerEcdsaKeyAddress=");
+            builder.AppendLine("#Masternode IPv4 address used during registration");
+            builder.AppendLine("#MasternodeIPv4=");
+            builder.AppendLine("#Masternode IPv6 address used during registration");
+            builder.AppendLine("#MasternodeIPv6=");
+            builder.AppendLine("#Masternode Onion address");
+            builder.AppendLine("#MasternodeOnion=");
+            builder.AppendLine("#Masternode Tumbler Url address");
+            builder.AppendLine("#MasternodeTumblerUrl=");
+            builder.AppendLine("#Masternode Rsakey file (default: set automatically)");
+            builder.AppendLine("#MasternodeRsakeyfile=");
+            builder.AppendLine("#Masternode Reg tx output value");
+            builder.AppendLine("#MasternodeRegtxoutputvalue=");
+            builder.AppendLine("#Masternode Reg tx fee value");
+            builder.AppendLine("#MasternodeRegtxfeevalue=");
+
+            builder.AppendLine("#Whether the TOR should be using for communication between Masternode and its clients (test only) (default: 1)");
+            builder.AppendLine("#MasternodeUseTor=1");
+            builder.AppendLine("#Protocol which should be used to communicate between Masternode and its clients (test only) (default: TCP)");
+            builder.AppendLine("#MasternodeProtocol=TCP");
+
+            return builder.ToString();
+        }
+
+        public SecureString GetPassword()
+        {
+            SecureString password = new SecureString();
+            ConsoleKeyInfo consoleKeyInfo;
+
+            while ((consoleKeyInfo = Console.ReadKey(true)).Key != ConsoleKey.Enter)
+            {
+                if (consoleKeyInfo.Key == ConsoleKey.Backspace)
+                {
+                    if (password.Length > 0)
+                    {
+                        password.RemoveAt(password.Length - 1);
+                        Console.Write("\b \b");
+                    }
+                }
+                else if (consoleKeyInfo.KeyChar != '\u0000') // KeyChar == '\u0000' if the key pressed does not correspond to a printable character, e.g. F1, Pause-Break, etc
+                {
+                    password.AppendChar(consoleKeyInfo.KeyChar);
+                    Console.Write("*");
+                }
+            }
+            return password;
         }
     }
 }

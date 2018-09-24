@@ -35,6 +35,8 @@ namespace Breeze.BreezeServer.Features.Masternode
         public override void LoadConfiguration()
         {
             this.masternodeSettings.Load(this.nodeSettings);
+
+            create wallet
         }
 
         /// <inheritdoc />
