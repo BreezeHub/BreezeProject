@@ -21,6 +21,8 @@ export class MenuComponent implements OnInit {
       return !this.tumblebitService.bitcoinTumbling;
   }
 
+  disabledReason = (ticker) => `(Not available - ${ticker} is tumbling)`;
+
   ngOnInit (){
     if (this.globalService.getCoinName() === "Bitcoin" || this.globalService.getCoinName() === "TestBitcoin") {
       this.bitcoin = true;
