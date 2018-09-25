@@ -1,0 +1,12 @@
+.navbar-privacy-disabled {
+    text-align: center; 
+    margin-top: 23px; 
+    margin-left: 13px; 
+    color: lightgray;
+}
+  
+.navbar-privacy-disabled-reason {
+    color:brown; 
+    font-size: 11px; 
+    margin-left: 4px
+}
