@@ -1,0 +1,12 @@
+StratisCoreA: TPA7kLWePF9dbuzkt2nCrkypMTss7BZQcG
+StratisCoreB: TAi7HMcJsuHvTcnS2kBzLp9ajK1P8CY74X
+
+BitcoinCoreA: mpC6MdcS1E91bPHmnf92FCiMLsVvxk6oPL
+BitcoinCoreB: mzXKBHWU4izEGYydTVRft1TZGRrN29h1o4
+
+MasternodeA (Bitcoin): TBC
+MasternodeA (Stratis): TBC
+
+TBClientA (Bitcoin): mqyJrJLGeSwq4zvcYDJm4DxdiS1JUYGnAU
+TBClientA (Stratis): THKajMpK1sH5YC7HPH2mNSLPRZWuy895Y5
+
