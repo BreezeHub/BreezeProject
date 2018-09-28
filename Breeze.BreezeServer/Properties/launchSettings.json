@@ -2,7 +2,7 @@
   "profiles": {
     "Breeze.BreezeServer Main": {
       "commandName": "Project",
-      "commandLineArgs": "-regtest -ForceRegistration -datadir=C:\\Code\\NodeData\\BreezeProjectNodes\\MasternodeA"
+      "commandLineArgs": "-regtest -stratis -ForceRegistration -datadir=C:\\Code\\NodeData\\BreezeProjectNodes\\MasternodeA -MasternodeDisableTor -MasternodeProtocol=http"
     },
     "Breeze.Daemon TestNet": {
       "commandName": "Project",

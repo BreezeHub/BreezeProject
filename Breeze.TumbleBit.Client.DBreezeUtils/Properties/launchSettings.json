@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Breeze.TumbleBit.Client.DBreezeUtils": {
+      "commandName": "Project",
+      "commandLineArgs": "C:\\NodeData\\TBRegTestC\\bitcoin\\RegTest SourceC.wallet.json DestinationC.wallet.json -s"
+    }
+  }
+}

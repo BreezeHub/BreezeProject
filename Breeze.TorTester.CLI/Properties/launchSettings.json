@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Breeze.TorTester.CLI": {
+      "commandName": "Project",
+      "commandLineArgs": "ctb://192.168.100.20:37129?h=ed8ac8a6485b92e48d1ab45621760f4dd4c0de04 1 %appdata%\\\\tor\\control_auth_cookie -noTor -tumblerProtocol=http"
+    }
+  }
+}

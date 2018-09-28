@@ -115,7 +115,6 @@ namespace Breeze.BreezeServer.Features.Masternode
             }
             catch (Exception e) {
                 Console.WriteLine("ERROR: Unable to retrieve private key to fund registration transaction");
-				Console.WriteLine("Is the Stratis wallet unlocked & RPC enabled?");
                 Console.WriteLine(e);
                 Environment.Exit(0);
             }

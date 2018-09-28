@@ -185,6 +185,10 @@ namespace Breeze.TumbleBit.Client
 
             if (this.TumblerAddress == null)
             {
+                this.TumblerAddress = $"ctb://192.168.100.20:37123?h=eefc5d8d728599d8f70b349c1a3f928df6268bd0";
+                this.TumblerDisplayAddress = this.TumblerAddress;
+                return await TryUseServer();
+
                 if (registrations.Count < MINIMUM_MASTERNODE_COUNT)
                 {
                     this.logger.LogDebug($"Not enough masternode registrations downloaded yet: {registrations.Count}");
