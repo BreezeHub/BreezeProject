@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import {Location} from '@angular/common';
 import { Router } from '@angular/router';
+import { GlobalService } from '../shared/services/global.service';
 
 @Component({
   selector: 'setup-component',
@@ -8,7 +9,16 @@ import { Router } from '@angular/router';
   styleUrls: ['./setup.component.css'],
 })
 export class SetupComponent {
-  constructor(private router: Router, private location: Location) {}
+  private _allowNavigationBack = false;
+
+  constructor(private router: Router, private location: Location, private globalService: GlobalService) {
+      this._allowNavigationBack = !globalService.masternodeMode;
+  }
+  
+  get allowNavigationBack(): boolean {
+      return this._allowNavigationBack;
+  }
+
   public onCreateClicked() {
     this.router.navigate(['/setup/create']);
   }

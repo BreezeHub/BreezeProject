@@ -56,6 +56,15 @@ export class ApiService {
     }
     return this._currentApiUrl;
   }
+
+  masternodeDoWalletsExist(): Observable<boolean> {
+      return new Observable(x => x.next(true));
+
+      //return this.http
+      //  .get(`${this.currentApiUrl}/masternode/checkwallets`)
+      //  .map(...);
+  }
+
   /**
    * Gets available wallets at the default path
    */

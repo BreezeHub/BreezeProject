@@ -12,6 +12,7 @@
  *	 -bitcoinApiPort	: Bitcoin API port; this is passed to the BreezeD as -apiport
  *	 -stratisApiPort	: Stratis API port; this is passed to the BreezeD as -apiport
  *   -storeDir			: Location of the registrationHistory.json file; this is passed to the BreezeD as -storeDir
+ *   -masternode        : To start wallet in Masternode mode
  ************************************************************************************************************************************************/
 
 const electron = require('electron');
@@ -36,9 +37,14 @@ let storeDir;
 let bitcoinPort;
 let stratisPort;
 let startDaemons;
+
+const args = process.argv.slice(1);
+
 (<any>global).bitcoinApiPort = 37220;
 (<any>global).stratisApiPort = 37221;
-const args = process.argv.slice(1);
+(<any>global).masternodeMode = args.map(x => x.toLowerCase())
+                                   .some(x => x === '--masternode' || x === '-masternode');
+
 serve = args.some(val => val === '--serve' || val === '-serve');
 startDaemons = !args.some(val => val === '--noDaemons' || val === '-noDaemons');
 

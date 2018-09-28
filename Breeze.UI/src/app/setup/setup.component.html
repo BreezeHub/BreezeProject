@@ -5,7 +5,7 @@
         <button type="button" class="btn btn-link text-back" (click)="onBackClicked()">Back</button>
       </p>-->
 
-      <p class="textback text-left col-8 mx-auto">
+      <p *ngIf="allowNavigationBack" class="textback text-left col-8 mx-auto">
         <a (click)="onBackClicked()">
           <span class="ico-arrow-left2"></span>
         </a>
