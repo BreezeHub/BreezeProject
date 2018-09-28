@@ -1,0 +1,2 @@
+cd C:\Code\BreezeProject\Breeze.BreezeServer
+dotnet run -- -regtest -stratis -ForceRegistration -datadir=C:\Code\BreezeProject\UATTestSetup\NodeData\MasternodeA -MasternodeDisableTor -MasternodeProtocol=http
