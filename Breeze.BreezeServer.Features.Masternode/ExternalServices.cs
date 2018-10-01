@@ -58,9 +58,13 @@ namespace Breeze.BreezeServer.Features.Masternode
         public static ExternalServices CreateFromFullNode(IRepository repository, Tracker tracker, bool useBatching)
         { 
             var minimumRate = services.nodeSettings.MinRelayTxFeeRate;
+
             // On regtest the estimatefee always fails
             if (services.masternodeSettings.IsRegTest)
             {
+                if (minimumRate == FeeRate.Zero)
+                    minimumRate = new FeeRate(Money.Satoshis(1500));
+
                 services.FeeService = new FullNodeFeeService(services.walletFeePolicy)
                 {
                     MinimumFeeRate = minimumRate,

@@ -2,7 +2,7 @@
   "profiles": {
     "Breeze.Daemon Main": {
       "commandName": "Project",
-      "commandLineArgs": "-stratis -light -registration -tumblebit -regtest -port=18101 -apiport=19101 -connect=127.0.0.1:18001 -connect=127.0.0.1:28001 -datadir=C:\\Code\\NodeData\\BreezeProjectNodes\\ClientA -noTor -tumblerProtocol=http"
+      "commandLineArgs": "-stratis -light -registration -tumblebit -regtest -port=18101 -apiport=19101 -connect=127.0.0.1:18001 -connect=127.0.0.1:28001 -datadir=C:\\Code\\BreezeProject\\UATTestSetup\\NodeData\\TBClientA -noTor -tumblerProtocol=http"
     },
     "Breeze.Daemon TestNet": {
       "commandName": "Project",

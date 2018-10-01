@@ -48,8 +48,20 @@ namespace Breeze.BreezeServer.Features.Masternode.Services
                 argsTemp.Add("-datadir=" + nodeSettings.DataDir);
 
 			argsTemp.Add($"-tumblerProtocol={masternodeSettings.TumblerProtocol}");
+            argsTemp.Add($"-tumbler.fee={masternodeSettings.TumblerFee}");
+            if (!string.IsNullOrEmpty(masternodeSettings.CycleType))
+                argsTemp.Add($"-cycle={masternodeSettings.CycleType}");
+            argsTemp.Add($"-port={masternodeSettings.TumblerPort}");
+            if (masternodeSettings.Ipv4Address != null)
+                argsTemp.Add($"-listen={masternodeSettings.Ipv4Address.ToString()}");
+            argsTemp.Add($"-tor.enabled={masternodeSettings.TorEnabled}");
+            //argsTemp.Add($"-tor.server={masternodeSettings.}");
+            //argsTemp.Add($"-tor.password={masternodeSettings.}");
+            //argsTemp.Add($"-tor.cookiefile={masternodeSettings.}");
+            //argsTemp.Add($"-tor.virtualport={masternodeSettings.}");
 
             string[] args = argsTemp.ToArray();
+
             var argsConf = new TextFileConfiguration(args);
             nodeSettings.ConfigReader.MergeInto(argsConf);
             

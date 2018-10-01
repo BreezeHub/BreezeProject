@@ -1,0 +1,3 @@
+cd C:\Code\BreezeProject\Breeze.UI
+title NPM INSTALL
+npm install
