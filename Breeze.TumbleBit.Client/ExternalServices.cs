@@ -19,11 +19,15 @@ namespace Breeze.TumbleBit.Client
         public static ExternalServices CreateFromFullNode(IRepository repository, Tracker tracker, TumblingState tumblingState)
         {
             var minimumRate = tumblingState.NodeSettings.MinRelayTxFeeRate;
+
             var service = new ExternalServices();
 
             // On regtest the estimatefee always fails
-            if (tumblingState.TumblerNetwork == Network.RegTest)
+            if (tumblingState.TumblerNetwork == Network.RegTest || tumblingState.TumblerNetwork == Network.StratisRegTest)
             {
+                if (minimumRate == FeeRate.Zero)
+                    minimumRate = new FeeRate(Money.Satoshis(1500));
+
                 service.FeeService = new FullNodeFeeService(tumblingState.WalletFeePolicy)
                 {
                     MinimumFeeRate = minimumRate,

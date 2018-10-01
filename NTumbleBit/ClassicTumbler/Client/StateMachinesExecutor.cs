@@ -85,7 +85,7 @@ namespace NTumbleBit.ClassicTumbler.Client
                         NBitcoin.Utils.Shuffle(machineStates);
                         bool hadInvalidPhase = false;
 
-                        if (Runtime.Network != Network.RegTest)
+                        if (Runtime.Network != Network.RegTest && Runtime.Network != Network.StratisRegTest)
                         {
                             //Waiting for the block to propagate to server so invalid-phase happens less often
                             //This also make the server less overwhelmed by sudden request peak.

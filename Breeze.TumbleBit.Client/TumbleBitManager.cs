@@ -185,7 +185,7 @@ namespace Breeze.TumbleBit.Client
 
             if (this.TumblerAddress == null)
             {
-                this.TumblerAddress = $"ctb://192.168.100.20:37123?h=eefc5d8d728599d8f70b349c1a3f928df6268bd0";
+                this.TumblerAddress = $"ctb://192.168.2.21:37124?h=3441c7ade6a222c07b6704190a3c8c7cf5d2fbbe";
                 this.TumblerDisplayAddress = this.TumblerAddress;
                 return await TryUseServer();
 
