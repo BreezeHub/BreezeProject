@@ -46,7 +46,7 @@ export class AppComponent implements OnInit {
 
     if (this.globalService.masternodeMode) {
         this.apiService.masternodeDoWalletsExist()
-                       .subscribe(exist => this.router.navigate([`/${exist ? 'setup' : 'login'}`]));
+                       .subscribe(exist => this.router.navigate([`/${exist ? 'login' : 'setup'}`]));
     } else {
         this.router.navigate(['/login']);
     }

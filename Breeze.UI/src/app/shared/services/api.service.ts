@@ -65,6 +65,10 @@ export class ApiService {
       //  .map(...);
   }
 
+  loadTumblingWallet(): Observable<boolean> {
+      return new Observable(x => x.next(true));
+  }
+
   /**
    * Gets available wallets at the default path
    */

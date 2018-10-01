@@ -16,6 +16,7 @@ import { WalletLoad } from '../shared/classes/wallet-load';
 })
 
 export class LoginComponent implements OnInit {
+  masternodeMode = false;
   public hasWallet = false;
   public isDecrypting = false;
   private openWalletForm: FormGroup;
@@ -35,6 +36,9 @@ export class LoginComponent implements OnInit {
     private genericModalService: ModalService,
     private router: Router,
     private fb: FormBuilder) {
+
+    this.masternodeMode = globalService.masternodeMode;
+    console.log(this.masternodeMode);
     this.buildDecryptForm();
   }
 
@@ -104,6 +108,14 @@ export class LoginComponent implements OnInit {
   }
 
   private onDecryptClicked() {
+    if (this.masternodeMode) {
+        this.apiService.loadTumblingWallet().subscribe(_ => this.beginLoadWallets());
+    } else {
+        this.beginLoadWallets();
+    }
+  }
+
+  private beginLoadWallets() {
     this.isDecrypting = true;
     this.globalService.setWalletName(this.openWalletForm.get('selectWallet').value);
     this.getCurrentNetwork();
