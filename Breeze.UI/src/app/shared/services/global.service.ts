@@ -21,6 +21,10 @@ export class GlobalService {
     return remote.getGlobal('stratisApiPort');
   }
 
+  get masternodeMode(): boolean {
+    return remote.getGlobal('masternodeMode');
+  }
+
   getWalletPath() {
     return this.walletPath;
   }

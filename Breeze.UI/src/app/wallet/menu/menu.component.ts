@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 
 import { GlobalService } from '../../shared/services/global.service';
+import { TumblebitService } from '../../wallet/tumblebit/tumblebit.service';
 
 @Component({
   selector: 'app-menu',
@@ -8,8 +9,19 @@ import { GlobalService } from '../../shared/services/global.service';
   styleUrls: ['./menu.component.css'],
 })
 export class MenuComponent implements OnInit {
-  constructor(private globalService: GlobalService) {}
-  public bitcoin: Boolean = false;
+  constructor(private globalService: GlobalService, private tumblebitService: TumblebitService) {}
+  
+  bitcoin: Boolean = false;
+
+  get allowBitcoinPrivacy(): boolean {
+      return !this.tumblebitService.stratisTumbling;
+  }
+
+  get allowStratisPrivacy(): boolean {
+      return !this.tumblebitService.bitcoinTumbling;
+  }
+
+  disabledReason = (ticker) => `(Not available - ${ticker} is tumbling)`;
 
   ngOnInit (){
     if (this.globalService.getCoinName() === "Bitcoin" || this.globalService.getCoinName() === "TestBitcoin") {

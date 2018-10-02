@@ -41,7 +41,12 @@
         </div>
         <!-- /row-->
         <div class="row d-flex justify-content-center" *ngIf="!isDecrypting">
-          <button type="submit" class="btn btn-darkgray btn-lg" [disabled]="!openWalletForm.valid || isDecrypting" (click)="onDecryptClicked()">Decrypt</button>
+          <div>
+            <button *ngIf="!masternodeMode" type="submit" class="btn btn-darkgray btn-lg" [disabled]="!openWalletForm.valid || isDecrypting" (click)="onDecryptClicked()">Decrypt</button>
+            <button *ngIf="masternodeMode" type="submit" class="btn btn-darkgray btn-lg" [disabled]="!openWalletForm.valid || isDecrypting" (click)="onDecryptClicked()">
+                Decrypt<br/><span style="color:black; background: wheat; padding-left: 5px; padding-right: 5px; display: inline-block; margin-top: 5px">This action will start masternode functionality</span>
+            </button>
+          </div>
         </div>
         <div class="row d-flex justify-content-center" *ngIf="isDecrypting">
           <div class="spinner">

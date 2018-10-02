@@ -8,6 +8,7 @@ import { remote } from 'electron';
 
 import 'rxjs/add/operator/retryWhen';
 import 'rxjs/add/operator/delay';
+import { GlobalService } from './shared/services/global.service';
 
 @Component({
   selector: 'app-root',
@@ -20,7 +21,10 @@ export class AppComponent implements OnInit {
   private responseMessage: any;
   public loading = true;
 
-  constructor(private router: Router, private apiService: ApiService, private titleService: Title) {}
+  constructor(private router: Router, 
+              private apiService: ApiService, 
+              private titleService: Title, 
+              private globalService: GlobalService) { }
 
   ngOnInit() {
     this.setTitle();
@@ -39,7 +43,14 @@ export class AppComponent implements OnInit {
 
   private startApp() {
     this.loading = false;
-    this.router.navigate(['/login']);
+
+    if (this.globalService.masternodeMode) {
+        this.apiService.masternodeDoWalletsExist()
+                       .subscribe(exist => this.router.navigate([`/${exist ? 'login' : 'setup'}`]));
+    } else {
+        this.router.navigate(['/login']);
+    }
+    
   }
 
   private setTitle() {

@@ -2,10 +2,9 @@ import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 
 import { WalletComponent }   from './wallet.component';
-import { SendComponent } from './send/send.component';
-import { ReceiveComponent } from './receive/receive.component';
 import { HistoryComponent } from './history/history.component';
 import { TumblebitComponent } from './tumblebit/tumblebit.component';
+import { StratisTumblebitComponent } from './tumblebit/stratis-tumblebit.component';
 import { DashboardComponent } from './dashboard/dashboard.component';
 
 const routes: Routes = [
@@ -21,7 +20,8 @@ const routes: Routes = [
   children: [
     { path: '', redirectTo:'dashboard', pathMatch:'full' },
     { path: 'dashboard', component: DashboardComponent, data: { shouldReuse: false } },
-    { path: 'history', component: HistoryComponent, data: { shouldReuse: false } }
+    { path: 'history', component: HistoryComponent, data: { shouldReuse: false } },
+    { path: 'privacy-strat', component: StratisTumblebitComponent, data: { shouldReuse: true } }
   ]
 }
 ];

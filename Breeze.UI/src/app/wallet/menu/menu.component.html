@@ -8,14 +8,33 @@
         <li class="nav-item">
           <a class="nav-link" routerLink="history" [routerLinkActive]="['is-active']">History</a>
         </li>
+
         <li class="nav-item" *ngIf="bitcoin">
-          <a class="nav-link" routerLink="privacy" [routerLinkActive]="['is-active']">Privacy</a>
+          <a *ngIf="allowBitcoinPrivacy; else elseTemplate" class="nav-link" routerLink="privacy" [routerLinkActive]="['is-active']">Privacy</a>
+          <ng-template #elseTemplate>
+            <span>
+              <label class="navbar-privacy-disabled">Privacy</label>
+              <img src="../../icons/information.png" style="margin-left:5px" title="{{disabledReason('STRAT')}}"/>
+            </span> 
+          </ng-template>
         </li>
+
+        <li class="nav-item" *ngIf="!bitcoin">
+          <a *ngIf="allowStratisPrivacy; else elseTemplate" class="nav-link" routerLink="privacy-strat" [routerLinkActive]="['is-active']">Privacy</a>
+          <ng-template #elseTemplate>
+            <span>
+              <label class="navbar-privacy-disabled">Privacy</label>
+              <img src="../../icons/information.png" style="margin-left:5px" title="{{disabledReason('BTC')}}"/>
+            </span> 
+          </ng-template>
+        </li>
+
       </ul>
       <!-- /ul-->
       <div class="ml-auto d-flex align-items-center">
         <img src="../../../assets/images/logo.svg" width="113px" height="30px" alt="Breeze Logo">
       </div>
+
     </div>
     <!-- /navbar-collapse-->
   </nav>
