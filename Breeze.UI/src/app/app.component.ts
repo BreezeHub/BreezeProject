@@ -42,11 +42,12 @@ export class AppComponent implements OnInit {
     this.router.navigate(['/login']);
   }
 
+
   private setTitle() {
     const applicationName = 'Breeze Wallet';
     const applicationVersion = remote.app.getVersion();
-    const releaseCycle = 'beta';
-    const newTitle = `${applicationName} v${applicationVersion} ${releaseCycle}`;
+    const newTitle = `${applicationName} ${applicationVersion}`;
     this.titleService.setTitle(newTitle);
   }
+ 
 }
