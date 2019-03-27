@@ -1,8 +1,9 @@
 import { Injectable } from '@angular/core';
-import { remote } from 'electron';
+import { ElectronService } from 'ngx-electron';
 
 @Injectable()
 export class GlobalService {
+  private applicationVersion: string = "1.1.0";
   private walletPath: string;
   private currentWalletName: string;
   private coinType: number;
@@ -10,15 +11,25 @@ export class GlobalService {
   private coinUnit: string;
   private network: string;
 
-  constructor() {
+  constructor(private electronService: ElectronService) {
+  }
+
+  getApplicationVersion() {
+    return this.applicationVersion;
+  }
+
+  setApplicationVersion() {
+    if (this.electronService.isElectronApp) {
+      this.applicationVersion = this.electronService.remote.app.getVersion();
+    }
   }
 
   get bitcoinApiPort() {
-    return remote.getGlobal('bitcoinApiPort');
+    return this.electronService.remote.getGlobal('bitcoinApiPort');
   }
 
   get stratisApiPort() {
-    return remote.getGlobal('stratisApiPort');
+    return this.electronService.remote.getGlobal('stratisApiPort');
   }
 
   getWalletPath() {

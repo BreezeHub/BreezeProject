@@ -15,6 +15,7 @@ import { TransactionSending } from '../classes/transaction-sending';
 import { ServiceShared } from './shared';
 import { ModalService } from './modal.service';
 import { Router } from '@angular/router';
+import { NodeStatus } from '../classes/node-status';
 
 @Injectable({
   providedIn: 'root'
@@ -51,6 +52,22 @@ export class ApiService {
       this._currentApiUrl = `http://localhost:${this.globalService.bitcoinApiPort}/api`;
     }
     return this._currentApiUrl;
+  }
+
+  getNodeStatus(silent?: boolean): Observable<NodeStatus> {
+    this.getCurrentCoin();
+    return this.http.get<NodeStatus>(this._currentApiUrl + '/node/status').pipe(
+      catchError(err => this.handleHttpError(err, silent))
+    );
+  }
+
+  getNodeStatusInterval(): Observable<NodeStatus> {
+    this.getCurrentCoin();
+    return this.pollingInterval.pipe(
+      startWith(0),
+      switchMap(() => this.http.get<NodeStatus>(this._currentApiUrl + '/node/status')),
+      catchError(err => this.handleHttpError(err))
+    )
   }
   /**
    * Gets available wallets at the default path
