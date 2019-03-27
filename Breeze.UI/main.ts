@@ -111,7 +111,7 @@ function createWindow() {
     frame: true,
     minWidth: 1200,
     minHeight: 650,
-    title: 'Breeze Wallet'
+    title: 'Breeze'
   });
 
    // and load the index.html of the app.
@@ -157,7 +157,7 @@ app.on('ready', function () {
 
 // Quit when all windows are closed.
 app.on('window-all-closed', function () {
-  //The user doesn't have the option to create another window/wallet from the Electron menu, so there's 
+  //The user doesn't have the option to create another window/wallet from the Electron menu, so there's
   //no point in keeping it there, so we simply quit the app.
   quit();
 });
@@ -224,21 +224,21 @@ function startBitcoinApi() {
 	 commandLineArguments.push("-testnet");
    if(regtest)
 	 commandLineArguments.push("-regtest");
- 
+
    if (noTor)
-	 commandLineArguments.push("-noTor");   
+	 commandLineArguments.push("-noTor");
 
    if (tumblerProtocol != null)
-	 commandLineArguments.push("-tumblerProtocol=" + tumblerProtocol);   
- 
+	 commandLineArguments.push("-tumblerProtocol=" + tumblerProtocol);
+
    commandLineArguments.push("-tumblebit");
    commandLineArguments.push("-registration");
    if (dataDir != null)
-     commandLineArguments.push("-datadir=" + dataDir);   
-   
+     commandLineArguments.push("-datadir=" + dataDir);
+
    if (storeDir != null)
      commandLineArguments.push("-storedir=" + storeDir);
-   
+
    console.log("Starting Bitcoin daemon with parameters: " + commandLineArguments);
    bitcoinProcess = spawnBitcoin(apiPath, commandLineArguments, {
       detached: false
@@ -262,23 +262,23 @@ function startStratisApi() {
   } else {
     apiPath = path.resolve(__dirname, '..//..//resources//daemon//Breeze.Daemon');
   }
-  
+
   let commandLineArguments = [];
   commandLineArguments.push("-stratis");
   commandLineArguments.push("-apiport=" + (<any>global).stratisApiPort);
    if(stratisPort != null)
 	 commandLineArguments.push("-port=" + stratisPort);
-  
+
   commandLineArguments.push("-light");
   if(testnet)
 	commandLineArguments.push("-testnet");
   if(regtest)
     commandLineArguments.push("-regtest");
- 
+
   commandLineArguments.push("-registration");
   if (dataDir != null)
 	commandLineArguments.push("-datadir=" + dataDir);
-  
+
   console.log("Starting Stratis daemon with parameters: " + commandLineArguments);
   stratisProcess = spawnStratis(apiPath, commandLineArguments, {
     detached: false
