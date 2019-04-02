@@ -12,7 +12,6 @@ import { WalletInfo } from '../classes/wallet-info';
 import { FeeEstimation } from '../classes/fee-estimation';
 import { TransactionBuilding } from '../classes/transaction-building';
 import { TransactionSending } from '../classes/transaction-sending';
-import { ServiceShared } from './shared';
 import { ModalService } from './modal.service';
 import { Router } from '@angular/router';
 import { NodeStatus } from '../classes/node-status';
@@ -24,45 +23,49 @@ export class ApiService {
 
   constructor(private http: HttpClient, private globalService: GlobalService, private modalService: ModalService, private router: Router) { }
 
-  private _currentApiUrl;
-  private headers = new Headers({ 'Content-Type': 'application/json' });
+  private _currentApiUrl = this.getCurrentApiUrl();
+  private bitcoinApiUrl = this.getBitcoinApiUrl();
+  private stratisApiUrl = this.getStratisApiUrl();
   private pollingInterval = interval(5000);
-  private static isBitcoin(coin: string): boolean {
-    return coin === 'Bitcoin' || coin === 'TestBitcoin';
+  private static isBitcoin(network: string): boolean {
+    return network === 'MainNet' || network === 'TestNet';
   }
-  private static isStratis(coin: string): boolean {
-    return coin === 'Stratis' || coin === 'TestStratis';
+  private static isStratis(network: string): boolean {
+    return network === 'StratisMain' || network === 'StratisTest';
   }
-  private getCurrentCoin() {
-    const currentCoin = this.globalService.getCoinName();
-    if (ApiService.isBitcoin(currentCoin)) {
-      this._currentApiUrl = this.bitcoinApiUrl;
-    } else if (ApiService.isStratis(currentCoin)) {
-      this._currentApiUrl = this.stratisApiUrl;
+  private getCurrentNetwork() {
+    const currentNetwork = this.globalService.getNetwork();
+    if (ApiService.isBitcoin(currentNetwork)) {
+      this._currentApiUrl = this.getBitcoinApiUrl();
+    } else if (ApiService.isStratis(currentNetwork)) {
+      this._currentApiUrl = this.getStratisApiUrl();
     }
   }
-  get bitcoinApiUrl() {
-    return `http://localhost:${this.globalService.bitcoinApiPort}/api`;
+  getBitcoinApiUrl() {
+    const bitcoinApiPort = this.globalService.getBitcoinApiPort();
+    this.bitcoinApiUrl = `http://localhost:${bitcoinApiPort}/api`;
+    return this.bitcoinApiUrl;
   }
-  get stratisApiUrl() {
-    return `http://localhost:${this.globalService.stratisApiPort}/api`;
+  getStratisApiUrl() {
+    const stratisApiPort = this.globalService.getStratisApiPort();
+    this.stratisApiUrl = `http://localhost:${stratisApiPort}/api`;
+    return this.stratisApiUrl;
   }
-  get currentApiUrl() {
+  getCurrentApiUrl() {
     if (!this._currentApiUrl) {
-      this._currentApiUrl = `http://localhost:${this.globalService.bitcoinApiPort}/api`;
+      this._currentApiUrl = `http://localhost:${this.globalService.getBitcoinApiPort()}/api`;
     }
     return this._currentApiUrl;
   }
 
   getNodeStatus(silent?: boolean): Observable<NodeStatus> {
-    this.getCurrentCoin();
     return this.http.get<NodeStatus>(this._currentApiUrl + '/node/status').pipe(
       catchError(err => this.handleHttpError(err, silent))
     );
   }
 
   getNodeStatusInterval(): Observable<NodeStatus> {
-    this.getCurrentCoin();
+    this.getCurrentNetwork();
     return this.pollingInterval.pipe(
       startWith(0),
       switchMap(() => this.http.get<NodeStatus>(this._currentApiUrl + '/node/status')),
@@ -149,7 +152,7 @@ export class ApiService {
    * Get wallet status info from the API.
    */
   getWalletStatus(): Observable<any> {
-    this.getCurrentCoin();
+    this.getCurrentNetwork();
     return this.http.get(this._currentApiUrl + '/wallet/status').pipe(
       catchError(err => this.handleHttpError(err))
     );
@@ -167,7 +170,7 @@ export class ApiService {
    * Get general wallet info from the API.
    */
   getGeneralInfo(data: WalletInfo): Observable<any> {
-    this.getCurrentCoin();
+    this.getCurrentNetwork();
     let params = new HttpParams().set('Name', data.walletName);
     return this.pollingInterval.pipe(
       startWith(0),
@@ -197,7 +200,7 @@ export class ApiService {
    * Get wallet balance info from the API.
    */
   getWalletBalance(data: WalletInfo): Observable<any> {
-    this.getCurrentCoin();
+    this.getCurrentNetwork();
     let params = new HttpParams()
       .set('walletName', data.walletName)
       .set('accountName', 'account 0');
@@ -211,7 +214,7 @@ export class ApiService {
    * Get the maximum sendable amount for a given fee from the API
    */
   getMaximumBalance(data): Observable<any> {
-    this.getCurrentCoin();
+    this.getCurrentNetwork();
     let params = new HttpParams()
       .set('walletName', data.walletName)
       .set('accountName', "account 0")
@@ -225,7 +228,7 @@ export class ApiService {
    * Get a wallets transaction history info from the API.
    */
   getWalletHistory(data: WalletInfo): Observable<any> {
-    this.getCurrentCoin();
+    this.getCurrentNetwork();
     let params = new HttpParams()
       .set('walletName', data.walletName)
       .set('accountName', "account 0");
@@ -239,7 +242,7 @@ export class ApiService {
    * Get unused receive addresses for a certain wallet from the API.
    */
   getUnusedReceiveAddress(data: WalletInfo): Observable<any> {
-    this.getCurrentCoin();
+    this.getCurrentNetwork();
     let params = new HttpParams()
       .set('walletName', data.walletName)
       .set('accountName', "account 0");
@@ -251,7 +254,7 @@ export class ApiService {
    * Estimate the fee of a transaction
    */
   estimateFee(data: FeeEstimation): Observable<any> {
-    this.getCurrentCoin();
+    this.getCurrentNetwork();
     let params = new HttpParams()
       .set('walletName', data.walletName)
       .set('accountName', data.accountName)
@@ -267,7 +270,7 @@ export class ApiService {
    * Build a transaction
    */
   buildTransaction(data: TransactionBuilding): Observable<any> {
-    this.getCurrentCoin();
+    this.getCurrentNetwork();
     return this.http.post(this._currentApiUrl + '/wallet/build-transaction', JSON.stringify(data)).pipe(
       catchError(err => this.handleHttpError(err))
     );
@@ -276,7 +279,7 @@ export class ApiService {
    * Send transaction
    */
   sendTransaction(data: TransactionSending): Observable<any> {
-    this.getCurrentCoin();
+    this.getCurrentNetwork();
     return this.http.post(this._currentApiUrl + '/wallet/send-transaction', JSON.stringify(data)).pipe(
       catchError(err => this.handleHttpError(err))
     );
