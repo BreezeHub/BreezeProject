@@ -1,9 +1,5 @@
 import { Component, OnDestroy, Input } from '@angular/core';
-
-import { Observable } from 'rxjs/Observable';
-import { Subscription } from 'rxjs/Subscription';
-import 'rxjs/observable/interval';
-import 'rxjs/add/operator/filter';
+import { Observable, Subscription, interval } from 'rxjs';
 
 @Component({
   selector: 'app-connection-progress',
@@ -18,6 +14,7 @@ export class ConnectionProgressComponent implements OnDestroy {
   private _durationSeconds = 0;
   private _info = "";
   private intervalSubscription: Subscription;
+  private pollingInterval = interval(3000);
 
   ngOnDestroy() {
     if (this.intervalSubscription) {
@@ -30,7 +27,7 @@ export class ConnectionProgressComponent implements OnDestroy {
   }
 
   get progressWidth(): string {
-    return `${this.progress}%`; 
+    return `${this.progress}%`;
   }
 
   get info(): string {
@@ -55,11 +52,11 @@ export class ConnectionProgressComponent implements OnDestroy {
   private onRunChanged() {
     if (this.intervalSubscription) {
       this.intervalSubscription.unsubscribe();
-      this.intervalSubscription = null; 
-    } 
+      this.intervalSubscription = null;
+    }
     if (this._run) {
       this._progressSeconds = this._durationSeconds;
-      this.intervalSubscription = Observable.interval(1000).subscribe(_ => this.onInterval());
+      this.intervalSubscription = this.pollingInterval.subscribe(_ => this.onInterval());
     }
   }
 
@@ -75,18 +72,18 @@ export class ConnectionProgressComponent implements OnDestroy {
     const difference = this._durationSeconds - this._progressSeconds;
     const result = Math.ceil((difference / this._durationSeconds) * oneHundred);
     if (result <= oneHundred) {
-      this._progress = result; 
+      this._progress = result;
       this.makeInfo();
       if (result === oneHundred) {
         this.run = false;
-      } 
+      }
     }
   }
 
   private makeInfo() {
     let secondsRemaining = this._durationSeconds - this._progressSeconds;
     secondsRemaining = this._durationSeconds - secondsRemaining;
-    
+
     let date = new Date(null);
     date.setSeconds(secondsRemaining);
     const remaining = `${date.getMinutes()}m:${date.getSeconds()}s`;

@@ -184,6 +184,9 @@ export class ApiService {
     } else {
       return Observable.throw(`No such coin '${coin}'`);
     }
+
+    let params = new HttpParams().set('walletName', data.walletName);
+
     return this.pollingInterval.pipe(
       startWith(0),
       switchMap(() => this.http.get(this._currentApiUrl + '/wallet/general-info', { params })),

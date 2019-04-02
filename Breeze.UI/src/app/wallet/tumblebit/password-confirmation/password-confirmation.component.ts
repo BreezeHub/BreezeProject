@@ -123,21 +123,8 @@ export class PasswordConfirmationComponent {
           }
         },
         error => {
-          console.error(error);
-          if (error.status === 0) {
-            this.startingTumble = false;
-            this.genericModalService.openModal(
-                Error.toDialogOptions('Failed to start tumbling. Reason: API is not responding or timing out.', null));
-          } else if (error.status >= 400) {
-            if (!error.json().errors[0]) {
-              console.error(error);
-              this.startingTumble = false;
-            } else {
-              this.startingTumble = false;
-              this.genericModalService.openModal(Error.toDialogOptions(error, null));
-            }
-          }
-        },
+          this.startingTumble = false;
+        }
       )
     ;
   }

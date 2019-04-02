@@ -1,7 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 
-import { Observable } from 'rxjs/Rx';
-import { Subscription } from 'rxjs/Subscription';
+import { Observable, Subscription } from 'rxjs';
 
 import { ApiService } from '../../shared/services/api.service';
 import { GlobalService } from '../../shared/services/global.service';
@@ -44,41 +43,30 @@ export class StatusBarComponent implements OnInit, OnDestroy {
     this.generalWalletInfoSubscription = this.apiService.getGeneralInfo(walletInfo)
       .subscribe(
         response =>  {
-          if (response.status >= 200 && response.status < 400) {
-            const generalWalletInfoResponse = response.json();
-            this.lastBlockSyncedHeight = generalWalletInfoResponse.lastBlockSyncedHeight;
-            this.chainTip = generalWalletInfoResponse.chainTip;
-            this.isChainSynced = generalWalletInfoResponse.isChainSynced;
-            this.connectedNodes = generalWalletInfoResponse.connectedNodes;
+          const generalWalletInfoResponse = response;
+          this.lastBlockSyncedHeight = generalWalletInfoResponse.lastBlockSyncedHeight;
+          this.chainTip = generalWalletInfoResponse.chainTip;
+          this.isChainSynced = generalWalletInfoResponse.isChainSynced;
+          this.connectedNodes = generalWalletInfoResponse.connectedNodes;
 
-            if (!this.isChainSynced) {
-              this.percentSynced = 'syncing...';
-            } else {
-              this.percentSyncedNumber = ((this.lastBlockSyncedHeight / this.chainTip) * 100);
-              if (this.percentSyncedNumber.toFixed(0) === '100' && this.lastBlockSyncedHeight !== this.chainTip) {
-                this.percentSyncedNumber = 99;
-              }
-
-              this.percentSynced = this.percentSyncedNumber.toFixed(0) + '%';
+          if (!this.isChainSynced) {
+            this.percentSynced = 'syncing...';
+          } else {
+            this.percentSyncedNumber = ((this.lastBlockSyncedHeight / this.chainTip) * 100);
+            if (this.percentSyncedNumber.toFixed(0) === '100' && this.lastBlockSyncedHeight !== this.chainTip) {
+              this.percentSyncedNumber = 99;
             }
+
+            this.percentSynced = this.percentSyncedNumber.toFixed(0) + '%';
           }
         },
         error => {
-          console.log(error);
           if (error.status === 0) {
             this.cancelSubscriptions();
-            this.genericModalService.openModal(
-              Error.toDialogOptions('Failed to get wallet general information. Reason: API is not responding or timing out.', null));
           } else if (error.status >= 400) {
-            if (!error.json().errors[0]) {
-              console.log(error);
-            } else {
-              if (error.json().errors[0].description) {
-                this.genericModalService.openModal(Error.toDialogOptions(error, null));
-              } else {
-                this.cancelSubscriptions();
-                this.startSubscriptions();
-              }
+            if (!error.error.errors[0].message) {
+              this.cancelSubscriptions();
+              this.startSubscriptions();
             }
           }
         }

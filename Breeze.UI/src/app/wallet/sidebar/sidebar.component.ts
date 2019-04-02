@@ -21,10 +21,8 @@ export class SidebarComponent implements OnInit {
 
   constructor(
     private globalService: GlobalService,
-    private apiService: ApiService,
     private router: Router,
-    private modalService: NgbModal,
-    private genericModalService: ModalService) { }
+    private modalService: NgbModal) { }
 
 
   ngOnInit() {
