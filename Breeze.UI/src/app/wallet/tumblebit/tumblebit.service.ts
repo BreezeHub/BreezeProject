@@ -16,7 +16,8 @@ export class TumblebitService {
   private pollingInterval = interval(3000);
   constructor(private http: Http, private globalService: GlobalService) { };
   get tumblerClientUrl() {
-    return `http://localhost:${this.globalService.bitcoinApiPort}/api/TumbleBit/`;
+    const bitcoinApiPort = this.globalService.getBitcoinApiPort();
+    return `http://localhost:${bitcoinApiPort}/api/TumbleBit/`;
   }
 
   // Might make sense to populate tumblerParams here because services are singletons

@@ -1,7 +1,9 @@
 ﻿import { Injectable } from '@angular/core';
 import { AppConfig } from '../../../environments/environment';
 
-@Injectable()
+@Injectable({
+  providedIn: 'root'
+})
 export class Log {
     public static Logger: Log = new Log();
 

@@ -1,62 +1,36 @@
 import { NgModule } from '@angular/core';
-import { Title } from '@angular/platform-browser';
 import { RouteReuseStrategy } from '@angular/router';
+import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
 
 import { SharedModule } from './shared/shared.module';
-
 import { AppRoutingModule } from './app-routing.module';
+import { BrowserModule } from '@angular/platform-browser';
+import { SetupModule } from './setup/setup.module';
+import { WalletModule } from './wallet/wallet.module';
+
 import { AppComponent } from './app.component';
 import { LoginComponent } from './login/login.component';
-import { ConfirmDialogComponent } from './shared/components/confirm-dialog/confirm-dialog.component';
-import { ConnectionModalComponent } from './shared/components/connection-modal/connection-modal.component';
 
-import { ApiService } from './shared/services/api.service';
-import { GlobalService } from './shared/services/global.service';
-import { Log } from './shared/services/logger.service';
-import { TumblebitService } from './wallet/tumblebit/tumblebit.service';
-import { ModalService } from './shared/services/modal.service';
-import { LicenseService } from './shared/services/license.service';
-
-import { SendComponent } from './wallet/send/send.component';
-import { SendConfirmationComponent } from './wallet/send/send-confirmation/send-confirmation.component';
-import { ReceiveComponent } from './wallet/receive/receive.component';
-import { TransactionDetailsComponent } from './wallet/transaction-details/transaction-details.component';
-import { PasswordConfirmationComponent } from './wallet/tumblebit/password-confirmation/password-confirmation.component';
-import { LogoutConfirmationComponent } from './wallet/logout-confirmation/logout-confirmation.component';
-import { LicenseAgreementComponent } from './wallet/license-agreement/license-agreement.component';
-
-import { CustomReuseStrategy } from './reuse-strategy';
+import { CustomReuseStrategy } from './shared/reuse-strategy/reuse-strategy';
+import { ApiInterceptor } from './shared/http-interceptors/api-interceptor';
 
 @NgModule({
   imports: [
-    AppRoutingModule,
-    SharedModule
+    BrowserModule,
+    HttpClientModule,
+    SharedModule,
+    SetupModule,
+    WalletModule,
+    AppRoutingModule
   ],
   declarations: [
     AppComponent,
-    ConnectionModalComponent,
-    ConfirmDialogComponent,
-    LoginComponent,
-    LogoutConfirmationComponent,
-    PasswordConfirmationComponent,
-    SendComponent,
-    SendConfirmationComponent,
-    ReceiveComponent,
-    TransactionDetailsComponent,
-    LicenseAgreementComponent
+    LoginComponent
   ],
-  entryComponents: [
-    PasswordConfirmationComponent,
-    ConnectionModalComponent,
-    ConfirmDialogComponent,
-    SendComponent,
-    SendConfirmationComponent,
-    ReceiveComponent,
-    TransactionDetailsComponent,
-    LogoutConfirmationComponent
+  providers: [
+    { provide: RouteReuseStrategy, useClass: CustomReuseStrategy },
+    { provide: HTTP_INTERCEPTORS, useClass: ApiInterceptor, multi: true}
   ],
-  providers: [ ApiService, GlobalService, ModalService, Title, TumblebitService, LicenseService,
-    { provide: RouteReuseStrategy, useClass: CustomReuseStrategy } ],
   bootstrap: [ AppComponent ]
 })
 

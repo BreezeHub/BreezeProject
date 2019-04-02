@@ -1,16 +1,18 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 
-@Injectable()
+@Injectable({
+  providedIn: 'root'
+})
 export class LicenseService {
-    
+
     private _licenseText: string;
-    
+
     constructor(http: HttpClient) {
-        
+
         this._licenseText = `
         By  installing  this software the user agrees to all of the following:
- 
+
         That this software is an experimental release and any use of it shall be at the users own discretion and risk.
         That  the  sole and exclusive remedy for any problem(s), malfunctions  or defects in the product, software  and / or service shall be to uninstall and/or  to stop using it .
         In no event shall Stratis, its officers, shareholders, investors, employees, agents, directors, subsidiaries, affiliates, successors, assignees or suppliers be liable for

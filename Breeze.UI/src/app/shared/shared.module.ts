@@ -14,7 +14,10 @@ import { GenericModalComponent } from './components/generic-modal/generic-modal.
 @NgModule({
   imports: [ CommonModule ],
   declarations: [ CoinNotationPipe, AutoFocusDirective, PasswordValidationDirective, GenericModalComponent ],
-  exports: [ CommonModule, ReactiveFormsModule, FormsModule, NgbModule, NgxElectronModule, NgxQRCodeModule, NgxPaginationModule, ClipboardModule, GenericModalComponent, CoinNotationPipe, AutoFocusDirective, PasswordValidationDirective ],
+  exports: [
+    CommonModule, ReactiveFormsModule, FormsModule, NgbModule, NgxElectronModule, NgxQRCodeModule,
+    NgxPaginationModule, ClipboardModule, GenericModalComponent, CoinNotationPipe, AutoFocusDirective, PasswordValidationDirective
+  ],
   entryComponents: [ GenericModalComponent ]
 })
 
