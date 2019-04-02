@@ -146,12 +146,27 @@ export class ConfirmMnemonicComponent implements OnInit {
     this.apiService.createStratisWallet(wallet)
       .subscribe(
         response => {
-          this.genericModalService.openModal("Wallet Created", "Your wallet has been created.<br>Keep your secret words, password and passphrase safe!");
-          this.router.navigate(['']);
+          this.createBitcoinWallet(wallet);
         },
         error => {
           this.isCreating = false;
         }
-      );
+      )
+    ;
+  }
+
+  private createBitcoinWallet(wallet: WalletCreation) {
+    this.apiService.createBitcoinWallet(wallet)
+      .subscribe(
+        response => {
+          this.genericModalService.openModal("Wallet Created", "Your wallet has been created.<br>Keep your secret words, password and passphrase safe!");
+          this.router.navigate(['']);
+          this.createBitcoinWallet(wallet);
+        },
+        error => {
+          this.isCreating = false;
+        }
+      )
+    ;
   }
 }

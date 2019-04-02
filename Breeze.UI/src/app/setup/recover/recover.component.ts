@@ -72,7 +72,7 @@ export class RecoverComponent implements OnInit {
       ],
       'walletMnemonic': ['', Validators.required],
       'walletDate': ['', Validators.required],
-      "walletPassphrase": [""],
+      'walletPassphrase': [''],
       'walletPassword': ['', Validators.required],
       'selectNetwork': ['test', Validators.required]
     });
@@ -122,7 +122,6 @@ export class RecoverComponent implements OnInit {
   }
 
   private recoverWallets(recoverWallet: WalletRecovery) {
-    let bitcoinErrorMessage = '';
     this.apiService.recoverBitcoinWallet(recoverWallet)
       .subscribe(
         response => {
