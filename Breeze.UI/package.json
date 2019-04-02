@@ -32,8 +32,6 @@
     "start": "npm run postinstall:electron && npm-run-all -p ng:serve electron:serve",
     "mainnet": "npm start",
     "testnet": "npm run postinstall:electron && npm-run-all -p ng:serve electron:serve:testnet",
-    "sidechain": "npm run postinstall:electron && npm-run-all -p ng:serve electron:serve:sidechain",
-    "sidechain:testnet": "npm run postinstall:electron && npm-run-all -p ng:serve electron:serve:sidechain:testnet",
     "build": "npm run postinstall:electron && npm run electron:serve-tsc && ng build",
     "build:dev": "npm run build -- -c dev",
     "build:prod": "npm run build -- -c production",
