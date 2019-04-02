@@ -1,5 +1,5 @@
 ﻿import { Injectable } from '@angular/core';
-import { environment } from '../../../environments';
+import { AppConfig } from '../../../environments/environment';
 
 @Injectable()
 export class Log {
@@ -28,20 +28,20 @@ export class Log {
     constructor() { }
 
     log(...args: any[]) {
-        if (!environment.production) {
+        if (!AppConfig.production) {
             console.log(this.getLogPrefix(), 'background: #444; color: #fff', ...args);
         }
     }
 
     warn(...args: any[]) {
-        if (!environment.production) {
+        if (!AppConfig.production) {
             args.push();
             console.warn(this.getLogPrefix(), 'background: #444; color: #fff', ...args);
         }
     }
 
     info(...args: any[]) {
-        if (!environment.production) {
+        if (!AppConfig.production) {
             args.push();
             // tslint:disable-next-line:no-console
             console.info(this.getLogPrefix(), 'background: #444; color: #fff', ...args);
@@ -49,14 +49,14 @@ export class Log {
     }
 
     debug(...args: any[]) {
-        if (!environment.production) {
+        if (!AppConfig.production) {
             // tslint:disable-next-line:no-console
             console.debug(this.getLogPrefix(), 'background: #444; color: #fff', ...args);
         }
     }
 
     error(...args: any[]) {
-        if (!environment.production) {
+        if (!AppConfig.production) {
             console.error(this.getLogPrefix(), 'background: #444; color: #fff', ...args);
         }
     }
