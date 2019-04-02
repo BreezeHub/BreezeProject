@@ -110,12 +110,17 @@ function createWindow() {
     title: 'Breeze'
   });
 
-   // and load the index.html of the app.
-  mainWindow.loadURL(url.format({
-    pathname: path.join(__dirname, '/index.html'),
-    protocol: 'file:',
-    slashes: true
-  }));
+  if (serve) {
+    require('electron-reload')(__dirname, {
+    });
+    mainWindow.loadURL('http://localhost:4200');
+  } else {
+    mainWindow.loadURL(url.format({
+      pathname: path.join(__dirname, 'dist/index.html'),
+      protocol: 'file:',
+      slashes: true
+    }));
+  }
 
   if (serve) {
     mainWindow.webContents.openDevTools();
