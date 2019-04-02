@@ -1,18 +1,12 @@
 import { NgModule } from '@angular/core';
-import { BrowserModule, Title } from '@angular/platform-browser';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { HttpModule } from '@angular/http';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
-import { ClipboardModule } from 'ngx-clipboard';
-import { RouterModule, RouteReuseStrategy } from '@angular/router';
+import { Title } from '@angular/platform-browser';
+import { RouteReuseStrategy } from '@angular/router';
 
 import { SharedModule } from './shared/shared.module';
-import { AppRoutingModule } from './app-routing.module';
 
+import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { LoginComponent } from './login/login.component';
-import { GenericModalComponent } from './shared/components/generic-modal/generic-modal.component';
 import { ConfirmDialogComponent } from './shared/components/confirm-dialog/confirm-dialog.component';
 import { ConnectionModalComponent } from './shared/components/connection-modal/connection-modal.component';
 
@@ -36,19 +30,10 @@ import { CustomReuseStrategy } from './reuse-strategy';
 @NgModule({
   imports: [
     AppRoutingModule,
-    BrowserModule,
-    BrowserAnimationsModule,
-    ClipboardModule,
-    ReactiveFormsModule,
-    FormsModule,
-    HttpModule,
-    RouterModule,
-    NgbModule.forRoot(),
-    SharedModule.forRoot()
+    SharedModule
   ],
   declarations: [
     AppComponent,
-    GenericModalComponent,
     ConnectionModalComponent,
     ConfirmDialogComponent,
     LoginComponent,
@@ -62,7 +47,6 @@ import { CustomReuseStrategy } from './reuse-strategy';
   ],
   entryComponents: [
     PasswordConfirmationComponent,
-    GenericModalComponent,
     ConnectionModalComponent,
     ConfirmDialogComponent,
     SendComponent,
