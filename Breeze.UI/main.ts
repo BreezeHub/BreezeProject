@@ -14,17 +14,13 @@
  *   -storeDir			: Location of the registrationHistory.json file; this is passed to the BreezeD as -storeDir
  ************************************************************************************************************************************************/
 
-const electron = require('electron');
-
-// Module to control application life.
-const app = electron.app;
-// Module to create native browser window.
-const BrowserWindow = electron.BrowserWindow;
-const nativeImage = require('electron').nativeImage;
-
-const path = require('path');
-const url = require('url');
-const os = require('os');
+import { app, BrowserWindow, ipcMain, Menu, nativeImage, Tray } from 'electron';
+import * as path from 'path';
+import * as url from 'url';
+import * as os from 'os';
+if (os.arch() == 'arm') {
+  app.disableHardwareAcceleration();
+}
 
 let serve;
 let testnet = false;
@@ -291,9 +287,6 @@ function startStratisApi() {
 
 function createTray() {
   // Put the app in system tray
-  const Menu = electron.Menu;
-  const Tray = electron.Tray;
-
   let trayIcon;
   if (serve) {
     trayIcon = nativeImage.createFromPath('./src/assets/images/breeze-logo-tray.png');
@@ -338,25 +331,20 @@ function writeLog(msg) {
 };
 
 function createMenu() {
-  const Menu = electron.Menu;
-
-  // Create the Application's main menu
-  const menuTemplate = [{
-    label: 'Application',
+  var menuTemplate = [{
+    label: app.getName(),
     submenu: [
-        { label: 'About Application', selector: 'orderFrontStandardAboutPanel:' },
-        { type: 'separator' },
-        { label: 'Quit', accelerator: 'Command+Q', click: function() { quit(); }}
+      { label: "About " + app.getName(), selector: "orderFrontStandardAboutPanel:" },
+      { label: "Quit", accelerator: "Command+Q", click: function() { app.quit(); }}
     ]}, {
-    label: 'Edit',
+    label: "Edit",
     submenu: [
-        { label: 'Undo', accelerator: 'CmdOrCtrl+Z', selector: 'undo:' },
-        { label: 'Redo', accelerator: 'Shift+CmdOrCtrl+Z', selector: 'redo:' },
-        { type: 'separator' },
-        { label: 'Cut', accelerator: 'CmdOrCtrl+X', selector: 'cut:' },
-        { label: 'Copy', accelerator: 'CmdOrCtrl+C', selector: 'copy:' },
-        { label: 'Paste', accelerator: 'CmdOrCtrl+V', selector: 'paste:' },
-        { label: 'Select All', accelerator: 'CmdOrCtrl+A', selector: 'selectAll:' }
+      { label: "Undo", accelerator: "CmdOrCtrl+Z", selector: "undo:" },
+      { label: "Redo", accelerator: "Shift+CmdOrCtrl+Z", selector: "redo:" },
+      { label: "Cut", accelerator: "CmdOrCtrl+X", selector: "cut:" },
+      { label: "Copy", accelerator: "CmdOrCtrl+C", selector: "copy:" },
+      { label: "Paste", accelerator: "CmdOrCtrl+V", selector: "paste:" },
+      { label: "Select All", accelerator: "CmdOrCtrl+A", selector: "selectAll:" }
     ]}
   ];
 
