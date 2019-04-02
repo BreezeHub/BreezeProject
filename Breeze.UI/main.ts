@@ -85,12 +85,6 @@ if (args.some(val => val.indexOf("--tumblerProtocol=") == 0 || val.indexOf("-tum
 	tumblerProtocol = args.filter(val => val.indexOf("--tumblerProtocol=") == 0 || val.indexOf("-tumblerProtocol=") == 0)[0].split("=")[1];
 }
 
-if (serve) {
-  require('electron-reload')(__dirname, {
-    electron: require('${__dirname}/../../node_modules/electron')
-  });
-}
-
 require('electron-context-menu')({
   showInspectElement: serve
 });
@@ -111,8 +105,7 @@ function createWindow() {
   });
 
   if (serve) {
-    require('electron-reload')(__dirname, {
-    });
+    require('electron-reload')(__dirname, { });
     mainWindow.loadURL('http://localhost:4200');
   } else {
     mainWindow.loadURL(url.format({
@@ -146,8 +139,8 @@ app.on('ready', function () {
   if (serve) {
     console.log('Breeze UI was started in development mode. This requires the user to be running the Breeze Daemon himself.')
   } else if (startDaemons) {
-    startBitcoinApi();
-    startStratisApi();
+    startBitcoinDaemon();
+    startStratisDaemon();
   }
   createTray();
   createWindow();
@@ -171,48 +164,62 @@ app.on('activate', function () {
   }
 });
 
-function closeBitcoinApi() {
-  if (!serve) {
-    const http1 = require('http');
-    const options1 = {
-      hostname: 'localhost',
-      port: (<any>global).bitcoinApiPort,
-      path: '/api/node/shutdown',
-      method: 'POST'
-    };
-    const req = http1.request(options1, (res) => {});
-    req.write('');
-    req.end();
-  }
+function closeBitcoinDaemon() {
+  let http = require('http');
+  let body = JSON.stringify({});
+
+  let request = new http.ClientRequest({
+    method: 'POST',
+    hostname: 'localhost',
+    port: (<any>global).bitcoinApiPort,
+    path: '/api/node/shutdown',
+    headers: {
+      "Content-Type": "application/json",
+      "Content-Length": Buffer.byteLength(body)
+    }
+  })
+
+  request.write('true');
+  request.on('error', function (e) { });
+  request.on('timeout', function (e) { request.abort(); });
+  request.on('uncaughtException', function (e) { request.abort(); });
+  request.end(body);
 };
 
-function closeStratisApi() {
-  if (!serve) {
-    const http2 = require('http');
-    const options2 = {
-      hostname: 'localhost',
-      port: (<any>global).stratisApiPort,
-      path: '/api/node/shutdown',
-      method: 'POST'
-    };
-    const req = http2.request(options2, (res) => {});
-    req.write('');
-    req.end();
-  }
+function closeStratisDaemon() {
+  let http = require('http');
+  let body = JSON.stringify({});
+
+  let request = new http.ClientRequest({
+    method: 'POST',
+    hostname: 'localhost',
+    port: (<any>global).stratisApiPort,
+    path: '/api/node/shutdown',
+    headers: {
+      "Content-Type": "application/json",
+      "Content-Length": Buffer.byteLength(body)
+    }
+  })
+
+  request.write('true');
+  request.on('error', function (e) { });
+  request.on('timeout', function (e) { request.abort(); });
+  request.on('uncaughtException', function (e) { request.abort(); });
+  request.end(body);
 };
 
-function startBitcoinApi() {
+function startBitcoinDaemon() {
   let bitcoinProcess;
   const spawnBitcoin = require('child_process').spawn;
 
   // Start Breeze Bitcoin Daemon
-  let apiPath;
+  let daemonPath;
   if (os.platform() === 'win32') {
-      apiPath = path.resolve(__dirname, '..\\..\\resources\\daemon\\Breeze.Daemon.exe');
+      daemonPath = path.resolve(__dirname, '..\\..\\resources\\daemon\\Breeze.Daemon.exe');
   } else if (os.platform() === 'linux') {
-    apiPath = path.resolve(__dirname, '..//..//resources//daemon//Breeze.Daemon');
+    daemonPath = path.resolve(__dirname, '..//..//resources//daemon//Breeze.Daemon');
   } else {
-    apiPath = path.resolve(__dirname, '..//..//resources//daemon//Breeze.Daemon');
+    daemonPath = path.resolve(__dirname, '..//..//resources//daemon//Breeze.Daemon');
   }
 
    let commandLineArguments = [];
@@ -241,7 +248,7 @@ function startBitcoinApi() {
      commandLineArguments.push("-storedir=" + storeDir);
 
    console.log("Starting Bitcoin daemon with parameters: " + commandLineArguments);
-   bitcoinProcess = spawnBitcoin(apiPath, commandLineArguments, {
+   bitcoinProcess = spawnBitcoin(daemonPath, commandLineArguments, {
       detached: false
     });
 
@@ -250,18 +257,18 @@ function startBitcoinApi() {
   });
 }
 
-function startStratisApi() {
+function startStratisDaemon() {
   let stratisProcess;
   const spawnStratis = require('child_process').spawn;
 
   // Start Breeze Stratis Daemon
-  let apiPath = path.resolve(__dirname, 'assets//daemon//Breeze.Daemon');
+  let daemonPath = path.resolve(__dirname, 'assets//daemon//Breeze.Daemon');
   if (os.platform() === 'win32') {
-      apiPath = path.resolve(__dirname, '..\\..\\resources\\daemon\\Breeze.Daemon.exe');
+      daemonPath = path.resolve(__dirname, '..\\..\\resources\\daemon\\Breeze.Daemon.exe');
   } else if (os.platform() === 'linux') {
-    apiPath = path.resolve(__dirname, '..//..//resources//daemon//Breeze.Daemon');
+    daemonPath = path.resolve(__dirname, '..//..//resources//daemon//Breeze.Daemon');
   } else {
-    apiPath = path.resolve(__dirname, '..//..//resources//daemon//Breeze.Daemon');
+    daemonPath = path.resolve(__dirname, '..//..//resources//daemon//Breeze.Daemon');
   }
 
   let commandLineArguments = [];
@@ -281,7 +288,7 @@ function startStratisApi() {
 	commandLineArguments.push("-datadir=" + dataDir);
 
   console.log("Starting Stratis daemon with parameters: " + commandLineArguments);
-  stratisProcess = spawnStratis(apiPath, commandLineArguments, {
+  stratisProcess = spawnStratis(daemonPath, commandLineArguments, {
     detached: false
   });
 
@@ -336,7 +343,7 @@ function writeLog(msg) {
 };
 
 function createMenu() {
-  var menuTemplate = [{
+  const menuTemplate = [{
     label: app.getName(),
     submenu: [
       { label: "About " + app.getName(), selector: "orderFrontStandardAboutPanel:" },
@@ -357,7 +364,7 @@ function createMenu() {
 };
 
 const quit = () => {
-  closeBitcoinApi();
-  closeStratisApi();
+  closeBitcoinDaemon();
+  closeStratisDaemon();
   app.quit();
 };
