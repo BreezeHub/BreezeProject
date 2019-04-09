@@ -4,13 +4,13 @@ import { Error } from '../../shared/classes/error';
 import { FormGroup, FormControl, Validators, FormBuilder } from '@angular/forms';
 import { formValidator } from '../../shared/helpers/form-validation-helper';
 import { GlobalService } from '../../shared/services/global.service';
-import { Transaction } from 'interfaces/transaction'
 import { ModalService } from '../../shared/services/modal.service';
 import { NgbModal, NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
-import { Subscription } from 'rxjs/Subscription';
+import { Subscription } from 'rxjs';
 import { TransactionDetailsComponent } from '../transaction-details/transaction-details.component';
 import { TransactionInfo } from '../../shared/classes/transaction-info';
 import { WalletInfo } from '../../shared/classes/wallet-info';
+import { Transaction } from '../../../interfaces/transaction';
 
 
 @Component({
@@ -73,30 +73,21 @@ export class HistoryComponent implements OnInit, OnDestroy {
       .subscribe(
         response => {
           if (response.status >= 200 && response.status < 400) {
-            if (response.json().transactionsHistory.length > 0) {
+            if (response.transactionsHistory.length > 0) {
               if (!this.isSearching) {
-                historyResponse = response.json().transactionsHistory;
+                historyResponse = response.transactionsHistory;
                 this.getTransactionInfo(historyResponse);
               }
             }
           }
         },
         error => {
-          console.log(error);
           if (error.status === 0) {
             this.cancelSubscriptions();
-            this.genericModalService.openModal(
-              Error.toDialogOptions('Failed to get wallet history. Reason: API is not responding or timing out.', null));
           } else if (error.status >= 400) {
-            if (!error.json().errors[0]) {
-              console.log(error);
-            } else {
-              if (error.json().errors[0].description) {
-                this.genericModalService.openModal(Error.toDialogOptions(error, null));
-              } else {
-                this.cancelSubscriptions();
-                this.startSubscriptions();
-              }
+            if (!error.error.errors[0].message) {
+              this.cancelSubscriptions();
+              this.startSubscriptions();
             }
           }
         }

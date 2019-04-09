@@ -1,13 +1,13 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { Title } from '@angular/platform-browser';
+import { remote } from 'electron';
+import { Subscription } from 'rxjs';
+import { retryWhen, delay, tap } from 'rxjs/operators';
 
 import { ApiService } from './shared/services/api.service';
-
-import { remote } from 'electron';
-
-import 'rxjs/add/operator/retryWhen';
-import 'rxjs/add/operator/delay';
+import { NodeStatus } from './shared/classes/node-status';
+import { GlobalService } from './shared/services/global.service';
 
 @Component({
   selector: 'app-root',
@@ -16,38 +16,50 @@ import 'rxjs/add/operator/delay';
 })
 
 export class AppComponent implements OnInit {
-  private errorMessage: any;
-  private responseMessage: any;
   public loading = true;
+  public loadingFailed = false;
+  private readonly MaxRetryCount = 50;
+  private readonly TryDelayMilliseconds = 3000;
+  private subscription: Subscription;
 
-  constructor(private router: Router, private apiService: ApiService, private titleService: Title) {}
+  constructor(private router: Router, private apiService: ApiService, private titleService: Title, private globalService: GlobalService) {}
 
   ngOnInit() {
     this.setTitle();
-    this.apiService
-        .getWalletFiles()
-        .retryWhen(errors => errors.delay(2000))
-        .subscribe(() => this.checkStratisDaemon());
+    this.tryStart();
   }
 
-  private checkStratisDaemon() {
-    this.apiService
-        .getStratisWalletFiles()
-        .retryWhen(errors => errors.delay(2000))
-        .subscribe(() => this.startApp());
-  }
+  private tryStart() {
+    let retry = 0;
+    const stream$ = this.apiService.getNodeStatus(true).pipe(
+      retryWhen(errors =>
+        errors.pipe(delay(this.TryDelayMilliseconds)).pipe(
+          tap(errorStatus => {
+            if (retry++ === this.MaxRetryCount) {
+              throw errorStatus;
+            }
+            console.log(`Retrying ${retry}...`);
+          })
+        )
+      )
+    );
 
-  private startApp() {
-    this.loading = false;
-    this.router.navigate(['/login']);
+    this.subscription = stream$.subscribe(
+      (data: NodeStatus) => {
+        this.loading = false;
+        this.router.navigate(['login'])
+      }, (error: any) => {
+        console.log('Failed to start wallet');
+        this.loading = false;
+        this.loadingFailed = true;
+      }
+    )
   }
-
 
   private setTitle() {
-    const applicationName = 'Breeze Wallet';
-    const applicationVersion = remote.app.getVersion();
-    const newTitle = `${applicationName} ${applicationVersion}`;
+    let applicationName = "Breeze Wallet";
+    let applicationVersion = this.globalService.getApplicationVersion();
+    let newTitle = applicationName + " " + applicationVersion;
     this.titleService.setTitle(newTitle);
   }
- 
 }

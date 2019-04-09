@@ -1,9 +1,8 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
+import { Subscription } from 'rxjs';
 
 import { WalletCreation } from '../../../shared/classes/wallet-creation';
-
-import { Subscription } from 'rxjs/Subscription';
 
 @Component({
   selector: 'app-show-mnemonic',
@@ -11,9 +10,7 @@ import { Subscription } from 'rxjs/Subscription';
   styleUrls: ['./show-mnemonic.component.css']
 })
 export class ShowMnemonicComponent implements OnInit, OnDestroy {
-
   constructor(private route: ActivatedRoute, private router: Router) { }
-  private parameters: any;
   private mnemonic: string;
   private subscription: Subscription;
   private newWallet: WalletCreation;
@@ -24,7 +21,8 @@ export class ShowMnemonicComponent implements OnInit, OnDestroy {
       this.newWallet = new WalletCreation(
         params["name"],
         params["mnemonic"],
-        params["password"]
+        params["password"],
+        params["passphrase"]
       )
     });
 
@@ -37,7 +35,7 @@ export class ShowMnemonicComponent implements OnInit, OnDestroy {
   }
 
   public onContinueClicked() {
-    this.router.navigate(['/setup/create/confirm-mnemonic'], { queryParams : { name: this.newWallet.name, mnemonic: this.newWallet.mnemonic, password: this.newWallet.password }});
+    this.router.navigate(['/setup/create/confirm-mnemonic'], { queryParams : { name: this.newWallet.name, mnemonic: this.newWallet.mnemonic, password: this.newWallet.password, passphrase: this.newWallet.passphrase }});
   }
 
   public onCancelClicked() {

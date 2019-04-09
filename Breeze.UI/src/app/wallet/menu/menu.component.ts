@@ -12,9 +12,9 @@ export class MenuComponent implements OnInit {
   public bitcoin: Boolean = false;
 
   ngOnInit (){
-    if (this.globalService.getCoinName() === "Bitcoin" || this.globalService.getCoinName() === "TestBitcoin") {
+    if (this.globalService.getNetwork() === "MainNet" || this.globalService.getNetwork() === "TestNet") {
       this.bitcoin = true;
-    } else if (this.globalService.getCoinName() === "Stratis" || this.globalService.getCoinName() === "TestStratis") {
+    } else if (this.globalService.getNetwork() === "StratisMain" || this.globalService.getNetwork() === "StratisTest") {
       this.bitcoin = false;
     }
   }

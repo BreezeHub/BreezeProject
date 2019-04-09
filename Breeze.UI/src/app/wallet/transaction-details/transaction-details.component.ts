@@ -1,6 +1,6 @@
 import { Component, Input, OnInit, OnDestroy } from '@angular/core';
 import { NgbModal, NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
-import { Subscription } from 'rxjs/Subscription';
+import { Subscription } from 'rxjs';
 
 import { ApiService } from '../../shared/services/api.service';
 import { GlobalService } from '../../shared/services/global.service';
@@ -45,36 +45,25 @@ export class TransactionDetailsComponent implements OnInit, OnDestroy {
   }
 
   private getGeneralWalletInfo() {
-    const walletInfo = new WalletInfo(this.globalService.getWalletName())
+    let walletInfo = new WalletInfo(this.globalService.getWalletName())
     this.generalWalletInfoSubscription = this.apiService.getGeneralInfo(walletInfo)
       .subscribe(
         response =>  {
-          if (response.status >= 200 && response.status < 400) {
-            const generalWalletInfoResponse = response.json();
-            this.lastBlockSyncedHeight = generalWalletInfoResponse.lastBlockSyncedHeight;
-            this.getConfirmations(this.transaction);
-          }
+          let generalWalletInfoResponse = response;
+          this.lastBlockSyncedHeight = generalWalletInfoResponse.lastBlockSyncedHeight;
+          this.getConfirmations(this.transaction);
         },
         error => {
-          console.log(error);
           if (error.status === 0) {
-            this.genericModalService.openModal(
-              Error.toDialogOptions('Failed to get wallet general information. Reason: API is not responding or timing out.', null));
+            this.cancelSubscriptions();
           } else if (error.status >= 400) {
-            if (!error.json().errors[0]) {
-              console.log(error);
-            } else {
-              if (error.json().errors[0].description) {
-                this.genericModalService.openModal(Error.toDialogOptions(error, null));
-              } else {
-                this.cancelSubscriptions();
-                this.startSubscriptions();
-              }
+            if (!error.error.errors[0].message) {
+              this.cancelSubscriptions();
+              this.startSubscriptions();
             }
           }
         }
-      )
-    ;
+      );
   };
 
   private getConfirmations(transaction: TransactionInfo) {

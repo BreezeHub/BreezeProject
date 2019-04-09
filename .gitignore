@@ -278,6 +278,8 @@ package-lock.json
 npm-debug.log
 testem.log
 **/typings
+**/main.js
+**/main.js.map
 
 # e2e
 **/e2e/*.js

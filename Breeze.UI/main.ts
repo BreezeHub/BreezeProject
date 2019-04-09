@@ -14,17 +14,13 @@
  *   -storeDir			: Location of the registrationHistory.json file; this is passed to the BreezeD as -storeDir
  ************************************************************************************************************************************************/
 
-const electron = require('electron');
-
-// Module to control application life.
-const app = electron.app;
-// Module to create native browser window.
-const BrowserWindow = electron.BrowserWindow;
-const nativeImage = require('electron').nativeImage;
-
-const path = require('path');
-const url = require('url');
-const os = require('os');
+import { app, BrowserWindow, ipcMain, Menu, nativeImage, Tray } from 'electron';
+import * as path from 'path';
+import * as url from 'url';
+import * as os from 'os';
+if (os.arch() == 'arm') {
+  app.disableHardwareAcceleration();
+}
 
 let serve;
 let testnet = false;
@@ -89,11 +85,9 @@ if (args.some(val => val.indexOf("--tumblerProtocol=") == 0 || val.indexOf("-tum
 	tumblerProtocol = args.filter(val => val.indexOf("--tumblerProtocol=") == 0 || val.indexOf("-tumblerProtocol=") == 0)[0].split("=")[1];
 }
 
-if (serve) {
-  require('electron-reload')(__dirname, {
-    electron: require('${__dirname}/../../node_modules/electron')
-  });
-}
+ipcMain.on('get-testnet', (event, arg) => {
+  event.returnValue = testnet;
+});
 
 require('electron-context-menu')({
   showInspectElement: serve
@@ -111,15 +105,19 @@ function createWindow() {
     frame: true,
     minWidth: 1200,
     minHeight: 650,
-    title: 'Breeze Wallet'
+    title: 'Breeze'
   });
 
-   // and load the index.html of the app.
-  mainWindow.loadURL(url.format({
-    pathname: path.join(__dirname, '/index.html'),
-    protocol: 'file:',
-    slashes: true
-  }));
+  if (serve) {
+    require('electron-reload')(__dirname, { });
+    mainWindow.loadURL('http://localhost:4200');
+  } else {
+    mainWindow.loadURL(url.format({
+      pathname: path.join(__dirname, 'dist/index.html'),
+      protocol: 'file:',
+      slashes: true
+    }));
+  }
 
   if (serve) {
     mainWindow.webContents.openDevTools();
@@ -145,8 +143,8 @@ app.on('ready', function () {
   if (serve) {
     console.log('Breeze UI was started in development mode. This requires the user to be running the Breeze Daemon himself.')
   } else if (startDaemons) {
-    startBitcoinApi();
-    startStratisApi();
+    startBitcoinDaemon();
+    startStratisDaemon();
   }
   createTray();
   createWindow();
@@ -157,7 +155,7 @@ app.on('ready', function () {
 
 // Quit when all windows are closed.
 app.on('window-all-closed', function () {
-  //The user doesn't have the option to create another window/wallet from the Electron menu, so there's 
+  //The user doesn't have the option to create another window/wallet from the Electron menu, so there's
   //no point in keeping it there, so we simply quit the app.
   quit();
 });
@@ -170,48 +168,62 @@ app.on('activate', function () {
   }
 });
 
-function closeBitcoinApi() {
-  if (!serve) {
-    const http1 = require('http');
-    const options1 = {
-      hostname: 'localhost',
-      port: (<any>global).bitcoinApiPort,
-      path: '/api/node/shutdown',
-      method: 'POST'
-    };
-    const req = http1.request(options1, (res) => {});
-    req.write('');
-    req.end();
-  }
+function closeBitcoinDaemon() {
+  let http = require('http');
+  let body = JSON.stringify({});
+
+  let request = new http.ClientRequest({
+    method: 'POST',
+    hostname: 'localhost',
+    port: (<any>global).bitcoinApiPort,
+    path: '/api/node/shutdown',
+    headers: {
+      "Content-Type": "application/json",
+      "Content-Length": Buffer.byteLength(body)
+    }
+  })
+
+  request.write('true');
+  request.on('error', function (e) { });
+  request.on('timeout', function (e) { request.abort(); });
+  request.on('uncaughtException', function (e) { request.abort(); });
+  request.end(body);
 };
 
-function closeStratisApi() {
-  if (!serve) {
-    const http2 = require('http');
-    const options2 = {
-      hostname: 'localhost',
-      port: (<any>global).stratisApiPort,
-      path: '/api/node/shutdown',
-      method: 'POST'
-    };
-    const req = http2.request(options2, (res) => {});
-    req.write('');
-    req.end();
-  }
+function closeStratisDaemon() {
+  let http = require('http');
+  let body = JSON.stringify({});
+
+  let request = new http.ClientRequest({
+    method: 'POST',
+    hostname: 'localhost',
+    port: (<any>global).stratisApiPort,
+    path: '/api/node/shutdown',
+    headers: {
+      "Content-Type": "application/json",
+      "Content-Length": Buffer.byteLength(body)
+    }
+  })
+
+  request.write('true');
+  request.on('error', function (e) { });
+  request.on('timeout', function (e) { request.abort(); });
+  request.on('uncaughtException', function (e) { request.abort(); });
+  request.end(body);
 };
 
-function startBitcoinApi() {
+function startBitcoinDaemon() {
   let bitcoinProcess;
   const spawnBitcoin = require('child_process').spawn;
 
   // Start Breeze Bitcoin Daemon
-  let apiPath;
+  let daemonPath;
   if (os.platform() === 'win32') {
-      apiPath = path.resolve(__dirname, '..\\..\\resources\\daemon\\Breeze.Daemon.exe');
+      daemonPath = path.resolve(__dirname, '..\\..\\resources\\daemon\\Breeze.Daemon.exe');
   } else if (os.platform() === 'linux') {
-    apiPath = path.resolve(__dirname, '..//..//resources//daemon//Breeze.Daemon');
+    daemonPath = path.resolve(__dirname, '..//..//resources//daemon//Breeze.Daemon');
   } else {
-    apiPath = path.resolve(__dirname, '..//..//resources//daemon//Breeze.Daemon');
+    daemonPath = path.resolve(__dirname, '..//..//resources//daemon//Breeze.Daemon');
   }
 
    let commandLineArguments = [];
@@ -224,23 +236,23 @@ function startBitcoinApi() {
 	 commandLineArguments.push("-testnet");
    if(regtest)
 	 commandLineArguments.push("-regtest");
- 
+
    if (noTor)
-	 commandLineArguments.push("-noTor");   
+	 commandLineArguments.push("-noTor");
 
    if (tumblerProtocol != null)
-	 commandLineArguments.push("-tumblerProtocol=" + tumblerProtocol);   
- 
+	 commandLineArguments.push("-tumblerProtocol=" + tumblerProtocol);
+
    commandLineArguments.push("-tumblebit");
    commandLineArguments.push("-registration");
    if (dataDir != null)
-     commandLineArguments.push("-datadir=" + dataDir);   
-   
+     commandLineArguments.push("-datadir=" + dataDir);
+
    if (storeDir != null)
      commandLineArguments.push("-storedir=" + storeDir);
-   
+
    console.log("Starting Bitcoin daemon with parameters: " + commandLineArguments);
-   bitcoinProcess = spawnBitcoin(apiPath, commandLineArguments, {
+   bitcoinProcess = spawnBitcoin(daemonPath, commandLineArguments, {
       detached: false
     });
 
@@ -249,38 +261,38 @@ function startBitcoinApi() {
   });
 }
 
-function startStratisApi() {
+function startStratisDaemon() {
   let stratisProcess;
   const spawnStratis = require('child_process').spawn;
 
   // Start Breeze Stratis Daemon
-  let apiPath = path.resolve(__dirname, 'assets//daemon//Breeze.Daemon');
+  let daemonPath = path.resolve(__dirname, 'assets//daemon//Breeze.Daemon');
   if (os.platform() === 'win32') {
-      apiPath = path.resolve(__dirname, '..\\..\\resources\\daemon\\Breeze.Daemon.exe');
+      daemonPath = path.resolve(__dirname, '..\\..\\resources\\daemon\\Breeze.Daemon.exe');
   } else if (os.platform() === 'linux') {
-    apiPath = path.resolve(__dirname, '..//..//resources//daemon//Breeze.Daemon');
+    daemonPath = path.resolve(__dirname, '..//..//resources//daemon//Breeze.Daemon');
   } else {
-    apiPath = path.resolve(__dirname, '..//..//resources//daemon//Breeze.Daemon');
+    daemonPath = path.resolve(__dirname, '..//..//resources//daemon//Breeze.Daemon');
   }
-  
+
   let commandLineArguments = [];
   commandLineArguments.push("-stratis");
   commandLineArguments.push("-apiport=" + (<any>global).stratisApiPort);
    if(stratisPort != null)
 	 commandLineArguments.push("-port=" + stratisPort);
-  
+
   commandLineArguments.push("-light");
   if(testnet)
 	commandLineArguments.push("-testnet");
   if(regtest)
     commandLineArguments.push("-regtest");
- 
+
   commandLineArguments.push("-registration");
   if (dataDir != null)
 	commandLineArguments.push("-datadir=" + dataDir);
-  
+
   console.log("Starting Stratis daemon with parameters: " + commandLineArguments);
-  stratisProcess = spawnStratis(apiPath, commandLineArguments, {
+  stratisProcess = spawnStratis(daemonPath, commandLineArguments, {
     detached: false
   });
 
@@ -291,9 +303,6 @@ function startStratisApi() {
 
 function createTray() {
   // Put the app in system tray
-  const Menu = electron.Menu;
-  const Tray = electron.Tray;
-
   let trayIcon;
   if (serve) {
     trayIcon = nativeImage.createFromPath('./src/assets/images/breeze-logo-tray.png');
@@ -338,25 +347,20 @@ function writeLog(msg) {
 };
 
 function createMenu() {
-  const Menu = electron.Menu;
-
-  // Create the Application's main menu
   const menuTemplate = [{
-    label: 'Application',
+    label: app.getName(),
     submenu: [
-        { label: 'About Application', selector: 'orderFrontStandardAboutPanel:' },
-        { type: 'separator' },
-        { label: 'Quit', accelerator: 'Command+Q', click: function() { quit(); }}
+      { label: "About " + app.getName(), selector: "orderFrontStandardAboutPanel:" },
+      { label: "Quit", accelerator: "Command+Q", click: function() { app.quit(); }}
     ]}, {
-    label: 'Edit',
+    label: "Edit",
     submenu: [
-        { label: 'Undo', accelerator: 'CmdOrCtrl+Z', selector: 'undo:' },
-        { label: 'Redo', accelerator: 'Shift+CmdOrCtrl+Z', selector: 'redo:' },
-        { type: 'separator' },
-        { label: 'Cut', accelerator: 'CmdOrCtrl+X', selector: 'cut:' },
-        { label: 'Copy', accelerator: 'CmdOrCtrl+C', selector: 'copy:' },
-        { label: 'Paste', accelerator: 'CmdOrCtrl+V', selector: 'paste:' },
-        { label: 'Select All', accelerator: 'CmdOrCtrl+A', selector: 'selectAll:' }
+      { label: "Undo", accelerator: "CmdOrCtrl+Z", selector: "undo:" },
+      { label: "Redo", accelerator: "Shift+CmdOrCtrl+Z", selector: "redo:" },
+      { label: "Cut", accelerator: "CmdOrCtrl+X", selector: "cut:" },
+      { label: "Copy", accelerator: "CmdOrCtrl+C", selector: "copy:" },
+      { label: "Paste", accelerator: "CmdOrCtrl+V", selector: "paste:" },
+      { label: "Select All", accelerator: "CmdOrCtrl+A", selector: "selectAll:" }
     ]}
   ];
 
@@ -364,7 +368,7 @@ function createMenu() {
 };
 
 const quit = () => {
-  closeBitcoinApi();
-  closeStratisApi();
+  closeBitcoinDaemon();
+  closeStratisDaemon();
   app.quit();
 };

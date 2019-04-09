@@ -6,11 +6,11 @@ import { ModalService } from '../../shared/services/modal.service';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { ReceiveComponent } from '../receive/receive.component';
 import { SendComponent } from '../send/send.component';
-import { Subscription } from 'rxjs/Subscription';
+import { Subscription } from 'rxjs';
 import { TransactionDetailsComponent } from '../transaction-details/transaction-details.component';
 import { TransactionInfo } from '../../shared/classes/transaction-info';
 import { WalletInfo } from '../../shared/classes/wallet-info';
-import { Transaction } from 'interfaces/transaction';
+import { Transaction } from '../../../interfaces/transaction';
 
 @Component({
   // tslint:disable-next-line:component-selector
@@ -62,34 +62,23 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.walletBalanceSubscription = this.apiService.getWalletBalance(walletInfo)
       .subscribe(
         response => {
-          if (response.status >= 200 && response.status < 400) {
-            const balanceResponse = response.json();
-            this.confirmedBalance = balanceResponse.balances[0].amountConfirmed;
-            this.unconfirmedBalance = balanceResponse.balances[0].amountUnconfirmed;
-          }
+          const balanceResponse = response;
+          this.confirmedBalance = balanceResponse.balances[0].amountConfirmed;
+          this.unconfirmedBalance = balanceResponse.balances[0].amountUnconfirmed;
         },
         error => {
-          console.log(error);
           if (error.status === 0) {
             this.cancelSubscriptions();
-            this.genericModalService.openModal(
-              Error.toDialogOptions('Failed to get wallet balance. Reason: API is not responding or timing out.', null));
           } else if (error.status >= 400) {
-            if (!error.json().errors[0]) {
-              console.log(error);
-            } else {
-              if (error.json().errors[0].description) {
-                this.genericModalService.openModal(Error.toDialogOptions(error, null));
-              } else {
-                this.cancelSubscriptions();
-                this.startSubscriptions();
-              }
+            if (!error.error.errors[0].message) {
+              this.cancelSubscriptions();
+              this.startSubscriptions();
             }
           }
         }
       )
-      ;
-  };
+    ;
+  }
 
   // todo: add history in seperate service to make it reusable
   private getHistory() {
@@ -98,34 +87,23 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.walletHistorySubscription = this.apiService.getWalletHistory(walletInfo)
       .subscribe(
         response => {
-          if (response.status >= 200 && response.status < 400) {
-            if (response.json().transactionsHistory.length > 0) {
-              historyResponse = response.json().transactionsHistory;
-              this.getTransactionInfo(historyResponse);
-            }
+          if (!!response.history && response.history[0].transactionsHistory.length > 0) {
+            historyResponse = response.history[0].transactionsHistory;
+            this.getTransactionInfo(historyResponse);
           }
         },
         error => {
-          console.log(error);
           if (error.status === 0) {
             this.cancelSubscriptions();
-            this.genericModalService.openModal(
-              Error.toDialogOptions('Failed to get wallet history. Reason: API is not responding or timing out.', null));
           } else if (error.status >= 400) {
-            if (!error.json().errors[0]) {
-              console.log(error);
-            } else {
-              if (error.json().errors[0].description) {
-                this.genericModalService.openModal(Error.toDialogOptions(error, null));
-              } else {
-                this.cancelSubscriptions();
-                this.startSubscriptions();
-              }
+            if (!error.error.errors[0].message) {
+              this.cancelSubscriptions();
+              this.startSubscriptions();
             }
           }
         }
       )
-      ;
+    ;
   };
 
   private getTransactionInfo(transactions: Array<Transaction>) {

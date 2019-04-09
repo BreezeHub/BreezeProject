@@ -3,7 +3,6 @@ import { FormGroup, FormControl, Validators, FormBuilder } from '@angular/forms'
 import { Router } from '@angular/router';
 import { BsDatepickerConfig } from 'ngx-bootstrap/datepicker';
 
-import { GlobalService } from '../../shared/services/global.service';
 import { ApiService } from '../../shared/services/api.service';
 import { ModalService } from '../../shared/services/modal.service';
 
@@ -21,7 +20,7 @@ export class RecoverComponent implements OnInit {
     'walletMnemonic': '',
     'walletDate': '',
     'walletPassword': '',
-
+    'walletPassphrase': ''
   };
 
   validationMessages = {
@@ -51,16 +50,15 @@ export class RecoverComponent implements OnInit {
   private walletRecovery: WalletRecovery;
 
   constructor(
-    private globalService: GlobalService,
     private apiService: ApiService,
-    private genericModalService: ModalService,
     private router: Router,
+    private genericModalService: ModalService,
     private fb: FormBuilder) {
     this.buildRecoverForm();
   }
 
   ngOnInit() {
-    this.bsConfig = Object.assign({}, {showWeekNumbers: false, containerClass: 'theme-blue'});
+    this.bsConfig = Object.assign({}, {showWeekNumbers: false, containerClass: 'theme-dark-blue'});
   }
 
   private buildRecoverForm(): void {
@@ -74,6 +72,7 @@ export class RecoverComponent implements OnInit {
       ],
       'walletMnemonic': ['', Validators.required],
       'walletDate': ['', Validators.required],
+      'walletPassphrase': [''],
       'walletPassword': ['', Validators.required],
       'selectNetwork': ['test', Validators.required]
     });
@@ -116,83 +115,36 @@ export class RecoverComponent implements OnInit {
       this.recoverWalletForm.get('walletName').value,
       this.recoverWalletForm.get('walletMnemonic').value,
       this.recoverWalletForm.get('walletPassword').value,
+      this.recoverWalletForm.get("walletPassphrase").value,
       recoveryDate
     );
     this.recoverWallets(this.walletRecovery);
   }
 
   private recoverWallets(recoverWallet: WalletRecovery) {
-    let bitcoinErrorMessage = '';
-    this.apiService
-      .recoverBitcoinWallet(recoverWallet)
+    this.apiService.recoverBitcoinWallet(recoverWallet)
       .subscribe(
         response => {
-          if (response.status >= 200 && response.status < 400) {
-            // Bitcoin Wallet Recovered
-          }
-          this.recoverStratisWallet(recoverWallet, bitcoinErrorMessage);
+          this.recoverStratisWallet(recoverWallet);
         },
         error => {
           this.isRecovering = false;
-          console.log(error);
-          if (error.status === 0) {
-            this.genericModalService.openModal(
-              Error.toDialogOptions('Failed to recover Bitcoin wallet. Reason: API is not responding or timing out.', null));
-          } else if (error.status >= 400) {
-            if (!error.json().errors[0]) {
-              console.log(error);
-            } else {
-              bitcoinErrorMessage = error.json().errors[0].message;
-            }
-          }
-          this.recoverStratisWallet(recoverWallet, bitcoinErrorMessage);
         }
       )
     ;
   }
 
-  private recoverStratisWallet(recoverWallet: WalletRecovery, bitcoinErrorMessage: string) {
-    let stratisErrorMessage = '';
-    this.apiService
-      .recoverStratisWallet(recoverWallet)
+  private recoverStratisWallet(recoverWallet: WalletRecovery) {
+    this.apiService.recoverStratisWallet(recoverWallet)
       .subscribe(
         response => {
-          if (response.status >= 200 && response.status < 400) {
-            const body =
-              'Your wallet has been recovered. \nYou will be redirected to the decryption page.';
-            this.genericModalService.openModal({ title: 'Wallet Recovered', body: body});
-            this.router.navigate([''])
-          }
-            this.AlertIfNeeded(bitcoinErrorMessage, stratisErrorMessage);
+          let body = "Your wallet has been recovered. \nYou will be redirected to the decryption page.";
+          this.genericModalService.openModal("Wallet Recovered", body)
+          this.router.navigate([''])
         },
         error => {
           this.isRecovering = false;
-          console.log(error);
-          if (error.status === 0) {
-            this.genericModalService.openModal(
-              Error.toDialogOptions('Failed to recover Stratis wallet. Reason: API is not responding or timing out.', null));
-          } else if (error.status >= 400) {
-            if (!error.json().errors[0]) {
-              console.log(error);
-            } else {
-              stratisErrorMessage = error.json().errors[0].message;
-            }
-          }
-          this.AlertIfNeeded(bitcoinErrorMessage, stratisErrorMessage);
         }
-      )
-    ;
-  }
-
-  private AlertIfNeeded(bitcoinErrorMessage: string, stratisErrorMessage: string) {
-        if (bitcoinErrorMessage !== '' || stratisErrorMessage !== '') {
-          const errorMessage =
-            `<strong>Bitcoin wallet recovery:</strong><br>
-            ${bitcoinErrorMessage}
-            '<br><br>
-            <strong>Stratis wallet recovery:</strong><br>
-            ${stratisErrorMessage}`;
-          this.genericModalService.openModal({ body: errorMessage});
-    }
+      );
   }
 }

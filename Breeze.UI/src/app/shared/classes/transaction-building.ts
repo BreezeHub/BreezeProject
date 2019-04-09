@@ -1,20 +1,33 @@
-export class TransactionBuilding {
+export class Recipient {
+  constructor(destinationAddress: string, amount: string) {
+    this.destinationAddress = destinationAddress;
+    this.amount = amount;
+  }
 
-  constructor(walletName: string, accountName: string, password: string, destinationAddress: string, amount: string, feeType: string, allowUnconfirmed: boolean) {
+  destinationAddress: string;
+  amount: string;
+}
+
+export class TransactionBuilding {
+  constructor(walletName: string, accountName: string, password: string, destinationAddress: string, amount: string, feeAmount: number, allowUnconfirmed: boolean, shuffleOutputs: boolean, opReturnData?: string, opReturnAmount?: number) {
     this.walletName = walletName;
     this.accountName = accountName;
     this.password = password;
-    this.destinationAddress = destinationAddress;
-    this.amount = amount;
-    this.feeType = feeType;
+    this.recipients = [new Recipient(destinationAddress, amount)];
+    this.feeAmount = feeAmount;
     this.allowUnconfirmed = allowUnconfirmed;
+    this.shuffleOutputs = shuffleOutputs;
+    this.opReturnData = opReturnData;
+    this.opReturnAmount = opReturnAmount;
   }
 
   walletName: string;
   accountName: string;
   password: string;
-  destinationAddress: string;
-  amount: string;
-  feeType: string;
+  recipients: Recipient[];
+  feeAmount: number;
   allowUnconfirmed: boolean;
+  shuffleOutputs: boolean;
+  opReturnData: string;
+  opReturnAmount: number;
 }

@@ -55,42 +55,19 @@ export class LoginComponent implements OnInit {
     this.apiService.getWalletFiles()
       .subscribe(
         response => {
-          if (response.status >= 200 && response.status < 400) {
-            const responseMessage = response.json();
-            this.wallets = responseMessage.walletsFiles;
-            this.globalService.setWalletPath(responseMessage.walletsPath);
-            if (this.wallets.length > 0) {
-              this.hasWallet = true;
-              for (const wallet in this.wallets) {
-                if (this.wallets.hasOwnProperty(wallet)) {
-                  this.wallets[wallet] = this.wallets[wallet].slice(0, -12);
-                }
-              }
-              this.updateWalletFileDisplay(this.wallets[0]);
-            } else {
-              this.hasWallet = false;
+          this.wallets = response.walletsFiles;
+          this.globalService.setWalletPath(response.walletsPath);
+          if (this.wallets.length > 0) {
+            this.hasWallet = true;
+            for (let wallet in this.wallets) {
+              this.wallets[wallet] = this.wallets[wallet].slice(0, -12);
             }
-          }
-        },
-        error => {
-          if (error.status === 0) {
-            this.genericModalService.openModal(
-              Error.toDialogOptions('Failed to get wallet files. Reason: API is not responding or timing out.', null));
-          } else if (error.status >= 400) {
-            if (!error.json().errors[0]) {
-              console.log(error);
-            } else {
-              this.genericModalService.openModal(
-                Error.toDialogOptionsWithFallbackMsg(
-                  error, null, 'Failed to get wallet files. Reason: API returned a bad request but message was not specified.'));
-            }
+          } else {
+            this.hasWallet = false;
           }
         }
-      );
-  }
-
-  private updateWalletFileDisplay(walletName: string) {
-    this.openWalletForm.patchValue({ selectWallet: walletName })
+      )
+    ;
   }
 
   private onCreateClicked() {
@@ -115,87 +92,44 @@ export class LoginComponent implements OnInit {
   }
 
   private loadWallets(walletLoad: WalletLoad) {
+    this.loadBitcoinWallet(walletLoad);
+  }
+
+  private loadBitcoinWallet(walletLoad: WalletLoad) {
     this.apiService.loadBitcoinWallet(walletLoad)
       .subscribe(
         response => {
-          if (response.status >= 200 && response.status < 400) {
-            this.globalService.setWalletName(walletLoad.name);
-          }
+          this.loadStratisWallet(walletLoad);
         },
         error => {
           this.isDecrypting = false;
-          if (error.status === 0) {
-            this.genericModalService.openModal(
-              Error.toDialogOptions('Failed to load Bitcoin wallet. Reason: API is not responding or timing out.', null));
-          } else if (error.status >= 400) {
-            if (!error.json().errors[0]) {
-              console.log(error);
-            } else {
-              this.genericModalService.openModal(Error.toDialogOptions(error, null));
-            }
-          }
-        },
-        () => this.loadStratisWallet(walletLoad)
-      );
+        }
+      )
+    ;
   }
 
   private loadStratisWallet(walletLoad: WalletLoad) {
     this.apiService.loadStratisWallet(walletLoad)
       .subscribe(
         response => {
-          if (response.status >= 200 && response.status < 400) {
-            // Navigate to the wallet section
-            this.router.navigate(['/wallet']);
-          }
+          this.router.navigate(['wallet/dashboard']);
         },
         error => {
           this.isDecrypting = false;
-          if (error.status === 0) {
-            this.genericModalService.openModal(
-              Error.toDialogOptions('Failed to load Stratis wallet. Reason: API is not responding or timing out.', null));
-          } else if (error.status >= 400) {
-            if (!error.json().errors[0]) {
-              console.log(error);
-            } else {
-              this.genericModalService.openModal(Error.toDialogOptions(error, null));
-            }
-          }
         }
-      );
+      )
+    ;
   }
 
   private getCurrentNetwork() {
-    const walletInfo = new WalletInfo(this.globalService.getWalletName())
-    this.apiService.getGeneralInfoOnce(walletInfo)
+    this.apiService.getNodeStatus()
       .subscribe(
         response => {
-          if (response.status >= 200 && response.status < 400) {
-            const responseMessage = response.json();
-            this.globalService.setNetwork(responseMessage.network);
-            if (responseMessage.network === 'Main') {
-              this.globalService.setCoinName('Bitcoin');
-              this.globalService.setCoinUnit('BTC');
-            } else if (responseMessage.network === 'TestNet') {
-              this.globalService.setCoinName('TestBitcoin');
-              this.globalService.setCoinUnit('TBTC');
-            } else if (responseMessage.network === 'RegTest') {
-              this.globalService.setCoinName('TestBitcoin');
-              this.globalService.setCoinUnit('TBTC');
-            }			
-          }
-        },
-        error => {
-          if (error.status === 0) {
-            this.genericModalService.openModal(
-              Error.toDialogOptions('Failed to get general wallet information. Reason: API is not responding or timing out.', null));
-          } else if (error.status >= 400) {
-            if (!error.json().errors[0]) {
-              console.log(error);
-            } else {
-              this.genericModalService.openModal(Error.toDialogOptions(error, null));
-            }
-          }
+          let responseMessage = response;
+          this.globalService.setCoinUnit(responseMessage.coinTicker);
+          this.globalService.setNetwork(responseMessage.network);
         }
-      );
+      )
+    ;
   }
 }

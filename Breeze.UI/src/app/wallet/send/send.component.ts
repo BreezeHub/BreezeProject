@@ -110,40 +110,28 @@ export class SendComponent implements OnInit {
     }
   }
 
-  public getMaxBalance() {
-    const data = {
-      walletName: this.globalService.getWalletName(),
-      feeType: this.sendForm.get('fee').value
-    }
+  // public getMaxBalance() {
+  //   let data = {
+  //     walletName: this.globalService.getWalletName(),
+  //     feeType: this.sendForm.get("fee").value
+  //   }
 
-    let balanceResponse;
+  //   let balanceResponse;
 
-    this.apiService
-      .getMaximumBalance(data)
-      .subscribe(
-        response => {
-          if (response.status >= 200 && response.status < 400) {
-            balanceResponse = response.json();
-          }
-        },
-        error => {
-          console.log(error);
-          if (error.status === 0) {
-            this.apiError = 'Failed to get maximum balance. Reason: API is not responding or timing out.';
-          } else if (error.status >= 400) {
-            if (!error.json().errors[0]) {
-              Log.error(error);
-            } else {
-              this.apiError = Error.getMessage(error);
-            }
-          }
-        },
-        () => {
-          this.sendForm.patchValue({amount: +new CoinNotationPipe(this.globalService).transform(balanceResponse.maxSpendableAmount)});
-          this.estimatedFee = balanceResponse.fee;
-        }
-      )
-  };
+  //   this.apiService.getMaximumBalance(data)
+  //     .subscribe(
+  //       response => {
+  //           balanceResponse = response;
+  //       },
+  //       error => {
+  //         this.apiError = error.error.errors[0].message;
+  //       },
+  //       () => {
+  //         this.sendForm.patchValue({amount: +new CoinNotationPipe().transform(balanceResponse.maxSpendableAmount)});
+  //         this.estimatedFee = balanceResponse.fee;
+  //       }
+  //     )
+  // };
 
   public estimateFee() {
     const transaction = new FeeEstimation(
@@ -158,25 +146,10 @@ export class SendComponent implements OnInit {
     this.apiService.estimateFee(transaction)
       .subscribe(
         response => {
-          if (response.status >= 200 && response.status < 400) {
-            this.responseMessage = response.json();
-          }
+          this.estimatedFee = response;
         },
         error => {
-          console.log(error);
-          if (error.status === 0) {
-            this.genericModalService.openModal(
-              Error.toDialogOptions('Failed to estimate fee. Reason: API is not responding or timing out.', null));
-          } else if (error.status >= 400) {
-            if (!error.json().errors[0]) {
-              console.log(error);
-            } else {
-              this.apiError = Error.getMessage(error);
-            }
-          }
-        },
-        () => {
-          this.estimatedFee = this.responseMessage;
+          this.apiError = error.error.errors[0].message;
         }
       )
     ;
@@ -185,42 +158,30 @@ export class SendComponent implements OnInit {
   public buildTransaction() {
     this.transaction = new TransactionBuilding(
       this.globalService.getWalletName(),
-      'account 0',
-      this.sendForm.get('password').value,
-      this.sendForm.get('address').value.trim(),
-      this.sendForm.get('amount').value,
-      this.sendForm.get('fee').value,
-      true
+      "account 0",
+      this.sendForm.get("password").value,
+      this.sendForm.get("address").value.trim(),
+      this.sendForm.get("amount").value,
+      //this.sendForm.get("fee").value,
+      // TO DO: use coin notation
+      this.estimatedFee / 100000000,
+      true,
+      false
     );
 
     this.apiService
       .buildTransaction(this.transaction)
       .subscribe(
         response => {
-          if (response.status >= 200 && response.status < 400) {
-            console.log(response);
-            this.responseMessage = response.json();
-          }
-        },
-        error => {
-          console.log(error);
-          this.isSending = false;
-          if (error.status === 0) {
-            this.apiError = 'Failed to build transaction. Reason: API is not responding or timing out.';
-          } else if (error.status >= 400) {
-            if (!error.json().errors[0]) {
-              Log.error(error);
-            } else {
-              this.apiError = Error.getMessage(error);
-            }
-          }
-        },
-        () => {
-          this.estimatedFee = this.responseMessage.fee;
-          this.transactionHex = this.responseMessage.hex;
+          this.estimatedFee = response.fee;
+          this.transactionHex = response.hex;
           if (this.isSending) {
             this.sendTransaction(this.transactionHex);
           }
+        },
+        error => {
+          this.isSending = false;
+          this.apiError = error.error.errors[0].message;
         }
       )
     ;
@@ -237,24 +198,13 @@ export class SendComponent implements OnInit {
       .sendTransaction(transaction)
       .subscribe(
         response => {
-          if (response.status >= 200 && response.status < 400) {
-            this.activeModal.close('Close clicked');
-          }
+          this.activeModal.close("Close clicked");
+          this.openConfirmationModal()
         },
         error => {
-          console.log(error);
           this.isSending = false;
-          if (error.status === 0) {
-            this.apiError = 'Failed to send transaction. Reason: API is not responding or timing out.';
-          } else if (error.status >= 400) {
-            if (!error.json().errors[0]) {
-              Log.error(error);
-            } else {
-              this.apiError = Error.getMessage(error);
-            }
-          }
-        },
-        () => this.openConfirmationModal()
+          this.apiError = error.error.errors[0].message;
+        }
       )
     ;
   }

@@ -1,24 +1,69 @@
 import { Injectable } from '@angular/core';
-import { remote } from 'electron';
+import { ElectronService } from 'ngx-electron';
 
-@Injectable()
+@Injectable({
+  providedIn: 'root'
+})
 export class GlobalService {
+  private applicationVersion: string = "1.1.0";
   private walletPath: string;
+  private activeCoin: string = "Bitcoin";
   private currentWalletName: string;
-  private coinType: number;
-  private coinName: string;
   private coinUnit: string;
   private network: string;
+  private bitcoinApiPort: number;
+  private stratisApiPort: number;
+  private testnet: boolean = false;
 
-  constructor() {
+  constructor(private electronService: ElectronService) {
+    this.setApplicationVersion();
+    this.setTestnetEnabled();
+    this.setBitcoinApiPort();
+    this.setStratisApiPort();
   }
 
-  get bitcoinApiPort() {
-    return remote.getGlobal('bitcoinApiPort');
+  getApplicationVersion() {
+    return this.applicationVersion;
   }
 
-  get stratisApiPort() {
-    return remote.getGlobal('stratisApiPort');
+  setApplicationVersion() {
+    if (this.electronService.isElectronApp) {
+      this.applicationVersion = this.electronService.remote.app.getVersion();
+    }
+  }
+
+  getActiveCoin() {
+    return this.activeCoin;
+  }
+
+  setActiveCoin(activeCoin: string) {
+    this.activeCoin = activeCoin;
+  }
+
+  getTestnetEnabled() {
+    return this.testnet;
+  }
+
+  setTestnetEnabled() {
+    if (this.electronService.isElectronApp) {
+      this.testnet = this.electronService.ipcRenderer.sendSync('get-testnet');
+    }
+  }
+
+  getBitcoinApiPort() {
+    return this.bitcoinApiPort;
+  }
+
+  setBitcoinApiPort() {
+    this.bitcoinApiPort = this.electronService.remote.getGlobal('bitcoinApiPort');
+  }
+
+  getStratisApiPort() {
+    return this.stratisApiPort;
+  }
+
+  setStratisApiPort() {
+    this.stratisApiPort = this.electronService.remote.getGlobal('stratisApiPort');
   }
 
   getWalletPath() {
@@ -43,22 +88,6 @@ export class GlobalService {
 
   setWalletName(currentWalletName: string) {
     this.currentWalletName = currentWalletName;
-  }
-
-  getCoinType() {
-    return this.coinType;
-  }
-
-  setCoinType(coinType: number) {
-    this.coinType = coinType;
-  }
-
-  getCoinName() {
-    return this.coinName;
-  }
-
-  setCoinName(coinName: string) {
-    this.coinName = coinName;
   }
 
   getCoinUnit() {

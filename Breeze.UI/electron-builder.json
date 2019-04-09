@@ -1,18 +1,31 @@
 {
   "appId": "com.stratisplatform.breeze",
-  "productName": "Breeze Wallet",
+  "productName": "Breeze",
   "publish": null,
   "directories": {
-    "app": "dist",
-    "output": "app-builds",
-    "buildResources": "dist/assets/images"
+    "output": "app-builds"
   },
+  "files": [
+    "**/*",
+    "!**/*.ts",
+    "!*.code-workspace",
+    "!LICENSE.md",
+    "!package.json",
+    "!package-lock.json",
+    "!src/",
+    "!e2e/",
+    "!angular.json",
+    "!_config.yml",
+    "!karma.conf.js",
+    "!tsconfig.json",
+    "!tslint.json"
+  ],
   "win": {
     "icon": "dist/assets/images/icon",
     "target": [
       "nsis"
     ],
-    "artifactName": "${productName}-v${version}-setup-${os}-${env.arch}.${ext}"
+    "artifactName": "${productName}-v${version}-setup-${os}-${arch}.${ext}"
   },
   "linux": {
     "icon": "dist/assets/images/",
@@ -20,11 +33,12 @@
       "deb",
       "tar.gz"
     ],
-    "synopsis": "Breeze Wallet: Stratis' dual-currency full block light wallet with a strong focus on privacy.",
+    "synopsis": "Breeze: Bitcoin and Stratis wallet focused on privacy.",
     "category": "Utility",
     "artifactName": "${productName}-v${version}-${os}-${arch}.${ext}"
   },
   "mac": {
+    "icon": "dist/assets/images/icon.icns",
     "target": [
       "dmg"
     ],
@@ -36,17 +50,17 @@
     "perMachine": true,
     "allowToChangeInstallationDirectory": true,
     "deleteAppDataOnUninstall": true,
-    "guid": "ed20df62-ff5a-4b83-a5e3-a361357c6e51",
+    "guid": "ef77eb40-01cf-4516-9da6-f3c6ba6854aa",
     "createDesktopShortcut": true,
     "createStartMenuShortcut": true,
-	  "license": "../Licenses/breeze-license.txt"
+    "license": "src/assets/images/license_en.txt"
   },
   "msi": {
     "warningsAsErrors": false
   },
   "extraResources": [
     "daemon/**/*",
-    "src/assets/images/breeze-logo-tray.png",
+    "src/assets/images/icon-tray.png",
     "src/assets/images/license_en.txt"
   ]
 }
