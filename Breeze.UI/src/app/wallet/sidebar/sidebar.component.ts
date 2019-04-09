@@ -4,6 +4,7 @@ import { LogoutConfirmationComponent } from '../logout-confirmation/logout-confi
 import { Router } from '@angular/router';
 
 import { GlobalService } from '../../shared/services/global.service';
+import { ApiService } from '../../shared/services/api.service';
 
 @Component({
   selector: 'sidebar',
@@ -17,7 +18,8 @@ export class SidebarComponent implements OnInit {
   constructor(
     private globalService: GlobalService,
     private router: Router,
-    private modalService: NgbModal) { }
+    private modalService: NgbModal,
+    private apiService: ApiService) { }
 
 
   ngOnInit() {
@@ -33,16 +35,32 @@ export class SidebarComponent implements OnInit {
   public loadBitcoinWallet() {
     this.bitcoinActive = true;
     this.stratisActive = false;
+    this.globalService.setActiveCoin('Bitcoin');
+    this.setNetwork();
     this.router.navigate(['/wallet']);
   }
 
   public loadStratisWallet() {
     this.bitcoinActive = false;
     this.stratisActive = true;
+    this.globalService.setActiveCoin('Stratis');
+    this.setNetwork();
     this.router.navigate(['/stratis-wallet']);
   }
 
   public logOut() {
     this.modalService.open(LogoutConfirmationComponent, { backdrop: 'static' });
+  }
+
+  private setNetwork() {
+    this.apiService.getNodeStatus()
+      .subscribe(
+        response => {
+          let responseMessage = response;
+          this.globalService.setCoinUnit(responseMessage.coinTicker);
+          this.globalService.setNetwork(responseMessage.network);
+        }
+      )
+    ;
   }
 }

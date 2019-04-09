@@ -62,5 +62,4 @@ export class AppComponent implements OnInit {
     let newTitle = applicationName + " " + applicationVersion;
     this.titleService.setTitle(newTitle);
   }
-
 }

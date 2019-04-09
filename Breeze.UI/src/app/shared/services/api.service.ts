@@ -27,17 +27,17 @@ export class ApiService {
   private bitcoinApiUrl = this.getBitcoinApiUrl();
   private stratisApiUrl = this.getStratisApiUrl();
   private pollingInterval = interval(5000);
-  private static isBitcoin(network: string): boolean {
-    return network === 'MainNet' || network === 'TestNet';
+  private static isBitcoin(activeCoin: string): boolean {
+    return activeCoin === 'Bitcoin';
   }
-  private static isStratis(network: string): boolean {
-    return network === 'StratisMain' || network === 'StratisTest';
+  private static isStratis(activeCoin: string): boolean {
+    return activeCoin === 'Stratis';
   }
   private getCurrentNetwork() {
-    const currentNetwork = this.globalService.getNetwork();
-    if (ApiService.isBitcoin(currentNetwork)) {
+    const activeCoin = this.globalService.getActiveCoin();
+    if (ApiService.isBitcoin(activeCoin)) {
       this._currentApiUrl = this.getBitcoinApiUrl();
-    } else if (ApiService.isStratis(currentNetwork)) {
+    } else if (ApiService.isStratis(activeCoin)) {
       this._currentApiUrl = this.getStratisApiUrl();
     }
   }
@@ -59,6 +59,7 @@ export class ApiService {
   }
 
   getNodeStatus(silent?: boolean): Observable<NodeStatus> {
+    this.getCurrentNetwork();
     return this.http.get<NodeStatus>(this._currentApiUrl + '/node/status').pipe(
       catchError(err => this.handleHttpError(err, silent))
     );
