@@ -85,6 +85,10 @@ if (args.some(val => val.indexOf("--tumblerProtocol=") == 0 || val.indexOf("-tum
 	tumblerProtocol = args.filter(val => val.indexOf("--tumblerProtocol=") == 0 || val.indexOf("-tumblerProtocol=") == 0)[0].split("=")[1];
 }
 
+ipcMain.on('get-testnet', (event, arg) => {
+  event.returnValue = testnet;
+});
+
 require('electron-context-menu')({
   showInspectElement: serve
 });
