@@ -73,9 +73,9 @@ export class HistoryComponent implements OnInit, OnDestroy {
       .subscribe(
         response => {
           if (response.status >= 200 && response.status < 400) {
-            if (response.json().transactionsHistory.length > 0) {
+            if (response.transactionsHistory.length > 0) {
               if (!this.isSearching) {
-                historyResponse = response.json().transactionsHistory;
+                historyResponse = response.transactionsHistory;
                 this.getTransactionInfo(historyResponse);
               }
             }

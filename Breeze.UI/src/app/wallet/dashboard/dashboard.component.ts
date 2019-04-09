@@ -62,7 +62,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.walletBalanceSubscription = this.apiService.getWalletBalance(walletInfo)
       .subscribe(
         response => {
-          const balanceResponse = response.json();
+          const balanceResponse = response;
           this.confirmedBalance = balanceResponse.balances[0].amountConfirmed;
           this.unconfirmedBalance = balanceResponse.balances[0].amountUnconfirmed;
         },
@@ -87,8 +87,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.walletHistorySubscription = this.apiService.getWalletHistory(walletInfo)
       .subscribe(
         response => {
-          if (response.transactionsHistory.length > 0) {
-            historyResponse = response.json().transactionsHistory;
+          if (!!response.history && response.history[0].transactionsHistory.length > 0) {
+            historyResponse = response.history[0].transactionsHistory;
             this.getTransactionInfo(historyResponse);
           }
         },

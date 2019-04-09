@@ -265,7 +265,7 @@ export class TumblebitComponent implements OnDestroy {
             if (!this.progressSubscription) {
               this.getProgress();
             }
-            this.destinationWalletName = response.json().destinationWallet;
+            this.destinationWalletName = response.destinationWallet;
             this.getDestinationWalletBalance();
           }
         },
@@ -295,7 +295,7 @@ export class TumblebitComponent implements OnDestroy {
         // TODO abstract into shared utility method
         response => {
           this.connectionFatalError = response.status >= 400;
-          this.tumblerParameters = response.json();
+          this.tumblerParameters = response;
           this.tumblerAddress = this.tumblerParameters.tumbler
           this.estimate = this.tumblerParameters.estimate;
           this.fee = this.tumblerParameters.fee;
@@ -339,7 +339,7 @@ export class TumblebitComponent implements OnDestroy {
           if (error.status === 0 && !this.connectionFatalError) {
 
           } else if (error.status >= 400) {
-            if (!error.json().errors[0]) {
+            if (!error.errors[0]) {
               console.error(error);
             } else {
               this.router.navigate(['/wallet']);
@@ -410,7 +410,7 @@ export class TumblebitComponent implements OnDestroy {
       .subscribe(
         response => {
           if (response.status >= 200 && response.status < 400) {
-            const responseArray = response.json().cycleProgressInfoList;
+            const responseArray = response.cycleProgressInfoList;
             if (responseArray) {
               this.progressDataArray = [];
               const responseData = responseArray;
@@ -509,7 +509,7 @@ export class TumblebitComponent implements OnDestroy {
         response =>  {
           if (response.status >= 200 && response.status < 400) {
             var milli = new Date().getMilliseconds();
-            const balanceResponse = response.json();
+            const balanceResponse = response;
             this.confirmedBalance = balanceResponse.balances[0].amountConfirmed;
             this.unconfirmedBalance = balanceResponse.balances[0].amountUnconfirmed;
             this.totalBalance = this.confirmedBalance + this.unconfirmedBalance;
@@ -529,7 +529,7 @@ export class TumblebitComponent implements OnDestroy {
       .subscribe(
         response =>  {
           if (response.status >= 200 && response.status < 400) {
-            const balanceResponse = response.json();
+            const balanceResponse = response;
             this.destinationConfirmedBalance = balanceResponse.balances[0].amountConfirmed;
             this.destinationUnconfirmedBalance = balanceResponse.balances[0].amountUnconfirmed;
             this.destinationTotalBalance = this.destinationConfirmedBalance + this.destinationUnconfirmedBalance;
@@ -545,7 +545,7 @@ export class TumblebitComponent implements OnDestroy {
       .subscribe(
         response => {
           if (response.status >= 200 && response.status < 400) {
-            const responseMessage = response.json();
+            const responseMessage = response;
             this.wallets = responseMessage.walletsFiles;
             if (this.wallets.length > 0) {
               for (const wallet in this.wallets) {
