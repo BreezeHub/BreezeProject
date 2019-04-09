@@ -7,7 +7,9 @@ import { ConnectRequest } from './classes/connect-request';
 import { GlobalService } from '../../shared/services/global.service';
 import { ServiceShared } from '../../shared/services/shared';
 
-@Injectable()
+@Injectable({
+  providedIn: 'root'
+})
 export class TumblebitService {
 
   // The service to connect to & operate a TumbleBit Server via the

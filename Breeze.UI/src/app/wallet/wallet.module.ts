@@ -11,6 +11,12 @@ import { SidebarComponent } from './sidebar/sidebar.component';
 import { StatusBarComponent } from './status-bar/status-bar.component';
 import { ConnectionProgressComponent } from './tumblebit/connection-progress/connection-progress.component';
 import { SharedModule } from '../shared/shared.module';
+import { LicenseAgreementComponent } from './license-agreement/license-agreement.component';
+import { LogoutConfirmationComponent } from './logout-confirmation/logout-confirmation.component';
+import { ReceiveComponent } from './receive/receive.component';
+import { SendComponent } from './send/send.component';
+import { SendConfirmationComponent } from './send/send-confirmation/send-confirmation.component';
+import { TransactionDetailsComponent } from './transaction-details/transaction-details.component';
 
 @NgModule({
   imports: [
@@ -25,9 +31,22 @@ import { SharedModule } from '../shared/shared.module';
     HistoryComponent,
     SidebarComponent,
     StatusBarComponent,
-    ConnectionProgressComponent
+    ConnectionProgressComponent,
+    LicenseAgreementComponent,
+    LogoutConfirmationComponent,
+    ReceiveComponent,
+    SendComponent,
+    SendConfirmationComponent,
+    TransactionDetailsComponent,
+    TumblebitComponent
   ],
-  exports: []
+  entryComponents: [
+    SendComponent,
+    SendConfirmationComponent,
+    ReceiveComponent,
+    TransactionDetailsComponent,
+    LogoutConfirmationComponent
+  ]
 })
 
 export class WalletModule { }

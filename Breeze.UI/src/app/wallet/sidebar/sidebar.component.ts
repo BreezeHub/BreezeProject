@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { NgbModal, NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
+import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { LogoutConfirmationComponent } from '../logout-confirmation/logout-confirmation.component';
 import { Router } from '@angular/router';
 
@@ -43,6 +43,6 @@ export class SidebarComponent implements OnInit {
   }
 
   public logOut() {
-    const modalRef = this.modalService.open(LogoutConfirmationComponent);
+    this.modalService.open(LogoutConfirmationComponent, { backdrop: 'static' });
   }
 }
